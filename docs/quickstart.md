@@ -28,6 +28,30 @@ STATICFILES_FINDERS = [
 
 This serves `.css` and `.js` files from each installed app's `components/` directory under the URL namespace `{app_label}/components/...`. Python files, HTML templates, and all other file types are never exposed as static assets.
 
+### Gallery
+
+Enable the gallery UI (the auto-discovered and always up-to-date demo and documentation). In production you might want to restrict
+this to an admin-only URL.
+
+> N.B. All dj_design_system settings are contained within this settings dictionary.
+
+```python
+DJ_DESIGN_SYSTEM = {
+    "ENABLE_GALLERY": True,
+    "GALLERY_IS_PUBLIC": False,
+}
+```
+
+Include the gallery URLs in your project:
+
+```python
+from django.urls import include, path
+
+urlpatterns = [
+    path("design-system/", include("dj_design_system.urls")),
+]
+```
+
 ### Template loader (HTML templates)
 
 To use co-located `.html` templates for components, add `ComponentsTemplateLoader` to your `TEMPLATES` loader list. Because Django does not support mixing `APP_DIRS: True` with a custom `loaders` list, you must switch to an explicit loader configuration:

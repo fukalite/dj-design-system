@@ -68,14 +68,14 @@ class DjangoDesignSystemSettings:
     GALLERY_CODEHILITE_STYLE: str
 
     def __getattr__(self, attr: str):
-        django_settings = getattr(settings, "dj_design_system", {})
+        django_settings = getattr(settings, "DJ_DESIGN_SYSTEM", {})
 
         if attr in django_settings:
             value = django_settings[attr]
         else:
             # Check if present in defaults
             if attr not in DEFAULTS:
-                raise AttributeError(f"No value set for dj_design_system['{attr}']")
+                raise AttributeError(f"No value set for DJ_DESIGN_SYSTEM['{attr}']")
             value = DEFAULTS[attr]
 
         if attr in _PATH_LIST_SETTINGS:

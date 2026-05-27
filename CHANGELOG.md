@@ -20,4 +20,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Auto-generated templatetag usage examples from parameter definitions
 - `ComponentsStaticFinder` to serve per-component CSS/JS via Django staticfiles
 - Markdown documentation pages auto-discovered alongside components
-- Configurable canvas backgrounds, toolbar, and gallery settings via `dj_design_system` Django settings dict
+- Configurable canvas backgrounds, toolbar, and gallery settings via `DJ_DESIGN_SYSTEM` Django settings dict
