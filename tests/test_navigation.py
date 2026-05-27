@@ -674,13 +674,13 @@ class TestNavSortOrder:
         ],
     )
     def test_custom_order(self, tmp_path, settings, order, expected):
-        settings.dj_design_system = {"GALLERY_NAV_ORDER": order}
+        settings.DJ_DESIGN_SYSTEM = {"GALLERY_NAV_ORDER": order}
         tree = self._build_mixed_tree(tmp_path)
         labels = self._child_labels(tree)
         assert labels == expected
 
     def test_alphabetical_ignores_type(self, tmp_path, settings):
-        settings.dj_design_system = {"GALLERY_NAV_ORDER": "alphabetical"}
+        settings.DJ_DESIGN_SYSTEM = {"GALLERY_NAV_ORDER": "alphabetical"}
         tree = self._build_mixed_tree(tmp_path)
         labels = self._child_labels(tree)
         assert labels == ["Alpha", "Beta guide", "Zebra"]

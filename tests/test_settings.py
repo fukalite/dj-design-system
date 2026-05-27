@@ -14,7 +14,7 @@ class TestGetDefaultBackground:
         assert "color" in bg
 
     @override_settings(
-        dj_design_system={
+        DJ_DESIGN_SYSTEM={
             "GALLERY_CANVAS_BACKGROUNDS": {
                 "warm": {"label": "Warm", "color": "#fff1e0"}
             },
@@ -27,7 +27,7 @@ class TestGetDefaultBackground:
         assert bg["value"] == "warm"
 
     @override_settings(
-        dj_design_system={
+        DJ_DESIGN_SYSTEM={
             "GALLERY_CANVAS_BACKGROUNDS": {},
             "GALLERY_CANVAS_EXTRA_BACKGROUNDS": {},
             "GALLERY_CANVAS_DEFAULT_BACKGROUND": "nonexistent",
