@@ -55,7 +55,7 @@ class TestCanvasIframeView:
         assert "</html>" in content
 
     @override_settings(
-        dj_design_system={
+        DJ_DESIGN_SYSTEM={
             "GALLERY_CANVAS_BACKGROUNDS": BUILTIN_CANVAS_BACKGROUNDS,
             "GALLERY_CANVAS_DEFAULT_BACKGROUND": "light-grey",
         }
@@ -68,7 +68,7 @@ class TestCanvasIframeView:
         assert "canvas-bg-light-grey" in content
 
     @override_settings(
-        dj_design_system={
+        DJ_DESIGN_SYSTEM={
             "GALLERY_CANVAS_BACKGROUNDS": BUILTIN_CANVAS_BACKGROUNDS,
             "GALLERY_CANVAS_DEFAULT_BACKGROUND": "light-grey",
         }
@@ -83,7 +83,7 @@ class TestCanvasIframeView:
         assert "canvas-bg-dark-grey" in content
 
     @override_settings(
-        dj_design_system={
+        DJ_DESIGN_SYSTEM={
             "GALLERY_CANVAS_BACKGROUNDS": BUILTIN_CANVAS_BACKGROUNDS,
             "GALLERY_CANVAS_DEFAULT_BACKGROUND": "light-grey",
         }

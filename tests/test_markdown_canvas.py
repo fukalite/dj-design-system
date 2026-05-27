@@ -328,7 +328,7 @@ class TestCodehilite:
         assert "gallery-highlight" in result
         assert "<span" in result
 
-    @override_settings(dj_design_system={"GALLERY_CODEHILITE_STYLE": ""})
+    @override_settings(DJ_DESIGN_SYSTEM={"GALLERY_CODEHILITE_STYLE": ""})
     def test_codehilite_disabled_when_style_empty(self):
         from dj_design_system.settings import dds_settings
 

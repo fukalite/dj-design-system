@@ -17,6 +17,7 @@ env/
 .ruff_cache/
 .tox/
 uv.lock
+.tool-versions
 
 # Build outputs
 dist/

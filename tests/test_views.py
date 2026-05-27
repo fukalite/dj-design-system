@@ -521,13 +521,13 @@ class TestToolbarButtons:
 class TestGalleryAccessRequired:
     """Test the gallery_access_required decorator when gallery is not public."""
 
-    @override_settings(dj_design_system={"GALLERY_IS_PUBLIC": False})
+    @override_settings(DJ_DESIGN_SYSTEM={"GALLERY_IS_PUBLIC": False})
     def test_unauthenticated_redirects(self, client):
         response = client.get(reverse("gallery"))
         assert response.status_code == 302
         assert "/accounts/login/" in response["Location"]
 
-    @override_settings(dj_design_system={"GALLERY_IS_PUBLIC": False})
+    @override_settings(DJ_DESIGN_SYSTEM={"GALLERY_IS_PUBLIC": False})
     def test_authenticated_without_permission_is_forbidden(
         self, client, django_user_model
     ):
@@ -536,7 +536,7 @@ class TestGalleryAccessRequired:
         response = client.get(reverse("gallery"))
         assert response.status_code == 403
 
-    @override_settings(dj_design_system={"GALLERY_IS_PUBLIC": False})
+    @override_settings(DJ_DESIGN_SYSTEM={"GALLERY_IS_PUBLIC": False})
     def test_authenticated_with_permission_allowed(self, client, django_user_model):
         user = django_user_model.objects.create_user(username="privileged")
         perm = Permission.objects.get(codename="can_view_gallery")
@@ -554,7 +554,7 @@ class TestGalleryAccessRequired:
 class TestRenderMarkdown:
     """Test _render_markdown internals."""
 
-    @override_settings(dj_design_system={"GALLERY_CODEHILITE_STYLE": ""})
+    @override_settings(DJ_DESIGN_SYSTEM={"GALLERY_CODEHILITE_STYLE": ""})
     def test_no_codehilite_when_style_empty(self, client):
         """A document page renders without codehilite when the style is empty."""
 
@@ -591,7 +591,7 @@ class TestCanvasHtmlAttrs:
     """Test that GALLERY_CANVAS_HTML_ATTRS is reflected in the canvas iframe."""
 
     @override_settings(
-        dj_design_system={
+        DJ_DESIGN_SYSTEM={
             "GALLERY_CANVAS_HTML_ATTRS": {
                 "html": {"class": "govuk-template"},
                 "body": {"class": "govuk-template__body"},
