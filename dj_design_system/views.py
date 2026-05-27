@@ -20,10 +20,6 @@ from dj_design_system.services.canvas import (
     resolve_from_get_params,
 )
 from dj_design_system.services.markdown_canvas import CanvasExtension
-from dj_design_system.services.media import (
-    build_link_tags,
-    build_script_tags,
-)
 from dj_design_system.services.navigation import (
     build_breadcrumbs,
     build_navigation,
@@ -190,13 +186,31 @@ def _render_component(request, context, node, app_label, path_parts):
         form_kwargs = {}
         sandbox_spec = tag_signature.maximal_spec
 
+    # Themes support
+    from dj_design_system.settings import get_default_theme, get_theme
+
+    available_theme_values = component_class.get_available_themes()
+    available_themes = [get_theme(t) for t in available_theme_values if get_theme(t)]
+    active_theme = request.GET.get("theme")
+    if active_theme not in available_theme_values:
+        default_theme_val = get_default_theme()["value"]
+        active_theme = (
+            default_theme_val
+            if default_theme_val in available_theme_values
+            else available_theme_values[0]
+        )
+
     canvas_base_url = reverse("gallery-canvas-iframe")
-    canvas_iframe_url = build_canvas_url(sandbox_spec, canvas_base_url)
+    canvas_iframe_url = (
+        build_canvas_url(sandbox_spec, canvas_base_url) + f"&theme={active_theme}"
+    )
     minimal_preview_url = (
-        build_canvas_url(tag_signature.minimal_spec, canvas_base_url) + "&mode=basic"
+        build_canvas_url(tag_signature.minimal_spec, canvas_base_url)
+        + f"&mode=basic&theme={active_theme}"
     )
     maximal_preview_url = (
-        build_canvas_url(tag_signature.maximal_spec, canvas_base_url) + "&mode=basic"
+        build_canvas_url(tag_signature.maximal_spec, canvas_base_url)
+        + f"&mode=basic&theme={active_theme}"
     )
 
     # Annotate params with type_name for the template.
@@ -284,6 +298,8 @@ def _render_component(request, context, node, app_label, path_parts):
     context["minimal_preview_url"] = minimal_preview_url
     context["maximal_preview_url"] = maximal_preview_url
     context["canvas_backgrounds"] = get_backgrounds()
+    context["available_themes"] = available_themes
+    context["active_theme"] = active_theme
     context["breadcrumbs"] = build_breadcrumbs(
         app_label,
         path_parts[:-1] if path_parts else [],
@@ -352,11 +368,76 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
             context,
         )
 
+    from dj_design_system.services.canvas import _resolve_component
+
+    info = _resolve_component(spec.component_name, component_registry)
+    app_label = info.app_label
+    component_class = info.component_class
+
+    available_theme_values = component_class.get_available_themes()
+    theme_val = request.GET.get("theme")
+    from dj_design_system.services.media import get_bundle_urls
+    from dj_design_system.settings import get_app_static, get_default_theme, get_theme
+
+    if theme_val not in available_theme_values:
+        default_theme_val = get_default_theme()["value"]
+        theme_val = (
+            default_theme_val
+            if default_theme_val in available_theme_values
+            else available_theme_values[0]
+        )
+
+    theme_dict = get_theme(theme_val)
+
+    # Theme CSS & JS
+    theme_css = theme_dict["css"] if theme_dict else []
+    theme_js = theme_dict["js"] if theme_dict else []
+    theme_css_bundles = (
+        get_bundle_urls(theme_dict.get("css_bundles", []), "css") if theme_dict else []
+    )
+    theme_js_bundles = (
+        get_bundle_urls(theme_dict.get("js_bundles", []), "js") if theme_dict else []
+    )
+
+    # App CSS & JS
+    app_css, app_js = get_app_static(app_label)
+    app_css_bundles = get_bundle_urls(
+        dds_settings.APP_CSS_BUNDLES.get(app_label, []), "css"
+    )
+    app_js_bundles = get_bundle_urls(
+        dds_settings.APP_JS_BUNDLES.get(app_label, []), "js"
+    )
+
     media = get_component_media(spec, component_registry)
     context["rendered_html"] = render_component(spec, component_registry)
-    context["component_css"] = build_link_tags(media.css)
-    context["component_js"] = build_script_tags(media.js)
-    context["html_attrs"], context["body_attrs"] = _canvas_html_attrs()
+
+    # Combine CSS and JS urls
+    from django.templatetags.static import static
+
+    all_css_urls = (
+        theme_css_bundles
+        + [static(p) for p in theme_css]
+        + app_css_bundles
+        + [static(p) for p in app_css]
+        + [static(p) for p in media.css]
+    )
+    all_js_urls = (
+        theme_js_bundles
+        + [static(p) for p in theme_js]
+        + app_js_bundles
+        + [static(p) for p in app_js]
+        + [static(p) for p in media.js]
+    )
+
+    context["component_css"] = "".join(
+        f'<link rel="stylesheet" href="{u}">' for u in all_css_urls
+    )
+    context["component_js"] = "".join(
+        f'<script src="{u}"></script>' for u in all_js_urls
+    )
+    context["html_attrs"], context["body_attrs"] = _canvas_html_attrs(
+        theme_dict, app_label
+    )
 
     return render(
         request,
@@ -409,10 +490,27 @@ def _flatten_attrs(attrs: dict[str, str]) -> str:
     return format_html(" {}", parts)
 
 
-def _canvas_html_attrs() -> tuple[str, str]:
-    """Return ``(html_attrs, body_attrs)`` strings from settings."""
+def _canvas_html_attrs(
+    theme_dict: dict = None, app_label: str = None
+) -> tuple[str, str]:
+    """Return ``(html_attrs, body_attrs)`` strings from settings, theme, and app."""
     raw = dds_settings.GALLERY_CANVAS_HTML_ATTRS
-    return _flatten_attrs(raw.get("html", {})), _flatten_attrs(raw.get("body", {}))
+    html_dict = dict(raw.get("html", {}))
+    body_dict = dict(raw.get("body", {}))
+
+    if theme_dict:
+        theme_raw = theme_dict.get("html_attrs", {})
+        html_dict.update(theme_raw.get("html", {}))
+        body_dict.update(theme_raw.get("body", {}))
+
+    if app_label:
+        from dj_design_system.settings import get_app_html_attrs
+
+        app_raw = get_app_html_attrs(app_label)
+        html_dict.update(app_raw.get("html", {}))
+        body_dict.update(app_raw.get("body", {}))
+
+    return _flatten_attrs(html_dict), _flatten_attrs(body_dict)
 
 
 @gallery_access_required

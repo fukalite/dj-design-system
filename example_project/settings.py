@@ -82,4 +82,23 @@ dj_design_system = {
     "DESIGN_SYSTEM_NAME": "Example Component Library",
     "GALLERY_IS_PUBLIC": True,
     "GLOBAL_CSS": ["example_project/demo.css"],
+    "GALLERY_THEMES": {
+        "default": {
+            "label": "Default Theme",
+            "html_attrs": {"html": {"data-theme": "default"}},
+            "css": ["example_project/theme-default.css"],
+        },
+        "dark": {
+            "label": "Dark Theme",
+            "html_attrs": {"html": {"data-theme": "dark"}},
+            "css": ["example_project/theme-dark.css"],
+        },
+    },
+    "GALLERY_DEFAULT_THEME": "default",
+    "APP_CSS": {
+        "demo_components": ["example_project/app-demo.css"],
+    },
+    "APP_CANVAS_HTML_ATTRS": {
+        "demo_components": {"body": {"class": "demo-components-body"}},
+    },
 }

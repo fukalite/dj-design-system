@@ -71,6 +71,79 @@ class CanvasNode(template.Node):
         )
         mode_class = context.get("_canvas_mode_class", "canvas-wrapper--basic")
 
+        # Resolve Theme and App details
+        theme_val = context.get("active_theme")
+        if not theme_val:
+            request = context.get("request")
+            if request:
+                theme_val = request.GET.get("theme")
+        if not theme_val:
+            from dj_design_system.settings import get_default_theme
+
+            theme_val = get_default_theme()["value"]
+
+        app_label = None
+        component_info = context.get("component_info")
+        if component_info:
+            app_label = component_info.app_label
+
+        from dj_design_system.settings import get_app_static, get_theme
+
+        theme_dict = get_theme(theme_val)
+
+        # Theme and App specific stylesheets/scripts
+        theme_css = theme_dict["css"] if theme_dict else []
+        theme_js = theme_dict["js"] if theme_dict else []
+        theme_css_bundles = (
+            get_bundle_urls(theme_dict.get("css_bundles", []), "css")
+            if theme_dict
+            else []
+        )
+        theme_js_bundles = (
+            get_bundle_urls(theme_dict.get("js_bundles", []), "js")
+            if theme_dict
+            else []
+        )
+
+        app_css = []
+        app_js = []
+        app_css_bundles = []
+        app_js_bundles = []
+        if app_label:
+            app_css, app_js = get_app_static(app_label)
+            from dj_design_system.settings import dds_settings
+
+            app_css_bundles = get_bundle_urls(
+                dds_settings.APP_CSS_BUNDLES.get(app_label, []), "css"
+            )
+            app_js_bundles = get_bundle_urls(
+                dds_settings.APP_JS_BUNDLES.get(app_label, []), "js"
+            )
+
+        theme_css_tags = "".join(
+            f'<link rel="stylesheet" href="{static(p)}">' for p in theme_css
+        )
+        theme_css_bundles_tags = "".join(
+            f'<link rel="stylesheet" href="{u}">' for u in theme_css_bundles
+        )
+        app_css_tags = "".join(
+            f'<link rel="stylesheet" href="{static(p)}">' for p in app_css
+        )
+        app_css_bundles_tags = "".join(
+            f'<link rel="stylesheet" href="{u}">' for u in app_css_bundles
+        )
+
+        theme_js_tags = "".join(
+            f'<script src="{static(p)}"></script>' for p in theme_js
+        )
+        theme_js_bundles_tags = "".join(
+            f'<script src="{u}"></script>' for u in theme_js_bundles
+        )
+        app_js_tags = "".join(f'<script src="{static(p)}"></script>' for p in app_js)
+        app_js_bundles_tags = "".join(
+            f'<script src="{u}"></script>' for u in app_js_bundles
+        )
+
         bg_styles = (
             "<style>"
             + "".join(
@@ -95,20 +168,24 @@ class CanvasNode(template.Node):
 
         iframe_doc = (
             "<!DOCTYPE html>"
-            f'<html lang="en"{self._html_attrs()}>'
+            f'<html lang="en"{self._html_attrs(theme_dict, app_label)}>'
             "<head>"
             '<meta charset="utf-8">'
             '<meta name="viewport" content="width=device-width, initial-scale=1">'
             f"{global_css}"
             f"{canvas_css_tag}"
+            f"{theme_css_bundles_tags}{theme_css_tags}"
+            f"{app_css_bundles_tags}{app_css_tags}"
             f"{component_css}"
             f"{bg_styles}"
             "</head>"
-            f"<body{self._body_attrs()}>"
+            f"<body{self._body_attrs(theme_dict, app_label)}>"
             f'<div class="canvas-wrapper {mode_class} {bg_class}">'
             f"{rendered_component}"
             "</div>"
             f"{component_js}"
+            f"{theme_js_bundles_tags}{theme_js_tags}"
+            f"{app_js_bundles_tags}{app_js_tags}"
             f"{resize_script}"
             "</body>"
             "</html>"
@@ -134,13 +211,27 @@ class CanvasNode(template.Node):
             return ""
         return " " + " ".join(f'{k}="{html.escape(v)}"' for k, v in attrs.items())
 
-    def _html_attrs(self) -> str:
+    def _html_attrs(self, theme_dict=None, app_label=None) -> str:
         raw = dds_settings.GALLERY_CANVAS_HTML_ATTRS
-        return self._flatten_attrs(raw.get("html", {}))
+        html_dict = dict(raw.get("html", {}))
+        if theme_dict:
+            html_dict.update(theme_dict.get("html_attrs", {}).get("html", {}))
+        if app_label:
+            from dj_design_system.settings import get_app_html_attrs
 
-    def _body_attrs(self) -> str:
+            html_dict.update(get_app_html_attrs(app_label).get("html", {}))
+        return self._flatten_attrs(html_dict)
+
+    def _body_attrs(self, theme_dict=None, app_label=None) -> str:
         raw = dds_settings.GALLERY_CANVAS_HTML_ATTRS
-        return self._flatten_attrs(raw.get("body", {}))
+        body_dict = dict(raw.get("body", {}))
+        if theme_dict:
+            body_dict.update(theme_dict.get("html_attrs", {}).get("body", {}))
+        if app_label:
+            from dj_design_system.settings import get_app_html_attrs
+
+            body_dict.update(get_app_html_attrs(app_label).get("body", {}))
+        return self._flatten_attrs(body_dict)
 
 
 @register.tag("canvas")

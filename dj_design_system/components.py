@@ -208,6 +208,30 @@ class BaseComponent:
         positional = getattr(meta, "positional_args", None)
         return list(positional) if positional else []
 
+    @classmethod
+    def get_available_themes(cls) -> list[str]:
+        """Return the list of theme values supported by this component.
+
+        Cascade logic:
+        1. Check cls.Meta.available_themes if defined directly.
+        2. Check APP_THEMES in settings for the component's app label.
+        3. Fall back to all keys in GALLERY_THEMES.
+        """
+        from dj_design_system.services.component import get_own_meta
+        from dj_design_system.settings import dds_settings, get_themes
+
+        meta = get_own_meta(cls)
+        available = getattr(meta, "available_themes", None)
+        if available is not None:
+            return list(available)
+
+        app_label = cls.get_app_label()
+        app_themes = dds_settings.APP_THEMES.get(app_label)
+        if app_themes is not None:
+            return list(app_themes)
+
+        return [t["value"] for t in get_themes()]
+
     @staticmethod
     def map_positional_args(
         positional_args: list[str], args: tuple, kwargs: dict

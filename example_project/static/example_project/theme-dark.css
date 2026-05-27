@@ -1,0 +1,10 @@
+/* Dark theme CSS */
+:root {
+  --theme-bg-color: #1a1a1a;
+  --theme-text-color: #f5f5f5;
+}
+html[data-theme="dark"] .canvas-wrapper {
+  background-color: #1a1a1a !important;
+  color: #f5f5f5 !important;
+  border: 4px double #ffc107;
+}

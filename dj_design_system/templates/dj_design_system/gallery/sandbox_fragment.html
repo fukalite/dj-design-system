@@ -20,6 +20,7 @@
               hx-target="closest [data-gallery-sandbox-body]"
               hx-swap="innerHTML"
               hx-trigger="change delay:400ms, keyup delay:400ms from:input, keyup delay:400ms from:textarea">
+            <input type="hidden" name="theme" value="{{ active_theme }}">
             {% for row in param_rows %}
                 <div class="gallery-params-form__row">
                     <label class="gallery-params-form__label" for="{{ row.field.id_for_label }}">
