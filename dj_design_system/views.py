@@ -498,7 +498,7 @@ def _flatten_attrs(attrs: dict[str, str]) -> str:
 
 
 def _canvas_html_attrs(
-    theme_dict: dict = None, app_label: str = None
+    theme_dict: dict | None = None, app_label: str | None = None
 ) -> tuple[str, str]:
     """Return ``(html_attrs, body_attrs)`` strings from settings, theme, and app."""
     raw = dds_settings.GALLERY_CANVAS_HTML_ATTRS

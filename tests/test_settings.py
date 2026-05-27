@@ -49,7 +49,7 @@ class TestThemeSettings:
         assert themes[0]["value"] == "default"
 
     @override_settings(
-        dj_design_system={
+        DJ_DESIGN_SYSTEM={
             "GALLERY_THEMES": {
                 "custom": {
                     "label": "Custom",
@@ -73,7 +73,7 @@ class TestThemeSettings:
         assert default_theme["value"] == "custom"
 
     @override_settings(
-        dj_design_system={
+        DJ_DESIGN_SYSTEM={
             "APP_CSS": {"my_app": "my_app.css"},
             "APP_JS": {"my_app": ["my_app.js"]},
             "APP_CANVAS_HTML_ATTRS": {"my_app": {"body": {"class": "my-app-body"}}},

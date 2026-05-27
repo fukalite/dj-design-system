@@ -211,7 +211,7 @@ class TestComponentThemes:
         assert ThemeComponent.get_available_themes() == ["dark"]
 
     @override_settings(
-        dj_design_system={"APP_THEMES": {"tests": ["default", "custom"]}}
+        DJ_DESIGN_SYSTEM={"APP_THEMES": {"tests": ["default", "custom"]}}
     )
     def test_available_themes_from_app_settings(self):
         class AppThemeComponent(TwoParamComponent):

@@ -41,7 +41,7 @@ def component_scripts() -> str:
 
 
 @register.simple_tag
-def global_stylesheets(app_label: str = None, theme: str = None) -> str:
+def global_stylesheets(app_label: str | None = None, theme: str | None = None) -> str:
     """Render ``<link>`` tags for global, theme, and app-specific CSS bundles and static paths.
 
     Sources (in order):
@@ -92,7 +92,7 @@ def global_stylesheets(app_label: str = None, theme: str = None) -> str:
 
 
 @register.simple_tag
-def global_scripts(app_label: str = None, theme: str = None) -> str:
+def global_scripts(app_label: str | None = None, theme: str | None = None) -> str:
     """Render ``<script>`` tags for global, theme, and app-specific JS bundles and static paths.
 
     Sources (in order):

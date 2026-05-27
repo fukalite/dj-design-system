@@ -105,10 +105,10 @@ class CanvasNode(template.Node):
             else []
         )
 
-        app_css = []
-        app_js = []
-        app_css_bundles = []
-        app_js_bundles = []
+        app_css: list[str] = []
+        app_js: list[str] = []
+        app_css_bundles: list[str] = []
+        app_js_bundles: list[str] = []
         if app_label:
             app_css, app_js = get_app_static(app_label)
             from dj_design_system.settings import dds_settings
