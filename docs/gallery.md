@@ -179,7 +179,7 @@ use `GALLERY_CANVAS_EXTRA_BACKGROUNDS`. Each entry is a dict with
 `value`, `color`, and optionally `label`:
 
 ```python
-dj_design_system = {
+DJ_DESIGN_SYSTEM = {
     "GALLERY_CANVAS_EXTRA_BACKGROUNDS": {
         "brand-blue": {"color": "#e6ebf0", "label": "Brand Blue"},
     },
@@ -202,7 +202,7 @@ classes on the `<html>` or `<body>` element. Use
 document:
 
 ```python
-dj_design_system = {
+DJ_DESIGN_SYSTEM = {
     "GALLERY_CANVAS_HTML_ATTRS": {
         "html": {"class": "govuk-template"},
         "body": {"class": "govuk-template__body"},
@@ -268,7 +268,7 @@ setting. Set it to any [Pygments style name](https://pygments.org/styles/)
 or to an empty string to disable highlighting entirely:
 
 ```python
-dj_design_system = {
+DJ_DESIGN_SYSTEM = {
     "GALLERY_CODEHILITE_STYLE": "dracula",  # or "" to disable
 }
 ```
@@ -292,7 +292,7 @@ your Django settings module:
 ```python
 from dj_design_system.types import NodeType
 
-dj_design_system = {
+DJ_DESIGN_SYSTEM = {
     "ENABLE_GALLERY": True,
     "GALLERY_IS_PUBLIC": True,
     "DESIGN_SYSTEM_NAME": "Django Design System",
@@ -328,7 +328,7 @@ Any permutation of the three `NodeType` values is valid:
 from dj_design_system.types import NodeType
 
 # Documents first, then components, then folders
-dj_design_system = {
+DJ_DESIGN_SYSTEM = {
     "GALLERY_NAV_ORDER": [NodeType.DOCUMENT, NodeType.COMPONENT, NodeType.FOLDER],
 }
 ```
@@ -337,7 +337,7 @@ To ignore type grouping entirely and sort all nodes alphabetically by
 label, use the string `"alphabetical"`:
 
 ```python
-dj_design_system = {
+DJ_DESIGN_SYSTEM = {
     "GALLERY_NAV_ORDER": "alphabetical",
 }
 ```

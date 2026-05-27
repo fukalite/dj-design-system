@@ -78,7 +78,7 @@ STATICFILES_FINDERS = [
     "dj_design_system.finders.ComponentsStaticFinder",
 ]
 
-dj_design_system = {
+DJ_DESIGN_SYSTEM = {
     "DESIGN_SYSTEM_NAME": "Example Component Library",
     "GALLERY_IS_PUBLIC": True,
     "GLOBAL_CSS": ["example_project/demo.css"],
