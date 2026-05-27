@@ -190,11 +190,11 @@ def get_default_theme() -> dict:
 
 def get_app_static(app_label: str) -> tuple[list[str], list[str]]:
     """Return a tuple of (css_paths, js_paths) for the given app_label."""
-    app_css = dds_settings.APP_CSS.get(app_label, [])
-    app_js = dds_settings.APP_JS.get(app_label, [])
+    app_css = (dds_settings.APP_CSS or {}).get(app_label, [])
+    app_js = (dds_settings.APP_JS or {}).get(app_label, [])
     return coerce_path_list(app_css), coerce_path_list(app_js)
 
 
 def get_app_html_attrs(app_label: str) -> dict:
     """Return app-specific canvas HTML attributes."""
-    return dds_settings.APP_CANVAS_HTML_ATTRS.get(app_label, {})
+    return (dds_settings.APP_CANVAS_HTML_ATTRS or {}).get(app_label, {})

@@ -120,29 +120,19 @@ class CanvasNode(template.Node):
                 dds_settings.APP_JS_BUNDLES.get(app_label, []), "js"
             )
 
-        theme_css_tags = "".join(
-            f'<link rel="stylesheet" href="{static(p)}">' for p in theme_css
-        )
-        theme_css_bundles_tags = "".join(
-            f'<link rel="stylesheet" href="{u}">' for u in theme_css_bundles
-        )
-        app_css_tags = "".join(
-            f'<link rel="stylesheet" href="{static(p)}">' for p in app_css
-        )
-        app_css_bundles_tags = "".join(
-            f'<link rel="stylesheet" href="{u}">' for u in app_css_bundles
-        )
+        # Combine and deduplicate theme and app specific stylesheets/scripts
+        theme_css_urls = theme_css_bundles + [static(p) for p in theme_css]
+        app_css_urls = app_css_bundles + [static(p) for p in app_css]
+        css_urls = list(dict.fromkeys(theme_css_urls + app_css_urls))
 
-        theme_js_tags = "".join(
-            f'<script src="{static(p)}"></script>' for p in theme_js
+        theme_js_urls = theme_js_bundles + [static(p) for p in theme_js]
+        app_js_urls = app_js_bundles + [static(p) for p in app_js]
+        js_urls = list(dict.fromkeys(theme_js_urls + app_js_urls))
+
+        theme_app_css_tags = "".join(
+            f'<link rel="stylesheet" href="{u}">' for u in css_urls
         )
-        theme_js_bundles_tags = "".join(
-            f'<script src="{u}"></script>' for u in theme_js_bundles
-        )
-        app_js_tags = "".join(f'<script src="{static(p)}"></script>' for p in app_js)
-        app_js_bundles_tags = "".join(
-            f'<script src="{u}"></script>' for u in app_js_bundles
-        )
+        theme_app_js_tags = "".join(f'<script src="{u}"></script>' for u in js_urls)
 
         bg_styles = (
             "<style>"
@@ -174,8 +164,7 @@ class CanvasNode(template.Node):
             '<meta name="viewport" content="width=device-width, initial-scale=1">'
             f"{global_css}"
             f"{canvas_css_tag}"
-            f"{theme_css_bundles_tags}{theme_css_tags}"
-            f"{app_css_bundles_tags}{app_css_tags}"
+            f"{theme_app_css_tags}"
             f"{component_css}"
             f"{bg_styles}"
             "</head>"
@@ -184,8 +173,7 @@ class CanvasNode(template.Node):
             f"{rendered_component}"
             "</div>"
             f"{component_js}"
-            f"{theme_js_bundles_tags}{theme_js_tags}"
-            f"{app_js_bundles_tags}{app_js_tags}"
+            f"{theme_app_js_tags}"
             f"{resize_script}"
             "</body>"
             "</html>"

@@ -380,12 +380,15 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
     from dj_design_system.settings import get_app_static, get_default_theme, get_theme
 
     if theme_val not in available_theme_values:
-        default_theme_val = get_default_theme()["value"]
-        theme_val = (
-            default_theme_val
-            if default_theme_val in available_theme_values
-            else available_theme_values[0]
-        )
+        if available_theme_values:
+            default_theme_val = get_default_theme()["value"]
+            theme_val = (
+                default_theme_val
+                if default_theme_val in available_theme_values
+                else available_theme_values[0]
+            )
+        else:
+            theme_val = get_default_theme()["value"]
 
     theme_dict = get_theme(theme_val)
 
@@ -402,31 +405,35 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
     # App CSS & JS
     app_css, app_js = get_app_static(app_label)
     app_css_bundles = get_bundle_urls(
-        dds_settings.APP_CSS_BUNDLES.get(app_label, []), "css"
+        (dds_settings.APP_CSS_BUNDLES or {}).get(app_label, []), "css"
     )
     app_js_bundles = get_bundle_urls(
-        dds_settings.APP_JS_BUNDLES.get(app_label, []), "js"
+        (dds_settings.APP_JS_BUNDLES or {}).get(app_label, []), "js"
     )
 
     media = get_component_media(spec, component_registry)
     context["rendered_html"] = render_component(spec, component_registry)
 
-    # Combine CSS and JS urls
+    # Combine CSS and JS urls with deduplication while preserving order
     from django.templatetags.static import static
 
-    all_css_urls = (
-        theme_css_bundles
-        + [static(p) for p in theme_css]
-        + app_css_bundles
-        + [static(p) for p in app_css]
-        + [static(p) for p in media.css]
+    all_css_urls = list(
+        dict.fromkeys(
+            theme_css_bundles
+            + [static(p) for p in theme_css]
+            + app_css_bundles
+            + [static(p) for p in app_css]
+            + [static(p) for p in media.css]
+        )
     )
-    all_js_urls = (
-        theme_js_bundles
-        + [static(p) for p in theme_js]
-        + app_js_bundles
-        + [static(p) for p in app_js]
-        + [static(p) for p in media.js]
+    all_js_urls = list(
+        dict.fromkeys(
+            theme_js_bundles
+            + [static(p) for p in theme_js]
+            + app_js_bundles
+            + [static(p) for p in app_js]
+            + [static(p) for p in media.js]
+        )
     )
 
     context["component_css"] = "".join(

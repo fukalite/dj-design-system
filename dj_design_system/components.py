@@ -222,11 +222,15 @@ class BaseComponent:
 
         meta = get_own_meta(cls)
         available = getattr(meta, "available_themes", None)
+        if isinstance(available, str):
+            return [available]
         if available is not None:
             return list(available)
 
         app_label = cls.get_app_label()
-        app_themes = dds_settings.APP_THEMES.get(app_label)
+        app_themes = (dds_settings.APP_THEMES or {}).get(app_label)
+        if isinstance(app_themes, str):
+            return [app_themes]
         if app_themes is not None:
             return list(app_themes)
 

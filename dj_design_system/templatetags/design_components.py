@@ -57,9 +57,9 @@ def global_stylesheets(app_label: str = None, theme: str = None) -> str:
 
     Returns an empty string when all lists are empty.
     """
-    all_hrefs = [
-        (url,) for url in get_bundle_urls(dds_settings.GLOBAL_CSS_BUNDLES, "css")
-    ] + [(static(path),) for path in dds_settings.GLOBAL_CSS]
+    urls = get_bundle_urls(dds_settings.GLOBAL_CSS_BUNDLES, "css") + [
+        static(path) for path in dds_settings.GLOBAL_CSS
+    ]
 
     if theme:
         from dj_design_system.settings import get_theme
@@ -70,21 +70,24 @@ def global_stylesheets(app_label: str = None, theme: str = None) -> str:
                 theme_dict.get("css_bundles", []), "css"
             )
             theme_css = theme_dict.get("css", [])
-            all_hrefs.extend((url,) for url in theme_css_bundles)
-            all_hrefs.extend((static(path),) for path in theme_css)
+            urls.extend(theme_css_bundles)
+            urls.extend(static(path) for path in theme_css)
 
     if app_label:
         from dj_design_system.settings import get_app_static
 
         app_css, _ = get_app_static(app_label)
         app_css_bundles = get_bundle_urls(
-            dds_settings.APP_CSS_BUNDLES.get(app_label, []), "css"
+            (dds_settings.APP_CSS_BUNDLES or {}).get(app_label, []), "css"
         )
-        all_hrefs.extend((url,) for url in app_css_bundles)
-        all_hrefs.extend((static(path),) for path in app_css)
+        urls.extend(app_css_bundles)
+        urls.extend(static(path) for path in app_css)
 
-    if not all_hrefs:
+    # Deduplicate while preserving order
+    urls = list(dict.fromkeys(urls))
+    if not urls:
         return ""
+    all_hrefs = [(url,) for url in urls]
     return format_html_join("\n", '<link rel="stylesheet" href="{}">', all_hrefs)
 
 
@@ -105,9 +108,9 @@ def global_scripts(app_label: str = None, theme: str = None) -> str:
 
     Returns an empty string when all lists are empty.
     """
-    all_srcs = [
-        (url,) for url in get_bundle_urls(dds_settings.GLOBAL_JS_BUNDLES, "js")
-    ] + [(static(path),) for path in dds_settings.GLOBAL_JS]
+    urls = get_bundle_urls(dds_settings.GLOBAL_JS_BUNDLES, "js") + [
+        static(path) for path in dds_settings.GLOBAL_JS
+    ]
 
     if theme:
         from dj_design_system.settings import get_theme
@@ -116,19 +119,22 @@ def global_scripts(app_label: str = None, theme: str = None) -> str:
         if theme_dict:
             theme_js_bundles = get_bundle_urls(theme_dict.get("js_bundles", []), "js")
             theme_js = theme_dict.get("js", [])
-            all_srcs.extend((url,) for url in theme_js_bundles)
-            all_srcs.extend((static(path),) for path in theme_js)
+            urls.extend(theme_js_bundles)
+            urls.extend(static(path) for path in theme_js)
 
     if app_label:
         from dj_design_system.settings import get_app_static
 
         _, app_js = get_app_static(app_label)
         app_js_bundles = get_bundle_urls(
-            dds_settings.APP_JS_BUNDLES.get(app_label, []), "js"
+            (dds_settings.APP_JS_BUNDLES or {}).get(app_label, []), "js"
         )
-        all_srcs.extend((url,) for url in app_js_bundles)
-        all_srcs.extend((static(path),) for path in app_js)
+        urls.extend(app_js_bundles)
+        urls.extend(static(path) for path in app_js)
 
-    if not all_srcs:
+    # Deduplicate while preserving order
+    urls = list(dict.fromkeys(urls))
+    if not urls:
         return ""
+    all_srcs = [(url,) for url in urls]
     return format_html_join("\n", '<script src="{}"></script>', all_srcs)
