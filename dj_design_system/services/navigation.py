@@ -1,19 +1,4 @@
-"""
-Navigation tree builder for the component gallery.
-
-Builds a nested tree structure from the component registry and filesystem
-markdown files, suitable for rendering a hierarchical sidebar navigation.
-
-The tree reflects the source-code directory structure under each app's
-``components/`` package, with two convenience rules:
-
-1. The leaf-most folder is **collapsed** when its name matches the component
-   name (e.g. ``elements/icon/component.py`` appears as *Icon* inside
-   *Elements*, not *Elements → Icon → Icon*).
-2. ``index.md`` files (case-insensitive) are attached to their parent folder
-   node rather than appearing as separate entries; all other ``.md`` files
-   become standalone document nodes.
-"""
+"""Navigation tree builder for the component gallery."""
 
 from __future__ import annotations
 
@@ -22,19 +7,17 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import markdown as markdown_lib
+from django.apps import apps
 from django.urls import reverse
 
 from dj_design_system.data import NavNode
+from dj_design_system.services.registry import component_registry
+from dj_design_system.settings import dds_settings
 from dj_design_system.types import NodeType
 
 
 if TYPE_CHECKING:
     from dj_design_system.data import ComponentInfo
-
-
-# ---------------------------------------------------------------------------
-# Display helpers
-# ---------------------------------------------------------------------------
 
 
 def to_display_label(
@@ -43,26 +26,7 @@ def to_display_label(
     component: ComponentInfo | None = None,
     app_label: str | None = None,
 ) -> str:
-    """Return a human-readable label for a slug, component, or app.
-
-    Resolution order:
-
-    1. If *component* is given, its ``Meta.verbose_name`` is used when present.
-    2. If *app_label* is given, the corresponding ``AppConfig.verbose_name``
-       is used when it was **explicitly declared** on the config class
-       (Django's auto-generated value is ignored).
-    3. Falls back to converting *name* from snake_case / kebab-case to
-       sentence case.
-
-    Examples::
-
-        >>> to_display_label("icon")
-        'Icon'
-        >>> to_display_label("info_card")
-        'Info card'
-        >>> to_display_label("hero-banner")
-        'Hero banner'
-    """
+    """Return a human-readable label for a slug, component, or app."""
     if component is not None:
         meta = component.component_class.__dict__.get("Meta")
         if meta is not None:
@@ -71,8 +35,6 @@ def to_display_label(
                 return vn
 
     if app_label is not None:
-        from django.apps import apps
-
         try:
             cfg = apps.get_app_config(app_label)
         except LookupError:
@@ -84,17 +46,8 @@ def to_display_label(
     return name.replace("_", " ").replace("-", " ").capitalize()
 
 
-# ---------------------------------------------------------------------------
-# Tree construction
-# ---------------------------------------------------------------------------
-
-
 def _effective_path_parts(info: ComponentInfo) -> list[str]:
-    """Return directory segments for a component, applying the collapsing rule.
-
-    If the deepest folder name equals the component name, that folder is
-    dropped so the component is placed one level higher in the tree.
-    """
+    """Return directory segments for a component, applying the collapsing rule."""
     parts = info.relative_path.split(".") if info.relative_path else []
     if parts and parts[-1] == info.name:
         parts = parts[:-1]
@@ -102,20 +55,11 @@ def _effective_path_parts(info: ComponentInfo) -> list[str]:
 
 
 class _AppTreeBuilder:
-    """Builds the navigation subtree for a single app.
-
-    Maintains a path-keyed index of nodes so that repeated references to the
-    same folder (e.g. from multiple components or markdown files) reuse the
-    same ``NavNode`` rather than creating duplicates.
-
-    Paths in the index use ``"/"`` as delimiter (e.g. ``"elements/cards"``).
-    """
+    """Builds the navigation subtree for a single app."""
 
     def __init__(self, app_node: NavNode):
         self.root = app_node
         self._nodes_by_path: dict[str, NavNode] = {}
-
-    # -- folder resolution -------------------------------------------------
 
     def get_or_create_folder(self, path_parts: list[str]) -> NavNode:
         """Return the node at *path_parts*, creating intermediate folders as needed."""
@@ -133,15 +77,8 @@ class _AppTreeBuilder:
             current = self._nodes_by_path[path_key]
         return current
 
-    # -- components --------------------------------------------------------
-
     def add_component(self, info: ComponentInfo) -> None:
-        """Add a component to the tree, applying the leaf-folder collapsing rule.
-
-        When the deepest folder name matches the component name, the folder
-        is collapsed and the component is placed one level higher.  If that
-        collapsed folder already exists as a node, it is upgraded in-place.
-        """
+        """Add a component to the tree, applying the leaf-folder collapsing rule."""
         collapsed_parts = _effective_path_parts(info)
         raw_parts = info.relative_path.split(".") if info.relative_path else []
         is_collapsed = len(raw_parts) > len(collapsed_parts)
@@ -165,20 +102,11 @@ class _AppTreeBuilder:
         )
         parent.children.append(node)
 
-        # Register under the original (un-collapsed) path so markdown
-        # discovery for sibling files (e.g. icon/index.md) finds this
-        # node rather than creating a duplicate.
         if is_collapsed:
             self._nodes_by_path["/".join(raw_parts)] = node
 
-    # -- markdown ----------------------------------------------------------
-
     def add_markdown(self, dir_parts: list[str], md_path: Path) -> None:
-        """Add a markdown file to the tree.
-
-        ``index.md`` (case-insensitive) is attached to its containing
-        folder node.  All other ``.md`` files become document leaf nodes.
-        """
+        """Add a markdown file to the tree."""
         parent = self.get_or_create_folder(dir_parts)
 
         if md_path.name.lower() == "index.md":
@@ -195,10 +123,7 @@ class _AppTreeBuilder:
 
 
 def _discover_markdown_files(components_root: Path) -> list[tuple[list[str], Path]]:
-    """Walk *components_root* for ``.md`` files.
-
-    Returns a list of ``(relative_dir_parts, file_path)`` tuples.
-    """
+    """Walk *components_root* for ``.md`` files."""
     results: list[tuple[list[str], Path]] = []
     if not components_root.is_dir():
         return results
@@ -212,16 +137,8 @@ def _discover_markdown_files(components_root: Path) -> list[tuple[list[str], Pat
     return results
 
 
-# ---------------------------------------------------------------------------
-# Sorting
-# ---------------------------------------------------------------------------
-
-
 def _sort_children(node: NavNode) -> None:
     """Recursively sort children by the configured type order, then alphabetically."""
-
-    from dj_design_system.settings import dds_settings
-
     nav_order = dds_settings.GALLERY_NAV_ORDER
 
     def _sort_key(child: NavNode) -> tuple[int, str]:
@@ -241,10 +158,7 @@ def _annotate_paths(
     app_label: str = "",
     parent_parts: list[str] | None = None,
 ) -> None:
-    """Recursively set ``_app_label`` and ``_path_parts`` on every node.
-
-    This enables ``NavNode.url`` and ``NavNode.active_path`` to work.
-    """
+    """Recursively set ``_app_label`` and ``_path_parts`` on every node."""
     if parent_parts is None:
         parent_parts = []
 
@@ -262,14 +176,8 @@ def _annotate_paths(
         _annotate_paths(child, app_label=child_app, parent_parts=child_parts)
 
 
-# ---------------------------------------------------------------------------
-# Public API
-# ---------------------------------------------------------------------------
 def build_navigation() -> list[NavNode]:
-    """Build the full gallery navigation tree from the component registry and markdown files.
-
-    Can be cleaned up when we are able to test without being inside intranet repo/having clash with the real component registry by making the registry an explicit parameter and doing markdown discovery outside this function, but for now this is easier to work with.
-    """
+    """Build the full gallery navigation tree from the component registry and markdown files."""
     return _build_navigation()
 
 
@@ -277,36 +185,8 @@ def _build_navigation(
     components: list[ComponentInfo] | None = None,
     app_component_paths: dict[str, Path] | None = None,
 ) -> list[NavNode]:
-    """Build the full gallery navigation tree.
-
-    When called with no arguments (the production path), components are
-    read from the global :data:`component_registry` and markdown files
-    are discovered from every installed app's ``components/`` directory.
-
-    Both parameters are exposed for tests that supply synthetic data.
-
-    Parameters
-    ----------
-    components:
-        Component list to build the tree from.  Defaults to
-        ``component_registry.list_all()``.
-    app_component_paths:
-        Mapping of ``app_label`` → filesystem ``Path`` to the app's
-        ``components/`` directory for markdown discovery.  Defaults to
-        auto-discovery via :func:`get_app_component_paths` when
-        *components* is also ``None``; otherwise defaults to no
-        discovery (empty dict) so that tests passing synthetic
-        components don't pick up unrelated real apps.
-
-    Returns
-    -------
-    list[NavNode]
-        A list of top-level app nodes, sorted alphabetically, each
-        containing a nested tree of folders, components, and documents.
-    """
+    """Build the full gallery navigation tree."""
     if components is None:
-        from dj_design_system.services.registry import component_registry
-
         components = component_registry.list_all()
         if app_component_paths is None:
             app_component_paths = get_app_component_paths()
@@ -318,7 +198,6 @@ def _build_navigation(
     for info in components:
         apps.setdefault(info.app_label, []).append(info)
 
-    # Ensure apps with only markdown (no components) also appear.
     for app_label, _path in app_component_paths.items():
         if app_label not in apps:
             apps[app_label] = []
@@ -350,14 +229,7 @@ def _build_navigation(
 
 
 def get_app_component_paths() -> dict[str, Path]:
-    """Look up the ``components/`` directory for every installed Django app.
-
-    Returns a dict of ``{app_label: Path}`` for apps that have a
-    ``components/`` directory (either a package or a single module file is
-    accepted, but only packages will yield markdown discovery results).
-    """
-    from django.apps import apps
-
+    """Look up the ``components/`` directory for every installed Django app."""
     paths: dict[str, Path] = {}
     for app_config in apps.get_app_configs():
         components_dir = Path(app_config.path) / "components"
@@ -410,12 +282,7 @@ class _HTMLTextExtractor(HTMLParser):
 
 
 def strip_markdown(text: str) -> str:
-    """Convert markdown to plain text for search indexing.
-
-    Renders the markdown to HTML using the ``markdown`` package, then
-    strips all tags via the stdlib ``HTMLParser`` to produce clean plain
-    text suitable for full-text matching.
-    """
+    """Convert markdown to plain text for search indexing."""
     html_content = markdown_lib.markdown(text, extensions=["fenced_code", "tables"])
     extractor = _HTMLTextExtractor()
     extractor.feed(html_content)
@@ -427,18 +294,7 @@ def _collect_search_entries(
     ancestor_labels: list[str],
     entries: list[dict],
 ) -> None:
-    """Recursively walk the nav tree and append one search entry per node.
-
-    APP nodes are skipped (they are grouping containers, not navigable
-    destinations in a meaningful way). All other node types produce an entry
-    with the following fields:
-
-    - ``label``: human-readable title of the node
-    - ``url``: absolute URL path for the node
-    - ``type``: node type string (``"component"``, ``"document"``, ``"folder"``)
-    - ``breadcrumb``: ancestor labels joined with " / " for display context
-    - ``content``: plain-text body for full-text matching
-    """
+    """Recursively walk the nav tree and append one search entry per node."""
     if node.node_type == NodeType.APP:
         for child in node.children:
             _collect_search_entries(child, [node.label], entries)
@@ -480,18 +336,7 @@ def _collect_search_entries(
 
 
 def build_search_index(nav_tree: list[NavNode]) -> list[dict]:
-    """Build a flat list of search index entries from the navigation tree.
-
-    Each entry is a dict suitable for JSON serialisation:
-
-    - ``label``: human-readable title
-    - ``url``: absolute URL path
-    - ``type``: ``"component"``, ``"document"``, or ``"folder"``
-    - ``breadcrumb``: ancestor labels joined with " / "
-    - ``content``: plain-text body (docstring or markdown), used for full-text search
-
-    APP nodes (top-level grouping containers) are omitted from the results.
-    """
+    """Build a flat list of search index entries from the navigation tree."""
     entries: list[dict] = []
     for app_node in nav_tree:
         _collect_search_entries(app_node, [], entries)
@@ -503,10 +348,7 @@ def build_breadcrumbs(
     path_parts: list[str],
     current_label: str,
 ) -> list[dict]:
-    """Build breadcrumb trail for the current page.
-
-    Each entry has ``label`` and ``url`` (except the last which has no url).
-    """
+    """Build breadcrumb trail for the current page."""
     crumbs = [{"label": "Gallery", "url": reverse("gallery")}]
     crumbs.append(
         {
@@ -528,6 +370,5 @@ def build_breadcrumbs(
             }
         )
 
-    # Last crumb is the current page (no link)
     crumbs.append({"label": current_label})
     return crumbs

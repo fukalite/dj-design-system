@@ -10,8 +10,12 @@ from django.templatetags.static import static
 from dj_design_system.services.media import get_bundle_urls
 from dj_design_system.settings import (
     dds_settings,
+    get_app_html_attrs,
+    get_app_static,
     get_backgrounds,
     get_default_background,
+    get_default_theme,
+    get_theme,
 )
 
 
@@ -23,10 +27,7 @@ INDENT_PER_LEVEL_PX = 16
 
 @register.filter
 def add_indent(depth: int) -> int:
-    """Convert a tree depth to a left-padding value in pixels.
-
-    depth=1 → 16px, depth=2 → 32px, etc.
-    """
+    """Convert a tree depth to a left-padding value in pixels."""
     try:
         depth = int(depth)
     except (TypeError, ValueError):
@@ -34,64 +35,25 @@ def add_indent(depth: int) -> int:
     return BASE_INDENT_PX + (depth * INDENT_PER_LEVEL_PX)
 
 
-# ---------------------------------------------------------------------------
-# Canvas block tag — renders a component inside an isolated iframe
-# ---------------------------------------------------------------------------
-
-
 class CanvasNode(template.Node):
-    """Render children inside an ``<iframe srcdoc="...">``.
-
-    The inner nodelist is evaluated normally (so real component template tags
-    execute), and the resulting HTML is wrapped in a full HTML document with
-    the correct CSS cascade: global → canvas → component.
-
-    Used exclusively by the gallery UI and documentation renderers.
-    """
+    """Render children inside an ``<iframe srcdoc="...">``."""
 
     def __init__(self, nodelist: template.NodeList):
         self.nodelist = nodelist
 
-    def render(self, context: template.Context) -> str:
-        rendered_component = self.nodelist.render(context)
-
-        # Build the full iframe HTML document
-        global_css = self._global_css_tags()
-        canvas_css_tag = (
-            f'<link rel="stylesheet" href="{static("dj_design_system/canvas.css")}">'
-        )
-
-        # Collect component media from context if available
-        component_css = context.get("_canvas_component_css", "")
-        component_js = context.get("_canvas_component_js", "")
-
-        bg_class = context.get(
-            "_canvas_bg_class",
-            f"canvas-bg-{get_default_background()['value']}",
-        )
-        mode_class = context.get("_canvas_mode_class", "canvas-wrapper--basic")
-
-        # Resolve Theme and App details
+    def _resolve_theme(self, context: template.Context) -> dict | None:
         theme_val = context.get("active_theme")
         if not theme_val:
             request = context.get("request")
             if request:
                 theme_val = request.GET.get("theme")
         if not theme_val:
-            from dj_design_system.settings import get_default_theme
-
             theme_val = get_default_theme()["value"]
+        return get_theme(theme_val)
 
-        app_label = None
-        component_info = context.get("component_info")
-        if component_info:
-            app_label = component_info.app_label
-
-        from dj_design_system.settings import get_app_static, get_theme
-
-        theme_dict = get_theme(theme_val)
-
-        # Theme and App specific stylesheets/scripts
+    def _build_theme_app_media(
+        self, theme_dict: dict | None, app_label: str | None
+    ) -> tuple[str, str]:
         theme_css = theme_dict["css"] if theme_dict else []
         theme_js = theme_dict["js"] if theme_dict else []
         theme_css_bundles = (
@@ -111,8 +73,6 @@ class CanvasNode(template.Node):
         app_js_bundles: list[str] = []
         if app_label:
             app_css, app_js = get_app_static(app_label)
-            from dj_design_system.settings import dds_settings
-
             app_css_bundles = get_bundle_urls(
                 dds_settings.APP_CSS_BUNDLES.get(app_label, []), "css"
             )
@@ -120,7 +80,6 @@ class CanvasNode(template.Node):
                 dds_settings.APP_JS_BUNDLES.get(app_label, []), "js"
             )
 
-        # Combine and deduplicate theme and app specific stylesheets/scripts
         theme_css_urls = theme_css_bundles + [static(p) for p in theme_css]
         app_css_urls = app_css_bundles + [static(p) for p in app_css]
         css_urls = list(dict.fromkeys(theme_css_urls + app_css_urls))
@@ -133,17 +92,17 @@ class CanvasNode(template.Node):
             f'<link rel="stylesheet" href="{u}">' for u in css_urls
         )
         theme_app_js_tags = "".join(f'<script src="{u}"></script>' for u in js_urls)
+        return theme_app_css_tags, theme_app_js_tags
 
-        bg_styles = (
-            "<style>"
-            + "".join(
-                f".canvas-bg-{bg['value']}{{background:{bg['color']};}}"
-                for bg in get_backgrounds()
-            )
-            + "</style>"
+    def _build_bg_styles(self) -> str:
+        bg_rules = "".join(
+            f".canvas-bg-{bg['value']}{{background:{bg['color']};}}"
+            for bg in get_backgrounds()
         )
+        return f"<style>{bg_rules}</style>"
 
-        resize_script = (
+    def _build_resize_script(self) -> str:
+        return (
             "<script>"
             "(function(){"
             'var w=document.querySelector(".canvas-wrapper");'
@@ -155,6 +114,32 @@ class CanvasNode(template.Node):
             "})();"
             "</script>"
         )
+
+    def render(self, context: template.Context) -> str:
+        rendered_component = self.nodelist.render(context)
+        global_css = self._global_css_tags()
+        canvas_css_tag = (
+            f'<link rel="stylesheet" href="{static("dj_design_system/canvas.css")}">'
+        )
+
+        component_css = context.get("_canvas_component_css", "")
+        component_js = context.get("_canvas_component_js", "")
+
+        bg_class = context.get(
+            "_canvas_bg_class",
+            f"canvas-bg-{get_default_background()['value']}",
+        )
+        mode_class = context.get("_canvas_mode_class", "canvas-wrapper--basic")
+
+        theme_dict = self._resolve_theme(context)
+        component_info = context.get("component_info")
+        app_label = component_info.app_label if component_info else None
+
+        theme_app_css_tags, theme_app_js_tags = self._build_theme_app_media(
+            theme_dict, app_label
+        )
+        bg_styles = self._build_bg_styles()
+        resize_script = self._build_resize_script()
 
         iframe_doc = (
             "<!DOCTYPE html>"
@@ -205,8 +190,6 @@ class CanvasNode(template.Node):
         if theme_dict:
             html_dict.update(theme_dict.get("html_attrs", {}).get("html", {}))
         if app_label:
-            from dj_design_system.settings import get_app_html_attrs
-
             html_dict.update(get_app_html_attrs(app_label).get("html", {}))
         return self._flatten_attrs(html_dict)
 
@@ -216,24 +199,13 @@ class CanvasNode(template.Node):
         if theme_dict:
             body_dict.update(theme_dict.get("html_attrs", {}).get("body", {}))
         if app_label:
-            from dj_design_system.settings import get_app_html_attrs
-
             body_dict.update(get_app_html_attrs(app_label).get("body", {}))
         return self._flatten_attrs(body_dict)
 
 
 @register.tag("canvas")
 def do_canvas(parser: template.Parser, token: template.Token) -> CanvasNode:
-    """Render the enclosed component tag(s) inside an isolated iframe.
-
-    Usage::
-
-        {% canvas %}{% icon "check" size="large" %}{% endcanvas %}
-        {% canvas %}{% callout type="warning" %}Content{% endcallout %}{% endcanvas %}
-
-    The canvas tag captures the rendered output of its children and wraps it
-    in a self-contained HTML document inside an ``<iframe srcdoc="...">``.
-    """
+    """Render the enclosed component tag(s) inside an isolated iframe."""
     nodelist = parser.parse(("endcanvas",))
     parser.delete_first_token()
     return CanvasNode(nodelist)
