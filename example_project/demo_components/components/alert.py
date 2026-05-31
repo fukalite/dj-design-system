@@ -26,3 +26,4 @@ class AlertComponent(BlockComponent):
 
     class Meta:
         positional_args = ["level"]
+        available_themes = ["dark"]

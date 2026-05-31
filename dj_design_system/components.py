@@ -1,9 +1,19 @@
 from typing import TYPE_CHECKING, Any
 
+from django.template.loader import render_to_string
 from django.utils.html import format_html
-from django.utils.safestring import SafeString
+from django.utils.safestring import SafeString, mark_safe
 
 from dj_design_system.parameters import BaseParam
+from dj_design_system.services.component import (
+    derive_name,
+    get_meta_name,
+    get_own_meta,
+    is_abstract,
+)
+from dj_design_system.services.slot_node import make_slotted_block_tag
+from dj_design_system.settings import dds_settings, get_themes
+from dj_design_system.slots import validate_slots
 
 
 if TYPE_CHECKING:
@@ -12,7 +22,6 @@ if TYPE_CHECKING:
 
 
 class BaseComponent:
-    # The template string itself to pass to format_html. Should be overridden by subclasses.
     template_format_str: str = "<span class='{classes}'>ABSTRACT COMPONENT</span>"
 
     class Meta:
@@ -21,7 +30,6 @@ class BaseComponent:
     def __init_subclass__(cls, **kwargs) -> None:
         """Validate Meta constraint declarations at class definition time."""
         super().__init_subclass__(**kwargs)
-        from dj_design_system.services.component import get_own_meta, is_abstract
 
         if is_abstract(cls):
             return
@@ -59,12 +67,7 @@ class BaseComponent:
         """Enforce mutually_exclusive and requires constraints declared on Meta.
 
         Called automatically during __init__ before validate_params.
-        - Meta.mutually_exclusive: list of (param_a, param_b) pairs that cannot both be set.
-        - Meta.requires: list of (dependent, dependency) pairs where setting dependent
-          requires dependency to also be set.
         """
-        from dj_design_system.services.component import get_own_meta
-
         params = type(self).get_params()
         meta = get_own_meta(type(self))
 
@@ -83,9 +86,7 @@ class BaseComponent:
                 )
 
     def get_context(self) -> dict[str, Any]:
-        """
-        Get the context for rendering the component. This method can be overridden by subclasses to add additional or edit other context variables.
-        """
+        """Get the context for rendering the component."""
         self.context["classes"] = self.get_classes_string()
         for param_name, spec in self.params.items():
             value = getattr(self, param_name)
@@ -94,9 +95,7 @@ class BaseComponent:
         return self.context
 
     def get_classes_string(self):
-        """
-        Get a string of CSS classes based on the context. This can be used in the template to apply conditional styling.
-        """
+        """Get a string of CSS classes based on the context."""
         classes = []
         for param_name, spec in self.params.items():
             param_value = getattr(self, param_name)
@@ -104,20 +103,9 @@ class BaseComponent:
         return " ".join(classes)
 
     def render(self) -> str:
-        """
-        Render the component as an HTML string.
-
-        If ``_template_name`` was set on the class during registration
-        (either from an explicit ``template_name`` attribute or by
-        auto-discovering a co-located ``.html`` file), the template is
-        rendered via Django's template loader chain.  Otherwise falls back
-        to ``format_html`` with ``template_format_str``.
-        """
+        """Render the component as an HTML string."""
         template_name: str | None = getattr(type(self), "_template_name", None)
         if template_name:
-            from django.template.loader import render_to_string
-            from django.utils.safestring import mark_safe
-
             return mark_safe(render_to_string(template_name, self.get_context()))
         return format_html(format_string=self.template_format_str, **self.get_context())
 
@@ -137,10 +125,7 @@ class BaseComponent:
 
     @classmethod
     def get_params(cls) -> dict[str, "BaseParam"]:
-        """
-        Get the parameters for this component. Returns a dictionary of all
-        BaseParam descriptors defined on the class (or any subclass in the MRO).
-        """
+        """Get the parameters for this component."""
         result = {}
         for klass in cls.__mro__:
             for attr_name, attr_value in vars(klass).items():
@@ -150,9 +135,7 @@ class BaseComponent:
 
     @classmethod
     def docstring(cls) -> str:
-        """
-        Return a string describing the API of this component, including its parameters and their types.
-        """
+        """Return a string describing the API of this component, including its parameters and their types."""
         params = cls.get_params()
         api_docs = f"{cls.__doc__}\n\n"
         if len(params) > 0:
@@ -184,29 +167,36 @@ class BaseComponent:
 
     @classmethod
     def get_media(cls) -> "ComponentMedia":
-        """Return the CSS and JS static URL paths required by this component.
-
-        Delegates to ``ComponentInfo.media`` — see that property for full
-        documentation of auto-discovery and ``Media`` class override behaviour.
-        """
+        """Return the CSS and JS static URL paths required by this component."""
         from dj_design_system import component_registry
 
         return component_registry.get_info(cls).media
 
     @classmethod
     def get_positional_args(cls) -> list[str]:
-        """Return the list of positional arg names from the class's own Meta.positional_args.
-
-        Only looks at the class's own ``Meta`` — positional_args are NOT
-        inherited from parent classes, matching Django's convention that
-        Meta is not inherited. This avoids silent ordering surprises when
-        subclassing.
-        """
-        from dj_design_system.services.component import get_own_meta
-
+        """Return the list of positional arg names from the class's own Meta.positional_args."""
         meta = get_own_meta(cls)
         positional = getattr(meta, "positional_args", None)
         return list(positional) if positional else []
+
+    @classmethod
+    def get_available_themes(cls) -> list[str]:
+        """Return the list of theme values supported by this component."""
+        meta = get_own_meta(cls)
+        available = getattr(meta, "available_themes", None)
+        if isinstance(available, str):
+            return [available]
+        if available is not None:
+            return list(available)
+
+        app_label = cls.get_app_label()
+        app_themes = (dds_settings.APP_THEMES or {}).get(app_label)
+        if isinstance(app_themes, str):
+            return [app_themes]
+        if app_themes is not None:
+            return list(app_themes)
+
+        return [t["value"] for t in get_themes()]
 
     @staticmethod
     def map_positional_args(
@@ -220,23 +210,7 @@ class BaseComponent:
 
 
 class TagComponent(BaseComponent):
-    """
-    A component registered as a Django ``simple_tag``.
-
-    Subclass this for components that produce a single HTML fragment
-    without wrapping nested template content.
-
-    Use ``Meta.positional_args`` to declare parameters that can be passed
-    as positional arguments in the template tag::
-
-        class IconComponent(TagComponent):
-            name = StrParam("The icon name.")
-
-            class Meta:
-                positional_args = ["name"]
-
-    This allows ``{% icon "check" %}`` instead of ``{% icon name="check" %}``.
-    """
+    """A component registered as a Django ``simple_tag``."""
 
     class Meta:
         abstract = True
@@ -254,37 +228,7 @@ class TagComponent(BaseComponent):
 
 
 class BlockComponent(BaseComponent):
-    """
-    A component registered as a Django ``simple_block_tag``, allowing
-    for nested template content.
-
-    The template should include a ``{content}`` placeholder where the
-    inner content will be rendered. ``content`` is always the first
-    positional argument and should NOT appear in ``Meta.positional_args``.
-
-    Use ``Meta.positional_args`` to declare additional positional args
-    beyond ``content``::
-
-        class SectionComponent(BlockComponent):
-            title = StrParam("Section title.")
-
-            class Meta:
-                positional_args = ["title"]
-
-    This allows ``{% section "My Title" %}...{% endsection %}``.
-
-    To declare named slots, add a ``Meta.slots`` dict::
-
-        class CardComponent(BlockComponent):
-            class Meta:
-                slots = {
-                    "body": Slot(required=True),
-                    "footer": Slot(required=False),
-                }
-
-    Slotted components use ``{% slot "name" %}...{% endslot %}`` tags
-    inside the block. Content outside slots raises ``TemplateSyntaxError``.
-    """
+    """A component registered as a Django ``simple_block_tag``."""
 
     class Meta:
         abstract = True
@@ -301,10 +245,6 @@ class BlockComponent(BaseComponent):
         if self.has_slots():
             if slots is None:
                 slots = {}
-            # Validate and fill defaults for missing optional slots
-            from dj_design_system.services.component import derive_name, get_meta_name
-            from dj_design_system.slots import validate_slots
-
             tag_name = get_meta_name(type(self)) or derive_name(type(self))
             self.slots = validate_slots(self.get_slots(), slots, tag_name)
             self.content = None
@@ -314,14 +254,7 @@ class BlockComponent(BaseComponent):
         super().__init__(**kwargs)
 
     def get_context(self) -> dict[str, Any]:
-        """Add ``content`` or slot values to the context automatically.
-
-        For non-slotted components, ``content`` is the block body passed by
-        the template engine.
-
-        For slotted components, each slot value is injected as a context
-        variable with the slot's name.
-        """
+        """Add ``content`` or slot values to the context automatically."""
         context = super().get_context()
         if self.has_slots():
             for name, value in self.slots.items():
@@ -333,31 +266,19 @@ class BlockComponent(BaseComponent):
     @classmethod
     def has_slots(cls) -> bool:
         """Return True if this component declares named slots via Meta.slots."""
-        from dj_design_system.services.component import get_own_meta
-
         meta = get_own_meta(cls)
         return bool(getattr(meta, "slots", None))
 
     @classmethod
     def get_slots(cls) -> dict[str, "Slot"]:
         """Return the declared slots dict from Meta, or empty dict."""
-        from dj_design_system.services.component import get_own_meta
-
         meta = get_own_meta(cls)
         return dict(getattr(meta, "slots", {}))
 
     @classmethod
     def as_tag(cls):
-        """Return a template tag function or compilation function.
-
-        If the component declares slots, returns a compilation function
-        for use with ``library.tag()``. Otherwise returns a simple
-        callable for ``library.simple_block_tag()``.
-        """
+        """Return a template tag function or compilation function."""
         if cls.has_slots():
-            from dj_design_system.services.component import derive_name, get_meta_name
-            from dj_design_system.services.slot_node import make_slotted_block_tag
-
             tag_name = get_meta_name(cls) or derive_name(cls)
             return make_slotted_block_tag(cls, tag_name)
 

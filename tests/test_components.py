@@ -1,4 +1,5 @@
 import pytest
+from django.test import override_settings
 
 from dj_design_system.components import TagComponent
 from dj_design_system.parameters.base import StrParam
@@ -199,3 +200,33 @@ class TestComponentIntrospection:
         result = DocComponent.docstring()
         assert "My component." in result
         assert "label" in result
+
+
+class TestComponentThemes:
+    def test_available_themes_from_meta(self):
+        class ThemeComponent(TwoParamComponent):
+            class Meta:
+                available_themes = ["dark"]
+
+        assert ThemeComponent.get_available_themes() == ["dark"]
+
+    @override_settings(
+        DJ_DESIGN_SYSTEM={"APP_THEMES": {"tests": ["default", "custom"]}}
+    )
+    def test_available_themes_from_app_settings(self):
+        class AppThemeComponent(TwoParamComponent):
+            pass
+
+        AppThemeComponent.get_app_label = classmethod(lambda cls: "tests")
+        assert AppThemeComponent.get_available_themes() == ["default", "custom"]
+
+    def test_available_themes_fallback_to_all(self):
+        class FallbackComponent(TwoParamComponent):
+            pass
+
+        FallbackComponent.get_app_label = classmethod(lambda cls: "nonexistent")
+
+        from dj_design_system.settings import get_themes
+
+        all_themes = [t["value"] for t in get_themes()]
+        assert FallbackComponent.get_available_themes() == all_themes

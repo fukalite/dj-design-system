@@ -1,29 +1,31 @@
 from functools import wraps
 from pathlib import Path
+from types import SimpleNamespace
+from typing import Any
 
 import markdown as markdown_lib
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
+from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.html import format_html, format_html_join
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
+from dj_design_system.components import BlockComponent
 from dj_design_system.data import CanvasSpec
 from dj_design_system.forms import build_component_form
 from dj_design_system.services.canvas import (
+    _resolve_component,
     build_canvas_url,
     get_component_media,
     render_component,
     resolve_from_get_params,
 )
 from dj_design_system.services.markdown_canvas import CanvasExtension
-from dj_design_system.services.media import (
-    build_link_tags,
-    build_script_tags,
-)
+from dj_design_system.services.media import get_bundle_urls
 from dj_design_system.services.navigation import (
     build_breadcrumbs,
     build_navigation,
@@ -38,10 +40,15 @@ from dj_design_system.services.tag_signature import (
 )
 from dj_design_system.settings import (
     dds_settings,
+    get_app_html_attrs,
+    get_app_static,
     get_backgrounds,
     get_default_background,
+    get_default_theme,
+    get_theme,
 )
-from dj_design_system.types import CanvasMode
+from dj_design_system.slots import SLOT_PARAM_PREFIX
+from dj_design_system.types import CanvasMode, Theme
 
 
 GALLERY_PERMISSION = "dj_design_system.can_view_gallery"
@@ -85,11 +92,7 @@ def get_base_context(
 
 
 def _render_markdown(file_path: Path) -> str:
-    """Render a markdown file to HTML.
-
-    Fenced ``canvas`` blocks are replaced with live preview widgets.
-    Standard fenced code blocks receive Pygments syntax highlighting.
-    """
+    """Render a markdown file to HTML."""
     content = file_path.read_text(encoding="utf-8")
     canvas_base_url = reverse("gallery-canvas-iframe")
 
@@ -118,11 +121,6 @@ def _render_markdown(file_path: Path) -> str:
     )
 
 
-# ---------------------------------------------------------------------------
-# Rendering helpers (one per node type)
-# ---------------------------------------------------------------------------
-
-
 def _render_folder(request, context, node, app_label, path_parts):
     """Render a folder node — index.md if present, otherwise a listing."""
     context["node"] = node
@@ -144,39 +142,19 @@ def _render_folder(request, context, node, app_label, path_parts):
     return render(request, "dj_design_system/gallery/folder.html", context)
 
 
-def _render_component(request, context, node, app_label, path_parts):
-    """Render a component node — Documentation pane + Sandbox pane.
-
-    When the request contains GET parameters matching any of the component's
-    parameter names, the form is bound and used to build the rendering kwargs.
-    Valid cleaned data (excluding empty strings and None) overrides defaults.
-    If the form is invalid the component falls back to defaults and errors are
-    surfaced in the template via the bound form.
-    """
-    info = node.component
-    component_class = info.component_class
-    params = component_class.get_params()
-
-    # Generate tag signature usage examples (includes CanvasSpecs).
-    # Use the qualified name in CanvasSpecs so the canvas view can resolve
-    # components unambiguously when multiple apps share the same short name.
-    tag_signature = generate_tag_signature(
-        component_class, canvas_component_name=info.qualified_name
-    )
-
-    # Build and optionally bind the parameter form.
+def _get_form_and_sandbox_spec(
+    request: HttpRequest, component_class: type[BlockComponent], tag_signature: Any
+) -> tuple[Any, dict[str, Any], CanvasSpec]:
     form_class = build_component_form(component_class)
     has_param_in_get = any(key in request.GET for key in form_class.base_fields)
     form = form_class(data=request.GET) if has_param_in_get else form_class()
 
-    # Determine the active kwargs: from a valid form or fall back to maximal spec.
     if form.is_bound and form.is_valid():
         form_kwargs = {
             name: value
             for name, value in form.cleaned_data.items()
             if value is not None and value != ""
         }
-        # Build a CanvasSpec from form values to drive the sandbox iframe.
         positional_args = component_class.get_positional_args()
         positional_values = tuple(
             form_kwargs.pop(name) for name in positional_args if name in form_kwargs
@@ -190,32 +168,57 @@ def _render_component(request, context, node, app_label, path_parts):
         form_kwargs = {}
         sandbox_spec = tag_signature.maximal_spec
 
+    return form, form_kwargs, sandbox_spec
+
+
+def _resolve_sandbox_theme(
+    request: HttpRequest, component_class: type[BlockComponent]
+) -> tuple[list[Theme], str]:
+    available_theme_values = component_class.get_available_themes()
+    available_themes = []
+    for t in available_theme_values:
+        theme_dict = get_theme(t)
+        if theme_dict is not None:
+            available_themes.append(theme_dict)
+    active_theme = request.GET.get("theme") or ""
+    if active_theme not in available_theme_values:
+        default_theme_val = get_default_theme()["value"]
+        active_theme = (
+            default_theme_val
+            if default_theme_val in available_theme_values
+            else available_theme_values[0]
+        )
+    return available_themes, active_theme
+
+
+def _build_preview_urls(
+    sandbox_spec: CanvasSpec, tag_signature: Any, active_theme: str
+) -> tuple[str, str, str]:
     canvas_base_url = reverse("gallery-canvas-iframe")
-    canvas_iframe_url = build_canvas_url(sandbox_spec, canvas_base_url)
+    canvas_iframe_url = (
+        build_canvas_url(sandbox_spec, canvas_base_url) + f"&theme={active_theme}"
+    )
     minimal_preview_url = (
-        build_canvas_url(tag_signature.minimal_spec, canvas_base_url) + "&mode=basic"
+        build_canvas_url(tag_signature.minimal_spec, canvas_base_url)
+        + f"&mode=basic&theme={active_theme}"
     )
     maximal_preview_url = (
-        build_canvas_url(tag_signature.maximal_spec, canvas_base_url) + "&mode=basic"
+        build_canvas_url(tag_signature.maximal_spec, canvas_base_url)
+        + f"&mode=basic&theme={active_theme}"
     )
+    return canvas_iframe_url, minimal_preview_url, maximal_preview_url
 
-    # Annotate params with type_name for the template.
+
+def _build_param_rows(
+    form: Any, params: dict, component_class: type[BlockComponent]
+) -> list[dict]:
     for spec_param in params.values():
         spec_param.type_name = getattr(spec_param, "type", type(spec_param)).__name__
 
-    # Build param_rows: one dict per param with the bound form field included.
     param_rows = [
         {"name": name, "spec": spec_param, "field": form[name]}
         for name, spec_param in params.items()
     ]
-
-    # BlockComponent subclasses expose a content field — prepend it to the rows
-    # with a synthetic spec so the template can render it uniformly.
-    # Slotted components get one row per slot instead.
-    from types import SimpleNamespace
-
-    from dj_design_system.components import BlockComponent
-    from dj_design_system.slots import SLOT_PARAM_PREFIX
 
     if issubclass(component_class, BlockComponent):
         if component_class.has_slots():
@@ -243,10 +246,19 @@ def _render_component(request, context, node, app_label, path_parts):
             param_rows.insert(
                 0, {"name": "content", "spec": content_spec, "field": form["content"]}
             )
+    return param_rows
 
-    # Generate current-parameters usage example.
-    # Keep non-default parameter values, and also pass block content or slot
-    # values so the current-usage snippet reflects textarea edits.
+
+def _generate_signature_usage(
+    form: Any,
+    form_kwargs: dict,
+    params: dict,
+    component_class: type[BlockComponent],
+    info: Any,
+) -> Any | None:
+    if not (form.is_bound and form.is_valid() and form_kwargs):
+        return None
+
     non_default_kwargs = {
         name: value
         for name, value in form_kwargs.items()
@@ -257,17 +269,36 @@ def _render_component(request, context, node, app_label, path_parts):
     signature_kwargs = dict(non_default_kwargs)
     if "content" in form_kwargs:
         signature_kwargs["content"] = form_kwargs["content"]
-    # Include slot values in signature kwargs
     for key, value in form_kwargs.items():
         if key.startswith(SLOT_PARAM_PREFIX):
             signature_kwargs[key] = value
 
-    current_signature = (
-        generate_current_tag_signature(
-            component_class, signature_kwargs, canvas_component_name=info.qualified_name
-        )
-        if form.is_bound and form.is_valid() and signature_kwargs
-        else None
+    return generate_current_tag_signature(
+        component_class, signature_kwargs, canvas_component_name=info.qualified_name
+    )
+
+
+def _render_component(request, context, node, app_label, path_parts):
+    """Render a component node — Documentation pane + Sandbox pane."""
+    info = node.component
+    component_class = info.component_class
+    params = component_class.get_params()
+
+    tag_signature = generate_tag_signature(
+        component_class, canvas_component_name=info.qualified_name
+    )
+
+    form, form_kwargs, sandbox_spec = _get_form_and_sandbox_spec(
+        request, component_class, tag_signature
+    )
+    available_themes, active_theme = _resolve_sandbox_theme(request, component_class)
+    canvas_iframe_url, minimal_preview_url, maximal_preview_url = _build_preview_urls(
+        sandbox_spec, tag_signature, active_theme
+    )
+
+    param_rows = _build_param_rows(form, params, component_class)
+    current_signature = _generate_signature_usage(
+        form, form_kwargs, params, component_class, info
     )
 
     context["component_info"] = info
@@ -284,6 +315,8 @@ def _render_component(request, context, node, app_label, path_parts):
     context["minimal_preview_url"] = minimal_preview_url
     context["maximal_preview_url"] = maximal_preview_url
     context["canvas_backgrounds"] = get_backgrounds()
+    context["available_themes"] = available_themes
+    context["active_theme"] = active_theme
     context["breadcrumbs"] = build_breadcrumbs(
         app_label,
         path_parts[:-1] if path_parts else [],
@@ -313,20 +346,10 @@ def _render_document(request, context, node, app_label, path_parts):
     return render(request, "dj_design_system/gallery/documentation.html", context)
 
 
-# ---------------------------------------------------------------------------
-# Views
-# ---------------------------------------------------------------------------
-
-
 @xframe_options_sameorigin
 @gallery_access_required
 def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
-    """Render a single component inside a full HTML document for iframe embedding.
-
-    Loads global CSS, canvas-specific CSS, and the component's own CSS/JS in
-    the correct cascade order.  Accepts component name and parameters via GET
-    query parameters (parsed by ``resolve_from_get_params``).
-    """
+    """Render a single component inside a full HTML document for iframe embedding."""
     context = {
         "rendered_html": "",
         "component_css": "",
@@ -352,11 +375,74 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
             context,
         )
 
+    info = _resolve_component(spec.component_name, component_registry)
+    app_label = info.app_label
+    component_class = info.component_class
+
+    available_theme_values = component_class.get_available_themes()
+    theme_val = request.GET.get("theme")
+
+    if theme_val not in available_theme_values:
+        if available_theme_values:
+            default_theme_val = get_default_theme()["value"]
+            theme_val = (
+                default_theme_val
+                if default_theme_val in available_theme_values
+                else available_theme_values[0]
+            )
+        else:
+            theme_val = get_default_theme()["value"]
+
+    theme_dict = get_theme(theme_val)
+
+    theme_css = theme_dict["css"] if theme_dict else []
+    theme_js = theme_dict["js"] if theme_dict else []
+    theme_css_bundles = (
+        get_bundle_urls(theme_dict.get("css_bundles", []), "css") if theme_dict else []
+    )
+    theme_js_bundles = (
+        get_bundle_urls(theme_dict.get("js_bundles", []), "js") if theme_dict else []
+    )
+
+    app_css, app_js = get_app_static(app_label)
+    app_css_bundles = get_bundle_urls(
+        (dds_settings.APP_CSS_BUNDLES or {}).get(app_label, []), "css"
+    )
+    app_js_bundles = get_bundle_urls(
+        (dds_settings.APP_JS_BUNDLES or {}).get(app_label, []), "js"
+    )
+
     media = get_component_media(spec, component_registry)
     context["rendered_html"] = render_component(spec, component_registry)
-    context["component_css"] = build_link_tags(media.css)
-    context["component_js"] = build_script_tags(media.js)
-    context["html_attrs"], context["body_attrs"] = _canvas_html_attrs()
+
+    all_css_urls = list(
+        dict.fromkeys(
+            theme_css_bundles
+            + [static(p) for p in theme_css]
+            + app_css_bundles
+            + [static(p) for p in app_css]
+            + [static(p) for p in media.css]
+        )
+    )
+    all_js_urls = list(
+        dict.fromkeys(
+            theme_js_bundles
+            + [static(p) for p in theme_js]
+            + app_js_bundles
+            + [static(p) for p in app_js]
+            + [static(p) for p in media.js]
+        )
+    )
+
+    context["component_css"] = "".join(
+        f'<link rel="stylesheet" href="{u}">' for u in all_css_urls
+    )
+    context["component_js"] = "".join(
+        f'<script src="{u}"></script>' for u in all_js_urls
+    )
+    context["html_attrs"], context["body_attrs"] = _canvas_html_attrs(
+        theme_dict, app_label
+    )
 
     return render(
         request,
@@ -398,21 +484,32 @@ def _canvas_mode_class(request: HttpRequest) -> str:
 
 
 def _flatten_attrs(attrs: dict[str, str]) -> str:
-    """Convert a dict of HTML attributes to a safe attribute string.
-
-    Returns a string with a leading space (e.g. ``' class="govuk-template"'``)
-    or an empty string if *attrs* is empty.
-    """
+    """Convert a dict of HTML attributes to a safe attribute string."""
     if not attrs:
         return ""
     parts = format_html_join(" ", '{}="{}"', attrs.items())
     return format_html(" {}", parts)
 
 
-def _canvas_html_attrs() -> tuple[str, str]:
-    """Return ``(html_attrs, body_attrs)`` strings from settings."""
+def _canvas_html_attrs(
+    theme_dict: Theme | None = None, app_label: str | None = None
+) -> tuple[str, str]:
+    """Return ``(html_attrs, body_attrs)`` strings from settings, theme, and app."""
     raw = dds_settings.GALLERY_CANVAS_HTML_ATTRS
-    return _flatten_attrs(raw.get("html", {})), _flatten_attrs(raw.get("body", {}))
+    html_dict = dict(raw.get("html", {}))
+    body_dict = dict(raw.get("body", {}))
+
+    if theme_dict:
+        theme_raw = theme_dict.get("html_attrs", {})
+        html_dict.update(theme_raw.get("html", {}))
+        body_dict.update(theme_raw.get("body", {}))
+
+    if app_label:
+        app_raw = get_app_html_attrs(app_label)
+        html_dict.update(app_raw.get("html", {}))
+        body_dict.update(app_raw.get("body", {}))
+
+    return _flatten_attrs(html_dict), _flatten_attrs(body_dict)
 
 
 @gallery_access_required
@@ -429,18 +526,7 @@ def gallery_node(
     app_label: str,
     path: str = "",
 ) -> HttpResponse:
-    """Unified view that dispatches to the correct renderer based on node type.
-
-    The URL structure is simply::
-
-        /                          → gallery index
-        /<app_label>/              → app root (folder)
-        /<app_label>/<path>/       → folder, component, or document
-
-    The node type is determined by looking up the path in the navigation
-    tree. This avoids the need for separate URL prefixes like ``/c/`` or
-    ``/d/``.
-    """
+    """Unified view that dispatches to the correct renderer based on node type."""
     path_parts = [p for p in path.split("/") if p]
     context = get_base_context(active_app=app_label)
 
@@ -456,5 +542,4 @@ def gallery_node(
     if node.is_document:
         return _render_document(request, context, node, app_label, path_parts)
 
-    # Default: folder (including APP nodes)
     return _render_folder(request, context, node, app_label, path_parts)

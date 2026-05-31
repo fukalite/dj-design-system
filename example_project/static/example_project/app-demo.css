@@ -1,0 +1,4 @@
+/* App-specific CSS for demo_components */
+.demo-components-body {
+  border-left: 10px solid #28a745 !important;
+}

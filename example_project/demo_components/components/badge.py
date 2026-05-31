@@ -17,3 +17,4 @@ class BadgeComponent(TagComponent):
 
     class Meta:
         positional_args = ["text"]
+        available_themes = ["default"]

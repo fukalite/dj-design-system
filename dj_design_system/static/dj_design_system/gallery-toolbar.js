@@ -20,6 +20,7 @@
 
   // Toolbar selections – null means "use default / not yet chosen".
   var currentBg = null; // e.g. "white", "grey"
+  var currentTheme = null; // e.g. "default", "dark"
   var currentZoom = null; // integer percent, e.g. 100
   var currentViewportWidth = null; // px integer, null = responsive
 
@@ -375,6 +376,100 @@
         // Update active state
         bgPanel
           .querySelectorAll(".gallery-sandbox-toolbar__bg-option")
+          .forEach(function (opt) {
+            opt.classList.toggle(
+              "gallery-sandbox-toolbar__popout-option--active",
+              opt === btn,
+            );
+          });
+
+        closeAllPopouts();
+      });
+    }
+
+    /* -- Theme selector -- */
+
+    var themeToggle = document.querySelector(
+      ".gallery-sandbox-toolbar__theme-toggle",
+    );
+    var themePanel = document.querySelector('[data-gallery-panel="theme"]');
+    var themeValueEl = document.querySelector(
+      ".gallery-sandbox-toolbar__theme-value",
+    );
+
+    initPopout(themeToggle, themePanel, signal);
+
+    if (themePanel) {
+      // Restore active selection in the newly-created panel
+      var activeTheme = currentTheme;
+      if (!activeTheme) {
+        // Infer from hidden input if present
+        var themeInput = document.querySelector('.gallery-params-form input[name="theme"]');
+        if (themeInput) {
+          activeTheme = themeInput.value;
+        } else {
+          // Infer from iframe src
+          var iframe = getSandboxIframe();
+          if (iframe) {
+            var url = new URL(iframe.src, window.location.href);
+            activeTheme = url.searchParams.get("theme");
+          }
+        }
+      }
+
+      if (activeTheme) {
+        currentTheme = activeTheme;
+        if (themeValueEl) {
+          themeValueEl.textContent = activeTheme.charAt(0).toUpperCase() + activeTheme.slice(1);
+        }
+        themePanel
+          .querySelectorAll(".gallery-sandbox-toolbar__theme-btn")
+          .forEach(function (opt) {
+            opt.classList.toggle(
+              "gallery-sandbox-toolbar__popout-option--active",
+              opt.dataset.theme === activeTheme,
+            );
+          });
+      }
+
+      themePanel.addEventListener("click", function (e) {
+        var btn = e.target.closest("[data-theme]");
+        if (!btn) return;
+
+        var themeValue = btn.dataset.theme;
+        currentTheme = themeValue;
+
+        // 1. Update browser URL query params dynamically
+        var browserUrl = new URL(window.location.href);
+        browserUrl.searchParams.set("theme", themeValue);
+        window.history.replaceState(null, "", browserUrl.toString());
+
+        // 2. Trigger update/reload
+        var form = document.querySelector(".gallery-params-form");
+        if (form) {
+          var input = form.querySelector('input[name="theme"]');
+          if (input) {
+            input.value = themeValue;
+            form.dispatchEvent(new Event("change"));
+          }
+        } else {
+          // No form, reload iframe src directly
+          var iframe = getSandboxIframe();
+          if (iframe) {
+            var iframeUrl = new URL(iframe.src, window.location.href);
+            iframeUrl.searchParams.set("theme", themeValue);
+            iframe.src = iframeUrl.toString();
+          }
+        }
+
+        // Update toggle label
+        if (themeValueEl) {
+          themeValueEl.textContent = themeValue.charAt(0).toUpperCase() + themeValue.slice(1);
+        }
+
+        // Update active state
+        themePanel
+          .querySelectorAll(".gallery-sandbox-toolbar__theme-btn")
           .forEach(function (opt) {
             opt.classList.toggle(
               "gallery-sandbox-toolbar__popout-option--active",
