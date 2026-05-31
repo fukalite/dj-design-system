@@ -1,7 +1,7 @@
 from django.conf import settings
 
 from dj_design_system.services.media import coerce_path_list
-from dj_design_system.types import NodeType
+from dj_design_system.types import NodeType, Theme
 
 
 # Built-in canvas backgrounds keyed by slug.  Each entry is a dict with
@@ -139,7 +139,7 @@ def get_default_background() -> dict:
     return {"value": "light-grey", "label": "Light Grey", "color": "#f0f0f0"}
 
 
-def get_themes() -> list[dict]:
+def get_themes() -> list[Theme]:
     """Return the list of themes.
 
     Each theme dict contains 'value', 'label', 'html_attrs', 'css', 'js', 'css_bundles', 'js_bundles'.
@@ -147,28 +147,28 @@ def get_themes() -> list[dict]:
     themes = dds_settings.GALLERY_THEMES
     result = []
     for key, theme in themes.items():
-        theme_data = {
-            "value": key,
-            "label": theme.get("label", key.capitalize()),
-            "html_attrs": theme.get("html_attrs", {}),
-            "css": coerce_path_list(theme.get("css", [])),
-            "js": coerce_path_list(theme.get("js", [])),
-            "css_bundles": theme.get("css_bundles", []),
-            "js_bundles": theme.get("js_bundles", []),
-        }
+        theme_data = Theme(
+            value=key,
+            label=theme.get("label", key.capitalize()),
+            html_attrs=theme.get("html_attrs", {}),
+            css=coerce_path_list(theme.get("css", [])),
+            js=coerce_path_list(theme.get("js", [])),
+            css_bundles=theme.get("css_bundles", []),
+            js_bundles=theme.get("js_bundles", []),
+        )
         result.append(theme_data)
     return result
 
 
-def get_theme(identifier: str) -> dict | None:
+def get_theme(identifier: str) -> Theme | None:
     """Return the theme matching the identifier, or None."""
     for theme in get_themes():
-        if theme["value"] == identifier:
+        if theme.value == identifier:
             return theme
     return None
 
 
-def get_default_theme() -> dict:
+def get_default_theme() -> Theme:
     """Return the default theme as a dict."""
     val = dds_settings.GALLERY_DEFAULT_THEME
     theme = get_theme(val)
@@ -177,15 +177,15 @@ def get_default_theme() -> dict:
     themes = get_themes()
     if themes:
         return themes[0]
-    return {
-        "value": "default",
-        "label": "Default",
-        "html_attrs": {},
-        "css": [],
-        "js": [],
-        "css_bundles": [],
-        "js_bundles": [],
-    }
+    return Theme(
+        value="default",
+        label="Default",
+        html_attrs={},
+        css=[],
+        js=[],
+        css_bundles=[],
+        js_bundles=[],
+    )
 
 
 def get_app_static(app_label: str) -> tuple[list[str], list[str]]:

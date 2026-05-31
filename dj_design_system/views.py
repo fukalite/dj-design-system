@@ -48,7 +48,7 @@ from dj_design_system.settings import (
     get_theme,
 )
 from dj_design_system.slots import SLOT_PARAM_PREFIX
-from dj_design_system.types import CanvasMode
+from dj_design_system.types import CanvasMode, Theme
 
 
 GALLERY_PERMISSION = "dj_design_system.can_view_gallery"
@@ -173,7 +173,7 @@ def _get_form_and_sandbox_spec(
 
 def _resolve_sandbox_theme(
     request: HttpRequest, component_class: type[BlockComponent]
-) -> tuple[list[dict], str]:
+) -> tuple[list[Theme], str]:
     available_theme_values = component_class.get_available_themes()
     available_themes = []
     for t in available_theme_values:
@@ -492,7 +492,7 @@ def _flatten_attrs(attrs: dict[str, str]) -> str:
 
 
 def _canvas_html_attrs(
-    theme_dict: dict | None = None, app_label: str | None = None
+    theme_dict: Theme | None = None, app_label: str | None = None
 ) -> tuple[str, str]:
     """Return ``(html_attrs, body_attrs)`` strings from settings, theme, and app."""
     raw = dds_settings.GALLERY_CANVAS_HTML_ATTRS

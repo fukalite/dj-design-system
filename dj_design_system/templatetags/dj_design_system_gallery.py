@@ -17,6 +17,7 @@ from dj_design_system.settings import (
     get_default_theme,
     get_theme,
 )
+from dj_design_system.types import Theme
 
 
 register = template.Library()
@@ -41,7 +42,7 @@ class CanvasNode(template.Node):
     def __init__(self, nodelist: template.NodeList):
         self.nodelist = nodelist
 
-    def _resolve_theme(self, context: template.Context) -> dict | None:
+    def _resolve_theme(self, context: template.Context) -> Theme | None:
         theme_val = context.get("active_theme")
         if not theme_val:
             request = context.get("request")
@@ -52,7 +53,7 @@ class CanvasNode(template.Node):
         return get_theme(theme_val)
 
     def _build_theme_app_media(
-        self, theme_dict: dict | None, app_label: str | None
+        self, theme_dict: Theme | None, app_label: str | None
     ) -> tuple[str, str]:
         theme_css = theme_dict["css"] if theme_dict else []
         theme_js = theme_dict["js"] if theme_dict else []
