@@ -306,15 +306,27 @@ class TestSlottedTemplateRendering:
         assert "<h2>My Title</h2>" in result
         assert "<p>Body</p>" in result
 
-    def test_slotted_with_keyword_param(self):
+    def test_whitespace_slot_coercion(self):
         t = Template(
             "{% load test_slots %}"
-            '{% slotted_with_params title="Keyword" %}'
-            '{% slot "content" %}<p>Body</p>{% endslot %}'
-            "{% endslotted_with_params %}"
+            "{% simple_slotted %}"
+            '{% slot "body" %}<p>Body</p>{% endslot %}'
+            '{% slot "sidebar" %}\n   \n{% endslot %}'
+            "{% endsimple_slotted %}"
         )
         result = t.render(Context())
-        assert "<h2>Keyword</h2>" in result
+        assert "<aside>" not in result
+
+    def test_whitespace_slot_coercion_on_optional_with_default(self):
+        t = Template(
+            "{% load test_slots %}"
+            "{% all_optional %}"
+            '{% slot "header" %}\n  \n{% endslot %}'
+            "{% endall_optional %}"
+        )
+        result = t.render(Context())
+        assert "Default Header" not in result
+        assert "Default" in result
 
 
 # ---------------------------------------------------------------------------

@@ -50,7 +50,15 @@ class Theme:
         return getattr(self, item, default)
 
     def keys(self):
-        return ("value", "label", "html_attrs", "css", "js", "css_bundles", "js_bundles")
+        return (
+            "value",
+            "label",
+            "html_attrs",
+            "css",
+            "js",
+            "css_bundles",
+            "js_bundles",
+        )
 
     def items(self):
         return [(k, getattr(self, k)) for k in self.keys()]
