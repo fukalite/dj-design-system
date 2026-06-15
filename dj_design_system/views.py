@@ -100,14 +100,13 @@ def get_base_context(
     }
 
 
-def _render_markdown(file_path: Path) -> str:
+def _render_markdown(file_path: Path, app_label: str = "") -> str:
     """Render a markdown file to HTML."""
     content = file_path.read_text(encoding="utf-8")
-    canvas_base_url = reverse("gallery-canvas-iframe")
 
     extensions: list = [
         CanvasExtension(
-            canvas_base_url=canvas_base_url,
+            app_label=app_label,
             debug=settings.DEBUG,
         ),
         "fenced_code",
@@ -138,7 +137,7 @@ def _render_folder(request, context, node, app_label, path_parts):
     )
 
     if node.has_index_doc:
-        context["doc_html"] = _render_markdown(node.index_doc_path)
+        context["doc_html"] = _render_markdown(node.index_doc_path, app_label)
         return render(
             request,
             "dj_design_system/gallery/documentation.html",
@@ -357,7 +356,7 @@ def _render_component(request, context, node, app_label, path_parts):
     )
 
     if node.has_index_doc:
-        context["doc_html"] = _render_markdown(node.index_doc_path)
+        context["doc_html"] = _render_markdown(node.index_doc_path, app_label)
 
     if request.headers.get("HX-Request"):
         return render(
@@ -371,7 +370,7 @@ def _render_component(request, context, node, app_label, path_parts):
 
 def _render_document(request, context, node, app_label, path_parts):
     """Render a standalone markdown document."""
-    context["doc_html"] = _render_markdown(node.doc_path)
+    context["doc_html"] = _render_markdown(node.doc_path, app_label)
     context["doc_label"] = node.label
     context["breadcrumbs"] = build_breadcrumbs(
         app_label, path_parts[:-1] if path_parts else [], node.label

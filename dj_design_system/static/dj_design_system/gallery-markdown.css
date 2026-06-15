@@ -29,12 +29,6 @@
   background: rgba(255, 255, 255, 0.85);
   border: 1px solid var(--gallery-border);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  opacity: 0;
-  transition: opacity 0.15s ease;
-}
-
-.gallery-md-canvas:hover .gallery-md-canvas__toggles {
-  opacity: 1;
 }
 
 .gallery-md-canvas__label {
@@ -68,41 +62,58 @@
   flex: 1;
 }
 
-.gallery-md-canvas__code {
+.gallery-md-canvas__code,
+.gallery-md-canvas__html {
   border-top: 1px solid var(--gallery-border);
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
-.gallery-md-canvas__code .gallery-usage__pre {
+.gallery-md-canvas__code .gallery-highlight,
+.gallery-md-canvas__html .gallery-highlight,
+.gallery-md-canvas__code .gallery-highlight pre,
+.gallery-md-canvas__html .gallery-highlight pre {
   margin: 0;
   border: none;
   border-radius: 0;
   flex: 1;
+  line-height: 1.15;
+  font-size: 0.85em;
 }
 
-/* Toggle states: both (default) — show both preview and code */
-/* When "preview" is selected — hide code, preview stretches full height */
-.gallery-md-canvas__input--preview:checked ~ .gallery-md-canvas__code {
+.gallery-md-canvas__code .gallery-highlight pre,
+.gallery-md-canvas__html .gallery-highlight pre {
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+/* Visibility toggles: hidden by default unless their radio is checked */
+.gallery-md-canvas__preview,
+.gallery-md-canvas__code,
+.gallery-md-canvas__html {
   display: none;
 }
 
-/* When "code" is selected — hide preview, code stretches full height */
-.gallery-md-canvas__input--code:checked ~ .gallery-md-canvas__preview {
-  display: none;
+/* Show preview when preview input is checked */
+.gallery-md-canvas__input--preview:checked~.gallery-md-canvas__preview {
+  display: flex;
 }
 
-/* Active label state: use general sibling combinator from input to toggles */
-.gallery-md-canvas__input--both:checked
-  ~ .gallery-md-canvas__toggles
-  label[title="Preview and code"],
-.gallery-md-canvas__input--preview:checked
-  ~ .gallery-md-canvas__toggles
-  label[title="Preview only"],
-.gallery-md-canvas__input--code:checked
-  ~ .gallery-md-canvas__toggles
-  label[title="Code only"] {
+/* Show code when code input is checked */
+.gallery-md-canvas__input--code:checked~.gallery-md-canvas__code {
+  display: flex;
+}
+
+/* Show html when html input is checked */
+.gallery-md-canvas__input--html:checked~.gallery-md-canvas__html {
+  display: flex;
+}
+
+/* Active label state */
+.gallery-md-canvas__input--preview:checked~.gallery-md-canvas__toggles label[title="Preview"],
+.gallery-md-canvas__input--code:checked~.gallery-md-canvas__toggles label[title="Template Source"],
+.gallery-md-canvas__input--html:checked~.gallery-md-canvas__toggles label[title="Output HTML"] {
   background: var(--gallery-accent);
   color: #fff;
 }
