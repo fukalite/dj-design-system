@@ -30,103 +30,29 @@ import re
 from typing import TYPE_CHECKING
 
 from markdown import Extension
+from markdown.postprocessors import Postprocessor
 from markdown.preprocessors import Preprocessor
 
-from dj_design_system.data import CanvasSpec
-from dj_design_system.services.canvas import build_canvas_url
+
+try:
+    from pygments import highlight
+    from pygments.formatters import HtmlFormatter
+    from pygments.lexers import HtmlDjangoLexer, HtmlLexer
+
+    HAS_PYGMENTS = True
+except ImportError:
+    HAS_PYGMENTS = False
+
+from dj_design_system.services.canvas_renderer import (
+    build_canvas_srcdoc,
+    render_canvas_block,
+)
+from dj_design_system.services.registry import component_registry
 from dj_design_system.services.tag_signature import highlight_code
-from dj_design_system.slots import SLOT_PARAM_PREFIX
 
 
 if TYPE_CHECKING:
     from markdown import Markdown
-
-
-# ---------------------------------------------------------------------------
-# Tag syntax parser
-# ---------------------------------------------------------------------------
-
-# Matches: {% tag_name ... %} with optional content and {% endtag_name %}
-_TAG_RE = re.compile(
-    r"\{%[-\s]*(\w+)"  # opening tag name
-    r"(.*?)"  # everything between tag name and %}
-    r"\s*%\}"  # closing %}
-)
-
-# Matches: keyword="value", keyword='value', or keyword=value.
-# Unquoted values support booleans and other bare tokens in template syntax.
-_KWARG_RE = re.compile(r"""(\w+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s%}]+))""")
-
-# Matches: "value" or 'value' (positional argument)
-_POS_ARG_RE = re.compile(r"""(?:"([^"]*)"|'([^']*)')""")
-_SLOT_PARAM_PREFIX = (
-    SLOT_PARAM_PREFIX  # keep module-level alias for use in regex helpers
-)
-# Matches: {% slot "name" %}content{% endslot %}
-_SLOT_RE = re.compile(
-    r"""\{%[-\s]*slot\s+(?:"([^"]+)"|'([^']+)')\s*%\}"""
-    r"""(.*?)"""
-    r"""\{%[-\s]*endslot\s*%\}""",
-    re.DOTALL,
-)
-
-
-def parse_tag_syntax(source: str) -> CanvasSpec:
-    """Parse Django template tag syntax into a ``CanvasSpec``.
-
-    Handles both inline tags (``{% icon "check" %}``) and block tags
-    (``{% callout type="warning" %}Content{% endcallout %}``).
-
-    Raises ``ValueError`` if the syntax cannot be parsed.
-    """
-    source = source.strip()
-    if not source:
-        raise ValueError("Empty canvas block.")
-
-    match = _TAG_RE.match(source)
-    if not match:
-        raise ValueError(f"Cannot parse template tag: {source!r}")
-
-    tag_name = match.group(1)
-    args_str = match.group(2).strip()
-
-    # Extract keyword arguments
-    kwargs: dict[str, str] = {}
-    for m in _KWARG_RE.finditer(args_str):
-        kwargs[m.group(1)] = next(
-            group for group in (m.group(2), m.group(3), m.group(4)) if group is not None
-        )
-
-    # Extract positional arguments (quoted strings not part of a kwarg)
-    # Remove kwargs from args_str first, then find remaining quoted strings
-    remaining = _KWARG_RE.sub("", args_str).strip()
-    positional: list[str] = []
-    for m in _POS_ARG_RE.finditer(remaining):
-        positional.append(m.group(1) if m.group(1) is not None else m.group(2))
-
-    # Check for block content: text between %} and {% endtag_name %}
-    after_opening = source[match.end() :]
-    closing_pattern = re.compile(
-        r"\{%[-\s]*end" + re.escape(tag_name) + r"\s*%\}", re.IGNORECASE
-    )
-    closing_match = closing_pattern.search(after_opening)
-    if closing_match:
-        block_content = after_opening[: closing_match.start()].strip()
-        # Check for {% slot "name" %}...{% endslot %} patterns
-        slot_matches = list(_SLOT_RE.finditer(block_content))
-        if slot_matches:
-            for sm in slot_matches:
-                slot_name = sm.group(1) or sm.group(2)
-                slot_content = sm.group(3).strip()
-                kwargs[f"{_SLOT_PARAM_PREFIX}{slot_name}"] = slot_content
-        elif block_content:
-            kwargs["content"] = block_content
-
-    return CanvasSpec(
-        component_name=tag_name,
-        params=kwargs,
-        positional_args=tuple(positional),
-    )
 
 
 # ---------------------------------------------------------------------------
@@ -136,7 +62,8 @@ def parse_tag_syntax(source: str) -> CanvasSpec:
 
 def _build_widget_html(
     source: str,
-    canvas_url: str,
+    srcdoc: str,
+    rendered_html: str,
     unique_id: str,
 ) -> str:
     """Build the HTML widget with preview iframe, code block, and toggle.
@@ -147,63 +74,84 @@ def _build_widget_html(
     """
     highlighted = highlight_code(source)
     escaped_source = html.escape(source)
-
-    # If highlight failed, fall back to plain text
     code_inner = highlighted if highlighted else escaped_source
 
-    return (
+    radio_name = f"mc-toggle-{unique_id}"
+    preview_id = f"mc-preview-{unique_id}"
+    code_id = f"mc-code-{unique_id}"
+    html_id = f"mc-html-{unique_id}"
+
+    if HAS_PYGMENTS:
+        formatter = HtmlFormatter(cssclass="gallery-highlight", wrapcode=True)
+        code_markup = highlight(source, HtmlDjangoLexer(), formatter)
+        html_markup = highlight(rendered_html.strip(), HtmlLexer(), formatter)
+    else:
+        code_inner = html.escape(source)
+        html_inner = html.escape(rendered_html.strip())
+        code_markup = (
+            f'<div class="gallery-highlight"><pre><code>{code_inner}</code></pre></div>'
+        )
+        html_markup = (
+            f'<div class="gallery-highlight"><pre><code>{html_inner}</code></pre></div>'
+        )
+
+    # Widget structure
+    widget_html = (
         f'<div class="gallery-md-canvas">'
-        # Radio inputs at root level for CSS sibling targeting
-        f'<input type="radio" name="mc-toggle-{unique_id}" '
-        f'id="mc-both-{unique_id}" class="gallery-md-canvas__input '
-        f'gallery-md-canvas__input--both" checked>'
-        f'<input type="radio" name="mc-toggle-{unique_id}" '
-        f'id="mc-preview-{unique_id}" class="gallery-md-canvas__input '
-        f'gallery-md-canvas__input--preview">'
-        f'<input type="radio" name="mc-toggle-{unique_id}" '
-        f'id="mc-code-{unique_id}" class="gallery-md-canvas__input '
+        # Check toggles — by default, "preview" is checked, others are not
+        f'<input type="radio" name="{radio_name}" id="{preview_id}" class="gallery-md-canvas__input '
+        f'gallery-md-canvas__input--preview" checked>'
+        f'<input type="radio" name="{radio_name}" id="{code_id}" class="gallery-md-canvas__input '
         f'gallery-md-canvas__input--code">'
+        f'<input type="radio" name="{radio_name}" id="{html_id}" class="gallery-md-canvas__input '
+        f'gallery-md-canvas__input--html">'
         # Toggle labels (positioned via CSS)
         f'<div class="gallery-md-canvas__toggles">'
-        f'<label for="mc-both-{unique_id}" class="gallery-md-canvas__label" '
-        f'title="Preview and code">'
-        # Split icon (horizontal line dividing a box)
-        f'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" '
-        f'stroke="currentColor" stroke-width="2"><rect x="3" y="3" '
-        f'width="18" height="18" rx="2"/><line x1="3" y1="12" x2="21" '
-        f'y2="12"/></svg>'
-        f"</label>"
-        f'<label for="mc-preview-{unique_id}" class="gallery-md-canvas__label" '
-        f'title="Preview only">'
+        f'<label for="{preview_id}" class="gallery-md-canvas__label" '
+        f'title="Preview">'
         # Eye icon
         f'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" '
         f'stroke="currentColor" stroke-width="2" stroke-linecap="round" '
         f'stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 '
         f'8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
         f"</label>"
-        f'<label for="mc-code-{unique_id}" class="gallery-md-canvas__label" '
-        f'title="Code only">'
+        f'<label for="{code_id}" class="gallery-md-canvas__label" '
+        f'title="Template Source">'
         # Code brackets icon
         f'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" '
         f'stroke="currentColor" stroke-width="2" stroke-linecap="round" '
         f'stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/>'
         f'<polyline points="8 6 2 12 8 18"/></svg>'
         f"</label>"
+        f'<label for="{html_id}" class="gallery-md-canvas__label" '
+        f'title="Output HTML">'
+        # HTML output icon
+        f'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" '
+        f'stroke="currentColor" stroke-width="2" stroke-linecap="round" '
+        f'stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>'
+        f'<polyline points="14 2 14 8 20 8"/><polyline points="10 13 8 15 10 17"/><polyline points="14 13 16 15 14 17"/></svg>'
+        f"</label>"
         f"</div>"
         # Preview iframe
         f'<div class="gallery-md-canvas__preview">'
         f'<iframe class="gallery-canvas gallery-md-canvas__iframe" '
-        f'src="{html.escape(canvas_url)}" '
+        f'srcdoc="{html.escape(srcdoc)}" '
+        f'data-canvas-id="{unique_id}" '
+        f'sandbox="allow-scripts" '
         f'loading="lazy" '
         f'title="Component preview"></iframe>'
         f"</div>"
         # Code block
         f'<div class="gallery-md-canvas__code">'
-        f'<pre class="gallery-usage__pre"><code class="gallery-usage__code">'
-        f"{code_inner}</code></pre>"
+        f"{code_markup}"
+        f"</div>"
+        # HTML block
+        f'<div class="gallery-md-canvas__html">'
+        f"{html_markup}"
         f"</div>"
         f"</div>"
     )
+    return widget_html
 
 
 def _build_error_html(message: str, source: str = "", debug: bool = False) -> str:
@@ -261,13 +209,14 @@ class DjangoLangPreprocessor(Preprocessor):
 
 
 class CanvasPreprocessor(Preprocessor):
-    """Replace fenced ``canvas`` blocks with live preview widgets."""
+    """Preprocessor that extracts ```canvas blocks and replaces them with iframe widgets."""
 
-    def __init__(self, md: Markdown, canvas_base_url: str, debug: bool = False):
+    def __init__(self, md: Markdown, app_label: str, debug: bool):
         super().__init__(md)
-        self.canvas_base_url = canvas_base_url
+        self.app_label = app_label
         self.debug = debug
         self._counter = 0
+        self.ext_stash: dict[str, str] = {}
 
     def run(self, lines: list[str]) -> list[str]:
         """Process all lines, replacing canvas blocks with HTML widgets."""
@@ -282,11 +231,33 @@ class CanvasPreprocessor(Preprocessor):
         unique_id = str(self._counter)
 
         try:
-            spec = parse_tag_syntax(source)
-            canvas_url = build_canvas_url(spec, self.canvas_base_url) + "&mode=basic"
-            return _build_widget_html(source, canvas_url, unique_id)
-        except ValueError as exc:
-            return _build_error_html(str(exc), source, self.debug)
+            from django.templatetags.static import static
+
+            rendered_html = render_canvas_block(source)
+            media = component_registry.get_merged_media()
+            component_css = "".join(
+                f'<link rel="stylesheet" href="{static(u)}">' for u in media.css
+            )
+            component_js = "".join(
+                f'<script src="{static(u)}"></script>' for u in media.js
+            )
+            srcdoc = build_canvas_srcdoc(
+                rendered_html=rendered_html,
+                component_css=component_css,
+                component_js=component_js,
+                mode_class="canvas-wrapper--basic",
+                app_label=self.app_label,
+                iframe_id=unique_id,
+            )
+            widget_html = _build_widget_html(source, srcdoc, rendered_html, unique_id)
+            token = f"CANVAS_STASH_{unique_id}"
+            self.ext_stash[token] = widget_html
+            return f"\n\n{token}\n\n"
+        except Exception as exc:
+            error_html = _build_error_html(str(exc), source, self.debug)
+            token = f"CANVAS_STASH_{unique_id}"
+            self.ext_stash[token] = error_html
+            return f"\n\n{token}\n\n"
 
 
 # ---------------------------------------------------------------------------
@@ -294,18 +265,31 @@ class CanvasPreprocessor(Preprocessor):
 # ---------------------------------------------------------------------------
 
 
-class CanvasExtension(Extension):
-    """Markdown extension that processes fenced ``canvas`` blocks.
+class CanvasPostprocessor(Postprocessor):
+    """Postprocessor to restore canvas widget HTML."""
 
-    Requires ``canvas_base_url`` config (the ``_canvas/`` endpoint URL).
-    """
+    def __init__(self, stash: dict[str, str], *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.stash = stash
+
+    def run(self, text: str) -> str:
+        for token, html_str in self.stash.items():
+            # Paragraph processor might have wrapped our token
+            text = text.replace(f"<p>{token}</p>", html_str)
+            text = text.replace(token, html_str)
+        return text
+
+
+class CanvasExtension(Extension):
+    """Markdown extension that parses ```canvas blocks into Django gallery components."""
 
     def __init__(self, **kwargs):
         self.config = {
-            "canvas_base_url": ["", "Base URL for the canvas iframe endpoint"],
-            "debug": [False, "Show source on errors"],
+            "app_label": ["", "The Django app label to load static media for"],
+            "debug": [False, "Enable debug mode"],
         }
         super().__init__(**kwargs)
+        self.stash: dict[str, str] = {}
 
     def extendMarkdown(self, md: Markdown) -> None:
         """Register preprocessors.
@@ -317,8 +301,12 @@ class CanvasExtension(Extension):
         """
         preprocessor = CanvasPreprocessor(
             md,
-            canvas_base_url=self.getConfig("canvas_base_url"),
+            app_label=self.getConfig("app_label"),
             debug=self.getConfig("debug"),
         )
+        preprocessor.ext_stash = self.stash
         md.preprocessors.register(preprocessor, "canvas", 32)
         md.preprocessors.register(DjangoLangPreprocessor(md), "django-lang", 30)
+        md.postprocessors.register(
+            CanvasPostprocessor(self.stash, md), "canvas-post", 10
+        )

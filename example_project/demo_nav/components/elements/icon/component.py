@@ -17,3 +17,6 @@ class IconComponent(TagComponent):
 
     class Meta:
         positional_args = ["name"]
+
+    class Media:
+        css = ["example_project/demo.css"]

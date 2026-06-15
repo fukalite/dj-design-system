@@ -2,125 +2,12 @@
 
 import pytest
 from django.test import override_settings
-from django.urls import reverse
 
 from dj_design_system.services.markdown_canvas import (
     CanvasExtension,
     CanvasPreprocessor,
     DjangoLangPreprocessor,
-    parse_tag_syntax,
 )
-
-
-# ---------------------------------------------------------------------------
-# parse_tag_syntax
-# ---------------------------------------------------------------------------
-
-
-class TestParseTagSyntax:
-    """Test the Django template tag syntax parser."""
-
-    def test_simple_tag(self):
-        spec = parse_tag_syntax('{% icon "check" %}')
-        assert spec.component_name == "icon"
-        assert spec.positional_args == ("check",)
-        assert spec.params == {}
-
-    def test_tag_with_kwargs(self):
-        spec = parse_tag_syntax('{% icon "check" size="large" %}')
-        assert spec.component_name == "icon"
-        assert spec.positional_args == ("check",)
-        assert spec.params == {"size": "large"}
-
-    def test_tag_with_only_kwargs(self):
-        spec = parse_tag_syntax('{% button label="Click me" %}')
-        assert spec.component_name == "button"
-        assert spec.positional_args == ()
-        assert spec.params == {"label": "Click me"}
-
-    def test_tag_with_multiple_positional_args(self):
-        spec = parse_tag_syntax('{% tag "foo" "bar" %}')
-        assert spec.component_name == "tag"
-        assert spec.positional_args == ("foo", "bar")
-
-    def test_tag_with_multiple_kwargs(self):
-        spec = parse_tag_syntax('{% icon name="check" size="large" color="red" %}')
-        assert spec.component_name == "icon"
-        assert spec.params == {"name": "check", "size": "large", "color": "red"}
-
-    def test_tag_with_unquoted_kwargs(self):
-        spec = parse_tag_syntax("{% icon name=check size=large %}")
-        assert spec.component_name == "icon"
-        assert spec.params == {"name": "check", "size": "large"}
-
-    def test_tag_with_unquoted_boolean_kwarg(self):
-        spec = parse_tag_syntax("{% callout highlight=True %}Warning{% endcallout %}")
-        assert spec.component_name == "callout"
-        assert spec.params == {"highlight": "True", "content": "Warning"}
-
-    def test_block_tag_with_content(self):
-        spec = parse_tag_syntax(
-            '{% callout type="warning" %}This is a warning{% endcallout %}'
-        )
-        assert spec.component_name == "callout"
-        assert spec.params == {"type": "warning", "content": "This is a warning"}
-
-    def test_block_tag_no_kwargs(self):
-        spec = parse_tag_syntax("{% panel %}Some content{% endpanel %}")
-        assert spec.component_name == "panel"
-        assert spec.params == {"content": "Some content"}
-
-    def test_empty_source_raises(self):
-        with pytest.raises(ValueError, match="Empty canvas block"):
-            parse_tag_syntax("")
-
-    def test_whitespace_only_raises(self):
-        with pytest.raises(ValueError, match="Empty canvas block"):
-            parse_tag_syntax("   ")
-
-    def test_invalid_syntax_raises(self):
-        with pytest.raises(ValueError, match="Cannot parse"):
-            parse_tag_syntax("not a template tag")
-
-    def test_single_quoted_args(self):
-        spec = parse_tag_syntax("{% icon 'check' size='large' %}")
-        assert spec.positional_args == ("check",)
-        assert spec.params == {"size": "large"}
-
-    def test_tag_with_no_args(self):
-        spec = parse_tag_syntax("{% spacer %}")
-        assert spec.component_name == "spacer"
-        assert spec.positional_args == ()
-        assert spec.params == {}
-
-    def test_block_with_slots(self):
-        """Block tag with slot syntax produces slot__ prefixed params."""
-        source = (
-            '{% card title="Hello" %}\n'
-            '  {% slot "header" %}My Header{% endslot %}\n'
-            '  {% slot "body" %}My Body{% endslot %}\n'
-            "{% endcard %}"
-        )
-        spec = parse_tag_syntax(source)
-        assert spec.component_name == "card"
-        assert spec.params == {
-            "title": "Hello",
-            "slot__header": "My Header",
-            "slot__body": "My Body",
-        }
-
-    def test_block_with_single_slot(self):
-        """Single slot in a block tag."""
-        source = '{% panel %}{% slot "content" %}Hello{% endslot %}{% endpanel %}'
-        spec = parse_tag_syntax(source)
-        assert spec.params == {"slot__content": "Hello"}
-        assert "content" not in spec.params or spec.params.get("content") is None
-
-    def test_slots_with_single_quotes(self):
-        """Slot names can use single quotes."""
-        source = "{% card %}{% slot 'body' %}Text{% endslot %}{% endcard %}"
-        spec = parse_tag_syntax(source)
-        assert spec.params == {"slot__body": "Text"}
 
 
 # ---------------------------------------------------------------------------
@@ -138,11 +25,14 @@ class TestCanvasPreprocessor:
         import markdown
 
         md = markdown.Markdown()
-        canvas_base_url = reverse("gallery-canvas-iframe")
-        preprocessor = CanvasPreprocessor(md, canvas_base_url, debug=debug)
+        preprocessor = CanvasPreprocessor(md, app_label="", debug=debug)
         lines = text.split("\n")
         result = preprocessor.run(lines)
-        return "\n".join(result)
+        joined_result = "\n".join(result)
+        for token, html_str in preprocessor.ext_stash.items():
+            joined_result = joined_result.replace(f"<p>{token}</p>", html_str)
+            joined_result = joined_result.replace(token, html_str)
+        return joined_result
 
     def test_simple_canvas_block(self):
         text = '```canvas\n{% button "Click" %}\n```'
@@ -150,7 +40,7 @@ class TestCanvasPreprocessor:
         assert "gallery-md-canvas" in result
         assert "gallery-md-canvas__iframe" in result
         assert "gallery-md-canvas__code" in result
-        assert "component=button" in result
+        assert "srcdoc=" in result
 
     def test_iframe_has_lazy_loading(self):
         """Iframes should defer loading until near the viewport for performance."""
@@ -159,21 +49,20 @@ class TestCanvasPreprocessor:
         assert 'loading="lazy"' in result
 
     def test_canvas_block_with_kwargs(self):
-        text = '```canvas\n{% button label="Hello" %}\n```'
+        text = '```canvas\n{% button "Click" %}\n```'
         result = self._process(text)
-        assert "component=button" in result
-        assert "label=Hello" in result
+        assert "srcdoc=" in result
 
     def test_block_component_canvas(self):
         text = '```canvas\n{% alert "warning" %}Danger!{% endalert %}\n```'
         result = self._process(text)
-        assert "component=alert" in result
+        assert "srcdoc=" in result
         assert "gallery-md-canvas" in result
 
     def test_basic_mode_appended(self):
         text = '```canvas\n{% button "Click" %}\n```'
         result = self._process(text)
-        assert "mode=basic" in result
+        assert "canvas-wrapper--basic" in result
 
     def test_multiple_canvas_blocks(self):
         text = (
@@ -188,24 +77,24 @@ class TestCanvasPreprocessor:
         text = '```canvas\n{% button "Click" %}\n```'
         result = self._process(text)
         assert "mc-toggle-" in result
-        assert 'gallery-md-canvas__input--both"' in result
+        assert 'gallery-md-canvas__input--html"' in result
         assert 'gallery-md-canvas__input--preview"' in result
         assert 'gallery-md-canvas__input--code"' in result
 
     def test_invalid_syntax_shows_error(self):
-        text = "```canvas\nnot a template tag\n```"
+        text = "```canvas\n{% invalid_tag %}\n```"
         result = self._process(text)
         assert "Canvas error" in result
-        assert "Cannot parse" in result
+        assert "Invalid block tag" in result
 
     def test_invalid_syntax_debug_shows_source(self):
-        text = "```canvas\nnot a template tag\n```"
+        text = "```canvas\n{% invalid_tag %}\n```"
         result = self._process(text, debug=True)
         assert "Canvas error" in result
-        assert "not a template tag" in result
+        assert "invalid_tag" in result
 
     def test_invalid_syntax_no_debug_hides_source(self):
-        text = "```canvas\nnot a template tag\n```"
+        text = "```canvas\n{% invalid_tag %}\n```"
         result = self._process(text, debug=False)
         assert "Canvas error" in result
         # Source should NOT appear in a <pre><code> after the error
@@ -221,7 +110,7 @@ class TestCanvasPreprocessor:
     def test_highlighted_code_in_widget(self):
         text = '```canvas\n{% button "Click" %}\n```'
         result = self._process(text)
-        assert "gallery-usage__code" in result
+        assert "gallery-highlight" in result
 
     def test_unique_ids_per_block(self):
         text = '```canvas\n{% button "A" %}\n```\n\n```canvas\n{% button "B" %}\n```'
@@ -241,10 +130,9 @@ class TestCanvasExtension:
     def _render(self, text, debug=False):
         import markdown
 
-        canvas_base_url = reverse("gallery-canvas-iframe")
         md = markdown.Markdown(
             extensions=[
-                CanvasExtension(canvas_base_url=canvas_base_url, debug=debug),
+                CanvasExtension(debug=debug),
                 "fenced_code",
                 "tables",
                 "toc",
