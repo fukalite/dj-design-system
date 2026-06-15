@@ -33,7 +33,10 @@ class SlotNode(template.Node):
         self.nodelist = nodelist
 
     def render(self, context: template.Context) -> str:
-        return self.nodelist.render(context)
+        rendered = self.nodelist.render(context)
+        if rendered and rendered.strip() == "":
+            return ""
+        return rendered
 
 
 class SlottedComponentNode(template.Node):
