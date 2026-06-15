@@ -212,37 +212,46 @@ DJ_DESIGN_SYSTEM = {
 
 ## Live Demos in Markdown
 
-Markdown files (e.g. `index.md` in a component folder) can embed live
-component previews using fenced `canvas` blocks:
+Markdown files (e.g. `index.md` in a component folder) can embed live component previews using fenced `canvas` blocks. Because the canvas block is rendered through Django's template engine, it fully supports **nested components**, **slots**, and **arbitrary HTML**.
 
-````markdown
-```canvas
-{% icon "check" size="large" %}
-```
-````
+` ```canvas
+<div class="demo-wrapper">
+  {% card title="Welcome" %}
+    {% slot "body" %}
+      <p>This is a nested card showing <strong>HTML</strong> and components together.</p>
+      {% button label="Click me" %}
+    {% endslot %}
+  {% endcard %}
+</div>
+``` `
 
-Block components work too — put the content between the opening and
-closing tags:
-
-````markdown
-```canvas
-{% callout type="warning" %}Watch out!{% endcallout %}
-```
-````
-
-The syntax inside the block is identical to the template tag syntax shown
-in the Usage section of each component page — you can copy and paste
-directly.
+The syntax inside the block is standard Django template syntax (`{% load design_components %}` is applied automatically). All your registered components and template filters are available.
 
 Each canvas block renders as a widget with:
 
-- A **live preview** iframe (basic mode, auto-height).
+- A **live preview** iframe (basic mode, auto-height, rendered via `srcdoc`).
 - A **syntax-highlighted code block** showing the template tag.
 - A small icon toggle in the bottom-right corner to switch between
   preview only, code only, or both (default).
 
 Invalid syntax renders as a red error message. When `DEBUG = True`, the
 original source is shown alongside the error.
+
+### Browser Requirements
+
+Canvas blocks use the `srcdoc` attribute on `<iframe>` elements to safely embed the fully rendered document without requiring additional HTTP requests.
+
+This requires a modern browser. Minimum supported versions:
+- Chrome ≥ 60
+- Firefox ≥ 55
+- Safari ≥ 12
+- Edge ≥ 79
+
+### Security Warning
+
+Because canvas blocks are rendered using Django's template engine, **Django's auto-escaping protects against XSS** by default.
+
+However, if your components use `ModelParam` to render database content, **do not use `|safe` or `mark_safe()`** on untrusted fields. If you disable auto-escaping on user-submitted data, that data will be executed in the canvas iframe.
 
 ## Syntax Highlighting
 
