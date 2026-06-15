@@ -2,7 +2,11 @@
 
 Full documentation lives at [fukalite.github.io/dj-design-system/](https://fukalite.github.io/dj-design-system/).
 
-## Installation
+## 1. Configure settings.py
+
+All setup for Django Design System starts in your `settings.py`.
+
+### INSTALLED_APPS
 
 Add `dj_design_system` to your `INSTALLED_APPS`:
 
@@ -14,7 +18,7 @@ INSTALLED_APPS = [
 ]
 ```
 
-### Static files (CSS and JS)
+### STATICFILES_FINDERS
 
 To serve co-located `.css` and `.js` files through Django's static files system, add `ComponentsStaticFinder` to `STATICFILES_FINDERS`:
 
@@ -28,31 +32,7 @@ STATICFILES_FINDERS = [
 
 This serves `.css` and `.js` files from each installed app's `components/` directory under the URL namespace `{app_label}/components/...`. Python files, HTML templates, and all other file types are never exposed as static assets.
 
-### Gallery
-
-Enable the gallery UI (the auto-discovered and always up-to-date demo and documentation). In production you might want to restrict
-this to an admin-only URL.
-
-> N.B. All dj_design_system settings are contained within this settings dictionary.
-
-```python
-DJ_DESIGN_SYSTEM = {
-    "ENABLE_GALLERY": True,
-    "GALLERY_IS_PUBLIC": False,
-}
-```
-
-Include the gallery URLs in your project:
-
-```python
-from django.urls import include, path
-
-urlpatterns = [
-    path("design-system/", include("dj_design_system.urls")),
-]
-```
-
-### Template loader (HTML templates)
+### TEMPLATES
 
 To use co-located `.html` templates for components, add `ComponentsTemplateLoader` to your `TEMPLATES` loader list. Because Django does not support mixing `APP_DIRS: True` with a custom `loaders` list, you must switch to an explicit loader configuration:
 
@@ -80,6 +60,40 @@ TEMPLATES = [
 ```
 
 Component auto-discovery happens automatically when Django starts up (via `AppConfig.ready()`).
+
+### DJ_DESIGN_SYSTEM Configuration
+
+Configure the design system by adding a `DJ_DESIGN_SYSTEM` dictionary. This is where you configure the gallery, global assets, themes, and more.
+A full list of settings is available in the [Settings API Reference](api/settings.md).
+
+```python
+DJ_DESIGN_SYSTEM = {
+    # The name displayed in the gallery navbar and page titles
+    "DESIGN_SYSTEM_NAME": "Django Design System",
+    
+    # Enable the gallery UI
+    "ENABLE_GALLERY": True,
+    
+    # If False, requires staff permissions (is_staff=True) to view the gallery
+    "GALLERY_IS_PUBLIC": False,
+    
+    # Global styles and scripts loaded in the gallery canvas and when using tags
+    "GLOBAL_CSS": [],
+    "GLOBAL_JS": [],
+}
+```
+
+## 2. Configure urls.py
+
+Include the gallery URLs in your project's main `urls.py` to make the gallery UI accessible. In production you might want to restrict this to an admin-only URL.
+
+```python
+from django.urls import include, path
+
+urlpatterns = [
+    path("design-system/", include("dj_design_system.urls")),
+]
+```
 
 ## Creating a Tag Component
 

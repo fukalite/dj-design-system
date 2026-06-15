@@ -26,6 +26,7 @@ dj_design_system = {
         },
         "dark": {
             "label": "Dark Theme",
+            "canvas_background": "dark-grey",  # Recommended: Use a dark background to complement your theme
             "html_attrs": {
                 "html": {"data-theme": "dark"},
                 "body": {"class": "theme-dark-body"},
@@ -42,9 +43,12 @@ dj_design_system = {
 
 ### Key properties of a theme configuration:
 - **`label`**: The display label in the gallery toolbar's theme dropdown.
+- **`canvas_background`**: An optional background for the preview iframe when this theme is active. It can be a built-in slug (e.g. `"dark"`, `"black"`) or a custom dictionary (e.g. `{"label": "Midnight", "color": "#1a1a2e"}`). This is highly recommended for dark themes.
 - **`html_attrs`**: A dict of HTML attributes to inject into the `<html>` and `<body>` tags of the canvas iframe.
 - **`css` / `js`**: Lists of static files to load when the theme is active.
 - **`css_bundles` / `js_bundles`**: Lists of Webpack bundle arguments to pass to `webpack_loader.utils.get_files` (e.g. `[("main",)]` or `[("main", "MY_CONFIG")]`).
+
+> **Demo Example**: Run `just demo` and navigate to the **Alert** or **Badge** components. Toggle the global theme switcher to "Dark Theme" to see the dark canvas background applied and the component colours seamlessly adapt to dark mode (the dark theme CSS is defined in `example_project/static/example_project/theme-dark.css`).
 
 ---
 

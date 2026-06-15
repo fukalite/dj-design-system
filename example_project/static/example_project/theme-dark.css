@@ -1,10 +1,22 @@
 /* Dark theme CSS */
-:root {
-  --theme-bg-color: #1a1a1a;
-  --theme-text-color: #f5f5f5;
-}
-html[data-theme="dark"] .canvas-wrapper {
-  background-color: #1a1a1a !important;
-  color: #f5f5f5 !important;
-  border: 4px double #ffc107;
+html[data-theme="dark"] {
+  --demo-text: #e5e7eb;
+  --demo-text-muted: #9ca3af;
+  --demo-bg: #1e1e2e;
+  --demo-surface: #11111b;
+  --demo-border: #374151;
+  --demo-primary: #89b4fa;
+  --demo-primary-dk: #74c7ec;
+  --demo-secondary: #9ca3af;
+  --demo-secondary-dk: #d1d5db;
+  --demo-danger: #ef4444;
+  --demo-danger-dk: #f87171;
+  --demo-info-bg: rgba(59, 130, 246, 0.2);
+  --demo-info-bd: #3b82f6;
+  --demo-success-bg: rgba(16, 185, 129, 0.2);
+  --demo-success-bd: #10b981;
+  --demo-warning-bg: rgba(245, 158, 11, 0.2);
+  --demo-warning-bd: #f59e0b;
+  --demo-error-bg: rgba(239, 68, 68, 0.2);
+  --demo-error-bd: #ef4444;
 }

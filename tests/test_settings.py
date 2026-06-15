@@ -46,7 +46,7 @@ class TestThemeSettings:
 
         themes = get_themes()
         assert len(themes) >= 1
-        assert themes[0]["value"] == "default"
+        assert themes[0].value == "default"
 
     @override_settings(
         DJ_DESIGN_SYSTEM={
@@ -65,12 +65,12 @@ class TestThemeSettings:
 
         theme = get_theme("custom")
         assert theme is not None
-        assert theme["label"] == "Custom"
-        assert theme["css"] == ["css/custom.css"]
-        assert theme["js"] == ["js/custom.js"]
+        assert theme.label == "Custom"
+        assert theme.css == ["css/custom.css"]
+        assert theme.js == ["js/custom.js"]
 
         default_theme = get_default_theme()
-        assert default_theme["value"] == "custom"
+        assert default_theme.value == "custom"
 
     @override_settings(
         DJ_DESIGN_SYSTEM={

@@ -7,6 +7,8 @@ class BadgeComponent(TagComponent):
 
     The simplest structural pattern: a single file with an inline template.
 
+    Note it's specifically only available in the "default" theme.
+
     Example usage::
 
         {% badge "New" %}

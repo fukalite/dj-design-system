@@ -49,23 +49,19 @@ class CanvasNode(template.Node):
             if request:
                 theme_val = request.GET.get("theme")
         if not theme_val:
-            theme_val = get_default_theme()["value"]
+            theme_val = get_default_theme().value
         return get_theme(theme_val)
 
     def _build_theme_app_media(
         self, theme_dict: Theme | None, app_label: str | None
     ) -> tuple[str, str]:
-        theme_css = theme_dict["css"] if theme_dict else []
-        theme_js = theme_dict["js"] if theme_dict else []
+        theme_css = theme_dict.css if theme_dict else []
+        theme_js = theme_dict.js if theme_dict else []
         theme_css_bundles = (
-            get_bundle_urls(theme_dict.get("css_bundles", []), "css")
-            if theme_dict
-            else []
+            get_bundle_urls(theme_dict.css_bundles, "css") if theme_dict else []
         )
         theme_js_bundles = (
-            get_bundle_urls(theme_dict.get("js_bundles", []), "js")
-            if theme_dict
-            else []
+            get_bundle_urls(theme_dict.js_bundles, "js") if theme_dict else []
         )
 
         app_css: list[str] = []
@@ -189,7 +185,7 @@ class CanvasNode(template.Node):
         raw = dds_settings.GALLERY_CANVAS_HTML_ATTRS
         html_dict = dict(raw.get("html", {}))
         if theme_dict:
-            html_dict.update(theme_dict.get("html_attrs", {}).get("html", {}))
+            html_dict.update(theme_dict.html_attrs.get("html", {}))
         if app_label:
             html_dict.update(get_app_html_attrs(app_label).get("html", {}))
         return self._flatten_attrs(html_dict)
@@ -198,7 +194,7 @@ class CanvasNode(template.Node):
         raw = dds_settings.GALLERY_CANVAS_HTML_ATTRS
         body_dict = dict(raw.get("body", {}))
         if theme_dict:
-            body_dict.update(theme_dict.get("html_attrs", {}).get("body", {}))
+            body_dict.update(theme_dict.html_attrs.get("body", {}))
         if app_label:
             body_dict.update(get_app_html_attrs(app_label).get("body", {}))
         return self._flatten_attrs(body_dict)
