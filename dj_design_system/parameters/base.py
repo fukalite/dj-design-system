@@ -1,4 +1,10 @@
+import datetime
+import uuid
+from decimal import Decimal
 from typing import Any, Optional
+
+from django.core.files import File
+from django.core.files.images import ImageFile
 
 
 # ---------------------------------------------------------------------------
@@ -28,7 +34,7 @@ class BaseParam:
     See https://docs.python.org/3/howto/descriptor.html for more on the descriptor protocol.
     """
 
-    type: type
+    type: type | tuple[type, ...]
     required: bool
     description: Optional[str]
     default: Optional[Any]
@@ -54,7 +60,11 @@ class BaseParam:
 
     def validate(self, value):
         if not isinstance(value, self.type):
-            raise ValueError(f"Expected {self.type} but got {type(value)}.")
+            if isinstance(self.type, tuple):
+                type_name = " | ".join(t.__name__ for t in self.type)
+            else:
+                type_name = self.type.__name__
+            raise ValueError(f"Expected {type_name} but got {type(value).__name__}.")
         if self.choices is not None and not self.choices:
             raise ValueError("Choices must not be empty")
         if self.choices and value not in self.choices:
@@ -62,10 +72,16 @@ class BaseParam:
 
     def docstring(self) -> str:
         docstr = self.name
-        if self.required:
-            docstr += f": {self.type.__name__}"
+
+        if isinstance(self.type, tuple):
+            type_name = " | ".join(t.__name__ for t in self.type)
         else:
-            docstr += f": Optional[{self.type.__name__}]"
+            type_name = self.type.__name__
+
+        if self.required:
+            docstr += f": {type_name}"
+        else:
+            docstr += f": Optional[{type_name}]"
         if self.default is not None:
             docstr += f" (default: {self.default})"
         if self.description:
@@ -107,7 +123,11 @@ class BaseParam:
         setattr(obj, self.private_name, value)
 
     def __str__(self):
-        return f"<BaseParam {self.name} of type {self.type.__name__}>"
+        if isinstance(self.type, tuple):
+            type_name = " | ".join(t.__name__ for t in self.type)
+        else:
+            type_name = self.type.__name__
+        return f"<BaseParam {self.name} of type {type_name}>"
 
 
 class StrParam(BaseParam):
@@ -149,3 +169,47 @@ class BoolCSSClassParam(BoolParam):
     def get_css_classes(self, param_name: str, value: Any) -> list[str]:
         """Return the parameter name as a CSS class when truthy."""
         return generate_bool_css_class(param_name, value)
+
+
+class IntParam(BaseParam):
+    type = int
+
+
+class FloatParam(BaseParam):
+    type = float
+
+
+class DecimalParam(BaseParam):
+    type = Decimal
+
+
+class DateParam(BaseParam):
+    type = datetime.date
+
+
+class DateTimeParam(BaseParam):
+    type = datetime.datetime
+
+
+class FileParam(BaseParam):
+    type = File
+
+
+class ImageParam(BaseParam):
+    type = ImageFile
+
+
+class DictParam(BaseParam):
+    type = dict
+
+
+class ListParam(BaseParam):
+    type = list
+
+
+class UUIDParam(BaseParam):
+    type = uuid.UUID
+
+
+class JSONParam(BaseParam):
+    type = (dict, list, str, int, float, bool, type(None))
