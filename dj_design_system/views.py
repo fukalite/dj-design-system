@@ -46,6 +46,7 @@ from dj_design_system.settings import (
     get_default_background,
     get_default_theme,
     get_theme,
+    get_themes,
 )
 from dj_design_system.slots import SLOT_PARAM_PREFIX
 from dj_design_system.types import CanvasMode, Theme
@@ -77,17 +78,25 @@ def gallery_access_required(view_func):
 
 
 def get_base_context(
+    request: HttpRequest | None = None,
     active_app: str = "",
     active_path: str = "",
 ) -> dict:
     """Return context shared by all gallery views."""
     nav_tree = build_navigation()
+    active_theme = get_default_theme().value
+    if request:
+        active_theme = (
+            request.GET.get("theme") or request.COOKIES.get("dds_theme") or active_theme
+        )
     return {
         "nav_tree": nav_tree,
         "search_index": build_search_index(nav_tree),
         "design_system_name": dds_settings.DESIGN_SYSTEM_NAME,
         "active_app": active_app,
         "active_path": active_path,
+        "available_themes": get_themes(),
+        "active_theme": active_theme,
     }
 
 
@@ -179,9 +188,9 @@ def _resolve_sandbox_theme(
         theme_dict = get_theme(t)
         if theme_dict is not None:
             available_themes.append(theme_dict)
-    active_theme = request.GET.get("theme") or ""
+    active_theme = request.GET.get("theme") or request.COOKIES.get("dds_theme") or ""
     if active_theme not in available_theme_values:
-        default_theme_val = get_default_theme()["value"]
+        default_theme_val = get_default_theme().value
         active_theme = (
             default_theme_val
             if default_theme_val in available_theme_values
@@ -300,6 +309,27 @@ def _render_component(request, context, node, app_label, path_parts):
         form, form_kwargs, params, component_class, info
     )
 
+    backgrounds = get_backgrounds()
+    active_bg_value = None
+    if active_theme:
+        theme_dict = get_theme(active_theme)
+        if theme_dict and theme_dict.canvas_background:
+            if isinstance(theme_dict.canvas_background, str):
+                active_bg_value = theme_dict.canvas_background
+            elif isinstance(theme_dict.canvas_background, dict):
+                active_bg_value = f"theme-{theme_dict.value}"
+                backgrounds.append(
+                    {
+                        "value": active_bg_value,
+                        "label": theme_dict.canvas_background.get(
+                            "label", f"{theme_dict.label} Default"
+                        ),
+                        "color": theme_dict.canvas_background.get("color", ""),
+                    }
+                )
+    if not active_bg_value:
+        active_bg_value = get_default_background()["value"]
+
     context["component_info"] = info
     context["component_description"] = markdown_lib.markdown(
         (component_class.__doc__ or "").strip(),
@@ -313,9 +343,12 @@ def _render_component(request, context, node, app_label, path_parts):
     context["canvas_iframe_url"] = canvas_iframe_url
     context["minimal_preview_url"] = minimal_preview_url
     context["maximal_preview_url"] = maximal_preview_url
-    context["canvas_backgrounds"] = get_backgrounds()
-    context["available_themes"] = available_themes
-    context["active_theme"] = active_theme
+    context["canvas_backgrounds"] = backgrounds
+    context["active_bg_value"] = active_bg_value
+    # active_theme and available_themes are already provided by get_base_context,
+    # but we override active_theme with the resolved component-specific one for the UI overrides.
+    # Note: the global available_themes from base context shouldn't be overwritten.
+    context["sandbox_active_theme"] = active_theme
     context["breadcrumbs"] = build_breadcrumbs(
         app_label,
         path_parts[:-1] if path_parts else [],
@@ -349,12 +382,13 @@ def _render_document(request, context, node, app_label, path_parts):
 @gallery_access_required
 def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
     """Render a single component inside a full HTML document for iframe embedding."""
+    theme_val = request.GET.get("theme") or request.COOKIES.get("dds_theme")
     context = {
         "rendered_html": "",
         "component_css": "",
         "component_js": "",
-        "canvas_bg_class": _canvas_bg_class(request),
-        "canvas_bg_styles": _canvas_bg_styles(),
+        "canvas_bg_class": "",
+        "canvas_bg_styles": "",
         "canvas_mode_class": _canvas_mode_class(request),
         "html_attrs": "",
         "body_attrs": "",
@@ -379,29 +413,26 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
     component_class = info.component_class
 
     available_theme_values = component_class.get_available_themes()
-    theme_val = request.GET.get("theme")
 
     if theme_val not in available_theme_values:
         if available_theme_values:
-            default_theme_val = get_default_theme()["value"]
+            default_theme_val = get_default_theme().value
             theme_val = (
                 default_theme_val
                 if default_theme_val in available_theme_values
                 else available_theme_values[0]
             )
         else:
-            theme_val = get_default_theme()["value"]
+            theme_val = get_default_theme().value
 
     theme_dict = get_theme(theme_val)
+    if not theme_dict:
+        theme_dict = get_default_theme()
 
-    theme_css = theme_dict["css"] if theme_dict else []
-    theme_js = theme_dict["js"] if theme_dict else []
-    theme_css_bundles = (
-        get_bundle_urls(theme_dict.get("css_bundles", []), "css") if theme_dict else []
-    )
-    theme_js_bundles = (
-        get_bundle_urls(theme_dict.get("js_bundles", []), "js") if theme_dict else []
-    )
+    theme_css = theme_dict.css
+    theme_js = theme_dict.js
+    theme_css_bundles = get_bundle_urls(theme_dict.css_bundles, "css")
+    theme_js_bundles = get_bundle_urls(theme_dict.js_bundles, "js")
 
     app_css, app_js = get_app_static(app_label)
     app_css_bundles = get_bundle_urls(
@@ -442,6 +473,8 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
     context["html_attrs"], context["body_attrs"] = _canvas_html_attrs(
         theme_dict, app_label
     )
+    context["canvas_bg_class"] = _canvas_bg_class(request, theme_dict)
+    context["canvas_bg_styles"] = _canvas_bg_styles(theme_dict)
 
     return render(
         request,
@@ -450,22 +483,40 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
     )
 
 
-def _canvas_bg_class(request: HttpRequest) -> str:
-    """Return the CSS class for the canvas background from GET params or settings."""
-    default = get_default_background()
+def _canvas_bg_class(request: HttpRequest, theme_dict: Theme | None = None) -> str:
+    """Return the CSS class for the canvas background from GET params, theme, or settings."""
     bg_param = request.GET.get("bg")
     if bg_param:
         for bg in get_backgrounds():
             if bg["value"] == bg_param:
                 return f"canvas-bg-{bg['value']}"
+        if theme_dict and isinstance(theme_dict.canvas_background, dict):
+            if bg_param == f"theme-{theme_dict.value}":
+                return f"canvas-bg-theme-{theme_dict.value}"
+
+    if theme_dict and theme_dict.canvas_background:
+        if isinstance(theme_dict.canvas_background, str):
+            return f"canvas-bg-{theme_dict.canvas_background}"
+        elif isinstance(theme_dict.canvas_background, dict):
+            return f"canvas-bg-theme-{theme_dict.value}"
+
+    default = get_default_background()
     return f"canvas-bg-{default['value']}"
 
 
-def _canvas_bg_styles() -> str:
+def _canvas_bg_styles(theme_dict: Theme | None = None) -> str:
     """Generate ``<style>`` CSS rules for all configured canvas backgrounds."""
     rules = []
     for bg in get_backgrounds():
         rules.append(f".canvas-bg-{bg['value']} {{ background: {bg['color']}; }}")
+
+    if theme_dict and isinstance(theme_dict.canvas_background, dict):
+        bg = theme_dict.canvas_background
+        if "color" in bg:
+            rules.append(
+                f".canvas-bg-theme-{theme_dict.value} {{ background: {bg['color']}; }}"
+            )
+
     return "<style>" + "\n".join(rules) + "</style>"
 
 
@@ -499,7 +550,7 @@ def _canvas_html_attrs(
     body_dict = dict(raw.get("body", {}))
 
     if theme_dict:
-        theme_raw = theme_dict.get("html_attrs", {})
+        theme_raw = theme_dict.html_attrs
         html_dict.update(theme_raw.get("html", {}))
         body_dict.update(theme_raw.get("body", {}))
 
@@ -514,7 +565,7 @@ def _canvas_html_attrs(
 @gallery_access_required
 def gallery_index(request: HttpRequest) -> HttpResponse:
     """Gallery home — lists all registered components in the sidebar."""
-    context = get_base_context()
+    context = get_base_context(request)
     context["total_components"] = len(component_registry.list_all())
     return render(request, "dj_design_system/gallery/index.html", context)
 
@@ -527,7 +578,7 @@ def gallery_node(
 ) -> HttpResponse:
     """Unified view that dispatches to the correct renderer based on node type."""
     path_parts = [p for p in path.split("/") if p]
-    context = get_base_context(active_app=app_label)
+    context = get_base_context(request, active_app=app_label, active_path=path)
 
     node = find_node(context["nav_tree"], app_label, path_parts)
     if node is None:

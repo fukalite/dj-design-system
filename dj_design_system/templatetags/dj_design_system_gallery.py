@@ -40,8 +40,9 @@ class CanvasNode(template.Node):
             if request:
                 theme_val = request.GET.get("theme")
         if not theme_val:
-            theme_val = get_default_theme()["value"]
+            theme_val = get_default_theme().value
         return get_theme(theme_val)
+
 
     def render(self, context: template.Context) -> str:
         rendered_component = self.nodelist.render(context)
@@ -70,6 +71,7 @@ class CanvasNode(template.Node):
             f'<iframe class="gallery-canvas" srcdoc="{escaped_doc}" '
             f'title="Component preview"></iframe>'
         )
+
 
 
 @register.tag("canvas")

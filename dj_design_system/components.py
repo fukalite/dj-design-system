@@ -196,7 +196,7 @@ class BaseComponent:
         if app_themes is not None:
             return list(app_themes)
 
-        return [t["value"] for t in get_themes()]
+        return [t.value for t in get_themes()]
 
     @staticmethod
     def map_positional_args(

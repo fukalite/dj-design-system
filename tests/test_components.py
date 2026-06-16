@@ -228,5 +228,5 @@ class TestComponentThemes:
 
         from dj_design_system.settings import get_themes
 
-        all_themes = [t["value"] for t in get_themes()]
+        all_themes = [t.value for t in get_themes()]
         assert FallbackComponent.get_available_themes() == all_themes

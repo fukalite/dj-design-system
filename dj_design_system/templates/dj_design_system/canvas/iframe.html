@@ -12,7 +12,8 @@
         {# 2. Canvas layout CSS (centering, padding, backgrounds) #}
         <link rel="stylesheet" href="{% static 'dj_design_system/canvas.css' %}">
 
-        {# 3. All component CSS #}
+        {# 3. All component CSS (Themes + Apps + Component Paths) #}
+        {{ component_css|safe }}
         {% component_stylesheets %}
 
         {# 4. Dynamic background colour rules #}
@@ -22,7 +23,7 @@
         <div class="canvas-wrapper {{ canvas_mode_class }} {{ canvas_bg_class }}">{{ rendered_html }}</div>
 
         {# Component-specific JS #}
-        {{ component_js }}
+        {{ component_js|safe }}
 
         {# Notify parent frame of content height changes (basic mode only) #}
         <script>

@@ -3,6 +3,3 @@
   --theme-bg-color: #ffffff;
   --theme-text-color: #333333;
 }
-html[data-theme="default"] .canvas-wrapper {
-  border: 4px double #007bff;
-}
