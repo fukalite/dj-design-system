@@ -430,3 +430,35 @@ class TestSlottedTagSignature:
             {"title": "Hello"},
         )
         assert '{% slot "body" %}' in sig.minimal
+
+
+class TestGalleryParameterFormatting:
+    """Test formatting behaviour of the GalleryParameter wrapper."""
+
+    def test_format_param_for_tag_with_code(self):
+        from dj_design_system.data import GalleryParameter
+        from dj_design_system.services.tag_signature import _format_param_for_tag
+
+        param = GalleryParameter(value="raw_value", code="my_var")
+        assert _format_param_for_tag("user", param) == "user=my_var"
+
+    def test_format_param_for_tag_without_code(self):
+        from dj_design_system.data import GalleryParameter
+        from dj_design_system.services.tag_signature import _format_param_for_tag
+
+        param = GalleryParameter(value="raw_value")
+        assert _format_param_for_tag("user", param) == 'user="raw_value"'
+
+    def test_format_positional_arg_with_code(self):
+        from dj_design_system.data import GalleryParameter
+        from dj_design_system.services.tag_signature import _format_positional_arg
+
+        param = GalleryParameter(value="raw_value", code="my_var")
+        assert _format_positional_arg(param) == "my_var"
+
+    def test_unwrap_example(self):
+        from dj_design_system.data import GalleryParameter
+        from dj_design_system.services.tag_signature import _unwrap_example
+
+        param = GalleryParameter(value="raw_value", code="my_var")
+        assert _unwrap_example(param) == "raw_value"
