@@ -83,7 +83,7 @@ Extra HTML attributes applied to the `<html>` and `<body>` tags of the canvas if
 ### `GALLERY_THEMES`
 **Type:** `dict[str, dict]`  
 **Default:** `{"default": {"label": "Default", "html_attrs": {}, "css": [], "js": [], "css_bundles": [], "js_bundles": []}}`  
-A dictionary of available themes. See the [Themes](themes.md) documentation for more details.
+A dictionary of available themes. See the [Themes](../themes.md) documentation for more details.
 
 Themes can also include an optional `canvas_background` setting to specify a dedicated background colour for the preview iframe when that theme is active. This is highly recommended for dark themes. You can use a built-in slug or a custom dictionary.
 
