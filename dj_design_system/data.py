@@ -29,6 +29,24 @@ class CanvasSpec:
     positional_args: tuple[Any, ...] = field(default_factory=tuple)
 
 
+@dataclass(frozen=True)
+class GalleryParameter:
+    """A wrapper for specifying component parameter values in gallery views.
+
+    This is especially useful when providing complex Django types (like QuerySets)
+    as examples, where you want to pass the actual object to the sandbox preview,
+    but show a simpler string representation in the template tag documentation.
+
+    Args:
+        value: The actual Python object or value to be passed to the component.
+        code: Optional literal string to display in the generated template tag
+            signature block (e.g. ``user=request.user`` instead of the stringified value).
+    """
+
+    value: Any
+    code: str | None = None
+
+
 @dataclass
 class ComponentMedia:
     """
@@ -65,6 +83,8 @@ class ComponentInfo:
     name: str
     app_label: str
     relative_path: str
+    gallery_basic_kwargs: dict[str, Any] = field(default_factory=dict)
+    gallery_maximal_kwargs: dict[str, Any] = field(default_factory=dict)
 
     @property
     def qualified_name(self) -> str:

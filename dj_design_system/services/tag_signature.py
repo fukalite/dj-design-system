@@ -58,6 +58,13 @@ def _generate_example_value(
 
 def _format_param_for_tag(param_name: str, value: Any) -> str:
     """Format a parameter and value for template tag syntax."""
+    from dj_design_system.data import GalleryParameter
+
+    if isinstance(value, GalleryParameter):
+        if value.code is not None:
+            return f"{param_name}={value.code}"
+        value = value.value
+
     if isinstance(value, bool):
         value_str = str(value)
     elif isinstance(value, str):
@@ -70,6 +77,13 @@ def _format_param_for_tag(param_name: str, value: Any) -> str:
 
 def _format_positional_arg(value: Any) -> str:
     """Format a positional argument value (without parameter name)."""
+    from dj_design_system.data import GalleryParameter
+
+    if isinstance(value, GalleryParameter):
+        if value.code is not None:
+            return value.code
+        value = value.value
+
     if isinstance(value, bool):
         return str(value)
     elif isinstance(value, str):
@@ -336,13 +350,27 @@ def _build_sig_raw(
         return _format_multiline_example(opening, is_block, component_name)
 
 
+def _unwrap_example(value: Any) -> Any:
+    from dj_design_system.data import GalleryParameter
+
+    if isinstance(value, GalleryParameter):
+        return value.value
+    return value
+
+
 def _build_minimal_positional_values(
-    positional_args: list[str], params: dict[str, Any]
+    positional_args: list[str], params: dict[str, Any], overrides: dict[str, Any]
 ) -> tuple[list[str], list[Any]]:
     minimal_positional = []
     minimal_positional_values = []
     str_index = 0
     for arg_name in positional_args:
+        if arg_name in overrides:
+            value = overrides[arg_name]
+            minimal_positional.append(_format_positional_arg(value))
+            minimal_positional_values.append(_unwrap_example(value))
+            continue
+
         if arg_name in params:
             spec = params[arg_name]
             if spec.required:
@@ -350,17 +378,23 @@ def _build_minimal_positional_values(
                 if isinstance(spec, (StrParam, StrCSSClassParam)):
                     str_index += 1
                 minimal_positional.append(_format_positional_arg(value))
-                minimal_positional_values.append(value)
+                minimal_positional_values.append(_unwrap_example(value))
     return minimal_positional, minimal_positional_values
 
 
 def _build_maximal_positional_values(
-    positional_args: list[str], params: dict[str, Any]
+    positional_args: list[str], params: dict[str, Any], overrides: dict[str, Any]
 ) -> tuple[list[str], list[Any], int]:
     maximal_positional = []
     maximal_positional_values = []
     str_index = 0
     for arg_name in positional_args:
+        if arg_name in overrides:
+            value = overrides[arg_name]
+            maximal_positional.append(_format_positional_arg(value))
+            maximal_positional_values.append(_unwrap_example(value))
+            continue
+
         if arg_name in params:
             spec = params[arg_name]
             value = _generate_example_value(spec, arg_name, str_index)
@@ -368,18 +402,30 @@ def _build_maximal_positional_values(
                 str_index += 1
             if value is not None:
                 maximal_positional.append(_format_positional_arg(value))
-                maximal_positional_values.append(value)
+                maximal_positional_values.append(_unwrap_example(value))
     return maximal_positional, maximal_positional_values, str_index
 
 
 def _build_maximal_keyword_values(
-    positional_args: list[str], params: dict[str, Any], start_str_index: int
+    positional_args: list[str],
+    params: dict[str, Any],
+    overrides: dict[str, Any],
+    start_str_index: int,
 ) -> tuple[list[str], dict[str, Any]]:
     maximal_keyword = []
     maximal_keyword_values = {}
     str_index = start_str_index
-    for param_name, spec in params.items():
+
+    # First apply overrides to ensure they appear
+    for param_name, value in overrides.items():
         if param_name in positional_args:
+            continue
+        maximal_keyword.append(_format_param_for_tag(param_name, value))
+        maximal_keyword_values[param_name] = _unwrap_example(value)
+
+    # Then generate defaults for remaining params
+    for param_name, spec in params.items():
+        if param_name in positional_args or param_name in overrides:
             continue
 
         if not spec.required or spec.default is not None:
@@ -388,7 +434,7 @@ def _build_maximal_keyword_values(
                 str_index += 1
             if value is not None:
                 maximal_keyword.append(_format_param_for_tag(param_name, value))
-                maximal_keyword_values[param_name] = value
+                maximal_keyword_values[param_name] = _unwrap_example(value)
     return maximal_keyword, maximal_keyword_values
 
 
@@ -405,14 +451,34 @@ def generate_tag_signature(
     is_slotted = is_block and cast(type[BlockComponent], component_class).has_slots()
     block_class = cast(type[BlockComponent], component_class) if is_block else None
 
+    from dj_design_system.services.registry import component_registry
+
+    try:
+        info = component_registry.get_info(component_class)
+        basic_kwargs = info.gallery_basic_kwargs
+        maximal_kwargs = info.gallery_maximal_kwargs
+    except Exception:
+        basic_kwargs = {}
+        maximal_kwargs = {}
+
     # Minimal Signature
     min_pos_fmt, min_pos_vals = _build_minimal_positional_values(
-        positional_args, params
+        positional_args, params, basic_kwargs
     )
+
+    # Process keyword args for minimal signature (if any in basic_kwargs)
+    min_kw_fmt = []
+    min_kw_vals = {}
+    for param_name, value in basic_kwargs.items():
+        if param_name in positional_args:
+            continue
+        min_kw_fmt.append(_format_param_for_tag(param_name, value))
+        min_kw_vals[param_name] = _unwrap_example(value)
+
     minimal = _build_sig_raw(
         component_name,
         min_pos_fmt,
-        [],
+        min_kw_fmt,
         is_block,
         is_slotted,
         block_class,
@@ -421,10 +487,10 @@ def generate_tag_signature(
 
     # Maximal Signature
     max_pos_fmt, max_pos_vals, str_index = _build_maximal_positional_values(
-        positional_args, params
+        positional_args, params, maximal_kwargs
     )
     max_kw_fmt, max_kw_vals = _build_maximal_keyword_values(
-        positional_args, params, str_index
+        positional_args, params, maximal_kwargs, str_index
     )
     maximal = _build_sig_raw(
         component_name,
@@ -453,7 +519,7 @@ def generate_tag_signature(
 
     minimal_spec = CanvasSpec(
         component_name=canvas_name,
-        params={**minimal_slot_params},
+        params={**min_kw_vals, **minimal_slot_params},
         positional_args=tuple(min_pos_vals),
     )
     maximal_spec = CanvasSpec(

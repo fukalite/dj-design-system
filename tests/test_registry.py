@@ -572,3 +572,18 @@ class TestRegistryErrorPropagation:
         ):
             with pytest.raises(ImportError, match="bad submodule"):
                 list(reg._iter_app_submodules(fake_module, "fakeapp.components"))
+
+
+class TestDiscoverGalleryKwargs:
+    """Test autodiscovery of gallery basic and maximal kwargs."""
+
+    def test_discovers_badge_gallery(self, registry_with_demo_components):
+        reg = registry_with_demo_components
+        info = reg.get_info(BadgeComponent)
+
+        assert "text" in info.gallery_basic_kwargs
+        assert info.gallery_basic_kwargs["text"] == "New"
+
+        assert "text" in info.gallery_maximal_kwargs
+        assert info.gallery_maximal_kwargs["text"] == "Unread Messages"
+        assert info.gallery_maximal_kwargs["theme"] == "danger"

@@ -205,10 +205,40 @@ document:
 DJ_DESIGN_SYSTEM = {
     "GALLERY_CANVAS_HTML_ATTRS": {
         "html": {"class": "govuk-template"},
-        "body": {"class": "govuk-template__body"},
-    },
 }
 ```
+
+## Customising Gallery Examples
+
+By default, the gallery generates minimal and maximal usage examples automatically based on the parameter types. You can override these examples by creating a side-car Python file next to your component.
+
+The gallery autodiscovery checks for a `[component_name]_gallery.py` file next to your component (e.g. `badge_gallery.py` next to `badge.py`). If your component is defined in a package (e.g. `button/component.py`), it will also check for `button/gallery.py`.
+
+Inside this file, you can define `basic_kwargs` and `maximal_kwargs` dictionaries:
+
+```python
+# badge_gallery.py
+from dj_design_system.data import GalleryParameter
+
+basic_kwargs = {
+    "text": "New basic badge",
+}
+
+maximal_kwargs = {
+    "text": "Critical Alert!",
+    "theme": "danger",
+    
+    # For complex Django types or context variables, wrap them in GalleryParameter.
+    # - `value` is the actual instance passed to the sandbox iframe preview.
+    # - `code` (optional) is what gets literally printed in the `{% badge ... %}` code block.
+    "user": GalleryParameter(
+        value=User.objects.first(), 
+        code="request.user" 
+    )
+}
+```
+
+This allows you to provide specific parameter values for the gallery's `basic` (minimal) and `maximal` preview modes. Using `GalleryParameter` is particularly useful when you need to pass complex Django types (like QuerySets or Model instances) to the sandbox preview, but want to display a clean context variable name in the generated template tag documentation.
 
 ## Live Demos in Markdown
 
