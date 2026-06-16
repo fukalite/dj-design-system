@@ -8,6 +8,8 @@ class AlertComponent(BlockComponent):
     Demonstrates a ``BlockComponent`` with a ``StrCSSClassParam`` — the
     ``level`` value is injected as a CSS modifier class automatically.
 
+    Note it's specifically only available in the "dark" theme.
+
     Example usage::
 
         {% alert "warning" %}

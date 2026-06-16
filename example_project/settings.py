@@ -38,9 +38,16 @@ ROOT_URLCONF = "example_project.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
-        "APP_DIRS": True,
+        "DIRS": [
+            BASE_DIR / "example_project" / "templates",
+        ],
+        "APP_DIRS": False,
         "OPTIONS": {
+            "loaders": [
+                "django.template.loaders.filesystem.Loader",
+                "django.template.loaders.app_directories.Loader",
+                "dj_design_system.loaders.ComponentsTemplateLoader",
+            ],
             "context_processors": [
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
@@ -92,6 +99,7 @@ DJ_DESIGN_SYSTEM = {
             "label": "Dark Theme",
             "html_attrs": {"html": {"data-theme": "dark"}},
             "css": ["example_project/theme-dark.css"],
+            "canvas_background": "dark",
         },
     },
     "GALLERY_DEFAULT_THEME": "default",

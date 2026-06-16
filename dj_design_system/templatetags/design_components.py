@@ -35,8 +35,8 @@ def _extend_theme_css(urls: list[str], theme: str) -> None:
     theme_dict = get_theme(theme)
     if not theme_dict:
         return
-    theme_css_bundles = get_bundle_urls(theme_dict.get("css_bundles", []), "css")
-    theme_css = theme_dict.get("css", [])
+    theme_css_bundles = get_bundle_urls(theme_dict.css_bundles, "css")
+    theme_css = theme_dict.css
     urls.extend(theme_css_bundles)
     urls.extend(static(path) for path in theme_css)
 
@@ -74,8 +74,8 @@ def _extend_theme_js(urls: list[str], theme: str) -> None:
     theme_dict = get_theme(theme)
     if not theme_dict:
         return
-    theme_js_bundles = get_bundle_urls(theme_dict.get("js_bundles", []), "js")
-    theme_js = theme_dict.get("js", [])
+    theme_js_bundles = get_bundle_urls(theme_dict.js_bundles, "js")
+    theme_js = theme_dict.js
     urls.extend(theme_js_bundles)
     urls.extend(static(path) for path in theme_js)
 

@@ -14,9 +14,10 @@
         <div class="gallery-sandbox-toolbar__popout"
              id="gallery-bg-panel"
              data-gallery-panel="bg"
+             data-initial-bg="{{ active_bg_value }}"
              hidden>
             {% for bg in canvas_backgrounds %}
-                <button class="gallery-sandbox-toolbar__popout-option gallery-sandbox-toolbar__bg-option"
+                <button class="gallery-sandbox-toolbar__popout-option gallery-sandbox-toolbar__bg-option{% if bg.value == active_bg_value %} gallery-sandbox-toolbar__popout-option--active{% endif %}"
                         type="button"
                         data-bg="{{ bg.value }}"
                         title="{{ bg.label }}">
@@ -28,40 +29,7 @@
         </div>
     </div>
 
-    {# ── Theme selector ── #}
-    {% if available_themes|length > 1 %}
-        <div class="gallery-sandbox-toolbar__group gallery-sandbox-toolbar__theme">
-            <button class="gallery-sandbox-toolbar__btn gallery-sandbox-toolbar__theme-toggle"
-                    type="button"
-                    aria-expanded="false"
-                    aria-controls="gallery-theme-panel"
-                    title="Active Theme">
-                <svg width="14"
-                     height="14"
-                     viewBox="0 0 24 24"
-                     fill="none"
-                     stroke="currentColor"
-                     stroke-width="2"
-                     stroke-linecap="round"
-                     stroke-linejoin="round">
-                    <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke-dasharray="4 2" />
-                    <path d="M12 6V18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6Z" fill="currentColor" />
-                </svg>
-                <span class="gallery-sandbox-toolbar__theme-value">{{ active_theme|title }}</span>
-            </button>
-            <div class="gallery-sandbox-toolbar__popout"
-                 id="gallery-theme-panel"
-                 data-gallery-panel="theme"
-                 hidden>
-                {% for t in available_themes %}
-                    <button class="gallery-sandbox-toolbar__popout-option gallery-sandbox-toolbar__theme-btn{% if t.value == active_theme %} gallery-sandbox-toolbar__popout-option--active{% endif %}"
-                            type="button"
-                            data-theme="{{ t.value }}"
-                            title="{{ t.label }}">{{ t.label }}</button>
-                {% endfor %}
-            </div>
-        </div>
-    {% endif %}
+
 
     {# ── Viewport ── #}
     <div class="gallery-sandbox-toolbar__group gallery-sandbox-toolbar__viewport">

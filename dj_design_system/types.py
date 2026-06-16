@@ -39,26 +39,4 @@ class Theme:
     js: list[str] = field(default_factory=list)
     css_bundles: list[tuple[str, ...]] = field(default_factory=list)
     js_bundles: list[tuple[str, ...]] = field(default_factory=list)
-
-    def __getitem__(self, item: str) -> Any:
-        try:
-            return getattr(self, item)
-        except AttributeError:
-            raise KeyError(item)
-
-    def get(self, item: str, default: Any = None) -> Any:
-        return getattr(self, item, default)
-
-    def keys(self):
-        return (
-            "value",
-            "label",
-            "html_attrs",
-            "css",
-            "js",
-            "css_bundles",
-            "js_bundles",
-        )
-
-    def items(self):
-        return [(k, getattr(self, k)) for k in self.keys()]
+    canvas_background: str | dict | None = None

@@ -155,6 +155,7 @@ def get_themes() -> list[Theme]:
             js=coerce_path_list(theme.get("js", [])),
             css_bundles=theme.get("css_bundles", []),
             js_bundles=theme.get("js_bundles", []),
+            canvas_background=theme.get("canvas_background"),
         )
         result.append(theme_data)
     return result

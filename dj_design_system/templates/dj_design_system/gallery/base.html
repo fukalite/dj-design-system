@@ -10,6 +10,8 @@
               href="{% static 'dj_design_system/gallery-highlight.css' %}">
         <link rel="stylesheet"
               href="{% static 'dj_design_system/gallery-markdown.css' %}?v=2">
+        <link rel="stylesheet"
+              href="{% static 'dj_design_system/gallery-toolbar.css' %}">
         {% block extra_css %}{% endblock %}
         {{ search_index|json_script:"gallery-search-index" }}
     </head>
@@ -64,6 +66,20 @@
                             {% endblock %}
                         </div>
                         <div class="gallery-toolbar__actions">
+                            {% if available_themes|length > 1 %}
+                                <div class="gallery-header-theme">
+                                    <select class="gallery-header-theme__select"
+                                            id="gallery-global-theme-select"
+                                            title="Global Theme">
+                                        {% for theme_dict in available_themes %}
+                                            <option value="{{ theme_dict.value }}"
+                                                    {% if theme_dict.value == active_theme %}selected{% endif %}>
+                                                {{ theme_dict.label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            {% endif %}
                             {% block toolbar_actions %}{% endblock %}
                         </div>
                     </div>
@@ -77,5 +93,22 @@
         </div>
         {% block extra_js %}{% endblock %}
         <script src="{% static 'dj_design_system/gallery-search.js' %}" defer></script>
+        <script>
+            (function() {
+                var themeSelect = document.getElementById('gallery-global-theme-select');
+                if (!themeSelect) return;
+
+                themeSelect.addEventListener("change", function(e) {
+                    var themeValue = e.target.value;
+                    document.cookie = "dds_theme=" + themeValue + "; path=/; max-age=31536000";
+
+                    // Update URL params so they persist across shares
+                    var browserUrl = new URL(window.location.href);
+                    browserUrl.searchParams.set("theme", themeValue);
+                    // Full page load to apply the theme everywhere cleanly
+                    window.location.href = browserUrl.toString();
+                });
+            })();
+        </script>
     </body>
 </html>

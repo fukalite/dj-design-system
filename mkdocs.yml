@@ -55,3 +55,4 @@ nav:
   - API Reference:
       - Parameters: api/parameters.md
       - Components: api/components.md
+      - Settings: api/settings.md
