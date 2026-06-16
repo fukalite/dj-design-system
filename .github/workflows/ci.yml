@@ -55,6 +55,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - python-version: "3.12"
+            django-version: "Django>=5.2,<6"
+            django-label: "5.2"
+            coverage: true
+          - python-version: "3.12"
+            django-version: "Django>=6.0,<7"
+            django-label: "6.0"
+            coverage: false
+          - python-version: "3.12"
+            django-version: "Django"
+            django-label: "latest"
+            coverage: false
           - python-version: "3.13"
             django-version: "Django>=5.2,<6"
             django-label: "5.2"
