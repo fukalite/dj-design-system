@@ -1,8 +1,26 @@
+import datetime
+import io
+import uuid
+from decimal import Decimal
+
 import pytest
+from django.core.files import File
+from django.core.files.images import ImageFile
 
 from dj_design_system.components import TagComponent
 from dj_design_system.parameters.base import (
+    DateParam,
+    DateTimeParam,
+    DecimalParam,
+    DictParam,
+    FileParam,
+    FloatParam,
+    ImageParam,
+    IntParam,
+    JSONParam,
+    ListParam,
     StrParam,
+    UUIDParam,
     generate_bool_css_class,
     generate_str_css_class,
 )
@@ -641,3 +659,88 @@ class TestBaseParamDocstring:
         p.name = "my_param"
         assert "my_param" in str(p)
         assert "str" in str(p)
+
+
+# ---------------------------------------------------------------------------
+# Standard Params
+# ---------------------------------------------------------------------------
+
+
+class TestStandardParams:
+    @pytest.mark.parametrize(
+        "param_class, valid_value, invalid_value, expected_type_name",
+        [
+            (IntParam, 42, "42", "int"),
+            (FloatParam, 3.14, "3.14", "float"),
+            (DecimalParam, Decimal("3.14"), 3.14, "Decimal"),
+            (DateParam, datetime.date(2023, 1, 1), "2023-01-01", "date"),
+            (
+                DateTimeParam,
+                datetime.datetime(2023, 1, 1, 12, 0),
+                "2023-01-01T12:00",
+                "datetime",
+            ),
+            (FileParam, File(io.BytesIO(b"test"), name="test.txt"), "test.txt", "File"),
+            (
+                ImageParam,
+                ImageFile(io.BytesIO(b"test"), name="test.png"),
+                "test.png",
+                "ImageFile",
+            ),
+            (DictParam, {"a": 1}, '{"a": 1}', "dict"),
+            (ListParam, [1, 2, 3], "[1, 2, 3]", "list"),
+            (UUIDParam, uuid.uuid4(), "123e4567-e89b-12d3-a456-426614174000", "UUID"),
+        ],
+    )
+    def test_standard_param_validation(
+        self, param_class, valid_value, invalid_value, expected_type_name
+    ):
+        param = param_class("A param")
+        param.name = "my_param"
+
+        # Valid value should not raise
+        param.validate(valid_value)
+
+        # Invalid value should raise ValueError
+        with pytest.raises(ValueError, match=f"Expected {expected_type_name} but got"):
+            param.validate(invalid_value)
+
+        # Check __str__ and docstring formatting
+        assert expected_type_name in str(param)
+        assert expected_type_name in param.docstring()
+
+
+class TestTupleTypeParams:
+    def test_json_param_validation(self):
+        param = JSONParam("JSON data")
+        param.name = "my_json"
+
+        # Valid values
+        param.validate({"a": 1})
+        param.validate([1, 2, 3])
+        param.validate("string")
+        param.validate(42)
+        param.validate(3.14)
+        param.validate(True)
+        param.validate(None)
+
+        # Invalid value
+        with pytest.raises(
+            ValueError,
+            match=r"Expected dict \| list \| str \| int \| float \| bool \| NoneType but got object",
+        ):
+            param.validate(object())
+
+    def test_json_param_docstring(self):
+        param = JSONParam("JSON data")
+        param.name = "my_json"
+        doc = param.docstring()
+        assert (
+            "my_json: dict | list | str | int | float | bool | NoneType - JSON data"
+            in doc
+        )
+
+    def test_json_param_str(self):
+        param = JSONParam("JSON data")
+        param.name = "my_json"
+        assert "of type dict | list | str | int | float | bool | NoneType" in str(param)
