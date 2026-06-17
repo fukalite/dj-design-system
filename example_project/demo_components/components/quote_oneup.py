@@ -1,6 +1,7 @@
 from dj_design_system.components import BlockComponent
-from dj_design_system.slots import Slot
 from dj_design_system.parameters import StrParam
+from dj_design_system.slots import Slot
+
 
 class QuoteOneUpComponent(BlockComponent):
     quote = StrParam("The quote text", required=True)
