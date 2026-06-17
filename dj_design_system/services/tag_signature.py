@@ -10,7 +10,7 @@ from dj_design_system.parameters import (
     StrCSSClassParam,
     StrParam,
 )
-from dj_design_system.services.component import derive_name
+from dj_design_system.services.component import derive_name, get_meta_name
 from dj_design_system.slots import SLOT_PARAM_PREFIX
 
 
@@ -263,7 +263,7 @@ def generate_current_tag_signature(
     canvas_component_name: str | None = None,
 ) -> TagSignature:
     """Generate a tag usage signature reflecting the currently-active parameter values."""
-    component_name = derive_name(component_class)
+    component_name = get_meta_name(component_class) or derive_name(component_class)
     positional_args = component_class.get_positional_args()
     is_block = issubclass(component_class, BlockComponent)
     is_slotted = is_block and cast(type[BlockComponent], component_class).has_slots()
@@ -455,7 +455,7 @@ def generate_tag_signature(
     canvas_component_name: str | None = None,
 ) -> TagSignature:
     """Generate minimal and maximal usage signatures for a component."""
-    component_name = derive_name(component_class)
+    component_name = get_meta_name(component_class) or derive_name(component_class)
     params = component_class.get_params()
     positional_args = component_class.get_positional_args()
 
