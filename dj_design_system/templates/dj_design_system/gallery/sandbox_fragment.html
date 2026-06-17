@@ -16,7 +16,8 @@
     <div class="gallery-sandbox__controls">
         <form method="get"
               class="gallery-params-form"
-              hx-get=""
+              hx-get="{{ request.path }}"
+              hx-replace-url="true"
               hx-target="closest [data-gallery-sandbox-body]"
               hx-swap="innerHTML"
               hx-trigger="change delay:400ms, keyup delay:400ms from:input, keyup delay:400ms from:textarea">

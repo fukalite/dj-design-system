@@ -10,7 +10,7 @@ from dj_design_system.parameters import (
     StrCSSClassParam,
     StrParam,
 )
-from dj_design_system.services.component import derive_name
+from dj_design_system.services.component import derive_name, get_meta_name
 from dj_design_system.slots import SLOT_PARAM_PREFIX
 
 
@@ -263,7 +263,7 @@ def generate_current_tag_signature(
     canvas_component_name: str | None = None,
 ) -> TagSignature:
     """Generate a tag usage signature reflecting the currently-active parameter values."""
-    component_name = derive_name(component_class)
+    component_name = get_meta_name(component_class) or derive_name(component_class)
     positional_args = component_class.get_positional_args()
     is_block = issubclass(component_class, BlockComponent)
     is_slotted = is_block and cast(type[BlockComponent], component_class).has_slots()
@@ -455,7 +455,7 @@ def generate_tag_signature(
     canvas_component_name: str | None = None,
 ) -> TagSignature:
     """Generate minimal and maximal usage signatures for a component."""
-    component_name = derive_name(component_class)
+    component_name = get_meta_name(component_class) or derive_name(component_class)
     params = component_class.get_params()
     positional_args = component_class.get_positional_args()
 
@@ -538,16 +538,24 @@ def generate_tag_signature(
         assert block_class is not None
         for slot_name, slot in block_class.get_slots().items():
             override_key = f"{SLOT_PARAM_PREFIX}{slot_name}"
-            
+
             if override_key in basic_slot_overrides:
-                minimal_slot_params[override_key] = _unwrap_example(basic_slot_overrides[override_key])
+                minimal_slot_params[override_key] = _unwrap_example(
+                    basic_slot_overrides[override_key]
+                )
             elif slot.required:
-                minimal_slot_params[override_key] = slot.default or f"Sample {slot_name} content"
-                
+                minimal_slot_params[override_key] = (
+                    slot.default or f"Sample {slot_name} content"
+                )
+
             if override_key in maximal_slot_overrides:
-                maximal_slot_params[override_key] = _unwrap_example(maximal_slot_overrides[override_key])
+                maximal_slot_params[override_key] = _unwrap_example(
+                    maximal_slot_overrides[override_key]
+                )
             else:
-                maximal_slot_params[override_key] = slot.default or f"Sample {slot_name} content"
+                maximal_slot_params[override_key] = (
+                    slot.default or f"Sample {slot_name} content"
+                )
 
     minimal_spec = CanvasSpec(
         component_name=canvas_name,

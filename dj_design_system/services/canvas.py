@@ -7,6 +7,7 @@ from urllib.parse import urlencode
 
 from django.db.models import Model
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 
 from dj_design_system.components import BlockComponent
 from dj_design_system.data import (
@@ -52,9 +53,9 @@ def resolve_from_get_params(
         if info.component_class.has_slots():
             for key, value in raw_params.items():
                 if key.startswith(SLOT_PARAM_PREFIX):
-                    params[key] = value
+                    params[key] = mark_safe(value)
         elif "content" in raw_params:
-            params["content"] = raw_params["content"]
+            params["content"] = mark_safe(raw_params["content"])
 
     return CanvasSpec(
         component_name=component_name,
