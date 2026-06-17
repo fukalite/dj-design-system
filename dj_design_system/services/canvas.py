@@ -87,7 +87,7 @@ def render_component(
                     slot_name = key[len(SLOT_PARAM_PREFIX) :]
                     slots[slot_name] = kwargs.pop(key)
                 for name, slot in component_class.get_slots().items():
-                    if name not in slots:
+                    if name not in slots and slot.required:
                         slots[name] = slot.default or f"Sample {name} content"
                 return str(component_class(slots=slots, **kwargs))
             else:

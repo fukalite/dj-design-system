@@ -167,20 +167,20 @@ def _build_error_html(message: str, source: str = "", debug: bool = False) -> st
 # Markdown Preprocessor
 # ---------------------------------------------------------------------------
 
-# Matches a fenced canvas block: ```canvas ... ```
+# Matches a fenced canvas block: ```canvas ... ``` or ```gallery ... ```
 _FENCE_RE = re.compile(
-    r"^```canvas\s*$\n"  # opening fence
+    r"^[ \t]{0,3}```(?:canvas|gallery)\s*$\n"  # opening fence
     r"(.*?)\n"  # content (non-greedy)
-    r"^```\s*$",  # closing fence
+    r"^[ \t]{0,3}```\s*$",  # closing fence
     re.MULTILINE | re.DOTALL,
 )
 
 # Matches fenced blocks with no language or generic languages (py, python)
 # that contain Django template syntax, and re-tags them as html+django.
 _UNLABELLED_FENCE_RE = re.compile(
-    r"^```(py|python)?\s*$\n"  # opening: no lang or py/python
+    r"^[ \t]{0,3}```(py|python)?\s*$\n"  # opening: no lang or py/python
     r"(.*?)\n"  # content
-    r"^```\s*$",  # closing
+    r"^[ \t]{0,3}```\s*$",  # closing
     re.MULTILINE | re.DOTALL,
 )
 

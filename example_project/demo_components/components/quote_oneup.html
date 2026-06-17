@@ -1,0 +1,11 @@
+<figure class="quote-oneup">
+    <blockquote>
+        {{ quote }}
+    </blockquote>
+    <figcaption>
+        — {{ author }}
+        {% if source %}
+            <cite>{{ source }}</cite>
+        {% endif %}
+    </figcaption>
+</figure>
