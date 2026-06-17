@@ -591,13 +591,13 @@ class TestFieldParamInComponent:
         assert "<input type='text'>" in html
 
     def test_component_rejects_plain_string_at_construction(self):
-        """Passing a plain string to a FieldParam component raises ValueError."""
+        """Passing a plain string to a FieldParam component raises TypeError."""
 
         class FormComponent(TagComponent):
             template_format_str = "<div>{field}</div>"
             field = FieldParam("A bound field")
 
-        with pytest.raises(ValueError, match="__html__"):
+        with pytest.raises(TypeError, match="__html__"):
             FormComponent(field="<input>")
 
 
