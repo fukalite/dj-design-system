@@ -538,16 +538,24 @@ def generate_tag_signature(
         assert block_class is not None
         for slot_name, slot in block_class.get_slots().items():
             override_key = f"{SLOT_PARAM_PREFIX}{slot_name}"
-            
+
             if override_key in basic_slot_overrides:
-                minimal_slot_params[override_key] = _unwrap_example(basic_slot_overrides[override_key])
+                minimal_slot_params[override_key] = _unwrap_example(
+                    basic_slot_overrides[override_key]
+                )
             elif slot.required:
-                minimal_slot_params[override_key] = slot.default or f"Sample {slot_name} content"
-                
+                minimal_slot_params[override_key] = (
+                    slot.default or f"Sample {slot_name} content"
+                )
+
             if override_key in maximal_slot_overrides:
-                maximal_slot_params[override_key] = _unwrap_example(maximal_slot_overrides[override_key])
+                maximal_slot_params[override_key] = _unwrap_example(
+                    maximal_slot_overrides[override_key]
+                )
             else:
-                maximal_slot_params[override_key] = slot.default or f"Sample {slot_name} content"
+                maximal_slot_params[override_key] = (
+                    slot.default or f"Sample {slot_name} content"
+                )
 
     minimal_spec = CanvasSpec(
         component_name=canvas_name,
