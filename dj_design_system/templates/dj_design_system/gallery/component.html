@@ -210,10 +210,24 @@
 
             /* Sync from hash on load and hashchange */
             function syncFromHash() {
-                showPane(window.location.hash === "#pane-sandbox", false);
+                var isSandbox = window.location.hash === "#pane-sandbox";
+                // If there's no hash but we have query params, default to sandbox
+                // so deeplinks work smoothly on mobile.
+                if (!window.location.hash && window.location.search && window.location.search !== "?") {
+                    isSandbox = true;
+                }
+                showPane(isSandbox, false);
             }
             syncFromHash();
             window.addEventListener("hashchange", syncFromHash);
+
+            /* Preserve #pane-sandbox hash when HTMX replaces URL history */
+            document.body.addEventListener("htmx:replacedInHistory", function (evt) {
+                var isSandbox = sandbox.checked;
+                if (isSandbox && window.location.hash !== "#pane-sandbox") {
+                    history.replaceState(null, "", window.location.pathname + window.location.search + "#pane-sandbox");
+                }
+            });
         })();
 
         /* Auto-height: listen for resize messages from basic-mode iframes */
