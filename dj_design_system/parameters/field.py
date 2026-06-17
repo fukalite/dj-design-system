@@ -15,9 +15,9 @@ class FieldParam(BaseParam):
     type = object
 
     def validate(self, value: Any) -> None:
-        """Raise ValueError if value is not HTML-renderable."""
+        """Raise TypeError if value is not HTML-renderable."""
         if value is not None and not hasattr(value, "__html__"):
-            raise ValueError(
+            raise TypeError(
                 f"'field' must be an HTML-renderable object (with __html__), "
                 f"got {type(value).__name__}."
             )

@@ -34,6 +34,7 @@
                 var ro = new ResizeObserver(function () {
                     window.parent.postMessage({
                         type: "canvas-resize",
+                        id: window.name || "",
                         height: document.documentElement.scrollHeight
                     }, "*");
                 });

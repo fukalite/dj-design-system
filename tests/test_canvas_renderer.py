@@ -40,3 +40,16 @@ class TestCanvasRenderer:
         assert 'console.log("foo")' in srcdoc
         assert "canvas-wrapper--basic" in srcdoc
         assert "canvas-bg-" in srcdoc
+
+    def test_basic_mode_injects_resizing_and_centering_css(self):
+        rendered_html = "<p>basic mode</p>"
+        srcdoc = build_canvas_srcdoc(
+            rendered_html=rendered_html,
+            mode_class="canvas-wrapper--basic",
+        )
+        assert "<style>" in srcdoc
+        assert "min-height: 0 !important" in srcdoc
+        assert "height: auto !important" in srcdoc
+        assert "overflow: hidden !important" in srcdoc
+        assert "justify-content: center" in srcdoc
+        assert "align-items: center" in srcdoc
