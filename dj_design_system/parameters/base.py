@@ -59,12 +59,15 @@ class BaseParam:
             self.validate(default)
 
     def validate(self, value):
+        if value is None and not self.required:
+            return
+
         if not isinstance(value, self.type):
             if isinstance(self.type, tuple):
                 type_name = " | ".join(t.__name__ for t in self.type)
             else:
                 type_name = self.type.__name__
-            raise ValueError(f"Expected {type_name} but got {type(value).__name__}.")
+            raise TypeError(f"Expected {type_name} but got {type(value).__name__}.")
         if self.choices is not None and not self.choices:
             raise ValueError("Choices must not be empty")
         if self.choices and value not in self.choices:

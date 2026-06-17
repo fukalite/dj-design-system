@@ -189,12 +189,21 @@ def highlight_code(code: str) -> str:
 
 
 def _build_slot_lines(
-    component_class: type[BlockComponent], required_only: bool
+    component_class: type[BlockComponent],
+    required_only: bool,
+    slot_overrides: dict[str, Any] | None = None,
 ) -> str:
     """Build {% slot "name" %}...{% endslot %} lines for a slotted component."""
     slots = component_class.get_slots()
     lines = []
+    slot_overrides = slot_overrides or {}
     for name, slot in slots.items():
+        override_key = f"{SLOT_PARAM_PREFIX}{name}"
+        if override_key in slot_overrides:
+            value = _unwrap_example(slot_overrides[override_key])
+            lines.append(f'  {{% slot "{name}" %}}{value}{{% endslot %}}')
+            continue
+
         if required_only and not slot.required:
             continue
         placeholder = slot.default or f"Sample {name} content"
@@ -323,6 +332,7 @@ def _build_sig_raw(
     is_slotted: bool,
     block_class: type[BlockComponent] | None,
     required_only: bool,
+    slot_overrides: dict[str, Any] | None = None,
 ) -> str:
     all_args = positional_formatted + keyword_formatted
     args_str = " ".join(all_args)
@@ -333,7 +343,9 @@ def _build_sig_raw(
         if args_str:
             opening += f" {args_str}"
         opening += " %}"
-        slot_lines = _build_slot_lines(block_class, required_only=required_only)
+        slot_lines = _build_slot_lines(
+            block_class, required_only=required_only, slot_overrides=slot_overrides
+        )
         return f"{opening}\n{slot_lines}{{% end{component_name} %}}"
     elif is_block:
         opening = f"{{% {component_name}"
@@ -455,11 +467,22 @@ def generate_tag_signature(
 
     try:
         info = component_registry.get_info(component_class)
-        basic_kwargs = info.gallery_basic_kwargs
-        maximal_kwargs = info.gallery_maximal_kwargs
+        basic_kwargs = dict(info.gallery_basic_kwargs)
+        maximal_kwargs = dict(info.gallery_maximal_kwargs)
     except Exception:
         basic_kwargs = {}
         maximal_kwargs = {}
+
+    basic_slot_overrides = {
+        k: basic_kwargs.pop(k)
+        for k in list(basic_kwargs.keys())
+        if k.startswith(SLOT_PARAM_PREFIX)
+    }
+    maximal_slot_overrides = {
+        k: maximal_kwargs.pop(k)
+        for k in list(maximal_kwargs.keys())
+        if k.startswith(SLOT_PARAM_PREFIX)
+    }
 
     # Minimal Signature
     min_pos_fmt, min_pos_vals = _build_minimal_positional_values(
@@ -483,6 +506,7 @@ def generate_tag_signature(
         is_slotted,
         block_class,
         required_only=True,
+        slot_overrides=basic_slot_overrides,
     )
 
     # Maximal Signature
@@ -500,6 +524,7 @@ def generate_tag_signature(
         is_slotted,
         block_class,
         required_only=False,
+        slot_overrides=maximal_slot_overrides,
     )
 
     minimal_html = highlight_code(minimal)
@@ -512,10 +537,17 @@ def generate_tag_signature(
     if is_slotted:
         assert block_class is not None
         for slot_name, slot in block_class.get_slots().items():
-            placeholder = slot.default or f"Sample {slot_name} content"
-            if slot.required:
-                minimal_slot_params[f"{SLOT_PARAM_PREFIX}{slot_name}"] = placeholder
-            maximal_slot_params[f"{SLOT_PARAM_PREFIX}{slot_name}"] = placeholder
+            override_key = f"{SLOT_PARAM_PREFIX}{slot_name}"
+            
+            if override_key in basic_slot_overrides:
+                minimal_slot_params[override_key] = _unwrap_example(basic_slot_overrides[override_key])
+            elif slot.required:
+                minimal_slot_params[override_key] = slot.default or f"Sample {slot_name} content"
+                
+            if override_key in maximal_slot_overrides:
+                maximal_slot_params[override_key] = _unwrap_example(maximal_slot_overrides[override_key])
+            else:
+                maximal_slot_params[override_key] = slot.default or f"Sample {slot_name} content"
 
     minimal_spec = CanvasSpec(
         component_name=canvas_name,

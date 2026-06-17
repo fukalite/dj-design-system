@@ -228,7 +228,13 @@ maximal_kwargs = {
     "text": "Critical Alert!",
     "theme": "danger",
     
+    # To specify content for a slot, prefix the slot name with `slot__`
+    "slot__icon": "<svg>...</svg>",
+    "slot__body": "Here is the body content",
+    
     # For complex Django types or context variables, wrap them in GalleryParameter.
+    # Note: GalleryParameter is strictly optional. You do not need it for basic 
+    # Python types like strings, booleans, or ints.
     # - `value` is the actual instance passed to the sandbox iframe preview.
     # - `code` (optional) is what gets literally printed in the `{% badge ... %}` code block.
     "user": GalleryParameter(
@@ -238,7 +244,13 @@ maximal_kwargs = {
 }
 ```
 
-This allows you to provide specific parameter values for the gallery's `basic` (minimal) and `maximal` preview modes. Using `GalleryParameter` is particularly useful when you need to pass complex Django types (like QuerySets or Model instances) to the sandbox preview, but want to display a clean context variable name in the generated template tag documentation.
+This allows you to provide specific parameter values for the gallery's `basic` (minimal) and `maximal` preview modes. 
+
+**Filling Slots**
+To specify content for a slot, simply add the slot name to your kwargs dictionary prefixed with `slot__` (e.g., `"slot__body": "Content"`).
+
+**When to use `GalleryParameter`**
+The `GalleryParameter` wrapper is **not required** for basic values (strings, booleans, dicts, etc). It is only necessary when you need to pass complex Django types (like QuerySets or Model instances) to the sandbox preview, but want to display a clean context variable name in the generated template tag documentation.
 
 ## Live Demos in Markdown
 

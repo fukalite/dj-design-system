@@ -31,9 +31,10 @@ class CanvasSpec:
 
 @dataclass(frozen=True)
 class GalleryParameter:
-    """A wrapper for specifying component parameter values in gallery views.
+    """An optional wrapper for specifying component parameter values in gallery views.
 
-    This is especially useful when providing complex Django types (like QuerySets)
+    This wrapper is not required for basic Python types (strings, booleans, ints, etc.).
+    It is specifically useful when providing complex Django types (like QuerySets)
     as examples, where you want to pass the actual object to the sandbox preview,
     but show a simpler string representation in the template tag documentation.
 

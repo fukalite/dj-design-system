@@ -539,23 +539,23 @@ class TestFieldParamValidation:
     def test_plain_string_is_rejected(self):
         """A plain string has no __html__ method and must be rejected."""
         param = self._make_param()
-        with pytest.raises(ValueError, match="__html__"):
+        with pytest.raises(TypeError, match="__html__"):
             param.validate("<input>")
 
     def test_integer_is_rejected(self):
         """An integer has no __html__ and must be rejected."""
         param = self._make_param()
-        with pytest.raises(ValueError, match="int"):
+        with pytest.raises(TypeError, match="int"):
             param.validate(42)
 
     def test_error_message_names_the_bad_type(self):
-        """The ValueError message includes the actual type name for debugging."""
+        """The TypeError message includes the actual type name for debugging."""
 
         class NotAField:
             pass
 
         param = self._make_param()
-        with pytest.raises(ValueError, match="NotAField"):
+        with pytest.raises(TypeError, match="NotAField"):
             param.validate(NotAField())
 
 
@@ -591,13 +591,13 @@ class TestFieldParamInComponent:
         assert "<input type='text'>" in html
 
     def test_component_rejects_plain_string_at_construction(self):
-        """Passing a plain string to a FieldParam component raises ValueError."""
+        """Passing a plain string to a FieldParam component raises TypeError."""
 
         class FormComponent(TagComponent):
             template_format_str = "<div>{field}</div>"
             field = FieldParam("A bound field")
 
-        with pytest.raises(ValueError, match="__html__"):
+        with pytest.raises(TypeError, match="__html__"):
             FormComponent(field="<input>")
 
 
@@ -610,7 +610,7 @@ class TestBaseParamValidate:
     def test_wrong_type_raises(self):
         p = StrParam("test")
         p.name = "p"
-        with pytest.raises(ValueError, match="Expected.*str"):
+        with pytest.raises(TypeError, match="Expected.*str"):
             p.validate(123)
 
     def test_empty_choices_raises(self):
@@ -701,8 +701,8 @@ class TestStandardParams:
         # Valid value should not raise
         param.validate(valid_value)
 
-        # Invalid value should raise ValueError
-        with pytest.raises(ValueError, match=f"Expected {expected_type_name} but got"):
+        # Invalid value should raise TypeError
+        with pytest.raises(TypeError, match=f"Expected {expected_type_name} but got"):
             param.validate(invalid_value)
 
         # Check __str__ and docstring formatting
@@ -726,7 +726,7 @@ class TestTupleTypeParams:
 
         # Invalid value
         with pytest.raises(
-            ValueError,
+            TypeError,
             match=r"Expected dict \| list \| str \| int \| float \| bool \| NoneType but got object",
         ):
             param.validate(object())

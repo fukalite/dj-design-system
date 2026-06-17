@@ -157,6 +157,15 @@ def build_canvas_srcdoc(
         f'<link rel="stylesheet" href="{static("dj_design_system/canvas.css")}">'
     )
 
+    basic_mode_css = ""
+    if mode_class == "canvas-wrapper--basic":
+        basic_mode_css = (
+            "<style>"
+            "html, body { min-height: 0 !important; height: auto !important; overflow: hidden !important; }"
+            ".canvas-wrapper--basic { display: flex !important; justify-content: center !important; align-items: center !important; }"
+            "</style>"
+        )
+
     if bg_class is None:
         bg_class = f"canvas-bg-{get_default_background()['value']}"
 
@@ -175,6 +184,7 @@ def build_canvas_srcdoc(
         f"{canvas_css_tag}"
         f"{theme_app_css_tags}"
         f"{component_css}"
+        f"{basic_mode_css}"
         f"{bg_styles}"
         "</head>"
         f"<body{body_attrs_str}>"
