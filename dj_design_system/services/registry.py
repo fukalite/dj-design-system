@@ -129,49 +129,15 @@ class ComponentRegistry:
 
         for obj in concrete_components:
             name = get_meta_name(obj) or derive_name(obj)
-            basic_kwargs, maximal_kwargs = self._discover_gallery_kwargs(obj, name)
 
             info = ComponentInfo(
                 component_class=obj,
                 name=name,
                 app_label=app_label,
                 relative_path=relative_path,
-                gallery_basic_kwargs=basic_kwargs,
-                gallery_maximal_kwargs=maximal_kwargs,
             )
             self._bind_template(info)
             self._components.append(info)
-
-    def _discover_gallery_kwargs(self, cls: Type, name: str) -> tuple[dict, dict]:
-        """Attempt to load gallery basic and maximal kwargs from a side-car module."""
-        try:
-            source_file = Path(inspect.getfile(cls))
-        except (TypeError, OSError):
-            return {}, {}
-
-        source_dir = source_file.parent
-
-        # Check {name}_gallery.py first
-        gallery_path = source_dir / f"{name}_gallery.py"
-        if not gallery_path.is_file():
-            # If not found and it's a directory component, check gallery.py
-            if source_file.name in ("component.py", "__init__.py"):
-                gallery_path = source_dir / "gallery.py"
-
-        if not gallery_path.is_file():
-            return {}, {}
-
-        import importlib.util
-        import uuid
-
-        mod_name = f"dj_design_system_gallery_{uuid.uuid4().hex}"
-        spec = importlib.util.spec_from_file_location(mod_name, gallery_path)
-        if spec and spec.loader:
-            mod = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(mod)
-            return getattr(mod, "basic_kwargs", {}), getattr(mod, "maximal_kwargs", {})
-
-        return {}, {}
 
     def _bind_template(self, info: ComponentInfo) -> None:
         """
@@ -210,11 +176,20 @@ class ComponentRegistry:
         except (TypeError, OSError):
             pass
         else:
-            source_dir = Path(source_file).parent
-            if (source_dir / f"{info.name}.html").is_file():
-                colocated_template_name = build_static_url(
-                    info.app_label, info.relative_path, info.name, ".html"
-                )
+            source_path = Path(source_file)
+            source_dir = source_path.parent
+
+            candidates = list(
+                dict.fromkeys([f"{info.name}.html", f"{source_path.stem}.html"])
+            )
+
+            for candidate in candidates:
+                if (source_dir / candidate).is_file():
+                    template_base_name = candidate[:-5]
+                    colocated_template_name = build_static_url(
+                        info.app_label, info.relative_path, template_base_name, ".html"
+                    )
+                    break
 
         has_html_template = has_explicit_template or colocated_template_name is not None
 

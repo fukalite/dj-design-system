@@ -100,6 +100,43 @@ class TestDiscovery:
         classes = [c.component_class for c in reg.list_all()]
         assert HeroCardComponent in classes
 
+
+class TestBindTemplate:
+    """Test the template resolution in component registry."""
+
+    def test_bind_template_finds_stem_html(self):
+        """Test that _bind_template can find a template using the python file stem, even if component name differs."""
+        import tempfile
+        from pathlib import Path
+
+        from dj_design_system.services.registry import component_registry
+
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d)
+            # Create a mock component file: card.py
+            card_py = p / "card.py"
+            card_py.write_text("class NS_CardComponent:\\n    pass")
+
+            # Create a template named card.html instead of ns_card.html
+            card_html = p / "card.html"
+            card_html.write_text("<div>Card</div>")
+
+            # Mock inspect.getfile to return our temp file
+            class NS_CardComponent(TagComponent):
+                pass
+
+            with patch("inspect.getfile", return_value=str(card_py)):
+                info = ComponentInfo(
+                    component_class=NS_CardComponent,
+                    name="ns_card",
+                    app_label="testapp",
+                    relative_path="",
+                )
+
+                component_registry._bind_template(info)
+
+                assert info.template_name == "testapp/components/card.html"
+
     def test_discovers_block_component(self, registry_with_demo_components):
         reg = registry_with_demo_components
         classes = [c.component_class for c in reg.list_all()]
