@@ -288,6 +288,36 @@ class TestGalleryComponentFormIntegration:
         assert response.status_code == 200
         assert response.context["form"].is_bound
 
+    def test_form_uses_initial_data_on_first_load(self, client):
+        """When the component page first loads without parameters, form should have initial data from gallery kwargs."""
+        from django.test import RequestFactory
+
+        from dj_design_system.services.tag_signature import generate_tag_signature
+        from dj_design_system.views import _get_form_and_sandbox_spec
+
+        nav_tree = _get_nav_tree()
+        component = _find_component_with_params(nav_tree)
+        if component is None:
+            pytest.skip("No components with params registered")
+
+        request = RequestFactory().get(component.url)
+        component_class = component.component.component_class
+        tag_signature = generate_tag_signature(
+            component_class, canvas_component_name=component.component.qualified_name
+        )
+
+        form, form_kwargs, sandbox_spec = _get_form_and_sandbox_spec(
+            request, component_class, tag_signature
+        )
+
+        assert not form.is_bound
+        # Check that form.initial has been populated with data from tag_signature.maximal_spec
+        # It should contain at least the keyword parameters
+        assert form.initial
+        for k, v in tag_signature.maximal_spec.params.items():
+            if k in form.fields:
+                assert form.initial[k] == v
+
     def test_param_rows_length_matches_params(self, client):
         """param_rows should contain one entry per component parameter.
 

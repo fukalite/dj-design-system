@@ -264,3 +264,27 @@ class TestGetMedia:
             assert media.js == ["demo_components/components/button/button.js"]
         finally:
             component_registry._components = original
+
+
+# ---------------------------------------------------------------------------
+# ComponentInfo.gallery_basic_kwargs
+# ---------------------------------------------------------------------------
+
+
+class TestGalleryKwargs:
+    def test_gallery_kwargs_lazy_loading(self, registry_with_demo_components):
+        """Test that gallery_basic_kwargs are lazily loaded."""
+        from example_project.demo_components.components.button.button import (
+            ButtonComponent,
+        )
+
+        reg = registry_with_demo_components
+        info = reg.get_info(ButtonComponent)
+
+        # Accessing the property should compute it
+        assert isinstance(info.gallery_basic_kwargs, dict)
+        assert isinstance(info.gallery_maximal_kwargs, dict)
+
+        # It should cache the result on the instance, not the class
+        assert not hasattr(ButtonComponent, "_gallery_kwargs")
+        assert "_gallery_kwargs" in info.__dict__
