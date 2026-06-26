@@ -155,7 +155,18 @@ def _get_form_and_sandbox_spec(
 ) -> tuple[Any, dict[str, Any], CanvasSpec]:
     form_class = build_component_form(component_class)
     has_param_in_get = any(key in request.GET for key in form_class.base_fields)
-    form = form_class(data=request.GET) if has_param_in_get else form_class()
+    initial_data = {}
+    pos_args = component_class.get_positional_args()
+    for i, val in enumerate(tag_signature.maximal_spec.positional_args):
+        if i < len(pos_args):
+            initial_data[pos_args[i]] = val
+    initial_data.update(tag_signature.maximal_spec.params)
+
+    form = (
+        form_class(data=request.GET)
+        if has_param_in_get
+        else form_class(initial=initial_data)
+    )
 
     if form.is_bound and form.is_valid():
         form_kwargs = {

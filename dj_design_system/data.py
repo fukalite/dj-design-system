@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import inspect
 from dataclasses import dataclass, field
+from functools import cached_property
 from pathlib import Path
 from typing import Any, Type
 
@@ -84,8 +85,46 @@ class ComponentInfo:
     name: str
     app_label: str
     relative_path: str
-    gallery_basic_kwargs: dict[str, Any] = field(default_factory=dict)
-    gallery_maximal_kwargs: dict[str, Any] = field(default_factory=dict)
+
+    @property
+    def gallery_basic_kwargs(self) -> dict[str, Any]:
+        return self._gallery_kwargs[0]
+
+    @property
+    def gallery_maximal_kwargs(self) -> dict[str, Any]:
+        return self._gallery_kwargs[1]
+
+    @cached_property
+    def _gallery_kwargs(self) -> tuple[dict, dict]:
+        try:
+            source_file = Path(inspect.getfile(self.component_class))
+        except (TypeError, OSError):
+            return {}, {}
+
+        source_dir = source_file.parent
+
+        gallery_path = source_dir / f"{self.name}_gallery.py"
+        if not gallery_path.is_file():
+            if source_file.name in ("component.py", "__init__.py"):
+                gallery_path = source_dir / "gallery.py"
+
+        if not gallery_path.is_file():
+            return {}, {}
+
+        import importlib.util
+        import uuid
+
+        mod_name = f"dj_design_system_gallery_{uuid.uuid4().hex}"
+        spec = importlib.util.spec_from_file_location(mod_name, gallery_path)
+        if spec and spec.loader:
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            return (
+                getattr(mod, "basic_kwargs", {}),
+                getattr(mod, "maximal_kwargs", {}),
+            )
+
+        return {}, {}
 
     @property
     def qualified_name(self) -> str:
@@ -147,15 +186,24 @@ class ComponentInfo:
         except (TypeError, OSError):
             return result
 
-        source_dir = Path(source_file).parent
+        source_path = Path(source_file)
+        source_dir = source_path.parent
         auto_css: list[str] = []
         auto_js: list[str] = []
 
         for ext, target in ((".css", auto_css), (".js", auto_js)):
-            if (source_dir / f"{self.name}{ext}").is_file():
-                target.append(
-                    build_static_url(self.app_label, self.relative_path, self.name, ext)
-                )
+            candidates = list(
+                dict.fromkeys([f"{self.name}{ext}", f"{source_path.stem}{ext}"])
+            )
+            for candidate in candidates:
+                if (source_dir / candidate).is_file():
+                    template_base_name = candidate[: -len(ext)]
+                    target.append(
+                        build_static_url(
+                            self.app_label, self.relative_path, template_base_name, ext
+                        )
+                    )
+                    break
 
         return result.merge(ComponentMedia(css=auto_css, js=auto_js))
 
