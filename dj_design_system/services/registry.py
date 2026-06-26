@@ -4,6 +4,7 @@ from importlib import import_module
 from pathlib import Path
 from typing import Type
 
+from dj_design_system import settings
 from dj_design_system.data import ComponentInfo, ComponentMedia
 from dj_design_system.services.component import (
     derive_name,
@@ -127,6 +128,8 @@ class ComponentRegistry:
             and obj.__module__ == module.__name__
         )
 
+        namespace_prefix = self._resolve_namespace_prefix(app_label, relative_path)
+
         for obj in concrete_components:
             name = get_meta_name(obj) or derive_name(obj)
 
@@ -135,9 +138,47 @@ class ComponentRegistry:
                 name=name,
                 app_label=app_label,
                 relative_path=relative_path,
+                namespace_prefix=namespace_prefix,
             )
             self._bind_template(info)
             self._components.append(info)
+
+    def _resolve_namespace_prefix(
+        self, app_label: str, relative_path: str
+    ) -> str | None:
+        """
+        Resolve an alias prefix for the given app and relative path.
+
+        Finds the longest matching path key in the namespaces configuration,
+        checking the full path and progressively removing rightmost components.
+        """
+        namespaces = (settings.dds_settings.COMPONENT_NAMESPACES or {}).get(app_label)
+        if namespaces is None:
+            return None
+
+        parts = relative_path.split(".") if relative_path else []
+
+        for length in range(len(parts), -1, -1):
+            candidate_key = ".".join(parts[:length])
+            if candidate_key in namespaces:
+                alias_config = namespaces[candidate_key]
+                if isinstance(alias_config, str):
+                    prefix = alias_config
+                    flatten = False
+                else:
+                    prefix = alias_config.get("prefix", "")
+                    flatten = alias_config.get("flatten", False)
+
+                remaining_parts = parts[length:]
+                if flatten or not remaining_parts:
+                    return prefix
+
+                remaining_suffix = "__".join(remaining_parts)
+                if prefix:
+                    return f"{prefix}__{remaining_suffix}"
+                return remaining_suffix
+
+        return None
 
     def _bind_template(self, info: ComponentInfo) -> None:
         """

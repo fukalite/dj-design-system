@@ -274,6 +274,7 @@ def _generate_signature_usage(
     params: dict,
     component_class: type[BlockComponent],
     info: Any,
+    tag_name: str | None = None,
 ) -> Any | None:
     if not (form.is_bound and form.is_valid() and form_kwargs):
         return None
@@ -293,7 +294,10 @@ def _generate_signature_usage(
             signature_kwargs[key] = value
 
     return generate_current_tag_signature(
-        component_class, signature_kwargs, canvas_component_name=info.qualified_name
+        component_class,
+        signature_kwargs,
+        canvas_component_name=info.qualified_name,
+        tag_name=tag_name,
     )
 
 
@@ -304,7 +308,12 @@ def _render_component(request, context, node, app_label, path_parts):
     params = component_class.get_params()
 
     tag_signature = generate_tag_signature(
-        component_class, canvas_component_name=info.qualified_name
+        component_class, canvas_component_name=info.qualified_name, tag_name=info.name
+    )
+    tag_signature_long = generate_tag_signature(
+        component_class,
+        canvas_component_name=info.qualified_name,
+        tag_name=info.qualified_name,
     )
 
     form, form_kwargs, sandbox_spec = _get_form_and_sandbox_spec(
@@ -317,7 +326,10 @@ def _render_component(request, context, node, app_label, path_parts):
 
     param_rows = _build_param_rows(form, params, component_class)
     current_signature = _generate_signature_usage(
-        form, form_kwargs, params, component_class, info
+        form, form_kwargs, params, component_class, info, tag_name=info.name
+    )
+    current_signature_long = _generate_signature_usage(
+        form, form_kwargs, params, component_class, info, tag_name=info.qualified_name
     )
 
     backgrounds = get_backgrounds()
@@ -347,7 +359,9 @@ def _render_component(request, context, node, app_label, path_parts):
         extensions=["fenced_code", "tables"],
     )
     context["tag_signature"] = tag_signature
+    context["tag_signature_long"] = tag_signature_long
     context["current_signature"] = current_signature
+    context["current_signature_long"] = current_signature_long
     context["params"] = params
     context["param_rows"] = param_rows
     context["form"] = form

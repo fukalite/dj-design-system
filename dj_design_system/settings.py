@@ -64,6 +64,7 @@ DEFAULTS: dict = {
     "APP_JS": {},
     "APP_JS_BUNDLES": {},
     "APP_CANVAS_HTML_ATTRS": {},
+    "COMPONENT_NAMESPACES": {},
 }
 
 # Settings whose values are normalised to a list of strings.
@@ -92,6 +93,7 @@ class DjangoDesignSystemSettings:
     APP_JS: dict[str, list[str] | str]
     APP_JS_BUNDLES: dict[str, list[tuple[str, ...]]]
     APP_CANVAS_HTML_ATTRS: dict[str, dict]
+    COMPONENT_NAMESPACES: dict[str, dict]
 
     def __getattr__(self, attr: str):
         django_settings = getattr(settings, "DJ_DESIGN_SYSTEM", {})

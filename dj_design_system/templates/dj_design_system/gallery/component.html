@@ -107,6 +107,10 @@
                             {% endif %}
                             <pre class="gallery-usage__pre"><code class="gallery-usage__code">{% if tag_signature.maximal_html %}{{ tag_signature.maximal_html|safe }}{% else %}{{ tag_signature.maximal }}{% endif %}</code></pre>
                         </div>
+                        <div class="gallery-usage__block">
+                            <h4 class="gallery-usage__heading">Qualified tag usage</h4>
+                            <pre class="gallery-usage__pre"><code class="gallery-usage__code">{% if tag_signature_long.minimal_html %}{{ tag_signature_long.minimal_html|safe }}{% else %}{{ tag_signature_long.minimal }}{% endif %}</code></pre>
+                        </div>
                     </div>
                 {% endif %}
 

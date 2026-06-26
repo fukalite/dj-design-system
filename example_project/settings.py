@@ -109,4 +109,18 @@ DJ_DESIGN_SYSTEM = {
     "APP_CANVAS_HTML_ATTRS": {
         "demo_components": {"body": {"class": "demo-components-body"}},
     },
+    "COMPONENT_NAMESPACES": {
+        "demo_components": {
+            "": "ui",  # All top-level components under 'ui'
+            "button": "btn",  # Button components under 'btn' (preserves subfolders by default)
+            "card": {
+                "prefix": "cards",
+                "flatten": False,
+            },  # Card components preserve subfolders
+            "icon": {
+                "prefix": "icn",
+                "flatten": True,
+            },  # Icon components discard subfolders
+        },
+    },
 }
