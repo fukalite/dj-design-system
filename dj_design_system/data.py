@@ -84,6 +84,7 @@ class ComponentInfo:
     name: str
     app_label: str
     relative_path: str
+    namespace_prefix: str | None = None
     gallery_basic_kwargs: dict[str, Any] = field(default_factory=dict)
     gallery_maximal_kwargs: dict[str, Any] = field(default_factory=dict)
 
@@ -100,6 +101,11 @@ class ComponentInfo:
             "fake_app__cards__info_card"
             "fake_app__cards__layouts__hero"
         """
+        if self.namespace_prefix is not None:
+            if self.namespace_prefix == "":
+                return self.name
+            return f"{self.namespace_prefix}__{self.name}"
+
         parts = [self.app_label]
         if self.relative_path:
             parts.extend(self.relative_path.split("."))

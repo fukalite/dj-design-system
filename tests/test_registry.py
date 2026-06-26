@@ -588,3 +588,92 @@ class TestDiscoverGalleryKwargs:
         assert "text" in info.gallery_maximal_kwargs
         assert info.gallery_maximal_kwargs["text"] == "Unread Messages"
         assert info.gallery_maximal_kwargs["theme"] == "danger"
+
+
+class TestComponentNamespaces:
+    """Test namespace aliasing via COMPONENT_NAMESPACES."""
+
+    @pytest.fixture
+    def mock_settings(self):
+        with patch("dj_design_system.settings.dds_settings") as mock:
+            mock.COMPONENT_NAMESPACES = {
+                "demo_components": {
+                    "": "ui",
+                    "button": "btn",
+                    "card": {"prefix": "cards", "flatten": False},
+                    "card.layouts": "layouts",
+                }
+            }
+            yield mock
+
+    def test_top_level_alias(self, mock_settings):
+        """Top-level component (relative_path='') matched by ''."""
+        from dj_design_system.services.registry import ComponentRegistry
+        from tests.conftest import discover_app_into_registry
+
+        reg = ComponentRegistry()
+        discover_app_into_registry(
+            reg, "example_project.demo_components", "demo_components"
+        )
+        info = reg.get_info(BadgeComponent)
+
+        assert info.namespace_prefix == "ui"
+        assert info.qualified_name == "ui__badge"
+
+    def test_simple_string_alias_flattens(self, mock_settings):
+        """Simple string alias flattens subfolders."""
+        from dj_design_system.services.registry import ComponentRegistry
+        from tests.conftest import discover_app_into_registry
+
+        reg = ComponentRegistry()
+        discover_app_into_registry(
+            reg, "example_project.demo_components", "demo_components"
+        )
+        info = reg.get_info(ButtonComponent)
+
+        assert info.namespace_prefix == "btn"
+        assert info.qualified_name == "btn__button"
+
+    def test_longest_match_alias(self, mock_settings):
+        """Longest match alias takes precedence."""
+        from dj_design_system.services.registry import ComponentRegistry
+        from tests.conftest import discover_app_into_registry
+
+        reg = ComponentRegistry()
+        discover_app_into_registry(
+            reg, "example_project.demo_components", "demo_components"
+        )
+        info = reg.get_info(HeroCardComponent)
+        assert info.namespace_prefix == "layouts"
+        assert info.qualified_name == "layouts__hero"
+
+    def test_flatten_false_preserves_subfolders(self, mock_settings):
+        """When flatten=False, remaining path is preserved."""
+        from dj_design_system.services.registry import ComponentRegistry
+        from tests.conftest import discover_app_into_registry
+
+        mock_settings.COMPONENT_NAMESPACES = {"demo_components": {"card": "cards"}}
+        reg = ComponentRegistry()
+        discover_app_into_registry(
+            reg, "example_project.demo_components", "demo_components"
+        )
+        info = reg.get_info(HeroCardComponent)
+
+        assert info.namespace_prefix == "cards__layouts"
+        assert info.qualified_name == "cards__layouts__hero"
+
+    def test_flatten_true_removes_subfolders(self, mock_settings):
+        """When flatten=True, remaining path is discarded."""
+        from dj_design_system.services.registry import ComponentRegistry
+        from tests.conftest import discover_app_into_registry
+
+        mock_settings.COMPONENT_NAMESPACES = {
+            "demo_components": {"card": {"prefix": "cards", "flatten": True}}
+        }
+        reg = ComponentRegistry()
+        discover_app_into_registry(
+            reg, "example_project.demo_components", "demo_components"
+        )
+        info = reg.get_info(HeroCardComponent)
+        assert info.namespace_prefix == "cards"
+        assert info.qualified_name == "cards__hero"

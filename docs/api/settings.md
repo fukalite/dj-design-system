@@ -137,3 +137,22 @@ App-specific Webpack JavaScript bundles loaded when rendering components from th
 **Type:** `dict[str, dict]`  
 **Default:** `{}`  
 App-specific HTML attributes applied to the `<html>` and `<body>` tags of the canvas iframe when rendering components from that app.
+
+### `COMPONENT_NAMESPACES`
+**Type:** `dict[str, dict]`  
+**Default:** `{}`  
+Configure folder-based namespacing for your components to override the default app-based naming. Keys are app labels, values are dictionaries mapping dotted directory paths to alias strings or configuration dicts. 
+
+Example:
+```python
+DJ_DESIGN_SYSTEM = {
+    "COMPONENT_NAMESPACES": {
+        "myapp": {
+            "": "ui",               # Top-level components map to 'ui' prefix
+            "button": "btn",        # button directory maps to 'btn' prefix
+            "card": {"prefix": "cards", "flatten": True}, # Flattens subfolders (e.g. cards__hero instead of cards__layouts__hero)
+        }
+    }
+}
+```
+When mapping to a simple string, subfolders are preserved by default (`flatten: False`). Set `flatten: True` to discard subfolder paths in the resulting tag names.
