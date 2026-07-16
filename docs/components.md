@@ -143,6 +143,17 @@ class MyComponent(TagComponent):
 - `default` (default: `None`): Default value when not provided
 - `choices` (default: `None`): List of allowed values
 
+### Custom Parameters and Multiple Types
+
+You can create custom parameter types by subclassing `BaseParam`. You can support multiple Python types by setting `type` to a tuple or `UnionType` (`|`):
+
+```python
+from dj_design_system.parameters import BaseParam
+
+class RichTextParam(BaseParam):
+    type = str | RichText
+```
+
 ### ModelParam
 
 `ModelParam` accepts a Django model instance and flattens its attributes into the template context. Subclass it with a `Meta` inner class:
@@ -314,10 +325,15 @@ Both `mutually_exclusive` and `requires` can be combined on the same component, 
 
 Override to enforce additional parameter constraints beyond what `Meta.mutually_exclusive` and `Meta.requires` can express. Called during `__init__()` after all parameters are set, and after Meta constraints have already been checked.
 
+To check if a parameter was explicitly provided (rather than falling back to its `default`), use `self.param_has_been_set('param_name')`.
+
 ```python
 def validate_params(self):
     if self.type == "warning" and self.embedded:
         raise ValueError("Embedded callouts cannot be warnings.")
+        
+    if self.param_has_been_set("icon") and not self.param_has_been_set("icon_label"):
+        raise ValueError("Must provide icon_label when explicitly setting an icon.")
 ```
 
 ### `get_context()`

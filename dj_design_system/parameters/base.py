@@ -7,6 +7,17 @@ from django.core.files import File
 from django.core.files.images import ImageFile
 
 
+_MISSING = object()
+
+def _get_type_name(t: Any) -> str:
+    import types
+    if isinstance(t, tuple):
+        return " | ".join(_get_type_name(item) for item in t)
+    if isinstance(t, types.UnionType):
+        return " | ".join(_get_type_name(item) for item in t.__args__)
+    return getattr(t, "__name__", str(t))
+
+
 # ---------------------------------------------------------------------------
 # Helper functions for CSS class generation – reused by both parameter classes
 # and ModelParam for consistency and DRY principles.
@@ -47,26 +58,25 @@ class BaseParam:
         description: Optional[str] = None,
         *,
         required: Optional[bool] = True,
-        default: Optional[Any] = None,
+        default: Optional[Any] = _MISSING,
         choices: Optional[list[Any]] = None,
     ):
         self.description = description
         self.required = bool(required)
-        self.default = default
         self.choices = choices
 
-        if default is not None and choices is not None:
+        if default is not _MISSING:
+            self.default = default
             self.validate(default)
+        else:
+            self.default = None
 
     def validate(self, value):
         if value is None and not self.required:
             return
 
         if not isinstance(value, self.type):
-            if isinstance(self.type, tuple):
-                type_name = " | ".join(t.__name__ for t in self.type)
-            else:
-                type_name = self.type.__name__
+            type_name = _get_type_name(self.type)
             raise TypeError(f"Expected {type_name} but got {type(value).__name__}.")
         if self.choices is not None and not self.choices:
             raise ValueError("Choices must not be empty")
@@ -76,10 +86,7 @@ class BaseParam:
     def docstring(self) -> str:
         docstr = self.name
 
-        if isinstance(self.type, tuple):
-            type_name = " | ".join(t.__name__ for t in self.type)
-        else:
-            type_name = self.type.__name__
+        type_name = _get_type_name(self.type)
 
         if self.required:
             docstr += f": {type_name}"
@@ -126,10 +133,7 @@ class BaseParam:
         setattr(obj, self.private_name, value)
 
     def __str__(self):
-        if isinstance(self.type, tuple):
-            type_name = " | ".join(t.__name__ for t in self.type)
-        else:
-            type_name = self.type.__name__
+        type_name = _get_type_name(self.type)
         return f"<BaseParam {self.name} of type {type_name}>"
 
 
@@ -151,7 +155,7 @@ class StrCSSClassParam(StrParam):
         description: Optional[str] = None,
         *,
         required: Optional[bool] = True,
-        default: Optional[Any] = None,
+        default: Optional[Any] = _MISSING,
         choices: list[Any],
     ):
         return super().__init__(

@@ -626,6 +626,36 @@ class TestBaseParamValidate:
         with pytest.raises(ValueError, match="Expected one of"):
             p.validate("c")
 
+    def test_union_type_support(self):
+        from dj_design_system.parameters.base import BaseParam
+        
+        class MyUnionParam(BaseParam):
+            type = str | int
+            
+        param = MyUnionParam("union param")
+        param.name = "my_union"
+        
+        # Valid values
+        param.validate("hello")
+        param.validate(123)
+        
+        # Invalid value
+        with pytest.raises(TypeError, match=r"Expected str \| int but got float"):
+            param.validate(1.5)
+            
+        assert "str | int" in param.docstring()
+        assert "str | int" in str(param)
+
+    def test_default_is_validated(self):
+        with pytest.raises(TypeError, match="Expected str but got int"):
+            StrParam("desc", required=False, default=123)
+            
+    def test_required_true_with_explicit_none_default_raises(self):
+        # When required=True, an explicit default=None should fail validation
+        # because None is not a str.
+        with pytest.raises(TypeError, match="Expected str but got NoneType"):
+            StrParam("desc", required=True, default=None)
+
 
 # ---------------------------------------------------------------------------
 # BaseParam.docstring and __str__
