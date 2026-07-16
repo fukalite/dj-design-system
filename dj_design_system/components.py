@@ -63,6 +63,13 @@ class BaseComponent:
         """An override hook allowing param combinations or values to raise exceptions if necessary"""
         ...
 
+    def param_has_been_set(self, param_name: str) -> bool:
+        """Return True if the parameter has been explicitly set on this component instance."""
+        param = self.params.get(param_name)
+        if param is None:
+            raise ValueError(f"Unknown param '{param_name}'")
+        return param.has_been_set(self)
+
     def _validate_meta_constraints(self) -> None:
         """Enforce mutually_exclusive and requires constraints declared on Meta.
 
