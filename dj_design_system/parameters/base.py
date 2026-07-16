@@ -117,8 +117,8 @@ class BaseParam:
     def __get__(self, obj, objtype=None) -> Any | None:
         if obj is None:
             return self
-        if value := getattr(obj, self.private_name, None):
-            return value
+        if hasattr(obj, self.private_name):
+            return getattr(obj, self.private_name)
         return self.default
 
     def __set__(self, obj, value) -> None:

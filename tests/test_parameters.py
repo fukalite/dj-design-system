@@ -395,6 +395,26 @@ class TestHasBeenSet:
         ExclusiveComponent(foo="a")
         ExclusiveComponent(bar="b")
 
+    def test_component_param_has_been_set(self):
+        class MyComponent(TagComponent):
+            template_format_str = "<div></div>"
+            title = StrParam("A title", required=False)
+            subtitle = StrParam("A subtitle", required=False, default="sub")
+            
+        comp = MyComponent(title="Hello")
+        assert comp.param_has_been_set("title") is True
+        assert comp.param_has_been_set("subtitle") is False
+
+    def test_param_with_false_value_does_not_fall_back_to_default(self):
+        from dj_design_system.parameters.base import BoolParam
+        
+        class MyComponent(TagComponent):
+            template_format_str = ""
+            is_active = BoolParam("Active?", required=False, default=True)
+
+        comp = MyComponent(is_active=False)
+        assert comp.is_active is False
+
 
 class TestCssClassHelpers:
     def test_generate_bool_css_class_normalizes_underscore_to_hyphen(self):
