@@ -54,3 +54,6 @@ Thumbs.db
 # Static files collected by Django
 staticfiles/
 
+# Agentic stuff
+graphify-out/cache/
+graphify-out/obsidian/
