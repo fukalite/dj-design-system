@@ -222,6 +222,15 @@ class TagComponent(BaseComponent):
     class Meta:
         abstract = True
 
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if is_abstract(cls):
+            return
+
+        meta = get_own_meta(cls)
+        if hasattr(meta, "slots"):
+            raise ValueError(f"{cls.__name__} is a TagComponent and cannot define slots in Meta.")
+
     @classmethod
     def as_tag(cls):
         """Return a template tag function mapping positional args via Meta.positional_args."""
