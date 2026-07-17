@@ -10,10 +10,7 @@ readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.12"
 keywords = ["django", "Design System", "component"]
-maintainers = [
-  { name = "marcelkornblum" },
-  { name = "CamLamb" },
-]
+maintainers = [{ name = "marcelkornblum" }, { name = "CamLamb" }]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
@@ -31,10 +28,7 @@ classifiers = [
 # Runtime dependencies: pinned only where we actively test the range.
 # Other deps (markdown etc.) are intentionally unpinned so downstream
 # projects can apply security updates without waiting for us.
-dependencies = [
-  "django>=5.2,<8",
-  "markdown",
-]
+dependencies = ["django>=5.2,<8", "markdown"]
 
 [project.urls]
 Homepage = "https://fukalite.github.io/dj-design-system/"
@@ -53,17 +47,8 @@ testing = [
   "pytest-mock",
   "pytest-playwright",
 ]
-dev = [
-  "djlint",
-  "mypy",
-  "ruff",
-  "types-Markdown",
-  "types-Pygments",
-]
-docs = [
-  "mkdocs-material",
-  "mkdocstrings-python",
-]
+dev = ["djlint", "mypy", "ruff", "types-Markdown", "types-Pygments"]
+docs = ["mkdocs-material", "mkdocstrings-python"]
 
 [tool.hatch.version]
 source = "vcs"
@@ -87,15 +72,15 @@ include = [
 
 [tool.ruff]
 exclude = [
-    ".direnv",
-    ".git",
-    ".ruff_cache",
-    ".tox",
-    ".venv",
-    ".vscode",
-    "build",
-    "dist",
-    "site-packages",
+  ".direnv",
+  ".git",
+  ".ruff_cache",
+  ".tox",
+  ".venv",
+  ".vscode",
+  "build",
+  "dist",
+  "site-packages",
 ]
 line-length = 88
 indent-width = 4
@@ -115,16 +100,16 @@ lines-after-imports = 2
 
 [tool.mypy]
 exclude = [
-    # TOML literal strings (single-quotes, no escaping necessary)
-    '/migrations/',
-    'example_project/',
-    'tests/'
+  # TOML literal strings (single-quotes, no escaping necessary)
+  '/migrations/',
+  'example_project/',
+  'tests/',
 ]
 check_untyped_defs = true
 ignore_missing_imports = false
 
 [[tool.mypy.overrides]]
-module = ["django.*",]
+module = ["django.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
@@ -135,24 +120,20 @@ ignore_missing_imports = true
 branch = true
 source = ["dj_design_system"]
 omit = [
-    "dj_design_system/tests/*",
-    "dj_design_system/migrations/*",
+  "dj_design_system/tests/*",
+  "dj_design_system/migrations/*",
+  "graphify-out/*",
 ]
 
 [tool.coverage.report]
 show_missing = true
-omit = [
-    "dj_design_system/tests/*",
-    "dj_design_system/migrations/*",
-]
+omit = ["dj_design_system/tests/*", "dj_design_system/migrations/*"]
 
 [tool.pytest.ini_options]
 python_files = ["test_*.py", "*_test.py", "tests.py"]
 addopts = "--disable-warnings --ds=tests.settings --base-url http://localhost:8003 --liveserver=localhost:8003"
 DJANGO_SETTINGS_MODULE = "tests.settings"
-markers = [
-    "e2e: Mark the test as using Playwright.",
-]
+markers = ["e2e: Mark the test as using Playwright."]
 
 [tool.djlint]
 extension = "html"
