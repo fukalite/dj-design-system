@@ -206,6 +206,54 @@ class TestModelChoiceFieldQueryset:
         assert field.queryset.query.high_mark is None, "Queryset must not be sliced"
         assert field.queryset.count() <= 10
 
+    @pytest.mark.django_db
+    def test_model_choice_field_initial_value_when_required(self):
+        """When the ModelParam is required, its field should default to the most recent instance."""
+        from django.contrib.auth import get_user_model
+        from dj_design_system.parameters.model import ModelParam
+
+        User = get_user_model()
+        user1 = User.objects.create(username="formtest_user_initial_1")
+        user2 = User.objects.create(username="formtest_user_initial_2")
+
+        class UserParam(ModelParam):
+            class Meta:
+                model = "auth.User"
+                fields = ["username"]
+
+        class _RequiredUserComponent(TagComponent):
+            template_format_str = "<div></div>"
+            user = UserParam("A user", required=True)
+
+        FormClass = build_component_form(_RequiredUserComponent)
+        field = FormClass.base_fields["user"]
+        
+        assert field.initial is not None
+        assert field.initial.pk == user2.pk
+
+    @pytest.mark.django_db
+    def test_model_choice_field_initial_value_when_optional(self):
+        """When the ModelParam is optional, its field should not have an initial default."""
+        from django.contrib.auth import get_user_model
+        from dj_design_system.parameters.model import ModelParam
+
+        User = get_user_model()
+        User.objects.create(username="formtest_user_optional_1")
+
+        class UserParam(ModelParam):
+            class Meta:
+                model = "auth.User"
+                fields = ["username"]
+
+        class _OptionalUserComponent(TagComponent):
+            template_format_str = "<div></div>"
+            user = UserParam("A user", required=False)
+
+        FormClass = build_component_form(_OptionalUserComponent)
+        field = FormClass.base_fields["user"]
+        
+        assert field.initial is None
+
 
 # ---------------------------------------------------------------------------
 # Form class name
