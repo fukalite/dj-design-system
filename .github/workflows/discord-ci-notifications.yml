@@ -1,0 +1,89 @@
+name: Discord CI Notifications
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  notify:
+    name: Send CI Notification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Discord Webhook
+        env:
+          WEBHOOK_FEED: ${{ secrets.DISCORD_FEED_WEBHOOK_URL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 -c "
+          import os
+          import json
+          import urllib.request
+          import urllib.error
+
+          def send_discord(url, payload):
+              req = urllib.request.Request(
+                  url,
+                  data=json.dumps(payload).encode('utf-8'),
+                  headers={
+                      'User-Agent': 'GitHub Actions',
+                      'Content-Type': 'application/json'
+                  }
+              )
+              urllib.request.urlopen(req)
+
+          event_path = os.environ.get('GITHUB_EVENT_PATH')
+          repo = os.environ.get('GITHUB_REPOSITORY')
+          feed_url = os.environ.get('WEBHOOK_FEED')
+          github_token = os.environ.get('GITHUB_TOKEN')
+
+          if not feed_url:
+              print('No feed URL, skipping')
+              exit(0)
+
+          with open(event_path, 'r') as f:
+              event = json.load(f)
+
+          workflow_run = event.get('workflow_run', {})
+          conclusion = workflow_run.get('conclusion')
+          html_url = workflow_run.get('html_url')
+          head_branch = workflow_run.get('head_branch')
+          workflow_id = workflow_run.get('workflow_id')
+
+          if conclusion in ['failure', 'cancelled']:
+              message = f'**{repo}** - CI Tests {conclusion.capitalize()} on branch \"{head_branch}\" ([Details](<{html_url}>))'
+              payload = {
+                  'embeds': [{
+                      'description': message,
+                      'color': 0xED4245 # Red
+                  }]
+              }
+              send_discord(feed_url, payload)
+          elif conclusion == 'success':
+              # Check previous run
+              api_url = f'https://api.github.com/repos/{repo}/actions/workflows/{workflow_id}/runs?branch={head_branch}&status=completed&per_page=2'
+              
+              req = urllib.request.Request(api_url, headers={
+                  'Authorization': f'Bearer {github_token}',
+                  'Accept': 'application/vnd.github.v3+json',
+                  'User-Agent': 'GitHub Actions'
+              })
+              try:
+                  with urllib.request.urlopen(req) as response:
+                      data = json.loads(response.read().decode())
+                      runs = data.get('workflow_runs', [])
+                      if len(runs) >= 2:
+                          previous_run = runs[1]
+                          if previous_run.get('conclusion') in ['failure', 'cancelled']:
+                              message = f'**{repo}** - CI Tests Restored/Fixed on branch \"{head_branch}\" ([Details](<{html_url}>))'
+                              payload = {
+                                  'embeds': [{
+                                      'description': message,
+                                      'color': 0x57F287 # Green
+                                  }]
+                              }
+                              send_discord(feed_url, payload)
+              except Exception as e:
+                  print(f'Failed to check previous run: {e}')
+          "
