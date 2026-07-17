@@ -20,10 +20,14 @@ class TwoParamComponent(TagComponent):
 
 
 def test_tag_component_cannot_define_slots():
-    with pytest.raises(ValueError, match="InvalidTag is a TagComponent and cannot define slots in Meta"):
+    with pytest.raises(
+        ValueError, match="InvalidTag is a TagComponent and cannot define slots in Meta"
+    ):
+
         class InvalidTag(TagComponent):
             class Meta:
                 slots = {"content": None}
+
         _ = InvalidTag
 
 

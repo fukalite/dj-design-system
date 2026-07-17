@@ -210,10 +210,11 @@ class TestModelChoiceFieldQueryset:
     def test_model_choice_field_initial_value_when_required(self):
         """When the ModelParam is required, its field should default to the most recent instance."""
         from django.contrib.auth import get_user_model
+
         from dj_design_system.parameters.model import ModelParam
 
         User = get_user_model()
-        user1 = User.objects.create(username="formtest_user_initial_1")
+        User.objects.create(username="formtest_user_initial_1")
         user2 = User.objects.create(username="formtest_user_initial_2")
 
         class UserParam(ModelParam):
@@ -227,7 +228,7 @@ class TestModelChoiceFieldQueryset:
 
         FormClass = build_component_form(_RequiredUserComponent)
         field = FormClass.base_fields["user"]
-        
+
         assert field.initial is not None
         assert field.initial.pk == user2.pk
 
@@ -235,6 +236,7 @@ class TestModelChoiceFieldQueryset:
     def test_model_choice_field_initial_value_when_optional(self):
         """When the ModelParam is optional, its field should not have an initial default."""
         from django.contrib.auth import get_user_model
+
         from dj_design_system.parameters.model import ModelParam
 
         User = get_user_model()
@@ -251,7 +253,7 @@ class TestModelChoiceFieldQueryset:
 
         FormClass = build_component_form(_OptionalUserComponent)
         field = FormClass.base_fields["user"]
-        
+
         assert field.initial is None
 
 

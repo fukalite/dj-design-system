@@ -81,11 +81,11 @@ def _build_field(name: str, spec) -> forms.Field:
         model = spec._resolve_model()
         pk_list = list(model.objects.order_by("-pk").values_list("pk", flat=True)[:10])
         queryset = model.objects.filter(pk__in=pk_list).order_by("-pk")
-        
+
         initial = None
         if spec.required and queryset.exists():
             initial = queryset.first()
-            
+
         return forms.ModelChoiceField(
             queryset=queryset,
             initial=initial,

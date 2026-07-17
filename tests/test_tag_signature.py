@@ -1,4 +1,5 @@
 """Tests for tag_signature module that generates template tag usage examples."""
+
 import pytest
 
 from dj_design_system.components import BlockComponent, TagComponent
@@ -360,10 +361,11 @@ class TestTagSignatureEdgeCases:
     def test_model_param_fallback_generates_first_instance(self):
         """ModelParam generates the most recent database instance as its fallback example."""
         from django.contrib.auth import get_user_model
+
         from dj_design_system.parameters.model import ModelParam
 
         User = get_user_model()
-        user1 = User.objects.create(username="sigtest_user_1")
+        User.objects.create(username="sigtest_user_1")
         user2 = User.objects.create(username="sigtest_user_2")
 
         class UserParam(ModelParam):
