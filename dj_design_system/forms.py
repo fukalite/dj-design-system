@@ -1,12 +1,48 @@
 """Form factory for generating parameter forms in the design system gallery."""
 
+import ast
+import json
+
 from django import forms
 
 from dj_design_system.components import BaseComponent, BlockComponent
 from dj_design_system.data import BLOCK_CONTENT_PLACEHOLDER
-from dj_design_system.parameters.base import BoolParam
+from dj_design_system.parameters.base import (
+    BoolParam,
+    DateParam,
+    DateTimeParam,
+    DecimalParam,
+    DictParam,
+    FloatParam,
+    IntParam,
+    JSONParam,
+    ListParam,
+    UUIDParam,
+)
 from dj_design_system.parameters.model import ModelParam
 from dj_design_system.slots import SLOT_PARAM_PREFIX
+
+
+class StructuredParamField(forms.CharField):
+    """Field that parses JSON or Python literals into native dicts/lists."""
+
+    empty_values = list(forms.Field.empty_values) + ["[]", "{}"]
+
+    def to_python(self, value):
+        if self.disabled:
+            return value
+        if value in self.empty_values:
+            return None
+        elif isinstance(value, (list, dict, int, float, bool)):
+            return value
+        value = str(value).strip()
+        try:
+            return json.loads(value)
+        except json.JSONDecodeError:
+            try:
+                return ast.literal_eval(value)
+            except (ValueError, SyntaxError) as e:
+                raise forms.ValidationError(f"Invalid JSON or Python literal: {e}")
 
 
 def build_component_form(component_class: type[BaseComponent]) -> type[forms.Form]:
@@ -82,6 +118,30 @@ def _build_field(name: str, spec) -> forms.Field:
         pk_list = list(model.objects.order_by("-pk").values_list("pk", flat=True)[:10])
         return forms.ModelChoiceField(
             queryset=model.objects.filter(pk__in=pk_list).order_by("-pk"),
+            **common,
+        )
+
+    if isinstance(spec, IntParam):
+        return forms.IntegerField(**common)
+
+    if isinstance(spec, FloatParam):
+        return forms.FloatField(**common)
+
+    if isinstance(spec, DecimalParam):
+        return forms.DecimalField(**common)
+
+    if isinstance(spec, DateParam):
+        return forms.DateField(widget=forms.DateInput(attrs={"type": "date"}), **common)
+
+    if isinstance(spec, DateTimeParam):
+        return forms.DateTimeField(widget=forms.DateTimeInput(attrs={"type": "datetime-local"}), **common)
+
+    if isinstance(spec, UUIDParam):
+        return forms.UUIDField(**common)
+
+    if isinstance(spec, (DictParam, ListParam, JSONParam)):
+        return StructuredParamField(
+            widget=forms.Textarea(attrs={"rows": 3}),
             **common,
         )
 
