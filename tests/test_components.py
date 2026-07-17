@@ -24,6 +24,7 @@ def test_tag_component_cannot_define_slots():
         class InvalidTag(TagComponent):
             class Meta:
                 slots = {"content": None}
+        _ = InvalidTag
 
 
 # ---------------------------------------------------------------------------
