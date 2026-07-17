@@ -19,6 +19,14 @@ class TwoParamComponent(TagComponent):
     baz = StrParam("Baz param", required=False)
 
 
+def test_tag_component_cannot_define_slots():
+    with pytest.raises(ValueError, match="InvalidTag is a TagComponent and cannot define slots in Meta"):
+        class InvalidTag(TagComponent):
+            class Meta:
+                slots = {"content": None}
+        _ = InvalidTag
+
+
 # ---------------------------------------------------------------------------
 # Meta.mutually_exclusive
 # ---------------------------------------------------------------------------

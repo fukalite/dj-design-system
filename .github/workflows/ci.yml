@@ -50,6 +50,7 @@ jobs:
     name: "Test (Python ${{ matrix.python-version }}, Django ${{ matrix.django-label }})"
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pull-requests: write
     strategy:
       fail-fast: false
@@ -114,10 +115,11 @@ jobs:
 
       - name: Coverage comment
         if: matrix.coverage && github.event_name == 'pull_request'
-        uses: MishaKav/pytest-coverage-comment@main
+        uses: MishaKav/pytest-coverage-comment@v1
         with:
           pytest-xml-coverage-path: coverage.xml
           title: Test Coverage
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
   e2e:
     name: E2E Tests
