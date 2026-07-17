@@ -1,6 +1,7 @@
 from typing import Any, Optional
 
 from dj_design_system.parameters.base import (
+    _MISSING,
     BaseParam,
     generate_bool_css_class,
     generate_str_css_class,
@@ -62,7 +63,7 @@ class ModelParam(BaseParam):
         description: Optional[str] = None,
         *,
         required: Optional[bool] = True,
-        default: Optional[Any] = None,
+        default: Optional[Any] = _MISSING,
     ):
         # ModelParam does not support ``choices``.
         super().__init__(description=description, required=required, default=default)
