@@ -124,16 +124,16 @@ Parameters are declared as class attributes using descriptor classes from `dj_de
 | ------------------- | ------------------------------------------------------------------------- |
 | `StrParam`          | A string parameter                                                        |
 | `BoolParam`         | A boolean parameter                                                       |
-| `StrCSSClassParam`  | A string parameter whose value is added as a CSS class                    |
-| `BoolCSSClassParam` | A boolean parameter that adds the parameter name as a CSS class when True |
+
+
 | `ModelParam`        | A parameter that accepts a Django model instance and exposes its fields   |
 | `UserParam`         | A pre-configured `ModelParam` for the project's `AUTH_USER_MODEL`         |
 
 ```python
 class MyComponent(TagComponent):
     label = StrParam("Display text.")
-    size = StrCSSClassParam("Size.", default="medium", choices=["small", "medium", "large"])
-    highlighted = BoolCSSClassParam(required=False, default=False)
+    size = StrParam("Size.", default="medium", choices=["small", "medium", "large"], css_class=True)
+    highlighted = BoolParam(required=False, default=False, css_class=True)
 ```
 
 ### Parameter Options
@@ -142,6 +142,10 @@ class MyComponent(TagComponent):
 - `required` (default: `True`): Whether the parameter must be provided
 - `default` (default: `None`): Default value when not provided
 - `choices` (default: `None`): List of allowed values
+- `css_class` (default: `False`): Inject the parameter's value as a CSS class when truthy. Use a string to inject a fixed class name when the parameter is truthy.
+- `attr` (default: `False`): Map this parameter to an HTML attribute. Use a string for a custom attribute name, or `True` to use the parameter name (kebab-cased). Mapped attributes are exposed in the `{attrs}` context variable.
+- `data_attr` (default: `False`): Map this parameter to a `data-*` HTML attribute. Use a string for a custom suffix, or `True` to use the parameter name (kebab-cased). Mapped attributes are exposed in the `{attrs}` context variable.
+- `attr_style` (default: `"string"`): Determines how boolean attribute values are rendered. Set to `"boolean"` for standalone boolean attributes (e.g., `disabled`), or `"string"` for string representations (e.g., `aria-expanded="false"`).
 
 ### Custom Parameters and Multiple Types
 
@@ -365,7 +369,14 @@ myapp/components/button/
 
 The template is served through `ComponentsTemplateLoader` under the name `{app_label}/components/{path}/{name}.html`. Django's full template language is available — `{% for %}`, `{% if %}`, `{% load %}`, `{% url %}`, etc.
 
-The template context is the same dict that `get_context()` produces: all declared parameters, their CSS classes, and any extra variables you add in a `get_context()` override.
+The template context is the same dict that `get_context()` produces: all declared parameters, their HTML attributes, their CSS classes, and any extra variables you add in a `get_context()` override.
+
+#### Auto-collected template context
+
+In addition to explicitly declared parameters, components automatically receive several context variables for HTML templating:
+- `{classes}`: The compiled string of all `css_class` configurations.
+- `{attrs}`: The compiled string of all `attr` and `data_attr` HTML attributes securely escaped.
+- `{param_name}_attr`: Individual string representation of the HTML attribute mapped from `param_name`.
 
 > **Installation required.** The `ComponentsTemplateLoader` must be added to your `TEMPLATES` loader list. See the [quickstart](quickstart.md#template-loader-html-templates) for the exact configuration.
 

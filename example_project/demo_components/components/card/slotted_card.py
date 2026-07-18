@@ -1,5 +1,5 @@
 from dj_design_system.components import BlockComponent
-from dj_design_system.parameters import StrCSSClassParam, StrParam
+from dj_design_system.parameters import StrParam
 from dj_design_system.slots import Slot
 
 
@@ -37,11 +37,11 @@ class SlottedCardComponent(BlockComponent):
     """
 
     title = StrParam("Optional card title displayed above the body.", required=False)
-    variant = StrCSSClassParam(
-        "Visual variant.",
-        required=False,
+    variant = StrParam(
+        "Visual variant of the card.",
         default="default",
-        choices=["default", "outlined", "elevated"],
+        choices=["default", "elevated", "outlined"],
+        css_class=True,
     )
 
     class Meta:

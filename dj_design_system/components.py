@@ -95,10 +95,36 @@ class BaseComponent:
     def get_context(self) -> dict[str, Any]:
         """Get the context for rendering the component."""
         self.context["classes"] = self.get_classes_string()
+
+        from django.utils.html import escape
+
+        all_attrs = []
         for param_name, spec in self.params.items():
             value = getattr(self, param_name)
             self.context[param_name] = value
             self.context.update(spec.get_extra_context(param_name, value))
+
+            if value is not None and hasattr(spec, "get_html_attributes"):
+                attr_dict = spec.get_html_attributes(param_name, value)
+                if attr_dict:
+                    attr_strs = []
+                    for k, v in attr_dict.items():
+                        if isinstance(v, bool):
+                            attr_style = getattr(spec, "attr_style", "string")
+                            if attr_style == "boolean":
+                                if v:
+                                    attr_strs.append(f"{escape(k)}")
+                            else:
+                                attr_strs.append(f'{escape(k)}="{str(v).lower()}"')
+                        else:
+                            attr_strs.append(f'{escape(k)}="{escape(str(v))}"')
+
+                    param_attr_str = " ".join(attr_strs)
+                    if param_attr_str:
+                        self.context[f"{param_name}_attr"] = mark_safe(param_attr_str)
+                        all_attrs.append(param_attr_str)
+
+        self.context["attrs"] = mark_safe(" ".join(all_attrs))
         return self.context
 
     def get_classes_string(self):
@@ -229,7 +255,9 @@ class TagComponent(BaseComponent):
 
         meta = get_own_meta(cls)
         if hasattr(meta, "slots"):
-            raise ValueError(f"{cls.__name__} is a TagComponent and cannot define slots in Meta.")
+            raise ValueError(
+                f"{cls.__name__} is a TagComponent and cannot define slots in Meta."
+            )
 
     @classmethod
     def as_tag(cls):

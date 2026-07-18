@@ -1,5 +1,6 @@
 import datetime
 import uuid
+import warnings
 from decimal import Decimal
 from typing import Any, Optional
 
@@ -9,8 +10,10 @@ from django.core.files.images import ImageFile
 
 _MISSING = object()
 
+
 def _get_type_name(t: Any) -> str:
     import types
+
     if isinstance(t, tuple):
         return " | ".join(_get_type_name(item) for item in t)
     if isinstance(t, types.UnionType):
@@ -60,10 +63,18 @@ class BaseParam:
         required: Optional[bool] = True,
         default: Optional[Any] = _MISSING,
         choices: Optional[list[Any]] = None,
+        css_class: str | bool = False,
+        attr: str | bool = False,
+        data_attr: str | bool = False,
+        attr_style: str = "string",
     ):
         self.description = description
         self.required = bool(required)
         self.choices = choices
+        self.css_class = css_class
+        self.attr = attr
+        self.data_attr = data_attr
+        self.attr_style = attr_style
 
         if default is not _MISSING:
             self.default = default
@@ -113,6 +124,25 @@ class BaseParam:
         """
         return []
 
+    def get_html_attributes(self, param_name: str, value: Any) -> dict[str, Any]:
+        """Return HTML attributes derived from the parameter value."""
+        attrs = {}
+        if self.attr:
+            attr_name = (
+                self.attr
+                if isinstance(self.attr, str)
+                else param_name.replace("_", "-")
+            )
+            attrs[attr_name] = value
+        if self.data_attr:
+            attr_name = (
+                self.data_attr
+                if isinstance(self.data_attr, str)
+                else param_name.replace("_", "-")
+            )
+            attrs[f"data-{attr_name}"] = value
+        return attrs
+
     def has_been_set(self, obj: Any) -> bool:
         """Return True if the parameter has been explicitly set on the given component instance."""
         return hasattr(obj, self.private_name)
@@ -140,15 +170,27 @@ class BaseParam:
 class StrParam(BaseParam):
     type = str
 
+    def get_css_classes(self, param_name: str, value: Any) -> list[str]:
+        if isinstance(self.css_class, str):
+            return [self.css_class] if value else []
+        elif self.css_class:
+            return generate_str_css_class(value)
+        return super().get_css_classes(param_name, value)
+
 
 class BoolParam(BaseParam):
     type = bool
     choices = [True, False]
 
+    def get_css_classes(self, param_name: str, value: Any) -> list[str]:
+        if isinstance(self.css_class, str):
+            return [self.css_class] if value else []
+        elif self.css_class:
+            return generate_bool_css_class(param_name, value)
+        return super().get_css_classes(param_name, value)
+
 
 class StrCSSClassParam(StrParam):
-    css_class = True
-
     # this class requires choices to be set, so we enforce that in the constructor
     def __init__(
         self,
@@ -158,24 +200,39 @@ class StrCSSClassParam(StrParam):
         default: Optional[Any] = _MISSING,
         choices: list[Any],
     ):
-        return super().__init__(
+        warnings.warn(
+            "StrCSSClassParam is deprecated. Use StrParam(css_class=True) instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        super().__init__(
             description,
             required=required,
             default=default,
             choices=choices,
+            css_class=True,
         )
-
-    def get_css_classes(self, param_name: str, value: Any) -> list[str]:
-        """Return the parameter's string value as a CSS class when truthy."""
-        return generate_str_css_class(value)
 
 
 class BoolCSSClassParam(BoolParam):
-    css_class = True
-
-    def get_css_classes(self, param_name: str, value: Any) -> list[str]:
-        """Return the parameter name as a CSS class when truthy."""
-        return generate_bool_css_class(param_name, value)
+    def __init__(
+        self,
+        description: Optional[str] = None,
+        *,
+        required: Optional[bool] = True,
+        default: Optional[Any] = _MISSING,
+    ):
+        warnings.warn(
+            "BoolCSSClassParam is deprecated. Use BoolParam(css_class=True) instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        super().__init__(
+            description,
+            required=required,
+            default=default,
+            css_class=True,
+        )
 
 
 class IntParam(BaseParam):

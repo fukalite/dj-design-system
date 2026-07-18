@@ -400,14 +400,14 @@ class TestHasBeenSet:
             template_format_str = "<div></div>"
             title = StrParam("A title", required=False)
             subtitle = StrParam("A subtitle", required=False, default="sub")
-            
+
         comp = MyComponent(title="Hello")
         assert comp.param_has_been_set("title") is True
         assert comp.param_has_been_set("subtitle") is False
 
     def test_param_with_false_value_does_not_fall_back_to_default(self):
         from dj_design_system.parameters.base import BoolParam
-        
+
         class MyComponent(TagComponent):
             template_format_str = ""
             is_active = BoolParam("Active?", required=False, default=True)
@@ -648,28 +648,28 @@ class TestBaseParamValidate:
 
     def test_union_type_support(self):
         from dj_design_system.parameters.base import BaseParam
-        
+
         class MyUnionParam(BaseParam):
             type = str | int
-            
+
         param = MyUnionParam("union param")
         param.name = "my_union"
-        
+
         # Valid values
         param.validate("hello")
         param.validate(123)
-        
+
         # Invalid value
         with pytest.raises(TypeError, match=r"Expected str \| int but got float"):
             param.validate(1.5)
-            
+
         assert "str | int" in param.docstring()
         assert "str | int" in str(param)
 
     def test_default_is_validated(self):
         with pytest.raises(TypeError, match="Expected str but got int"):
             StrParam("desc", required=False, default=123)
-            
+
     def test_required_true_with_explicit_none_default_raises(self):
         # When required=True, an explicit default=None should fail validation
         # because None is not a str.
@@ -794,3 +794,30 @@ class TestTupleTypeParams:
         param = JSONParam("JSON data")
         param.name = "my_json"
         assert "of type dict | list | str | int | float | bool | NoneType" in str(param)
+
+
+class TestParamHtmlAttributes:
+    def test_attr_string(self):
+        param = StrParam("Test", attr="data-test")
+        attrs = param.get_html_attributes("my_param", "value")
+        assert attrs == {"data-test": "value"}
+
+    def test_attr_bool(self):
+        param = StrParam("Test", attr=True)
+        attrs = param.get_html_attributes("my_long_param", "value")
+        assert attrs == {"my-long-param": "value"}
+
+    def test_data_attr_string(self):
+        param = StrParam("Test", data_attr="test")
+        attrs = param.get_html_attributes("my_param", "value")
+        assert attrs == {"data-test": "value"}
+
+    def test_data_attr_bool(self):
+        param = StrParam("Test", data_attr=True)
+        attrs = param.get_html_attributes("my_long_param", "value")
+        assert attrs == {"data-my-long-param": "value"}
+
+    def test_attr_and_data_attr(self):
+        param = StrParam("Test", attr="aria-label", data_attr=True)
+        attrs = param.get_html_attributes("my_param", "value")
+        assert attrs == {"aria-label": "value", "data-my-param": "value"}

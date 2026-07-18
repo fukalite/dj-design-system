@@ -1,7 +1,6 @@
 from dj_design_system.components import TagComponent
 from dj_design_system.parameters import (
-    BoolCSSClassParam,
-    StrCSSClassParam,
+    BoolParam,
     StrParam,
 )
 
@@ -11,8 +10,8 @@ class ButtonComponent(TagComponent):
 
     Demonstrates:
     - ``StrParam`` with positional args
-    - ``StrCSSClassParam`` — value injected as a CSS modifier class
-    - ``BoolCSSClassParam`` — adds a CSS class when truthy
+    - ``StrParam(css_class=True)`` — value injected as a CSS modifier class
+    - ``BoolParam(css_class=True)`` — adds a CSS class when truthy
     - Co-located CSS file (``button.css``) discovered automatically
     - Co-located HTML template (``button.html``) discovered automatically
 
@@ -23,13 +22,16 @@ class ButtonComponent(TagComponent):
     """
 
     label = StrParam("The button label.")
-    variant = StrCSSClassParam(
-        "Visual variant.",
+    variant = StrParam(
+        "Variant modifier",
         required=False,
         default="primary",
         choices=["primary", "secondary", "danger"],
+        css_class=True,
     )
-    disabled = BoolCSSClassParam("Renders the button as disabled.", required=False)
+    disabled = BoolParam(
+        "Renders the button as disabled.", required=False, css_class=True
+    )
 
     class Meta:
         positional_args = ["label"]
