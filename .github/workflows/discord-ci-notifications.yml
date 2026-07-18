@@ -6,6 +6,10 @@ on:
     types: [completed]
     branches: [main]
 
+permissions:
+  actions: read
+  contents: read
+
 jobs:
   notify:
     name: Send CI Notification
