@@ -211,10 +211,11 @@ class DjangoLangPreprocessor(Preprocessor):
 class CanvasPreprocessor(Preprocessor):
     """Preprocessor that extracts ```canvas blocks and replaces them with iframe widgets."""
 
-    def __init__(self, md: Markdown, app_label: str, debug: bool):
+    def __init__(self, md: Markdown, app_label: str, debug: bool, theme_dict=None):
         super().__init__(md)
         self.app_label = app_label
         self.debug = debug
+        self.theme_dict = theme_dict
         self._counter = 0
         self.ext_stash: dict[str, str] = {}
 
@@ -245,6 +246,7 @@ class CanvasPreprocessor(Preprocessor):
                 rendered_html=rendered_html,
                 component_css=component_css,
                 component_js=component_js,
+                theme_dict=self.theme_dict,
                 mode_class="canvas-wrapper--basic",
                 app_label=self.app_label,
                 iframe_id=unique_id,
@@ -283,11 +285,12 @@ class CanvasPostprocessor(Postprocessor):
 class CanvasExtension(Extension):
     """Markdown extension that parses ```canvas blocks into Django gallery components."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, theme_dict=None, **kwargs):
         self.config = {
             "app_label": ["", "The Django app label to load static media for"],
             "debug": [False, "Enable debug mode"],
         }
+        self.theme_dict = theme_dict
         super().__init__(**kwargs)
         self.stash: dict[str, str] = {}
 
@@ -303,6 +306,7 @@ class CanvasExtension(Extension):
             md,
             app_label=self.getConfig("app_label"),
             debug=self.getConfig("debug"),
+            theme_dict=self.theme_dict,
         )
         preprocessor.ext_stash = self.stash
         md.preprocessors.register(preprocessor, "canvas", 32)
