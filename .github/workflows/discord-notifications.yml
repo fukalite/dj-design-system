@@ -1,0 +1,123 @@
+name: Discord Notifications
+
+on:
+  issues:
+    types: [opened, closed]
+  pull_request:
+    types: [opened, closed]
+  release:
+    types: [published]
+
+jobs:
+  notify:
+    name: Send Notification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Discord Webhook
+        env:
+          WEBHOOK_BUGS: ${{ secrets.DISCORD_BUGS_WEBHOOK_URL }}
+          WEBHOOK_FEATURES: ${{ secrets.DISCORD_FEATURES_WEBHOOK_URL }}
+          WEBHOOK_FEED: ${{ secrets.DISCORD_FEED_WEBHOOK_URL }}
+        run: |
+          python3 -c "
+          import os
+          import json
+          import urllib.request
+          import urllib.error
+
+          def send_discord(url, payload):
+              req = urllib.request.Request(
+                  url,
+                  data=json.dumps(payload).encode('utf-8'),
+                  headers={
+                      'User-Agent': 'GitHub Actions',
+                      'Content-Type': 'application/json'
+                  }
+              )
+              try:
+                  urllib.request.urlopen(req)
+              except urllib.error.URLError as e:
+                  print(f'Failed to send to discord: {e}')
+                  raise
+
+          event_name = os.environ.get('GITHUB_EVENT_NAME')
+          event_path = os.environ.get('GITHUB_EVENT_PATH')
+          repo = os.environ.get('GITHUB_REPOSITORY')
+
+          with open(event_path, 'r') as f:
+              event = json.load(f)
+
+          bugs_url = os.environ.get('WEBHOOK_BUGS')
+          features_url = os.environ.get('WEBHOOK_FEATURES')
+          feed_url = os.environ.get('WEBHOOK_FEED')
+
+          webhook_url = feed_url # default
+          message = ''
+          color = 0x5865F2 # Discord Blurple
+
+          if event_name == 'issues':
+              action = event.get('action')
+              issue = event.get('issue', {})
+              title = issue.get('title', 'Unknown Issue')
+              url = issue.get('html_url', '')
+              number = issue.get('number')
+              labels = [l.get('name', '').lower() for l in issue.get('labels', [])]
+              
+              if action == 'opened':
+                  if any('bug' in l for l in labels):
+                      webhook_url = bugs_url
+                      color = 0xED4245 # Red
+                      status = 'Bug Report Opened'
+                  elif any('feature' in l or 'enhancement' in l for l in labels):
+                      webhook_url = features_url
+                      color = 0x57F287 # Green
+                      status = 'Feature Request Opened'
+                  else:
+                      status = 'Issue Opened'
+                      
+                  message = f'**{repo}** - {status}: [#{number} {title}](<{url}>)'
+                  
+              elif action == 'closed':
+                  state_reason = issue.get('state_reason') # completed, not_planned
+                  reason_str = 'Completed' if state_reason == 'completed' else 'Not Planned' if state_reason == 'not_planned' else 'Closed'
+                  message = f'**{repo}** - Issue Closed ({reason_str}): [#{number} {title}](<{url}>)'
+                  color = 0x99AAB5 if state_reason == 'not_planned' else 0x57F287
+
+          elif event_name == 'pull_request':
+              action = event.get('action')
+              pr = event.get('pull_request', {})
+              title = pr.get('title', 'Unknown PR')
+              url = pr.get('html_url', '')
+              number = pr.get('number')
+              
+              if action == 'opened':
+                  message = f'**{repo}** - PR Opened: [#{number} {title}](<{url}>)'
+                  color = 0x5865F2
+              elif action == 'closed':
+                  merged = pr.get('merged', False)
+                  status = 'Merged' if merged else 'Closed'
+                  message = f'**{repo}** - PR {status}: [#{number} {title}](<{url}>)'
+                  color = 0x57F287 if merged else 0xED4245
+
+          elif event_name == 'release':
+              action = event.get('action')
+              release = event.get('release', {})
+              name = release.get('name') or release.get('tag_name')
+              url = release.get('html_url', '')
+              
+              if action == 'published':
+                  message = f'**{repo}** - New Release Published: [{name}](<{url}>)'
+                  color = 0xFEE75C # Yellow
+
+          if message and webhook_url:
+              payload = {
+                  'content': '',
+                  'embeds': [{
+                      'description': message,
+                      'color': color
+                  }]
+              }
+              send_discord(webhook_url, payload)
+          else:
+              print(f'Skipping discord notification for {event_name} {action}')
+          "
