@@ -29,26 +29,17 @@ import html
 import re
 from typing import TYPE_CHECKING
 
+from django.template.loader import render_to_string
 from markdown import Extension
 from markdown.postprocessors import Postprocessor
 from markdown.preprocessors import Preprocessor
-
-
-try:
-    from pygments import highlight
-    from pygments.formatters import HtmlFormatter
-    from pygments.lexers import HtmlDjangoLexer, HtmlLexer
-
-    HAS_PYGMENTS = True
-except ImportError:
-    HAS_PYGMENTS = False
 
 from dj_design_system.services.canvas_renderer import (
     build_canvas_srcdoc,
     render_canvas_block,
 )
 from dj_design_system.services.registry import component_registry
-from dj_design_system.services.tag_signature import highlight_code
+from dj_design_system.services.tag_signature import highlight_code, highlight_html
 
 
 if TYPE_CHECKING:
@@ -70,88 +61,19 @@ def _build_widget_html(
 
     Radio inputs are placed as direct children of the wrapper so CSS
     ``:checked ~ .target`` selectors can show/hide preview and code.
-    Labels are positioned absolutely in the bottom right via CSS.
+
     """
-    highlighted = highlight_code(source)
-    escaped_source = html.escape(source)
-    code_inner = highlighted if highlighted else escaped_source
+    code_markup = highlight_code(source) or html.escape(source)
+    html_markup = highlight_html(rendered_html.strip()) or html.escape(rendered_html.strip())
 
-    radio_name = f"mc-toggle-{unique_id}"
-    preview_id = f"mc-preview-{unique_id}"
-    code_id = f"mc-code-{unique_id}"
-    html_id = f"mc-html-{unique_id}"
-
-    if HAS_PYGMENTS:
-        formatter = HtmlFormatter(cssclass="gallery-highlight", wrapcode=True)
-        code_markup = highlight(source, HtmlDjangoLexer(), formatter)
-        html_markup = highlight(rendered_html.strip(), HtmlLexer(), formatter)
-    else:
-        code_inner = html.escape(source)
-        html_inner = html.escape(rendered_html.strip())
-        code_markup = (
-            f'<div class="gallery-highlight"><pre><code>{code_inner}</code></pre></div>'
-        )
-        html_markup = (
-            f'<div class="gallery-highlight"><pre><code>{html_inner}</code></pre></div>'
-        )
-
-    # Widget structure
-    widget_html = (
-        f'<div class="gallery-md-canvas">'
-        # Check toggles — by default, "preview" is checked, others are not
-        f'<input type="radio" name="{radio_name}" id="{preview_id}" class="gallery-md-canvas__input '
-        f'gallery-md-canvas__input--preview" checked>'
-        f'<input type="radio" name="{radio_name}" id="{code_id}" class="gallery-md-canvas__input '
-        f'gallery-md-canvas__input--code">'
-        f'<input type="radio" name="{radio_name}" id="{html_id}" class="gallery-md-canvas__input '
-        f'gallery-md-canvas__input--html">'
-        # Toggle labels (positioned via CSS)
-        f'<div class="gallery-md-canvas__toggles">'
-        f'<label for="{preview_id}" class="gallery-md-canvas__label" '
-        f'title="Preview">'
-        # Eye icon
-        f'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" '
-        f'stroke="currentColor" stroke-width="2" stroke-linecap="round" '
-        f'stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 '
-        f'8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
-        f"</label>"
-        f'<label for="{code_id}" class="gallery-md-canvas__label" '
-        f'title="Template Source">'
-        # Code brackets icon
-        f'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" '
-        f'stroke="currentColor" stroke-width="2" stroke-linecap="round" '
-        f'stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/>'
-        f'<polyline points="8 6 2 12 8 18"/></svg>'
-        f"</label>"
-        f'<label for="{html_id}" class="gallery-md-canvas__label" '
-        f'title="Output HTML">'
-        # HTML output icon
-        f'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" '
-        f'stroke="currentColor" stroke-width="2" stroke-linecap="round" '
-        f'stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>'
-        f'<polyline points="14 2 14 8 20 8"/><polyline points="10 13 8 15 10 17"/><polyline points="14 13 16 15 14 17"/></svg>'
-        f"</label>"
-        f"</div>"
-        # Preview iframe
-        f'<div class="gallery-md-canvas__preview">'
-        f'<iframe class="gallery-canvas gallery-md-canvas__iframe" '
-        f'srcdoc="{html.escape(srcdoc)}" '
-        f'data-canvas-id="{unique_id}" '
-        f'sandbox="allow-scripts" '
-        f'loading="lazy" '
-        f'title="Component preview"></iframe>'
-        f"</div>"
-        # Code block
-        f'<div class="gallery-md-canvas__code">'
-        f"{code_markup}"
-        f"</div>"
-        # HTML block
-        f'<div class="gallery-md-canvas__html">'
-        f"{html_markup}"
-        f"</div>"
-        f"</div>"
-    )
-    return widget_html
+    context = {
+        "unique_id": unique_id,
+        "source_html": code_markup,
+        "rendered_output_html": html_markup,
+        "iframe_srcdoc": srcdoc,
+        "sandbox_attrs": "allow-scripts",
+    }
+    return render_to_string("dj_design_system/canvas_widget.html", context)
 
 
 def _build_error_html(message: str, source: str = "", debug: bool = False) -> str:
