@@ -64,7 +64,9 @@ def _build_widget_html(
 
     """
     code_markup = highlight_code(source) or html.escape(source)
-    html_markup = highlight_html(rendered_html.strip()) or html.escape(rendered_html.strip())
+    html_markup = highlight_html(rendered_html.strip()) or html.escape(
+        rendered_html.strip()
+    )
 
     context = {
         "unique_id": unique_id,

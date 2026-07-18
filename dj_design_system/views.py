@@ -378,8 +378,10 @@ def _render_component(request, context, node, app_label, path_parts):
     except Exception as exc:
         raw_rendered_html = f"<!-- Error rendering component: {exc} -->"
 
-    rendered_output_html = highlight_html(raw_rendered_html) or html.escape(raw_rendered_html)
-    
+    rendered_output_html = highlight_html(raw_rendered_html) or html.escape(
+        raw_rendered_html
+    )
+
     if current_signature and current_signature.minimal_html:
         source_html = current_signature.minimal_html
     elif current_signature:

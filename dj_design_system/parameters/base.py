@@ -9,8 +9,10 @@ from django.core.files.images import ImageFile
 
 _MISSING = object()
 
+
 def _get_type_name(t: Any) -> str:
     import types
+
     if isinstance(t, tuple):
         return " | ".join(_get_type_name(item) for item in t)
     if isinstance(t, types.UnionType):
