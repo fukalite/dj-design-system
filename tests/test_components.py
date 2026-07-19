@@ -242,3 +242,35 @@ class TestComponentThemes:
 
         all_themes = [t.value for t in get_themes()]
         assert FallbackComponent.get_available_themes() == all_themes
+
+
+class TestComponentHtmlAttributes:
+    def test_component_attrs(self):
+        from dj_design_system.components import TagComponent
+        from dj_design_system.parameters import BoolParam, StrParam
+
+        class AttrComponent(TagComponent):
+            variant = StrParam("Variant", attr="data-variant", required=False)
+            expanded = BoolParam("Expanded", attr="aria-expanded", required=False)
+            disabled = BoolParam(
+                "Disabled", attr="disabled", attr_style="boolean", required=False
+            )
+
+            template_format_str = "<div {attrs}></div>"
+
+        # Test string and boolean attrs
+        comp = AttrComponent(variant="primary", expanded=False, disabled=True)
+        ctx = comp.get_context()
+        assert ctx["variant_attr"] == 'data-variant="primary"'
+        assert ctx["expanded_attr"] == 'aria-expanded="false"'
+        assert ctx["disabled_attr"] == "disabled"
+        assert 'data-variant="primary"' in ctx["attrs"]
+        assert 'aria-expanded="false"' in ctx["attrs"]
+        assert "disabled" in ctx["attrs"]
+
+        # Test defaults and not-set
+        comp2 = AttrComponent()
+        ctx2 = comp2.get_context()
+        # Should not be in attrs because they are not set and have no default
+        assert "variant_attr" not in ctx2
+        assert "attrs" in ctx2 and ctx2["attrs"] == ""

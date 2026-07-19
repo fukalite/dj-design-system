@@ -5,9 +5,7 @@ from typing import Any, NamedTuple, cast
 from dj_design_system.components import BaseComponent, BlockComponent
 from dj_design_system.data import BLOCK_CONTENT_PLACEHOLDER, CanvasSpec
 from dj_design_system.parameters import (
-    BoolCSSClassParam,
     BoolParam,
-    StrCSSClassParam,
     StrParam,
 )
 from dj_design_system.parameters.model import ModelParam
@@ -49,10 +47,10 @@ def _generate_example_value(
 
     if isinstance(param_spec, BoolParam):
         return True
-    if isinstance(param_spec, (StrParam, StrCSSClassParam)):
+    if isinstance(param_spec, StrParam):
         examples = ["foo", "bar", "baz"]
         return examples[str_example_index % len(examples)]
-    if isinstance(param_spec, BoolCSSClassParam):
+    if isinstance(param_spec, BoolParam):
         return True
 
     if isinstance(param_spec, ModelParam):
@@ -409,7 +407,7 @@ def _build_minimal_positional_values(
             spec = params[arg_name]
             if spec.required:
                 value = _generate_example_value(spec, arg_name, str_index)
-                if isinstance(spec, (StrParam, StrCSSClassParam)):
+                if isinstance(spec, StrParam):
                     str_index += 1
                 minimal_positional.append(_format_positional_arg(value))
                 minimal_positional_values.append(_unwrap_example(value))
@@ -432,7 +430,7 @@ def _build_maximal_positional_values(
         if arg_name in params:
             spec = params[arg_name]
             value = _generate_example_value(spec, arg_name, str_index)
-            if isinstance(spec, (StrParam, StrCSSClassParam)):
+            if isinstance(spec, StrParam):
                 str_index += 1
             if value is not None:
                 maximal_positional.append(_format_positional_arg(value))
@@ -464,7 +462,7 @@ def _build_maximal_keyword_values(
 
         if not spec.required or spec.default is not None:
             value = _generate_example_value(spec, param_name, str_index)
-            if isinstance(spec, (StrParam, StrCSSClassParam)):
+            if isinstance(spec, StrParam):
                 str_index += 1
             if value is not None:
                 maximal_keyword.append(_format_param_for_tag(param_name, value))

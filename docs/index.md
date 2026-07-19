@@ -13,19 +13,19 @@ A component is a Python class. Declare its parameters, its HTML template, and it
 ```python
 # myapp/components/button.py
 from dj_design_system.components import TagComponent
-from dj_design_system.parameters import StrParam, StrCSSClassParam, BoolCSSClassParam
+from dj_design_system.parameters import StrParam, StrParam, BoolParam
 
 
 class ButtonComponent(TagComponent):
     """A configurable button with size and variant modifiers."""
     label = StrParam("The button label.")
-    variant = StrCSSClassParam(
+    variant = StrParam(css_class=True, 
         "Visual variant.",
         required=False,
         default="primary",
         choices=["primary", "secondary", "danger"],
     )
-    disabled = BoolCSSClassParam("Renders the button as disabled.", required=False)
+    disabled = BoolParam(css_class=True, "Renders the button as disabled.", required=False)
 
     template_format_str = "<button class='btn {classes}'>{label}</button>"
 
@@ -52,9 +52,9 @@ The gallery generates the templatetag syntax automatically and shows a live prev
 
 **Auto-discovery** — components are found and registered automatically when Django starts. No registration calls, no config files.
 
-**Inline HTML templates** — components use a `template_format_str` string rather than separate template files. CSS classes from `StrCSSClassParam` and `BoolCSSClassParam` parameters are injected automatically into the `{classes}` slot.
+**Inline HTML templates** — components use a `template_format_str` string rather than separate template files. CSS classes from `StrParam(css_class=True)` and `BoolParam(css_class=True)` parameters are injected automatically into the `{classes}` slot. HTML attributes from `attr` and `data_attr` are injected into the `{attrs}` slot.
 
-**Rich parameter types** — `StrParam`, `BoolParam`, `StrCSSClassParam`, `BoolCSSClassParam`, `ModelParam`, `UserParam`. Parameters are self-documenting: their descriptions, types, defaults, and choices feed directly into the gallery.
+**Rich parameter types** — `StrParam`, `BoolParam`, `ModelParam`, `UserParam`. Parameters are self-documenting: their descriptions, types, defaults, and choices feed directly into the gallery.
 
 **Block components** — use `BlockComponent` for components that wrap arbitrary template content.
 

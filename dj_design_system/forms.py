@@ -51,10 +51,10 @@ def build_component_form(component_class: type[BaseComponent]) -> type[forms.For
     The returned class is named ``ComponentParametersForm`` and has one field
     per parameter, mapped as follows:
 
-    - ``BoolParam`` / ``BoolCSSClassParam`` → ``BooleanField(required=False)``
-    - ``StrParam`` / ``StrCSSClassParam`` with choices → ``ChoiceField``; a
+    - ``BoolParam`` → ``BooleanField(required=False)``
+    - ``StrParam`` with choices → ``ChoiceField``; a
       blank option is prepended when the parameter is not required.
-    - ``StrParam`` / ``StrCSSClassParam`` without choices → ``CharField``
+    - ``StrParam`` without choices → ``CharField``
     - ``ModelParam`` subclass → ``ModelChoiceField`` with the queryset
       ordered by ``-pk`` and capped at 10 items.
 
@@ -100,8 +100,8 @@ def _build_field(name: str, spec) -> forms.Field:
         "required": False,
     }
 
-    # BoolParam (and its subclass BoolCSSClassParam) → True/False dropdown.
-    # Check BoolParam before StrParam because BoolCSSClassParam inherits from BoolParam.
+    # BoolParam → True/False dropdown.
+    # Check BoolParam before StrParam because it inherits from BoolParam if applicable.
     if isinstance(spec, BoolParam):
         return forms.TypedChoiceField(
             choices=[("", "—"), ("True", "True"), ("False", "False")],
@@ -152,12 +152,12 @@ def _build_field(name: str, spec) -> forms.Field:
             **common,
         )
 
-    # StrParam / StrCSSClassParam with choices → select.
+    # StrParam with choices → select.
     if spec.choices:
         choices = [(str(c), str(c)) for c in spec.choices]
         if not spec.required:
             choices = [("", "—")] + choices
         return forms.ChoiceField(choices=choices, **common)
 
-    # StrParam / StrCSSClassParam without choices → text input.
+    # StrParam without choices → text input.
     return forms.CharField(**common)

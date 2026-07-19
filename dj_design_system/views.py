@@ -141,7 +141,9 @@ def _render_folder(request, context, node, app_label, path_parts):
 
     if node.has_index_doc:
         theme_dict = get_theme(context.get("active_theme"))
-        context["doc_html"] = _render_markdown(node.index_doc_path, app_label, theme_dict=theme_dict)
+        context["doc_html"] = _render_markdown(
+            node.index_doc_path, app_label, theme_dict=theme_dict
+        )
         return render(
             request,
             "dj_design_system/gallery/documentation.html",
@@ -408,7 +410,9 @@ def _render_component(request, context, node, app_label, path_parts):
 
     if node.has_index_doc:
         theme_dict = get_theme(context.get("active_theme"))
-        context["doc_html"] = _render_markdown(node.index_doc_path, app_label, theme_dict=theme_dict)
+        context["doc_html"] = _render_markdown(
+            node.index_doc_path, app_label, theme_dict=theme_dict
+        )
 
     if request.headers.get("HX-Request"):
         return render(
@@ -423,7 +427,9 @@ def _render_component(request, context, node, app_label, path_parts):
 def _render_document(request, context, node, app_label, path_parts):
     """Render a standalone markdown document."""
     theme_dict = get_theme(context.get("active_theme"))
-    context["doc_html"] = _render_markdown(node.doc_path, app_label, theme_dict=theme_dict)
+    context["doc_html"] = _render_markdown(
+        node.doc_path, app_label, theme_dict=theme_dict
+    )
     context["doc_label"] = node.label
     context["breadcrumbs"] = build_breadcrumbs(
         app_label, path_parts[:-1] if path_parts else [], node.label
