@@ -10,6 +10,7 @@ from dj_design_system.parameters import (
     StrCSSClassParam,
     StrParam,
 )
+from dj_design_system.parameters.model import ModelParam
 from dj_design_system.services.component import derive_name, get_meta_name
 from dj_design_system.services.registry import component_registry
 from dj_design_system.slots import SLOT_PARAM_PREFIX
@@ -53,6 +54,10 @@ def _generate_example_value(
         return examples[str_example_index % len(examples)]
     if isinstance(param_spec, BoolCSSClassParam):
         return True
+
+    if isinstance(param_spec, ModelParam):
+        model = param_spec._resolve_model()
+        return model.objects.order_by("-pk").first()
 
     return None
 

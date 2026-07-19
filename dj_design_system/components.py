@@ -229,7 +229,9 @@ class TagComponent(BaseComponent):
 
         meta = get_own_meta(cls)
         if hasattr(meta, "slots"):
-            raise ValueError(f"{cls.__name__} is a TagComponent and cannot define slots in Meta.")
+            raise ValueError(
+                f"{cls.__name__} is a TagComponent and cannot define slots in Meta."
+            )
 
     @classmethod
     def as_tag(cls):
