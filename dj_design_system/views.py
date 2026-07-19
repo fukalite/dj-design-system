@@ -1,3 +1,4 @@
+import html
 from functools import wraps
 from pathlib import Path
 from types import SimpleNamespace
@@ -37,6 +38,7 @@ from dj_design_system.services.registry import component_registry
 from dj_design_system.services.tag_signature import (
     generate_current_tag_signature,
     generate_tag_signature,
+    highlight_html,
 )
 from dj_design_system.settings import (
     dds_settings,
@@ -372,6 +374,28 @@ def _render_component(request, context, node, app_label, path_parts):
     context["maximal_preview_url"] = maximal_preview_url
     context["canvas_backgrounds"] = backgrounds
     context["active_bg_value"] = active_bg_value
+
+    try:
+        raw_rendered_html = render_component(sandbox_spec, component_registry).strip()
+    except Exception as exc:
+        raw_rendered_html = f"<!-- Error rendering component: {exc} -->"
+
+    rendered_output_html = highlight_html(raw_rendered_html) or html.escape(
+        raw_rendered_html
+    )
+
+    if current_signature and current_signature.minimal_html:
+        source_html = current_signature.minimal_html
+    elif current_signature:
+        source_html = html.escape(current_signature.minimal)
+    elif tag_signature and tag_signature.minimal_html:
+        source_html = tag_signature.minimal_html
+    else:
+        source_html = html.escape(tag_signature.minimal if tag_signature else "")
+
+    context["source_html"] = source_html
+    context["rendered_output_html"] = rendered_output_html
+
     # active_theme and available_themes are already provided by get_base_context,
     # but we override active_theme with the resolved component-specific one for the UI overrides.
     # Note: the global available_themes from base context shouldn't be overwritten.

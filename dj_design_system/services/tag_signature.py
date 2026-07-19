@@ -19,7 +19,7 @@ from dj_design_system.slots import SLOT_PARAM_PREFIX
 try:
     from pygments import highlight
     from pygments.formatters import HtmlFormatter
-    from pygments.lexers import DjangoLexer
+    from pygments.lexers import DjangoLexer, HtmlLexer
 
     HAS_PYGMENTS = True
 except ImportError:
@@ -189,6 +189,19 @@ def highlight_code(code: str) -> str:
     try:
         fmt = HtmlFormatter(style="monokai", noclasses=False, nowrap=True)
         highlighted = highlight(code, DjangoLexer(), fmt)
+        return highlighted
+    except (ValueError, TypeError):
+        return ""
+
+
+def highlight_html(html_str: str) -> str:
+    """Apply syntax highlighting to raw HTML using Pygments."""
+    if not HAS_PYGMENTS:
+        return ""
+
+    try:
+        fmt = HtmlFormatter(style="monokai", noclasses=False, nowrap=True)
+        highlighted = highlight(html_str, HtmlLexer(), fmt)
         return highlighted
     except (ValueError, TypeError):
         return ""
