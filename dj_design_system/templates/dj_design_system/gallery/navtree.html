@@ -15,7 +15,7 @@ Expects: node (NavNode), depth (int), active_path (str) from parent context.{% e
     <details class="gallery-nav__folder"
              {% if active_path and node.active_path in active_path %}open{% endif %}>
         <summary class="gallery-nav__link gallery-nav__link--folder"
-                 style="padding-left: {{ depth|add_indent }}px">
+                 data-depth="{{ depth }}">
             <a href="{{ node.url }}"
                class="gallery-nav__folder-link{% if active_path == node.active_path %} gallery-nav__link--active{% endif %}">
                 {% if node.is_component %}
@@ -36,7 +36,7 @@ Expects: node (NavNode), depth (int), active_path (str) from parent context.{% e
     {# ── Leaf node (component or document) ───────────────────────── #}
     <a class="gallery-nav__link{% if active_path == node.active_path %} gallery-nav__link--active{% endif %}"
        href="{{ node.url }}"
-       style="padding-left: {{ depth|add_indent }}px">
+       data-depth="{{ depth }}">
         {% if node.is_component %}
             <span class="gallery-nav__icon gallery-nav__icon--component"
                   aria-hidden="true"></span>

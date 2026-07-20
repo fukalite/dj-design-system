@@ -80,7 +80,7 @@ def _build_widget_html(
 
 def _build_error_html(message: str, source: str = "", debug: bool = False) -> str:
     """Build error HTML for invalid canvas blocks."""
-    error = f'<p style="color:red;">Canvas error: {html.escape(message)}</p>'
+    error = f'<p class="gallery-canvas-error">Canvas error: {html.escape(message)}</p>'
     if debug and source:
         escaped = html.escape(source)
         error += f"<pre><code>{escaped}</code></pre>"

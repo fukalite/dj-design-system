@@ -470,7 +470,7 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
     except ValueError as exc:
         html_attrs, body_attrs = _canvas_html_attrs()
         context["rendered_html"] = format_html(
-            '<p style="color:red;">Canvas error: {}</p>', str(exc)
+            '<p class="gallery-canvas-error">Canvas error: {}</p>', str(exc)
         )
         context["html_attrs"] = html_attrs
         context["body_attrs"] = body_attrs
@@ -576,11 +576,14 @@ def _canvas_bg_class(request: HttpRequest, theme_dict: Theme | None = None) -> s
     return f"canvas-bg-{default['value']}"
 
 
-def _canvas_bg_styles(theme_dict: Theme | None = None) -> str:
+def _canvas_bg_styles(
+    theme_dict: Theme | None = None, request: HttpRequest | None = None
+) -> str:
     """Generate ``<style>`` CSS rules for all configured canvas backgrounds."""
     rules = []
     for bg in get_backgrounds():
         rules.append(f".canvas-bg-{bg['value']} {{ background: {bg['color']}; }}")
+        rules.append(f".gallery-bg-chip-{bg['value']} {{ background: {bg['color']}; }}")
 
     if theme_dict and isinstance(theme_dict.canvas_background, dict):
         bg = theme_dict.canvas_background
@@ -589,7 +592,13 @@ def _canvas_bg_styles(theme_dict: Theme | None = None) -> str:
                 f".canvas-bg-theme-{theme_dict.value} {{ background: {bg['color']}; }}"
             )
 
-    return "<style>" + "\n".join(rules) + "</style>"
+    nonce_attr = ""
+    if request:
+        nonce = getattr(request, "csp_nonce", None)
+        if nonce:
+            nonce_attr = f' nonce="{html.escape(str(nonce))}"'
+
+    return f"<style{nonce_attr}>\n" + "\n".join(rules) + "\n</style>"
 
 
 def _canvas_mode_class(request: HttpRequest) -> str:

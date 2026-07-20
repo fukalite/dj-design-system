@@ -186,7 +186,10 @@
 {% endblock %}
 
 {% block extra_js %}
-    <script src="{% static 'dj_design_system/gallery-tabs.js' %}"></script>
-    <script src="{% static 'dj_design_system/gallery-toolbar.js' %}"></script>
-    <script src="https://unpkg.com/htmx.org@2.0.10/dist/htmx.min.js"></script>
+    <script src="{% static 'dj_design_system/gallery-tabs.js' %}"
+            {% if request.csp_nonce %}nonce="{{ request.csp_nonce }}"{% endif %}></script>
+    <script src="{% static 'dj_design_system/gallery-toolbar.js' %}"
+            {% if request.csp_nonce %}nonce="{{ request.csp_nonce }}"{% endif %}></script>
+    <script src="https://unpkg.com/htmx.org@2.0.10/dist/htmx.min.js"
+            {% if request.csp_nonce %}nonce="{{ request.csp_nonce }}"{% endif %}></script>
 {% endblock %}

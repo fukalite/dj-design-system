@@ -23,7 +23,7 @@ class TestCanvasIframeView:
         response = client.get(url)
         assert response.status_code == 200
         content = response.content.decode()
-        assert "color:red" in content
+        assert "gallery-canvas-error" in content
         assert "Missing required" in content
 
     def test_unknown_component_returns_error(self):
@@ -32,7 +32,7 @@ class TestCanvasIframeView:
         response = client.get(url, {"component": "nonexistent"})
         assert response.status_code == 200
         content = response.content.decode()
-        assert "color:red" in content
+        assert "gallery-canvas-error" in content
         assert "not found" in content
 
     def test_valid_component_renders_html_document(self):

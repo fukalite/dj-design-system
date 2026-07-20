@@ -1,4 +1,4 @@
-{% load static design_components %}
+{% load static design_components dj_design_system_gallery %}
 <!DOCTYPE html>
 <html lang="en"{{ html_attrs }}>
     <head>
@@ -26,6 +26,7 @@
         {{ component_js|safe }}
 
         {# Notify parent frame of content height changes (basic mode only) #}
-        <script src="{% static 'dj_design_system/canvas-resize.js' %}"></script>
+        <script src="{% static 'dj_design_system/canvas-resize.js' %}"
+                {% if request.csp_nonce %}nonce="{{ request.csp_nonce }}"{% endif %}></script>
     </body>
 </html>

@@ -1,5 +1,5 @@
 {% extends "dj_design_system/gallery/base.html" %}
-{% load static %}
+{% load static dj_design_system_gallery %}
 
 {% block title %}{{ design_system_name }}{% endblock %}
 
@@ -12,28 +12,23 @@
                 Select a component to see its documentation, preview, and parameters.
             </p>
             <p>{{ total_components }} component{{ total_components|pluralize }} registered.</p>
-            <div id="static-snapshot-notice"
-                 style="display:none;
-                        margin-top:1.5rem;
-                        padding:1rem 1.25rem;
-                        border-left:4px solid #f59e0b;
-                        background:#fffbeb;
-                        border-radius:0 4px 4px 0">
+            <div id="static-snapshot-notice" class="gallery-static-snapshot-notice">
                 <strong>⚠ You are viewing a static snapshot of the gallery.</strong>
-                <p style="margin:0.5rem 0 0;">
+                <p>
                     The component previews on each page are <strong>pre-rendered, static HTML files</strong> —
                     they show how components look but are not interactive.
                 </p>
-                <p style="margin:0.5rem 0 0;">
+                <p>
                     The <strong>sandbox is fully disabled</strong> in the static snapshot.
                     Live parameter controls, HTMX interactions, and the canvas all require a running Django server.
                 </p>
-                <p style="margin:0.5rem 0 0;">
+                <p>
                     To use the fully interactive gallery, clone the repository and run <code>just demo</code> locally.
                 </p>
             </div>
             <script src="{% static 'dj_design_system/gallery-snapshot-notice.js' %}"
-                    defer></script>
+                    defer
+                    {% if request.csp_nonce %}nonce="{{ request.csp_nonce }}"{% endif %}></script>
         </div>
     </div>
 {% endblock %}

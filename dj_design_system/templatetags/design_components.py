@@ -1,6 +1,9 @@
+import html
+
 from django import template
 from django.templatetags.static import static
 from django.utils.html import format_html_join
+from django.utils.safestring import mark_safe
 
 from dj_design_system import component_registry
 from dj_design_system.services.media import (
@@ -25,10 +28,16 @@ def component_stylesheets() -> str:
     return build_link_tags(component_registry.get_merged_media().css)
 
 
-@register.simple_tag
-def component_scripts() -> str:
+@register.simple_tag(takes_context=True)
+def component_scripts(context: template.Context | None = None) -> str:
     """Render ``<script>`` tags for every JS file required by registered components."""
-    return build_script_tags(component_registry.get_merged_media().js)
+    request = context.get("request") if context else None
+    nonce = (
+        getattr(request, "csp_nonce", None)
+        if request
+        else (context.get("csp_nonce") if context else None)
+    )
+    return build_script_tags(component_registry.get_merged_media().js, nonce=nonce)
 
 
 def _extend_theme_css(urls: list[str], theme: str) -> None:
@@ -89,8 +98,12 @@ def _extend_app_js(urls: list[str], app_label: str) -> None:
     urls.extend(static(path) for path in app_js)
 
 
-@register.simple_tag
-def global_scripts(app_label: str | None = None, theme: str | None = None) -> str:
+@register.simple_tag(takes_context=True)
+def global_scripts(
+    context: template.Context | None = None,
+    app_label: str | None = None,
+    theme: str | None = None,
+) -> str:
     """Render ``<script>`` tags for global, theme, and app-specific JS bundles and static paths."""
     urls = get_bundle_urls(dds_settings.GLOBAL_JS_BUNDLES, "js") + [
         static(path) for path in dds_settings.GLOBAL_JS
@@ -105,5 +118,19 @@ def global_scripts(app_label: str | None = None, theme: str | None = None) -> st
     urls = list(dict.fromkeys(urls))
     if not urls:
         return ""
+
+    request = context.get("request") if context else None
+    nonce = (
+        getattr(request, "csp_nonce", None)
+        if request
+        else (context.get("csp_nonce") if context else None)
+    )
+    if nonce:
+        nonce_attr = mark_safe(f' nonce="{html.escape(str(nonce))}"')
+        all_srcs = [(url,) for url in urls]
+        return format_html_join(
+            "\n", f'<script src="{{}}" {nonce_attr}></script>', all_srcs
+        )
+
     all_srcs = [(url,) for url in urls]
     return format_html_join("\n", '<script src="{}"></script>', all_srcs)
