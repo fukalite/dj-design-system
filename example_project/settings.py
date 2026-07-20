@@ -2,6 +2,7 @@ from pathlib import Path
 
 from dj_design_system.types import FlattenStrategy
 
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = "django-insecure-example-project-do-not-use-in-production"

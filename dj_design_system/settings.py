@@ -104,6 +104,7 @@ class DjangoDesignSystemSettings:
             value = django_settings[attr]
             if attr == "COMPONENT_NAMESPACES" and value:
                 import warnings
+
                 warnings.warn(
                     "COMPONENT_NAMESPACES is deprecated and will be removed in a future release. "
                     "Please migrate to COMPONENT_DIRECTORIES.",

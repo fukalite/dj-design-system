@@ -1,10 +1,12 @@
 from dj_design_system.components import BlockComponent
 
+
 class PromotedDemoComponent(BlockComponent):
     """
-    A simple component used to demonstrate the `promote_to_app` configuration 
+    A simple component used to demonstrate the `promote_to_app` configuration
     in `COMPONENT_DIRECTORIES`.
     """
+
     class Meta:
         name = "demo"
 
