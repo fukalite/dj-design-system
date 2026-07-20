@@ -3,6 +3,7 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+from django.test import override_settings
 
 from dj_design_system.data import ComponentInfo, NavNode
 from dj_design_system.services.navigation import (
@@ -887,25 +888,23 @@ class TestNavigationEdgeCases:
         assert guide_entry["content"] == ""
 
 
-def test_to_display_label_app_label():
-    from dj_design_system.services.navigation import to_display_label
-    from dj_design_system.settings import dds_settings
-
-    # Mock settings
-    old_dirs = dds_settings.COMPONENT_DIRECTORIES
-    dds_settings.COMPONENT_DIRECTORIES = {
-        "demo_components": {
-            "card": {"label": "Cards (No Flattening)"},
+@override_settings(
+    DJ_DESIGN_SYSTEM={
+        "COMPONENT_DIRECTORIES": {
+            "demo_components": {
+                "card": {"label": "Cards (No Flattening)"},
+            }
         }
     }
-    try:
-        # Test path is not None
-        assert (
-            to_display_label("my_path", app_label="demo_components", path="card")
-            == "Cards (No Flattening)"
-        )
-    finally:
-        dds_settings.COMPONENT_DIRECTORIES = old_dirs
+)
+def test_to_display_label_app_label():
+    from dj_design_system.services.navigation import to_display_label
+
+    # Test path is not None
+    assert (
+        to_display_label("my_path", app_label="demo_components", path="card")
+        == "Cards (No Flattening)"
+    )
 
 
 def test_to_display_label_fallback():
@@ -929,21 +928,20 @@ def test_to_display_label_fallback():
             del type(cfg).verbose_name
 
 
-def test_promote_to_app_integration(registry_with_two_apps):
-    from dj_design_system.services.navigation import _build_navigation
-    from dj_design_system.settings import dds_settings
-
-    old_dirs = dds_settings.COMPONENT_DIRECTORIES
-    dds_settings.COMPONENT_DIRECTORIES = {
-        "demo_components": {
-            "promoted": {"promote_to_app": True, "label": "Promoted App Demo"}
+@override_settings(
+    DJ_DESIGN_SYSTEM={
+        "COMPONENT_DIRECTORIES": {
+            "demo_components": {
+                "promoted": {"promote_to_app": True, "label": "Promoted App Demo"}
+            }
         }
     }
-    try:
-        # Pass registry_with_two_apps which has demo_components loaded
-        tree = _build_navigation(registry_with_two_apps.list_all())
-        # It should contain Demo Components, Demo Extra, and Promoted App Demo
-        app_labels = [n.label for n in tree]
-        assert "Promoted App Demo" in app_labels
-    finally:
-        dds_settings.COMPONENT_DIRECTORIES = old_dirs
+)
+def test_promote_to_app_integration(registry_with_two_apps):
+    from dj_design_system.services.navigation import _build_navigation
+
+    # Pass registry_with_two_apps which has demo_components loaded
+    tree = _build_navigation(registry_with_two_apps.list_all())
+    # It should contain Demo Components, Demo Extra, and Promoted App Demo
+    app_labels = [n.label for n in tree]
+    assert "Promoted App Demo" in app_labels

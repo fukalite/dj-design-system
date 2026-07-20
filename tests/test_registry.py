@@ -632,18 +632,19 @@ class TestComponentNamespaces:
     """Test namespace aliasing via COMPONENT_NAMESPACES."""
 
     @pytest.fixture
-    def mock_settings(self):
-        with patch("dj_design_system.settings.dds_settings") as mock:
-            mock.COMPONENT_DIRECTORIES = {
+    def mock_settings(self, settings):
+        settings.DJ_DESIGN_SYSTEM = {
+            "COMPONENT_DIRECTORIES": {
                 "demo_components": {
                     "": "ui",
                     "button": "btn",
                     "card": {"prefix": "cards", "flatten": False},
                     "card.layouts": "layouts",
                 }
-            }
-            mock.COMPONENT_NAMESPACES = None
-            yield mock
+            },
+            "COMPONENT_NAMESPACES": None,
+        }
+        yield settings
 
     def test_top_level_alias(self, mock_settings):
         """Top-level component (relative_path='') matched by ''."""
@@ -688,7 +689,10 @@ class TestComponentNamespaces:
         from dj_design_system.services.registry import ComponentRegistry
         from tests.conftest import discover_app_into_registry
 
-        mock_settings.COMPONENT_DIRECTORIES = {"demo_components": {"card": "cards"}}
+        mock_settings.DJ_DESIGN_SYSTEM = {
+            "COMPONENT_DIRECTORIES": {"demo_components": {"card": "cards"}},
+            "COMPONENT_NAMESPACES": None,
+        }
         reg = ComponentRegistry()
         discover_app_into_registry(
             reg, "example_project.demo_components", "demo_components"
@@ -702,8 +706,11 @@ class TestComponentNamespaces:
         from dj_design_system.services.registry import ComponentRegistry
         from tests.conftest import discover_app_into_registry
 
-        mock_settings.COMPONENT_DIRECTORIES = {
-            "demo_components": {"card": {"prefix": "cards", "flatten": True}}
+        mock_settings.DJ_DESIGN_SYSTEM = {
+            "COMPONENT_DIRECTORIES": {
+                "demo_components": {"card": {"prefix": "cards", "flatten": True}}
+            },
+            "COMPONENT_NAMESPACES": None,
         }
         reg = ComponentRegistry()
         discover_app_into_registry(
