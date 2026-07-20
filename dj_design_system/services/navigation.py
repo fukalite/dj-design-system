@@ -25,6 +25,7 @@ def to_display_label(
     *,
     component: ComponentInfo | None = None,
     app_label: str | None = None,
+    path: str | None = None,
 ) -> str:
     """Return a human-readable label for a slug, component, or app."""
     if component is not None:
@@ -35,13 +36,23 @@ def to_display_label(
                 return vn
 
     if app_label is not None:
-        try:
-            cfg = apps.get_app_config(app_label)
-        except LookupError:
-            pass
-        else:
-            if "verbose_name" in type(cfg).__dict__:
-                return str(cfg.verbose_name)
+        directories = (dds_settings.COMPONENT_DIRECTORIES or {}).get(app_label)
+        if directories is not None:
+            alias_config = (
+                directories.get(path) if path is not None else directories.get("")
+            )
+            if isinstance(alias_config, dict) and "label" in alias_config:
+                return str(alias_config["label"])
+
+        # Only fall back to app's verbose_name if we are actually formatting the app label itself
+        if path is None and name == app_label:
+            try:
+                cfg = apps.get_app_config(app_label)
+            except LookupError:
+                pass
+            else:
+                if "verbose_name" in type(cfg).__dict__:
+                    return str(cfg.verbose_name)
 
     return name.replace("_", " ").replace("-", " ").capitalize()
 
@@ -68,7 +79,11 @@ class _AppTreeBuilder:
             path_key = "/".join(path_parts[: depth + 1])
             if path_key not in self._nodes_by_path:
                 node = NavNode(
-                    label=to_display_label(path_parts[depth]),
+                    label=to_display_label(
+                        path_parts[depth],
+                        app_label=self.root.slug,
+                        path=".".join(path_parts[: depth + 1]),
+                    ),
                     slug=path_parts[depth],
                     node_type=NodeType.FOLDER,
                 )
@@ -223,7 +238,33 @@ def _build_navigation(
 
         _sort_children(app_node)
         _annotate_paths(app_node)
-        result.append(app_node)
+
+        directories = (dds_settings.COMPONENT_DIRECTORIES or {}).get(app_label, {})
+        promoted_nodes: list[NavNode] = []
+
+        def _extract_promoted(node: NavNode, current_path: str) -> None:
+            new_children = []
+            for child in node.children:
+                child_path = (
+                    f"{current_path}.{child.slug}" if current_path else child.slug
+                )
+
+                alias_config = directories.get(child_path)
+                if isinstance(alias_config, dict) and alias_config.get(
+                    "promote_to_app"
+                ):
+                    child.node_type = NodeType.APP
+                    promoted_nodes.append(child)
+                else:
+                    _extract_promoted(child, child_path)
+                    new_children.append(child)
+            node.children = new_children
+
+        _extract_promoted(app_node, "")
+
+        if app_node.children or app_node.index_doc_path or app_node.doc_path:
+            result.append(app_node)
+        result.extend(promoted_nodes)
 
     return result
 

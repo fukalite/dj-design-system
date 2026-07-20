@@ -141,6 +141,11 @@ def build_canvas_url(
 def _resolve_component(name: str, registry: ComponentRegistry):
     """Look up a component by name, raising ``ValueError`` on failure."""
     try:
+        # Check for fully qualified name matches first
+        for info in registry.list_all():
+            if info.qualified_name == name:
+                return info
+
         if "__" in name:
             parts = name.split("__")
             return registry.get_by_name(parts[-1], app_label=parts[0])

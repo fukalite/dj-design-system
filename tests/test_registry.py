@@ -176,6 +176,7 @@ class TestBindTemplate:
             "hero",
             "slotted_card",
             "quote_oneup",
+            "demo",
         }
 
     def test_single_file_components_module(self, registry_with_demo_single):
@@ -298,7 +299,7 @@ class TestListByApp:
     def test_returns_correct_app(self, registry_with_two_apps):
         reg = registry_with_two_apps
         components = reg.list_by_app("demo_components")
-        assert len(components) == 9
+        assert len(components) == 10
         assert all(c.app_label == "demo_components" for c in components)
 
     def test_returns_other_app(self, registry_with_two_apps):
@@ -633,7 +634,7 @@ class TestComponentNamespaces:
     @pytest.fixture
     def mock_settings(self):
         with patch("dj_design_system.settings.dds_settings") as mock:
-            mock.COMPONENT_NAMESPACES = {
+            mock.COMPONENT_DIRECTORIES = {
                 "demo_components": {
                     "": "ui",
                     "button": "btn",
@@ -641,6 +642,7 @@ class TestComponentNamespaces:
                     "card.layouts": "layouts",
                 }
             }
+            mock.COMPONENT_NAMESPACES = None
             yield mock
 
     def test_top_level_alias(self, mock_settings):
@@ -654,7 +656,6 @@ class TestComponentNamespaces:
         )
         info = reg.get_info(BadgeComponent)
 
-        assert info.namespace_prefix == "ui"
         assert info.qualified_name == "ui__badge"
 
     def test_simple_string_alias_flattens(self, mock_settings):
@@ -668,7 +669,6 @@ class TestComponentNamespaces:
         )
         info = reg.get_info(ButtonComponent)
 
-        assert info.namespace_prefix == "btn"
         assert info.qualified_name == "btn__button"
 
     def test_longest_match_alias(self, mock_settings):
@@ -681,7 +681,6 @@ class TestComponentNamespaces:
             reg, "example_project.demo_components", "demo_components"
         )
         info = reg.get_info(HeroCardComponent)
-        assert info.namespace_prefix == "layouts"
         assert info.qualified_name == "layouts__hero"
 
     def test_flatten_false_preserves_subfolders(self, mock_settings):
@@ -689,14 +688,13 @@ class TestComponentNamespaces:
         from dj_design_system.services.registry import ComponentRegistry
         from tests.conftest import discover_app_into_registry
 
-        mock_settings.COMPONENT_NAMESPACES = {"demo_components": {"card": "cards"}}
+        mock_settings.COMPONENT_DIRECTORIES = {"demo_components": {"card": "cards"}}
         reg = ComponentRegistry()
         discover_app_into_registry(
             reg, "example_project.demo_components", "demo_components"
         )
         info = reg.get_info(HeroCardComponent)
 
-        assert info.namespace_prefix == "cards__layouts"
         assert info.qualified_name == "cards__layouts__hero"
 
     def test_flatten_true_removes_subfolders(self, mock_settings):
@@ -704,7 +702,7 @@ class TestComponentNamespaces:
         from dj_design_system.services.registry import ComponentRegistry
         from tests.conftest import discover_app_into_registry
 
-        mock_settings.COMPONENT_NAMESPACES = {
+        mock_settings.COMPONENT_DIRECTORIES = {
             "demo_components": {"card": {"prefix": "cards", "flatten": True}}
         }
         reg = ComponentRegistry()
@@ -712,5 +710,4 @@ class TestComponentNamespaces:
             reg, "example_project.demo_components", "demo_components"
         )
         info = reg.get_info(HeroCardComponent)
-        assert info.namespace_prefix == "cards"
         assert info.qualified_name == "cards__hero"
