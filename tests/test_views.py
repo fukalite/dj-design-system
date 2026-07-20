@@ -349,6 +349,26 @@ class TestGalleryComponentFormIntegration:
             assert "spec" in row
             assert "field" in row
 
+    def test_param_rows_handles_tuple_type(self):
+        """_build_param_rows should handle parameter specs with tuple type definitions without raising AttributeError."""
+        from dj_design_system.components import BlockComponent
+        from dj_design_system.forms import build_component_form
+        from dj_design_system.parameters.base import JSONParam
+        from dj_design_system.views import _build_param_rows
+
+        class TupleParamComponent(BlockComponent):
+            data = JSONParam("JSON data")
+
+        form_class = build_component_form(TupleParamComponent)
+        form = form_class()
+        params = TupleParamComponent.get_params()
+        rows = _build_param_rows(form, params, TupleParamComponent)
+
+        data_row = next(r for r in rows if r["name"] == "data")
+        assert "dict | list | str | int | float | bool | NoneType" in data_row["spec"].type_name
+
+
+
     def test_page_renders_with_valid_get_param(self, client):
         """A component page should return 200 when valid param data is supplied via GET."""
         nav_tree = _get_nav_tree()

@@ -18,6 +18,7 @@ from django.views.decorators.clickjacking import xframe_options_sameorigin
 from dj_design_system.components import BlockComponent
 from dj_design_system.data import CanvasSpec
 from dj_design_system.forms import build_component_form
+from dj_design_system.parameters.base import _get_type_name
 from dj_design_system.services.canvas import (
     _resolve_component,
     build_canvas_url,
@@ -238,7 +239,8 @@ def _build_param_rows(
     form: Any, params: dict, component_class: type[BlockComponent]
 ) -> list[dict]:
     for spec_param in params.values():
-        spec_param.type_name = getattr(spec_param, "type", type(spec_param)).__name__
+        param_type = getattr(spec_param, "type", type(spec_param))
+        spec_param.type_name = _get_type_name(param_type)
 
     param_rows = [
         {"name": name, "spec": spec_param, "field": form[name]}
