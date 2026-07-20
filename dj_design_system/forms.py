@@ -141,7 +141,9 @@ def _build_field(name: str, spec) -> forms.Field:
         return forms.DateField(widget=forms.DateInput(attrs={"type": "date"}), **common)
 
     if isinstance(spec, DateTimeParam):
-        return forms.DateTimeField(widget=forms.DateTimeInput(attrs={"type": "datetime-local"}), **common)
+        return forms.DateTimeField(
+            widget=forms.DateTimeInput(attrs={"type": "datetime-local"}), **common
+        )
 
     if isinstance(spec, UUIDParam):
         return forms.UUIDField(**common)
