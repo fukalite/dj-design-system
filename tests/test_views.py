@@ -418,9 +418,10 @@ class TestGalleryComponentFormIntegration:
         rows = _build_param_rows(form, params, TupleParamComponent)
 
         data_row = next(r for r in rows if r["name"] == "data")
-        assert "dict | list | str | int | float | bool | NoneType" in data_row["spec"].type_name
-
-
+        assert (
+            "dict | list | str | int | float | bool | NoneType"
+            in data_row["spec"].type_name
+        )
 
     def test_page_renders_with_valid_get_param(self, client):
         """A component page should return 200 when valid param data is supplied via GET."""

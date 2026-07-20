@@ -1,7 +1,7 @@
 from unittest.mock import patch
-from django.test import override_settings
 
 from django.templatetags.static import static
+from django.test import override_settings
 
 from dj_design_system.data import ComponentMedia
 from dj_design_system.services.media import get_bundle_urls
@@ -147,14 +147,18 @@ class TestGlobalStylesheets:
 
     def test_empty_settings_return_empty_string(self):
         """When both GLOBAL_CSS and GLOBAL_CSS_BUNDLES are empty, returns ''."""
-        with override_settings(DJ_DESIGN_SYSTEM={"GLOBAL_CSS": [], "GLOBAL_CSS_BUNDLES": []}):
+        with override_settings(
+            DJ_DESIGN_SYSTEM={"GLOBAL_CSS": [], "GLOBAL_CSS_BUNDLES": []}
+        ):
             result = global_stylesheets()
         assert result == ""
 
     def test_renders_link_tag_for_single_static_path(self):
         """A single GLOBAL_CSS path produces one ``<link rel="stylesheet">`` element."""
         path = "myapp/base.css"
-        with override_settings(DJ_DESIGN_SYSTEM={"GLOBAL_CSS": [path], "GLOBAL_CSS_BUNDLES": []}):
+        with override_settings(
+            DJ_DESIGN_SYSTEM={"GLOBAL_CSS": [path], "GLOBAL_CSS_BUNDLES": []}
+        ):
             result = str(global_stylesheets())
         assert f'href="{static(path)}"' in result
         assert 'rel="stylesheet"' in result
@@ -162,13 +166,20 @@ class TestGlobalStylesheets:
     def test_renders_one_link_per_static_path(self):
         """Two distinct GLOBAL_CSS paths produce two ``<link>`` elements."""
         paths = ["myapp/base.css", "myapp/theme.css"]
-        with override_settings(DJ_DESIGN_SYSTEM={"GLOBAL_CSS": paths, "GLOBAL_CSS_BUNDLES": []}):
+        with override_settings(
+            DJ_DESIGN_SYSTEM={"GLOBAL_CSS": paths, "GLOBAL_CSS_BUNDLES": []}
+        ):
             result = str(global_stylesheets())
         assert result.count("<link") == 2
 
     def test_no_script_tags_rendered(self):
         """``global_stylesheets`` must not emit any ``<script>`` elements."""
-        with override_settings(DJ_DESIGN_SYSTEM={"GLOBAL_CSS": ["myapp/base.css"], "GLOBAL_CSS_BUNDLES": []}):
+        with override_settings(
+            DJ_DESIGN_SYSTEM={
+                "GLOBAL_CSS": ["myapp/base.css"],
+                "GLOBAL_CSS_BUNDLES": [],
+            }
+        ):
             result = str(global_stylesheets())
         assert "<script" not in result
 
@@ -178,7 +189,9 @@ class TestGlobalStylesheets:
         with (
             patch(_WEBPACK_FLAG, True),
             patch(_WEBPACK_GET_FILES, return_value=[{"url": chunk_url}]),
-            override_settings(DJ_DESIGN_SYSTEM={"GLOBAL_CSS": [], "GLOBAL_CSS_BUNDLES": [("main",})]),
+            override_settings(
+                DJ_DESIGN_SYSTEM={"GLOBAL_CSS": [], "GLOBAL_CSS_BUNDLES": [("main",)]}
+            ),
         ):
             result = str(global_stylesheets())
         assert f'href="{chunk_url}"' in result
@@ -188,7 +201,9 @@ class TestGlobalStylesheets:
         """Bundle entries are silently skipped when webpack_loader is not installed."""
         with (
             patch(_WEBPACK_FLAG, False),
-            override_settings(DJ_DESIGN_SYSTEM={"GLOBAL_CSS": [], "GLOBAL_CSS_BUNDLES": [("main",})]),
+            override_settings(
+                DJ_DESIGN_SYSTEM={"GLOBAL_CSS": [], "GLOBAL_CSS_BUNDLES": [("main",)]}
+            ),
         ):
             result = global_stylesheets()
         assert result == ""
@@ -200,7 +215,11 @@ class TestGlobalStylesheets:
         with (
             patch(_WEBPACK_FLAG, True),
             patch(_WEBPACK_GET_FILES, return_value=[{"url": chunk_url}]),
-            override_settings(DJ_DESIGN_SYSTEM={"GLOBAL_CSS": [static_path], "GLOBAL_CSS_BUNDLES": [("main",})],
+            override_settings(
+                DJ_DESIGN_SYSTEM={
+                    "GLOBAL_CSS": [static_path],
+                    "GLOBAL_CSS_BUNDLES": [("main",)],
+                }
             ),
         ):
             result = str(global_stylesheets())
@@ -213,14 +232,18 @@ class TestGlobalScripts:
 
     def test_empty_settings_return_empty_string(self):
         """When both GLOBAL_JS and GLOBAL_JS_BUNDLES are empty, returns ''."""
-        with override_settings(DJ_DESIGN_SYSTEM={"GLOBAL_JS": [], "GLOBAL_JS_BUNDLES": []}):
+        with override_settings(
+            DJ_DESIGN_SYSTEM={"GLOBAL_JS": [], "GLOBAL_JS_BUNDLES": []}
+        ):
             result = global_scripts()
         assert result == ""
 
     def test_renders_script_tag_for_single_static_path(self):
         """A single GLOBAL_JS path produces one ``<script src="...">`` element."""
         path = "myapp/base.js"
-        with override_settings(DJ_DESIGN_SYSTEM={"GLOBAL_JS": [path], "GLOBAL_JS_BUNDLES": []}):
+        with override_settings(
+            DJ_DESIGN_SYSTEM={"GLOBAL_JS": [path], "GLOBAL_JS_BUNDLES": []}
+        ):
             result = str(global_scripts())
         assert f'src="{static(path)}"' in result
         assert "<script" in result
@@ -228,13 +251,17 @@ class TestGlobalScripts:
     def test_renders_one_script_per_static_path(self):
         """Two distinct GLOBAL_JS paths produce two ``<script>`` elements."""
         paths = ["myapp/base.js", "myapp/analytics.js"]
-        with override_settings(DJ_DESIGN_SYSTEM={"GLOBAL_JS": paths, "GLOBAL_JS_BUNDLES": []}):
+        with override_settings(
+            DJ_DESIGN_SYSTEM={"GLOBAL_JS": paths, "GLOBAL_JS_BUNDLES": []}
+        ):
             result = str(global_scripts())
         assert result.count("<script") == 2
 
     def test_no_link_tags_rendered(self):
         """``global_scripts`` must not emit any ``<link>`` elements."""
-        with override_settings(DJ_DESIGN_SYSTEM={"GLOBAL_JS": ["myapp/base.js"], "GLOBAL_JS_BUNDLES": []}):
+        with override_settings(
+            DJ_DESIGN_SYSTEM={"GLOBAL_JS": ["myapp/base.js"], "GLOBAL_JS_BUNDLES": []}
+        ):
             result = str(global_scripts())
         assert "<link" not in result
 
@@ -244,7 +271,9 @@ class TestGlobalScripts:
         with (
             patch(_WEBPACK_FLAG, True),
             patch(_WEBPACK_GET_FILES, return_value=[{"url": chunk_url}]),
-            override_settings(DJ_DESIGN_SYSTEM={"GLOBAL_JS": [], "GLOBAL_JS_BUNDLES": [("main",})]),
+            override_settings(
+                DJ_DESIGN_SYSTEM={"GLOBAL_JS": [], "GLOBAL_JS_BUNDLES": [("main",)]}
+            ),
         ):
             result = str(global_scripts())
         assert f'src="{chunk_url}"' in result
@@ -253,7 +282,9 @@ class TestGlobalScripts:
         """Bundle entries are silently skipped when webpack_loader is not installed."""
         with (
             patch(_WEBPACK_FLAG, False),
-            override_settings(DJ_DESIGN_SYSTEM={"GLOBAL_JS": [], "GLOBAL_JS_BUNDLES": [("main",})]),
+            override_settings(
+                DJ_DESIGN_SYSTEM={"GLOBAL_JS": [], "GLOBAL_JS_BUNDLES": [("main",)]}
+            ),
         ):
             result = global_scripts()
         assert result == ""
@@ -265,7 +296,11 @@ class TestGlobalScripts:
         with (
             patch(_WEBPACK_FLAG, True),
             patch(_WEBPACK_GET_FILES, return_value=[{"url": chunk_url}]),
-            override_settings(DJ_DESIGN_SYSTEM={"GLOBAL_JS": [static_path], "GLOBAL_JS_BUNDLES": [("main",})],
+            override_settings(
+                DJ_DESIGN_SYSTEM={
+                    "GLOBAL_JS": [static_path],
+                    "GLOBAL_JS_BUNDLES": [("main",)],
+                }
             ),
         ):
             result = str(global_scripts())
