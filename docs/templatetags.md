@@ -40,7 +40,7 @@ By default, the qualified name is of the form `{app_label}__{relative_path}__{na
 | `myapp/components/cards/info_card.py` → `InfoCardComponent`                       | `myapp__cards__info_card`     |
 | `myapp/components/cards/layouts/hero.py` → `HeroCardComponent` (Meta.name="hero") | `myapp__cards__layouts__hero` |
 
-If you configure `COMPONENT_NAMESPACES` in your settings, you can override this default behavior. For example, if you map `""` to `"ui"` for `myapp`, `IconComponent`'s qualified name becomes `ui__icon`. If you map `"cards"` to `{"prefix": "cards", "flatten": False}`, `HeroCardComponent`'s qualified name becomes `cards__layouts__hero`. Conversely, if you set `"flatten": True`, subfolder paths are discarded and it becomes `cards__hero`.
+If you configure `COMPONENT_DIRECTORIES` in your settings, you can override this default behavior. For example, if you map `""` to `"ui"` for `myapp`, `IconComponent`'s qualified name becomes `ui__icon`. If you map `"cards"` to `{"prefix": "cards", "flatten": "none"}`, `HeroCardComponent`'s qualified name becomes `cards__layouts__hero`. Conversely, if you set `"flatten": "all"`, subfolder paths are discarded and it becomes `cards__hero`.
 
 Qualified names are always unique and always registered, regardless of ambiguity.
 
