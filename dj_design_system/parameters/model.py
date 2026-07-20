@@ -138,6 +138,8 @@ class ModelParam(BaseParam):
 
     def validate(self, value):
         """Check that *value* is an instance of the configured model."""
+        if value is None and not self.required:
+            return
         model_class = self._resolve_model()
         if not isinstance(value, model_class):
             raise TypeError(
