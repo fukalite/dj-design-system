@@ -136,8 +136,7 @@ class TestCanvasIframeView:
         url = reverse("gallery-canvas-iframe")
         response = client.get(url, {"component": "rich_button", "label": "Test"})
         content = response.content.decode()
-        assert "ResizeObserver" in content
-        assert "canvas-resize" in content
+        assert "canvas-resize.js" in content
 
     def test_no_sandbox_attribute(self):
         """The iframe view response has no sandbox restrictions."""

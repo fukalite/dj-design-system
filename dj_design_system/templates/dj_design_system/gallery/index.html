@@ -1,4 +1,5 @@
 {% extends "dj_design_system/gallery/base.html" %}
+{% load static %}
 
 {% block title %}{{ design_system_name }}{% endblock %}
 
@@ -31,11 +32,8 @@
                     To use the fully interactive gallery, clone the repository and run <code>just demo</code> locally.
                 </p>
             </div>
-            <script>
-                if (location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
-                    document.getElementById("static-snapshot-notice").style.display = "block";
-                }
-            </script>
+            <script src="{% static 'dj_design_system/gallery-snapshot-notice.js' %}"
+                    defer></script>
         </div>
     </div>
 {% endblock %}
