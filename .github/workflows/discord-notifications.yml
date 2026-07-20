@@ -2,7 +2,7 @@ name: Discord Notifications
 
 on:
   issues:
-    types: [opened, closed]
+    types: [opened, closed, labeled]
   pull_request:
     types: [opened, closed]
   release:
@@ -62,14 +62,21 @@ jobs:
               url = issue.get('html_url', '')
               number = issue.get('number')
               labels = [l.get('name', '').lower() for l in issue.get('labels', [])]
-              
+              title_lower = title.lower()
+
+              is_bug = any('bug' in l for l in labels) or title_lower.startswith('bug') or 'bug:' in title_lower or '[bug]' in title_lower or 'bug -' in title_lower
+              is_feature = any('feature' in l or 'enhancement' in l for l in labels) or title_lower.startswith('feature') or title_lower.startswith('feat') or 'feature:' in title_lower or 'feature request' in title_lower or '[feature]' in title_lower
+
+              if is_bug and bugs_url:
+                  webhook_url = bugs_url
+              elif is_feature and features_url:
+                  webhook_url = features_url
+
               if action == 'opened':
-                  if any('bug' in l for l in labels):
-                      webhook_url = bugs_url
+                  if is_bug:
                       color = 0xED4245 # Red
                       status = 'Bug Report Opened'
-                  elif any('feature' in l or 'enhancement' in l for l in labels):
-                      webhook_url = features_url
+                  elif is_feature:
                       color = 0x57F287 # Green
                       status = 'Feature Request Opened'
                   else:
@@ -82,6 +89,14 @@ jobs:
                   reason_str = 'Completed' if state_reason == 'completed' else 'Not Planned' if state_reason == 'not_planned' else 'Closed'
                   message = f'**{repo}** - Issue Closed ({reason_str}): [#{number} {title}](<{url}>)'
                   color = 0x99AAB5 if state_reason == 'not_planned' else 0x57F287
+
+              elif action == 'labeled':
+                  added_label = event.get('label', {}).get('name', '')
+                  added_label_lower = added_label.lower()
+                  if 'bug' in added_label_lower or 'feature' in added_label_lower or 'enhancement' in added_label_lower:
+                      status = f'Issue Labeled ({added_label})'
+                      message = f'**{repo}** - {status}: [#{number} {title}](<{url}>)'
+                      color = 0xED4245 if 'bug' in added_label_lower else 0x57F287
 
           elif event_name == 'pull_request':
               action = event.get('action')

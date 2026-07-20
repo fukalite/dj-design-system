@@ -1,5 +1,7 @@
 """Tests for tag_signature module that generates template tag usage examples."""
 
+import pytest
+
 from dj_design_system.components import BlockComponent, TagComponent
 from dj_design_system.data import BLOCK_CONTENT_PLACEHOLDER
 from dj_design_system.parameters import (
@@ -354,6 +356,30 @@ class TestTagSignatureEdgeCases:
         """Positional arg not in params is gracefully skipped."""
         sig = generate_tag_signature(GhostPositionalComponent)
         assert "nonexistent" not in sig.minimal
+
+    @pytest.mark.django_db
+    def test_model_param_fallback_generates_first_instance(self):
+        """ModelParam generates the most recent database instance as its fallback example."""
+        from django.contrib.auth import get_user_model
+
+        from dj_design_system.parameters.model import ModelParam
+
+        User = get_user_model()
+        User.objects.create(username="sigtest_user_1")
+        user2 = User.objects.create(username="sigtest_user_2")
+
+        class UserParam(ModelParam):
+            class Meta:
+                model = "auth.User"
+                fields = ["username"]
+
+        class _ModelParamComponent(TagComponent):
+            template_format_str = "<div></div>"
+            user = UserParam("A user", required=False)
+
+        sig = generate_tag_signature(_ModelParamComponent)
+        # It orders by -pk, so user2 should be the fallback value.
+        assert f"user={str(user2)}" in sig.maximal
 
 
 # ---------------------------------------------------------------------------

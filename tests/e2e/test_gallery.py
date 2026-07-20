@@ -66,6 +66,18 @@ class TestComponentDetailPage:
         iframe = page.locator("iframe")
         assert iframe.count() >= 1
 
+    def test_sandbox_pane_has_tabs(self, page, live_server):
+        """The sandbox pane should have the canvas widget tabs."""
+        page.goto(f"{live_server.url}/dds/demo_components/rich_button/#pane-sandbox")
+        # Ensure the tabs are visible
+        assert page.locator("label[title='Preview']").count() >= 1
+        assert page.locator("label[title='Template Source']").count() >= 1
+        assert page.locator("label[title='Output HTML']").count() >= 1
+
+        # Check that we can switch tabs
+        page.locator("label[title='Template Source']").first.click()
+        assert page.locator(".gallery-md-canvas__code").first.is_visible()
+
     def test_block_component_page_loads(self, page, live_server):
         """AlertComponent (a BlockComponent) has its own gallery page."""
         page.goto(f"{live_server.url}/dds/demo_components/alert/")

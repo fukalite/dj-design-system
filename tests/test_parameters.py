@@ -184,6 +184,18 @@ class TestModelParamValidation:
         with pytest.raises(TypeError, match="Expected FakeUser"):
             param.validate("not a user")
 
+    def test_none_value_accepted_when_optional(self):
+        param = FakeUserParam("A user", required=False)
+        param.__set_name__(None, "user")
+        param.validate(None)  # should not raise
+
+    def test_none_value_rejected_when_required(self):
+        param = FakeUserParam("A user", required=True)
+        param.__set_name__(None, "user")
+        with pytest.raises(TypeError, match="Expected FakeUser"):
+            param.validate(None)
+
+
 
 # ---------------------------------------------------------------------------
 # Extra context (flattened attributes)
@@ -794,3 +806,30 @@ class TestTupleTypeParams:
         param = JSONParam("JSON data")
         param.name = "my_json"
         assert "of type dict | list | str | int | float | bool | NoneType" in str(param)
+
+
+class TestParamHtmlAttributes:
+    def test_attr_string(self):
+        param = StrParam("Test", attr="data-test")
+        attrs = param.get_html_attributes("my_param", "value")
+        assert attrs == {"data-test": "value"}
+
+    def test_attr_bool(self):
+        param = StrParam("Test", attr=True)
+        attrs = param.get_html_attributes("my_long_param", "value")
+        assert attrs == {"my-long-param": "value"}
+
+    def test_data_attr_string(self):
+        param = StrParam("Test", data_attr="test")
+        attrs = param.get_html_attributes("my_param", "value")
+        assert attrs == {"data-test": "value"}
+
+    def test_data_attr_bool(self):
+        param = StrParam("Test", data_attr=True)
+        attrs = param.get_html_attributes("my_long_param", "value")
+        assert attrs == {"data-my-long-param": "value"}
+
+    def test_attr_and_data_attr(self):
+        param = StrParam("Test", attr="aria-label", data_attr=True)
+        attrs = param.get_html_attributes("my_param", "value")
+        assert attrs == {"aria-label": "value", "data-my-param": "value"}

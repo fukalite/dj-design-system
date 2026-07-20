@@ -318,6 +318,59 @@ class TestGalleryComponentFormIntegration:
             if k in form.fields:
                 assert form.initial[k] == v
 
+    def test_required_model_param_falls_back_when_unsubmitted_in_get(self):
+        """When form is bound to GET with other params but a required ModelParam is omitted/unselected, form_kwargs should fall back to tag_signature.maximal_spec value."""
+        from unittest.mock import MagicMock
+
+        from django.test import RequestFactory
+
+        from dj_design_system.components import BlockComponent
+        from dj_design_system.data import CanvasSpec
+        from dj_design_system.parameters import StrParam
+        from dj_design_system.parameters.model import ModelParam
+        from dj_design_system.services.tag_signature import TagSignature
+        from dj_design_system.views import _get_form_and_sandbox_spec
+
+        dummy_qs = MagicMock()
+        dummy_qs.order_by.return_value = dummy_qs
+        dummy_qs.values_list.return_value = []
+        dummy_qs.filter.return_value = dummy_qs
+
+        class DummyModel:
+            objects = dummy_qs
+
+        class DummyModelParam(ModelParam):
+            class Meta:
+                model = DummyModel
+                fields = ["name"]
+
+        class MyComponent(BlockComponent):
+            title = StrParam("Title")
+            user = DummyModelParam("User", required=True)
+
+        fake_instance = DummyModel()
+        maximal_spec = CanvasSpec(
+            component_name="my_component",
+            params={"title": "Hello", "user": fake_instance},
+        )
+        tag_sig = TagSignature(
+            minimal="",
+            maximal="",
+            minimal_html="",
+            maximal_html="",
+            minimal_spec=maximal_spec,
+            maximal_spec=maximal_spec,
+        )
+
+        request = RequestFactory().get("/?title=CustomTitle")
+        form, form_kwargs, sandbox_spec = _get_form_and_sandbox_spec(
+            request, MyComponent, tag_sig
+        )
+
+        assert form.is_bound
+        assert form_kwargs.get("title") == "CustomTitle"
+        assert form_kwargs.get("user") == fake_instance
+
     def test_param_rows_length_matches_params(self, client):
         """param_rows should contain one entry per component parameter.
 
@@ -348,6 +401,26 @@ class TestGalleryComponentFormIntegration:
             assert "name" in row
             assert "spec" in row
             assert "field" in row
+
+    def test_param_rows_handles_tuple_type(self):
+        """_build_param_rows should handle parameter specs with tuple type definitions without raising AttributeError."""
+        from dj_design_system.components import BlockComponent
+        from dj_design_system.forms import build_component_form
+        from dj_design_system.parameters.base import JSONParam
+        from dj_design_system.views import _build_param_rows
+
+        class TupleParamComponent(BlockComponent):
+            data = JSONParam("JSON data")
+
+        form_class = build_component_form(TupleParamComponent)
+        form = form_class()
+        params = TupleParamComponent.get_params()
+        rows = _build_param_rows(form, params, TupleParamComponent)
+
+        data_row = next(r for r in rows if r["name"] == "data")
+        assert "dict | list | str | int | float | bool | NoneType" in data_row["spec"].type_name
+
+
 
     def test_page_renders_with_valid_get_param(self, client):
         """A component page should return 200 when valid param data is supplied via GET."""

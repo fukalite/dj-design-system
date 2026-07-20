@@ -5,11 +5,10 @@ from typing import Any, NamedTuple, cast
 from dj_design_system.components import BaseComponent, BlockComponent
 from dj_design_system.data import BLOCK_CONTENT_PLACEHOLDER, CanvasSpec
 from dj_design_system.parameters import (
-    BoolCSSClassParam,
     BoolParam,
-    StrCSSClassParam,
     StrParam,
 )
+from dj_design_system.parameters.model import ModelParam
 from dj_design_system.services.component import derive_name, get_meta_name
 from dj_design_system.services.registry import component_registry
 from dj_design_system.slots import SLOT_PARAM_PREFIX
@@ -18,7 +17,7 @@ from dj_design_system.slots import SLOT_PARAM_PREFIX
 try:
     from pygments import highlight
     from pygments.formatters import HtmlFormatter
-    from pygments.lexers import DjangoLexer
+    from pygments.lexers import DjangoLexer, HtmlLexer
 
     HAS_PYGMENTS = True
 except ImportError:
@@ -48,11 +47,15 @@ def _generate_example_value(
 
     if isinstance(param_spec, BoolParam):
         return True
-    if isinstance(param_spec, (StrParam, StrCSSClassParam)):
+    if isinstance(param_spec, StrParam):
         examples = ["foo", "bar", "baz"]
         return examples[str_example_index % len(examples)]
-    if isinstance(param_spec, BoolCSSClassParam):
+    if isinstance(param_spec, BoolParam):
         return True
+
+    if isinstance(param_spec, ModelParam):
+        model = param_spec._resolve_model()
+        return model.objects.order_by("-pk").first()
 
     return None
 
@@ -184,6 +187,19 @@ def highlight_code(code: str) -> str:
     try:
         fmt = HtmlFormatter(style="monokai", noclasses=False, nowrap=True)
         highlighted = highlight(code, DjangoLexer(), fmt)
+        return highlighted
+    except (ValueError, TypeError):
+        return ""
+
+
+def highlight_html(html_str: str) -> str:
+    """Apply syntax highlighting to raw HTML using Pygments."""
+    if not HAS_PYGMENTS:
+        return ""
+
+    try:
+        fmt = HtmlFormatter(style="monokai", noclasses=False, nowrap=True)
+        highlighted = highlight(html_str, HtmlLexer(), fmt)
         return highlighted
     except (ValueError, TypeError):
         return ""
@@ -391,7 +407,7 @@ def _build_minimal_positional_values(
             spec = params[arg_name]
             if spec.required:
                 value = _generate_example_value(spec, arg_name, str_index)
-                if isinstance(spec, (StrParam, StrCSSClassParam)):
+                if isinstance(spec, StrParam):
                     str_index += 1
                 minimal_positional.append(_format_positional_arg(value))
                 minimal_positional_values.append(_unwrap_example(value))
@@ -414,7 +430,7 @@ def _build_maximal_positional_values(
         if arg_name in params:
             spec = params[arg_name]
             value = _generate_example_value(spec, arg_name, str_index)
-            if isinstance(spec, (StrParam, StrCSSClassParam)):
+            if isinstance(spec, StrParam):
                 str_index += 1
             if value is not None:
                 maximal_positional.append(_format_positional_arg(value))
@@ -446,7 +462,7 @@ def _build_maximal_keyword_values(
 
         if not spec.required or spec.default is not None:
             value = _generate_example_value(spec, param_name, str_index)
-            if isinstance(spec, (StrParam, StrCSSClassParam)):
+            if isinstance(spec, StrParam):
                 str_index += 1
             if value is not None:
                 maximal_keyword.append(_format_param_for_tag(param_name, value))

@@ -1,3 +1,4 @@
+import html
 from functools import wraps
 from pathlib import Path
 from types import SimpleNamespace
@@ -17,6 +18,8 @@ from django.views.decorators.clickjacking import xframe_options_sameorigin
 from dj_design_system.components import BlockComponent
 from dj_design_system.data import CanvasSpec
 from dj_design_system.forms import build_component_form
+from dj_design_system.parameters.base import _get_type_name
+from dj_design_system.parameters.model import ModelParam
 from dj_design_system.services.canvas import (
     _resolve_component,
     build_canvas_url,
@@ -37,6 +40,7 @@ from dj_design_system.services.registry import component_registry
 from dj_design_system.services.tag_signature import (
     generate_current_tag_signature,
     generate_tag_signature,
+    highlight_html,
 )
 from dj_design_system.settings import (
     dds_settings,
@@ -178,6 +182,16 @@ def _get_form_and_sandbox_spec(
             for name, value in form.cleaned_data.items()
             if value is not None and value != ""
         }
+        params = component_class.get_params()
+        for name, spec in params.items():
+            if (
+                spec.required
+                and isinstance(spec, ModelParam)
+                and name not in form_kwargs
+            ):
+                if fallback := tag_signature.maximal_spec.params.get(name):
+                    form_kwargs[name] = fallback
+
         positional_args = component_class.get_positional_args()
         positional_values = tuple(
             form_kwargs.pop(name) for name in positional_args if name in form_kwargs
@@ -236,7 +250,8 @@ def _build_param_rows(
     form: Any, params: dict, component_class: type[BlockComponent]
 ) -> list[dict]:
     for spec_param in params.values():
-        spec_param.type_name = getattr(spec_param, "type", type(spec_param)).__name__
+        param_type = getattr(spec_param, "type", type(spec_param))
+        spec_param.type_name = _get_type_name(param_type)
 
     param_rows = [
         {"name": name, "spec": spec_param, "field": form[name]}
@@ -374,6 +389,28 @@ def _render_component(request, context, node, app_label, path_parts):
     context["maximal_preview_url"] = maximal_preview_url
     context["canvas_backgrounds"] = backgrounds
     context["active_bg_value"] = active_bg_value
+
+    try:
+        raw_rendered_html = render_component(sandbox_spec, component_registry).strip()
+    except Exception as exc:
+        raw_rendered_html = f"<!-- Error rendering component: {exc} -->"
+
+    rendered_output_html = highlight_html(raw_rendered_html) or html.escape(
+        raw_rendered_html
+    )
+
+    if current_signature and current_signature.minimal_html:
+        source_html = current_signature.minimal_html
+    elif current_signature:
+        source_html = html.escape(current_signature.minimal)
+    elif tag_signature and tag_signature.minimal_html:
+        source_html = tag_signature.minimal_html
+    else:
+        source_html = html.escape(tag_signature.minimal if tag_signature else "")
+
+    context["source_html"] = source_html
+    context["rendered_output_html"] = rendered_output_html
+
     # active_theme and available_themes are already provided by get_base_context,
     # but we override active_theme with the resolved component-specific one for the UI overrides.
     # Note: the global available_themes from base context shouldn't be overwritten.

@@ -1,0 +1,7 @@
+feat: unified parameter attribute mapping (fixes #48, #49)
+
+- Natively support css_class, attr, data_attr, and attr_style on BaseParam.
+- Expose {attrs} and {param_name}_attr automatically in BaseComponent.get_context().
+- Deprecate StrCSSClassParam and BoolCSSClassParam in favor of native configuration.
+- Add robust tests for HTML attribute compilation.
+- Update documentation with new attributes and examples.

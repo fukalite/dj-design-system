@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `TagComponent` and `BlockComponent` base classes for defining UI components
-- Parameter system: `StrParam`, `BoolParam`, `StrCSSClassParam`, `BoolCSSClassParam`, `ModelParam`, `UserParam`, `FieldParam`
+- Parameter system: `StrParam`, `BoolParam`, `ModelParam`, `UserParam`, `FieldParam`
 - Auto-discovery of components via Django's app registry (`AppConfig.ready()`)
 - Component registry with lookup, listing, and navigation tree APIs
 - Interactive gallery with live component previews in sandboxed iframes

@@ -6,9 +6,7 @@
 
 {# ── Canvas ───────────────────────────────────────────── #}
 <div class="gallery-sandbox__canvas">
-    <iframe class="gallery-canvas gallery-sandbox__iframe"
-            src="{{ canvas_iframe_url }}"
-            title="Component preview"></iframe>
+    {% include "dj_design_system/canvas_widget.html" with unique_id="sandbox" iframe_src=canvas_iframe_url iframe_class="gallery-sandbox__iframe" extra_classes="gallery-sandbox__widget" source_html=source_html rendered_output_html=rendered_output_html %}
 </div>
 
 {# ── Parameter controls ────────────────────────────────── #}
@@ -39,11 +37,5 @@
                 </div>
             {% endfor %}
         </form>
-        {% if current_signature %}
-            <div class="gallery-sandbox__current-signature">
-                <h4 class="gallery-usage__heading">Current usage</h4>
-                <pre class="gallery-usage__pre"><code class="gallery-usage__code">{% if current_signature.minimal_html %}{{ current_signature.minimal_html|safe }}{% else %}{{ current_signature.minimal }}{% endif %}</code></pre>
-            </div>
-        {% endif %}
     </div>
 {% endif %}

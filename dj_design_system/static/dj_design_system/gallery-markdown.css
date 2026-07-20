@@ -80,6 +80,8 @@
   flex: 1;
   line-height: 1.15;
   font-size: 0.85em;
+  background: var(--hl-block-bg);
+  color: var(--hl-block-text);
 }
 
 .gallery-md-canvas__code .gallery-highlight pre,
