@@ -885,3 +885,65 @@ class TestNavigationEdgeCases:
         index = build_search_index([app])
         guide_entry = next(e for e in index if e["label"] == "Guide")
         assert guide_entry["content"] == ""
+
+
+def test_to_display_label_app_label():
+    from dj_design_system.services.navigation import to_display_label
+    from dj_design_system.settings import dds_settings
+
+    # Mock settings
+    old_dirs = dds_settings.COMPONENT_DIRECTORIES
+    dds_settings.COMPONENT_DIRECTORIES = {
+        "demo_components": {
+            "card": {"label": "Cards (No Flattening)"},
+        }
+    }
+    try:
+        # Test path is not None
+        assert (
+            to_display_label("my_path", app_label="demo_components", path="card")
+            == "Cards (No Flattening)"
+        )
+    finally:
+        dds_settings.COMPONENT_DIRECTORIES = old_dirs
+
+
+def test_to_display_label_fallback():
+    from django.apps import apps
+
+    from dj_design_system.services.navigation import to_display_label
+
+    # Fake verbose_name for demo_components
+    cfg = apps.get_app_config("demo_components")
+    old_vn = getattr(type(cfg), "verbose_name", None)
+    type(cfg).verbose_name = "Demo Components App"
+    try:
+        assert (
+            to_display_label("demo_components", app_label="demo_components")
+            == "Demo Components App"
+        )
+    finally:
+        if old_vn is not None:
+            type(cfg).verbose_name = old_vn
+        else:
+            del type(cfg).verbose_name
+
+
+def test_promote_to_app_integration(registry_with_two_apps):
+    from dj_design_system.services.navigation import _build_navigation
+    from dj_design_system.settings import dds_settings
+
+    old_dirs = dds_settings.COMPONENT_DIRECTORIES
+    dds_settings.COMPONENT_DIRECTORIES = {
+        "demo_components": {
+            "promoted": {"promote_to_app": True, "label": "Promoted App Demo"}
+        }
+    }
+    try:
+        # Pass registry_with_two_apps which has demo_components loaded
+        tree = _build_navigation(registry_with_two_apps.list_all())
+        # It should contain Demo Components, Demo Extra, and Promoted App Demo
+        app_labels = [n.label for n in tree]
+        assert "Promoted App Demo" in app_labels
+    finally:
+        dds_settings.COMPONENT_DIRECTORIES = old_dirs

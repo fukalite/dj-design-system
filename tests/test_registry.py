@@ -711,3 +711,57 @@ class TestComponentNamespaces:
         )
         info = reg.get_info(HeroCardComponent)
         assert info.qualified_name == "cards__hero"
+
+
+class TestParseAliasConfig:
+    def test_parses_string(self):
+        from dj_design_system.services.registry import ComponentRegistry
+        from dj_design_system.types import FlattenStrategy
+
+        prefix, flatten = ComponentRegistry._parse_alias_config("my_prefix")
+        assert prefix == "my_prefix"
+        assert flatten == FlattenStrategy.NONE
+
+    def test_parses_dict_with_namespace(self):
+        from dj_design_system.services.registry import ComponentRegistry
+        from dj_design_system.types import FlattenStrategy
+
+        prefix, flatten = ComponentRegistry._parse_alias_config(
+            {"namespace": "my_prefix"}
+        )
+        assert prefix == "my_prefix"
+        assert flatten == FlattenStrategy.NONE
+
+    def test_parses_dict_with_flatten_str(self):
+        from dj_design_system.services.registry import ComponentRegistry
+        from dj_design_system.types import FlattenStrategy
+
+        prefix, flatten = ComponentRegistry._parse_alias_config({"flatten": "leaf"})
+        assert prefix is None
+        assert flatten == FlattenStrategy.LEAF
+
+    def test_parses_dict_with_flatten_invalid_str(self):
+        from dj_design_system.services.registry import ComponentRegistry
+        from dj_design_system.types import FlattenStrategy
+
+        prefix, flatten = ComponentRegistry._parse_alias_config({"flatten": "invalid"})
+        assert prefix is None
+        assert flatten == FlattenStrategy.NONE
+
+    def test_parses_dict_with_flatten_enum(self):
+        from dj_design_system.services.registry import ComponentRegistry
+        from dj_design_system.types import FlattenStrategy
+
+        prefix, flatten = ComponentRegistry._parse_alias_config(
+            {"flatten": FlattenStrategy.ALL}
+        )
+        assert prefix is None
+        assert flatten == FlattenStrategy.ALL
+
+    def test_parses_dict_with_flatten_invalid_type(self):
+        from dj_design_system.services.registry import ComponentRegistry
+        from dj_design_system.types import FlattenStrategy
+
+        prefix, flatten = ComponentRegistry._parse_alias_config({"flatten": 123})
+        assert prefix is None
+        assert flatten == FlattenStrategy.NONE
