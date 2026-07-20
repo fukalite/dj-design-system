@@ -184,6 +184,18 @@ class TestModelParamValidation:
         with pytest.raises(TypeError, match="Expected FakeUser"):
             param.validate("not a user")
 
+    def test_none_value_accepted_when_optional(self):
+        param = FakeUserParam("A user", required=False)
+        param.__set_name__(None, "user")
+        param.validate(None)  # should not raise
+
+    def test_none_value_rejected_when_required(self):
+        param = FakeUserParam("A user", required=True)
+        param.__set_name__(None, "user")
+        with pytest.raises(TypeError, match="Expected FakeUser"):
+            param.validate(None)
+
+
 
 # ---------------------------------------------------------------------------
 # Extra context (flattened attributes)
