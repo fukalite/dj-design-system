@@ -19,6 +19,7 @@ from dj_design_system.components import BlockComponent
 from dj_design_system.data import CanvasSpec
 from dj_design_system.forms import build_component_form
 from dj_design_system.parameters.base import _get_type_name
+from dj_design_system.parameters.model import ModelParam
 from dj_design_system.services.canvas import (
     _resolve_component,
     build_canvas_url,
@@ -181,6 +182,16 @@ def _get_form_and_sandbox_spec(
             for name, value in form.cleaned_data.items()
             if value is not None and value != ""
         }
+        params = component_class.get_params()
+        for name, spec in params.items():
+            if (
+                spec.required
+                and isinstance(spec, ModelParam)
+                and name not in form_kwargs
+            ):
+                if fallback := tag_signature.maximal_spec.params.get(name):
+                    form_kwargs[name] = fallback
+
         positional_args = component_class.get_positional_args()
         positional_values = tuple(
             form_kwargs.pop(name) for name in positional_args if name in form_kwargs
