@@ -1,4 +1,4 @@
-{% load static %}
+{% load static dj_design_system_gallery %}
 <!DOCTYPE html>
 <html lang="en" class="gallery-theme-light">
     <head>
@@ -92,23 +92,11 @@
             </main>
         </div>
         {% block extra_js %}{% endblock %}
-        <script src="{% static 'dj_design_system/gallery-search.js' %}" defer></script>
-        <script>
-            (function() {
-                var themeSelect = document.getElementById('gallery-global-theme-select');
-                if (!themeSelect) return;
-
-                themeSelect.addEventListener("change", function(e) {
-                    var themeValue = e.target.value;
-                    document.cookie = "dds_theme=" + themeValue + "; path=/; max-age=31536000";
-
-                    // Update URL params so they persist across shares
-                    var browserUrl = new URL(window.location.href);
-                    browserUrl.searchParams.set("theme", themeValue);
-                    // Full page load to apply the theme everywhere cleanly
-                    window.location.href = browserUrl.toString();
-                });
-            })();
-        </script>
+        <script src="{% static 'dj_design_system/gallery-search.js' %}"
+                defer
+                {% if request.csp_nonce %}nonce="{{ request.csp_nonce }}"{% endif %}></script>
+        <script src="{% static 'dj_design_system/gallery-theme.js' %}"
+                defer
+                {% if request.csp_nonce %}nonce="{{ request.csp_nonce }}"{% endif %}></script>
     </body>
 </html>

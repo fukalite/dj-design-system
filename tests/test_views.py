@@ -418,9 +418,10 @@ class TestGalleryComponentFormIntegration:
         rows = _build_param_rows(form, params, TupleParamComponent)
 
         data_row = next(r for r in rows if r["name"] == "data")
-        assert "dict | list | str | int | float | bool | NoneType" in data_row["spec"].type_name
-
-
+        assert (
+            "dict | list | str | int | float | bool | NoneType"
+            in data_row["spec"].type_name
+        )
 
     def test_page_renders_with_valid_get_param(self, client):
         """A component page should return 200 when valid param data is supplied via GET."""
@@ -708,3 +709,22 @@ class TestCanvasHtmlAttrs:
         response = client.get(url, {"component": "rich_button", "label": "Test"})
         content = response.content.decode()
         assert "govuk-template" in content
+
+
+class TestCSPCompliance:
+    def test_csp_nonce_in_gallery_views(self, rf):
+        from dj_design_system.views import gallery_index
+
+        request = rf.get("/dds/")
+        request.csp_nonce = "sample-nonce-987"
+        response = gallery_index(request)
+        content = response.content.decode()
+        assert 'nonce="sample-nonce-987"' in content
+
+    def test_no_inline_style_attributes_in_index(self, rf):
+        from dj_design_system.views import gallery_index
+
+        request = rf.get("/dds/")
+        response = gallery_index(request)
+        content = response.content.decode()
+        assert 'style="' not in content

@@ -196,7 +196,6 @@ class TestModelParamValidation:
             param.validate(None)
 
 
-
 # ---------------------------------------------------------------------------
 # Extra context (flattened attributes)
 # ---------------------------------------------------------------------------

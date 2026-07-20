@@ -94,15 +94,15 @@ class TestRenderComponent:
     def test_missing_component_returns_error(self, registry_with_demo_components):
         spec = CanvasSpec(component_name="nonexistent")
         html = render_component(spec, registry_with_demo_components)
-        assert "color:red" in html
+        assert "gallery-canvas-error" in html
         assert "not found" in html
 
     def test_validation_error_returns_error(self, registry_with_demo_components):
-        """Component validation errors should render in red."""
+        """Component validation errors should render in error style."""
         spec = CanvasSpec(component_name="button", params={})
         html = render_component(spec, registry_with_demo_components)
         # ButtonComponent requires 'label' param — should error
-        assert "color:red" in html or "button" in html.lower()
+        assert "gallery-canvas-error" in html or "button" in html.lower()
 
 
 # ---------------------------------------------------------------------------

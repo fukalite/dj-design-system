@@ -96,7 +96,9 @@ def render_component(
 
         return str(component_class(**kwargs))
     except (ValueError, TypeError, KeyError) as exc:
-        return format_html('<p style="color:red;">Could not render: {}</p>', str(exc))
+        return format_html(
+            '<p class="gallery-canvas-error">Could not render: {}</p>', str(exc)
+        )
 
 
 def get_component_media(

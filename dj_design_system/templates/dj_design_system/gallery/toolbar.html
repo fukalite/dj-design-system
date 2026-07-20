@@ -21,8 +21,7 @@
                         type="button"
                         data-bg="{{ bg.value }}"
                         title="{{ bg.label }}">
-                    <span class="gallery-sandbox-toolbar__bg-chip"
-                          style="background: {{ bg.color }}"></span>
+                    <span class="gallery-sandbox-toolbar__bg-chip gallery-bg-chip-{{ bg.value }}"></span>
                     <span class="gallery-sandbox-toolbar__bg-option-label">{{ bg.label }}</span>
                 </button>
             {% endfor %}

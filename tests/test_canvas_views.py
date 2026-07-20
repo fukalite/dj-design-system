@@ -23,7 +23,7 @@ class TestCanvasIframeView:
         response = client.get(url)
         assert response.status_code == 200
         content = response.content.decode()
-        assert "color:red" in content
+        assert "gallery-canvas-error" in content
         assert "Missing required" in content
 
     def test_unknown_component_returns_error(self):
@@ -32,7 +32,7 @@ class TestCanvasIframeView:
         response = client.get(url, {"component": "nonexistent"})
         assert response.status_code == 200
         content = response.content.decode()
-        assert "color:red" in content
+        assert "gallery-canvas-error" in content
         assert "not found" in content
 
     def test_valid_component_renders_html_document(self):
@@ -136,8 +136,7 @@ class TestCanvasIframeView:
         url = reverse("gallery-canvas-iframe")
         response = client.get(url, {"component": "rich_button", "label": "Test"})
         content = response.content.decode()
-        assert "ResizeObserver" in content
-        assert "canvas-resize" in content
+        assert "canvas-resize.js" in content
 
     def test_no_sandbox_attribute(self):
         """The iframe view response has no sandbox restrictions."""

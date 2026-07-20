@@ -114,7 +114,7 @@
   display: none;
 }
 
-/* Colour chips — background set via inline style from settings */
+/* Colour chips — preset classes or dynamic style */
 .gallery-sandbox-toolbar__bg-chip {
   display: inline-block;
   width: 16px;
@@ -122,6 +122,12 @@
   border: 1px solid var(--gallery-border);
   border-radius: 3px;
 }
+
+.gallery-bg-chip-white { background: #ffffff; }
+.gallery-bg-chip-light-grey { background: #f6f8fa; }
+.gallery-bg-chip-dark-grey { background: #24292e; }
+.gallery-bg-chip-black { background: #000000; }
+.gallery-bg-chip-transparent { background: transparent; }
 
 /* ------------------------------------------------------------------ */
 /* Shared popout option (background + zoom)                            */

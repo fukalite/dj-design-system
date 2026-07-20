@@ -1,7 +1,9 @@
+import html
 from typing import Type
 
 from django.templatetags.static import static
 from django.utils.html import format_html_join
+from django.utils.safestring import mark_safe
 
 from dj_design_system.data import ComponentMedia
 
@@ -89,10 +91,17 @@ def build_link_tags(css_paths: list[str]) -> str:
     )
 
 
-def build_script_tags(js_paths: list[str]) -> str:
+def build_script_tags(js_paths: list[str], nonce: str | None = None) -> str:
     """Build ``<script>`` tags for a list of static JS paths."""
     if not js_paths:
         return ""
+    if nonce:
+        nonce_attr = mark_safe(f' nonce="{html.escape(str(nonce))}"')
+        return format_html_join(
+            "\n",
+            f'<script src="{{}}" {nonce_attr}></script>',
+            ((static(path),) for path in js_paths),
+        )
     return format_html_join(
         "\n",
         '<script src="{}"></script>',
