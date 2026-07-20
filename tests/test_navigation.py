@@ -3,6 +3,7 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+from django.test import override_settings
 
 from dj_design_system.data import ComponentInfo, NavNode
 from dj_design_system.services.navigation import (
@@ -885,3 +886,62 @@ class TestNavigationEdgeCases:
         index = build_search_index([app])
         guide_entry = next(e for e in index if e["label"] == "Guide")
         assert guide_entry["content"] == ""
+
+
+@override_settings(
+    DJ_DESIGN_SYSTEM={
+        "COMPONENT_DIRECTORIES": {
+            "demo_components": {
+                "card": {"label": "Cards (No Flattening)"},
+            }
+        }
+    }
+)
+def test_to_display_label_app_label():
+    from dj_design_system.services.navigation import to_display_label
+
+    # Test path is not None
+    assert (
+        to_display_label("my_path", app_label="demo_components", path="card")
+        == "Cards (No Flattening)"
+    )
+
+
+def test_to_display_label_fallback():
+    from django.apps import apps
+
+    from dj_design_system.services.navigation import to_display_label
+
+    # Fake verbose_name for demo_components
+    cfg = apps.get_app_config("demo_components")
+    old_vn = getattr(type(cfg), "verbose_name", None)
+    type(cfg).verbose_name = "Demo Components App"
+    try:
+        assert (
+            to_display_label("demo_components", app_label="demo_components")
+            == "Demo Components App"
+        )
+    finally:
+        if old_vn is not None:
+            type(cfg).verbose_name = old_vn
+        else:
+            del type(cfg).verbose_name
+
+
+@override_settings(
+    DJ_DESIGN_SYSTEM={
+        "COMPONENT_DIRECTORIES": {
+            "demo_components": {
+                "promoted": {"promote_to_app": True, "label": "Promoted App Demo"}
+            }
+        }
+    }
+)
+def test_promote_to_app_integration(registry_with_two_apps):
+    from dj_design_system.services.navigation import _build_navigation
+
+    # Pass registry_with_two_apps which has demo_components loaded
+    tree = _build_navigation(registry_with_two_apps.list_all())
+    # It should contain Demo Components, Demo Extra, and Promoted App Demo
+    app_labels = [n.label for n in tree]
+    assert "Promoted App Demo" in app_labels

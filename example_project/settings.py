@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from dj_design_system.types import FlattenStrategy
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -109,18 +111,24 @@ DJ_DESIGN_SYSTEM = {
     "APP_CANVAS_HTML_ATTRS": {
         "demo_components": {"body": {"class": "demo-components-body"}},
     },
-    "COMPONENT_NAMESPACES": {
+    "COMPONENT_DIRECTORIES": {
         "demo_components": {
             "": "ui",  # All top-level components under 'ui'
             "button": "btn",  # Button components under 'btn' (preserves subfolders by default)
             "card": {
                 "prefix": "cards",
-                "flatten": False,
+                "flatten": FlattenStrategy.NONE,
+                "label": "Cards (No Flattening)",
             },  # Card components preserve subfolders
             "icon": {
                 "prefix": "icn",
-                "flatten": True,
+                "flatten": FlattenStrategy.ALL,
+                "label": "Icons (Flattened)",
             },  # Icon components discard subfolders
+            "promoted": {
+                "promote_to_app": True,
+                "label": "Promoted App Demo",
+            },
         },
     },
 }

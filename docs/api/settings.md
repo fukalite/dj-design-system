@@ -138,21 +138,44 @@ App-specific Webpack JavaScript bundles loaded when rendering components from th
 **Default:** `{}`  
 App-specific HTML attributes applied to the `<html>` and `<body>` tags of the canvas iframe when rendering components from that app.
 
-### `COMPONENT_NAMESPACES`
+### `COMPONENT_DIRECTORIES`
 **Type:** `dict[str, dict]`  
 **Default:** `{}`  
-Configure folder-based namespacing for your components to override the default app-based naming. Keys are app labels, values are dictionaries mapping dotted directory paths to alias strings or configuration dicts. 
+Configure folder-based namespacing and navigation structure for your components. This replaces the deprecated `COMPONENT_NAMESPACES` setting. 
+Keys are app labels, values are dictionaries mapping dotted directory paths to alias strings or configuration dicts. 
 
 Example:
 ```python
+from dj_design_system.types import FlattenStrategy
+
 DJ_DESIGN_SYSTEM = {
-    "COMPONENT_NAMESPACES": {
+    "COMPONENT_DIRECTORIES": {
         "myapp": {
-            "": "ui",               # Top-level components map to 'ui' prefix
-            "button": "btn",        # button directory maps to 'btn' prefix
-            "card": {"prefix": "cards", "flatten": True}, # Flattens subfolders (e.g. cards__hero instead of cards__layouts__hero)
+            # Top-level components map to 'ui' prefix
+            "": "ui",
+            # button directory maps to 'btn' prefix (preserves subfolders)
+            "button": "btn",
+            # Flattens subfolders (e.g. cards__hero instead of cards__layouts__hero)
+            "card": {
+                "prefix": "cards", 
+                "flatten": FlattenStrategy.ALL,
+                "label": "Custom Cards Label"
+            },
+            # Extract this folder to the root of the navigation gallery
+            "promoted_features": {
+                "promote_to_app": True,
+                "label": "Promoted Features"
+            }
         }
     }
 }
 ```
-When mapping to a simple string, subfolders are preserved by default (`flatten: False`). Set `flatten: True` to discard subfolder paths in the resulting tag names.
+Available configuration keys for a directory:
+- `prefix` (str): The namespace prefix to use for components in this directory.
+- `flatten` (FlattenStrategy | str): How to handle nested subfolders. Options are `FlattenStrategy.NONE` (default), `FlattenStrategy.ALL` (discard subfolders), or `FlattenStrategy.TREE` (flatten the subfolders recursively but prefix them uniquely). Can also be passed as strings: `"none"`, `"all"`, `"tree"`.
+- `label` (str): Overrides the default human-readable label in the gallery navigation sidebar.
+- `promote_to_app` (bool): Extracts this directory and displays it as a top-level App in the gallery sidebar, moving it out of its parent app's hierarchy.
+
+### `COMPONENT_NAMESPACES` (Deprecated)
+> [!WARNING]
+> This setting is deprecated. Please migrate to `COMPONENT_DIRECTORIES`.

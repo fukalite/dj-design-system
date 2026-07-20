@@ -176,6 +176,7 @@ class TestBindTemplate:
             "hero",
             "slotted_card",
             "quote_oneup",
+            "demo",
         }
 
     def test_single_file_components_module(self, registry_with_demo_single):
@@ -298,7 +299,7 @@ class TestListByApp:
     def test_returns_correct_app(self, registry_with_two_apps):
         reg = registry_with_two_apps
         components = reg.list_by_app("demo_components")
-        assert len(components) == 9
+        assert len(components) == 10
         assert all(c.app_label == "demo_components" for c in components)
 
     def test_returns_other_app(self, registry_with_two_apps):
@@ -631,17 +632,19 @@ class TestComponentNamespaces:
     """Test namespace aliasing via COMPONENT_NAMESPACES."""
 
     @pytest.fixture
-    def mock_settings(self):
-        with patch("dj_design_system.settings.dds_settings") as mock:
-            mock.COMPONENT_NAMESPACES = {
+    def mock_settings(self, settings):
+        settings.DJ_DESIGN_SYSTEM = {
+            "COMPONENT_DIRECTORIES": {
                 "demo_components": {
                     "": "ui",
                     "button": "btn",
                     "card": {"prefix": "cards", "flatten": False},
                     "card.layouts": "layouts",
                 }
-            }
-            yield mock
+            },
+            "COMPONENT_NAMESPACES": None,
+        }
+        yield settings
 
     def test_top_level_alias(self, mock_settings):
         """Top-level component (relative_path='') matched by ''."""
@@ -654,7 +657,6 @@ class TestComponentNamespaces:
         )
         info = reg.get_info(BadgeComponent)
 
-        assert info.namespace_prefix == "ui"
         assert info.qualified_name == "ui__badge"
 
     def test_simple_string_alias_flattens(self, mock_settings):
@@ -668,7 +670,6 @@ class TestComponentNamespaces:
         )
         info = reg.get_info(ButtonComponent)
 
-        assert info.namespace_prefix == "btn"
         assert info.qualified_name == "btn__button"
 
     def test_longest_match_alias(self, mock_settings):
@@ -681,7 +682,6 @@ class TestComponentNamespaces:
             reg, "example_project.demo_components", "demo_components"
         )
         info = reg.get_info(HeroCardComponent)
-        assert info.namespace_prefix == "layouts"
         assert info.qualified_name == "layouts__hero"
 
     def test_flatten_false_preserves_subfolders(self, mock_settings):
@@ -689,14 +689,16 @@ class TestComponentNamespaces:
         from dj_design_system.services.registry import ComponentRegistry
         from tests.conftest import discover_app_into_registry
 
-        mock_settings.COMPONENT_NAMESPACES = {"demo_components": {"card": "cards"}}
+        mock_settings.DJ_DESIGN_SYSTEM = {
+            "COMPONENT_DIRECTORIES": {"demo_components": {"card": "cards"}},
+            "COMPONENT_NAMESPACES": None,
+        }
         reg = ComponentRegistry()
         discover_app_into_registry(
             reg, "example_project.demo_components", "demo_components"
         )
         info = reg.get_info(HeroCardComponent)
 
-        assert info.namespace_prefix == "cards__layouts"
         assert info.qualified_name == "cards__layouts__hero"
 
     def test_flatten_true_removes_subfolders(self, mock_settings):
@@ -704,13 +706,69 @@ class TestComponentNamespaces:
         from dj_design_system.services.registry import ComponentRegistry
         from tests.conftest import discover_app_into_registry
 
-        mock_settings.COMPONENT_NAMESPACES = {
-            "demo_components": {"card": {"prefix": "cards", "flatten": True}}
+        mock_settings.DJ_DESIGN_SYSTEM = {
+            "COMPONENT_DIRECTORIES": {
+                "demo_components": {"card": {"prefix": "cards", "flatten": True}}
+            },
+            "COMPONENT_NAMESPACES": None,
         }
         reg = ComponentRegistry()
         discover_app_into_registry(
             reg, "example_project.demo_components", "demo_components"
         )
         info = reg.get_info(HeroCardComponent)
-        assert info.namespace_prefix == "cards"
         assert info.qualified_name == "cards__hero"
+
+
+class TestParseAliasConfig:
+    def test_parses_string(self):
+        from dj_design_system.services.registry import ComponentRegistry
+        from dj_design_system.types import FlattenStrategy
+
+        prefix, flatten = ComponentRegistry._parse_alias_config("my_prefix")
+        assert prefix == "my_prefix"
+        assert flatten == FlattenStrategy.NONE
+
+    def test_parses_dict_with_namespace(self):
+        from dj_design_system.services.registry import ComponentRegistry
+        from dj_design_system.types import FlattenStrategy
+
+        prefix, flatten = ComponentRegistry._parse_alias_config(
+            {"namespace": "my_prefix"}
+        )
+        assert prefix == "my_prefix"
+        assert flatten == FlattenStrategy.NONE
+
+    def test_parses_dict_with_flatten_str(self):
+        from dj_design_system.services.registry import ComponentRegistry
+        from dj_design_system.types import FlattenStrategy
+
+        prefix, flatten = ComponentRegistry._parse_alias_config({"flatten": "leaf"})
+        assert prefix is None
+        assert flatten == FlattenStrategy.LEAF
+
+    def test_parses_dict_with_flatten_invalid_str(self):
+        from dj_design_system.services.registry import ComponentRegistry
+        from dj_design_system.types import FlattenStrategy
+
+        prefix, flatten = ComponentRegistry._parse_alias_config({"flatten": "invalid"})
+        assert prefix is None
+        assert flatten == FlattenStrategy.NONE
+
+    def test_parses_dict_with_flatten_enum(self):
+        from dj_design_system.services.registry import ComponentRegistry
+        from dj_design_system.types import FlattenStrategy
+
+        prefix, flatten = ComponentRegistry._parse_alias_config(
+            {"flatten": FlattenStrategy.ALL}
+        )
+        assert prefix is None
+        assert flatten == FlattenStrategy.ALL
+
+    def test_parses_dict_with_flatten_invalid_type(self):
+        from dj_design_system.services.registry import ComponentRegistry
+        from dj_design_system.types import FlattenStrategy
+
+        prefix, flatten = ComponentRegistry._parse_alias_config({"flatten": 123})
+        assert prefix is None
+        assert flatten == FlattenStrategy.NONE

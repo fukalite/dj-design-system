@@ -28,6 +28,14 @@ class CanvasMode(enum.Enum):
     EXTENDED = "extended"
 
 
+class FlattenStrategy(str, enum.Enum):
+    """Strategy for flattening nested folder structures in component resolution."""
+
+    NONE = "none"
+    ALL = "all"
+    LEAF = "leaf"
+
+
 @dataclass
 class Theme:
     """A typed configuration for a theme in the design system."""

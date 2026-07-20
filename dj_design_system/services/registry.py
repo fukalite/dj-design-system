@@ -2,7 +2,7 @@ import inspect
 import pkgutil
 from importlib import import_module
 from pathlib import Path
-from typing import Type
+from typing import Any, Type
 
 from dj_design_system import settings
 from dj_design_system.data import ComponentInfo, ComponentMedia
@@ -12,7 +12,7 @@ from dj_design_system.services.component import (
     get_meta_name,
     is_abstract,
 )
-from dj_design_system.types import TagType
+from dj_design_system.types import FlattenStrategy, TagType
 
 
 class ComponentDoesNotExist(Exception):
@@ -128,7 +128,10 @@ class ComponentRegistry:
             and obj.__module__ == module.__name__
         )
 
-        namespace_prefix = self._resolve_namespace_prefix(app_label, relative_path)
+        prefix_info = self._resolve_namespace_prefix(app_label, relative_path)
+        namespace_prefix = prefix_info[0] if prefix_info else None
+        namespace_remaining_parts = prefix_info[1] if prefix_info else None
+        flatten_strategy = prefix_info[2] if prefix_info else FlattenStrategy.NONE
 
         for obj in concrete_components:
             name = get_meta_name(obj) or derive_name(obj)
@@ -139,44 +142,113 @@ class ComponentRegistry:
                 app_label=app_label,
                 relative_path=relative_path,
                 namespace_prefix=namespace_prefix,
+                namespace_remaining_parts=namespace_remaining_parts,
+                flatten_strategy=flatten_strategy,
             )
             self._bind_template(info)
             self._components.append(info)
 
+    @staticmethod
+    def _parse_alias_config(
+        alias_config: str | dict[str, Any],
+    ) -> tuple[str | None, FlattenStrategy]:
+        """Parse a single directory alias configuration.
+
+        Returns the configured prefix (or None) and the flatten strategy.
+        """
+        if isinstance(alias_config, str):
+            return alias_config, FlattenStrategy.NONE
+
+        prefix = alias_config.get("prefix")
+        if prefix is None:
+            prefix = alias_config.get("namespace")
+
+        flatten_val = alias_config.get("flatten", FlattenStrategy.NONE)
+        if flatten_val is True:
+            flatten = FlattenStrategy.ALL
+        elif flatten_val is False:
+            flatten = FlattenStrategy.NONE
+        elif isinstance(flatten_val, str):
+            try:
+                flatten = FlattenStrategy(flatten_val)
+            except ValueError:
+                flatten = FlattenStrategy.NONE
+        elif isinstance(flatten_val, FlattenStrategy):
+            flatten = flatten_val
+        else:
+            flatten = FlattenStrategy.NONE
+
+        return prefix, flatten
+
     def _resolve_namespace_prefix(
         self, app_label: str, relative_path: str
-    ) -> str | None:
+    ) -> tuple[str, tuple[str, ...], FlattenStrategy] | None:
         """
         Resolve an alias prefix for the given app and relative path.
 
         Finds the longest matching path key in the namespaces configuration,
         checking the full path and progressively removing rightmost components.
         """
-        namespaces = (settings.dds_settings.COMPONENT_NAMESPACES or {}).get(app_label)
-        if namespaces is None:
+        directories = (settings.dds_settings.COMPONENT_DIRECTORIES or {}).get(app_label)
+        if directories is None:
+            # Fallback to legacy COMPONENT_NAMESPACES
+            directories = (settings.dds_settings.COMPONENT_NAMESPACES or {}).get(
+                app_label
+            )
+
+        if directories is None:
             return None
 
         parts = relative_path.split(".") if relative_path else []
 
         for length in range(len(parts), -1, -1):
             candidate_key = ".".join(parts[:length])
-            if candidate_key in namespaces:
-                alias_config = namespaces[candidate_key]
-                if isinstance(alias_config, str):
-                    prefix = alias_config
-                    flatten = False
-                else:
-                    prefix = alias_config.get("prefix", "")
-                    flatten = alias_config.get("flatten", False)
+            if candidate_key in directories:
+                alias_config = directories[candidate_key]
+                prefix, flatten = self._parse_alias_config(alias_config)
+                remaining_parts = tuple(parts[length:])
 
-                remaining_parts = parts[length:]
-                if flatten or not remaining_parts:
-                    return prefix
+                # If prefix is None but there was a config (like only label or promote_to_app),
+                # we don't apply a namespace override, so we just return None
+                if prefix is None and not (
+                    isinstance(alias_config, dict)
+                    and (
+                        "prefix" in alias_config
+                        or "namespace" in alias_config
+                        or "flatten" in alias_config
+                    )
+                ):
+                    continue
 
-                remaining_suffix = "__".join(remaining_parts)
-                if prefix:
-                    return f"{prefix}__{remaining_suffix}"
-                return remaining_suffix
+                if prefix is None:
+                    prefix = candidate_key.split(".")[-1] if candidate_key else ""
+
+                return (prefix, remaining_parts, flatten)
+
+        return None
+
+    def _find_colocated_template(self, info: ComponentInfo) -> str | None:
+        """Find a co-located HTML template for the given component."""
+        from dj_design_system.services.media import build_static_url
+
+        try:
+            source_file = inspect.getfile(info.component_class)
+        except (TypeError, OSError):
+            return None
+
+        source_path = Path(source_file)
+        source_dir = source_path.parent
+
+        candidates = list(
+            dict.fromkeys([f"{info.name}.html", f"{source_path.stem}.html"])
+        )
+
+        for candidate in candidates:
+            if (source_dir / candidate).is_file():
+                template_base_name = candidate[:-5]
+                return build_static_url(
+                    info.app_label, info.relative_path, template_base_name, ".html"
+                )
 
         return None
 
@@ -204,33 +276,11 @@ class ComponentRegistry:
         """
         from django.core.exceptions import ImproperlyConfigured
 
-        from dj_design_system.services.media import build_static_url
-
         cls = info.component_class
         has_format_str = "template_format_str" in cls.__dict__
         has_explicit_template = "template_name" in cls.__dict__
 
-        # Check for a co-located .html file next to the component source.
-        colocated_template_name: str | None = None
-        try:
-            source_file = inspect.getfile(cls)
-        except (TypeError, OSError):
-            pass
-        else:
-            source_path = Path(source_file)
-            source_dir = source_path.parent
-
-            candidates = list(
-                dict.fromkeys([f"{info.name}.html", f"{source_path.stem}.html"])
-            )
-
-            for candidate in candidates:
-                if (source_dir / candidate).is_file():
-                    template_base_name = candidate[:-5]
-                    colocated_template_name = build_static_url(
-                        info.app_label, info.relative_path, template_base_name, ".html"
-                    )
-                    break
+        colocated_template_name = self._find_colocated_template(info)
 
         has_html_template = has_explicit_template or colocated_template_name is not None
 

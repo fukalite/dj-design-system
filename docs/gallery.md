@@ -96,6 +96,26 @@ The `verbose_name` is used in the sidebar navigation, breadcrumbs, and
 all other display contexts. In the sidebar, app labels are rendered
 uppercase via CSS regardless of the `verbose_name`.
 
+#### Overriding folder labels and structuring with `COMPONENT_DIRECTORIES`
+
+You can use the `COMPONENT_DIRECTORIES` setting in `settings.py` to customize the labels of intermediate folders that contain your components. You can also extract subdirectories out of their parent app and display them as top-level apps in the navigation sidebar using `promote_to_app`.
+
+```python
+DJ_DESIGN_SYSTEM = {
+    "COMPONENT_DIRECTORIES": {
+        "myapp": {
+            "card": {
+                "label": "Custom Cards Label", # Customizes the folder name in the nav
+            },
+            "promoted_features": {
+                "promote_to_app": True, # Pulls this folder out to the root navigation level
+                "label": "Promoted Features App" 
+            }
+        }
+    }
+}
+```
+
 ### Icons
 
 The navigation sidebar displays SVG icons for node types:

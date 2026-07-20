@@ -64,6 +64,7 @@ DEFAULTS: dict = {
     "APP_JS": {},
     "APP_JS_BUNDLES": {},
     "APP_CANVAS_HTML_ATTRS": {},
+    "COMPONENT_DIRECTORIES": {},
     "COMPONENT_NAMESPACES": {},
 }
 
@@ -93,6 +94,7 @@ class DjangoDesignSystemSettings:
     APP_JS: dict[str, list[str] | str]
     APP_JS_BUNDLES: dict[str, list[tuple[str, ...]]]
     APP_CANVAS_HTML_ATTRS: dict[str, dict]
+    COMPONENT_DIRECTORIES: dict[str, dict]
     COMPONENT_NAMESPACES: dict[str, dict]
 
     def __getattr__(self, attr: str):
@@ -100,6 +102,15 @@ class DjangoDesignSystemSettings:
 
         if attr in django_settings:
             value = django_settings[attr]
+            if attr == "COMPONENT_NAMESPACES" and value:
+                import warnings
+
+                warnings.warn(
+                    "COMPONENT_NAMESPACES is deprecated and will be removed in a future release. "
+                    "Please migrate to COMPONENT_DIRECTORIES.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
         else:
             # Check if present in defaults
             if attr not in DEFAULTS:

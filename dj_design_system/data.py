@@ -6,7 +6,7 @@ from functools import cached_property
 from pathlib import Path
 from typing import Any, Type
 
-from dj_design_system.types import NodeType, TagType
+from dj_design_system.types import FlattenStrategy, NodeType, TagType
 
 
 class InvalidTagType(Exception):
@@ -86,6 +86,8 @@ class ComponentInfo:
     app_label: str
     relative_path: str
     namespace_prefix: str | None = None
+    namespace_remaining_parts: tuple[str, ...] | None = None
+    flatten_strategy: FlattenStrategy = FlattenStrategy.NONE
 
     @property
     def gallery_basic_kwargs(self) -> dict[str, Any]:
@@ -140,14 +142,29 @@ class ComponentInfo:
             "fake_app__cards__info_card"
             "fake_app__cards__layouts__hero"
         """
+        parts: list[str] = []
         if self.namespace_prefix is not None:
-            if self.namespace_prefix == "":
-                return self.name
-            return f"{self.namespace_prefix}__{self.name}"
+            if self.namespace_prefix:
+                parts.append(self.namespace_prefix)
 
-        parts = [self.app_label]
-        if self.relative_path:
-            parts.extend(self.relative_path.split("."))
+            rem = (
+                list(self.namespace_remaining_parts)
+                if self.namespace_remaining_parts
+                else []
+            )
+            if self.flatten_strategy == FlattenStrategy.NONE:
+                parts.extend(rem)
+            elif self.flatten_strategy == FlattenStrategy.LEAF:
+                if rem and rem[-1] == self.name:
+                    rem = rem[:-1]
+                parts.extend(rem)
+            elif self.flatten_strategy == FlattenStrategy.ALL:
+                pass
+        else:
+            parts.append(self.app_label)
+            if self.relative_path:
+                parts.extend(self.relative_path.split("."))
+
         parts.append(self.name)
         return "__".join(parts)
 
