@@ -266,6 +266,9 @@ def _build_navigation(
             result.append(app_node)
         result.extend(promoted_nodes)
 
+    for node in result:
+        _annotate_paths(node)
+
     return result
 
 
