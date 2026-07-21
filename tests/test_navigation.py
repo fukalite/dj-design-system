@@ -945,3 +945,13 @@ def test_promote_to_app_integration(registry_with_two_apps):
     # It should contain Demo Components, Demo Extra, and Promoted App Demo
     app_labels = [n.label for n in tree]
     assert "Promoted App Demo" in app_labels
+
+    promoted_node = next(n for n in tree if n.slug == "promoted")
+    assert promoted_node.node_type == NodeType.APP
+
+    # Verify children of promoted app receive re-annotated _app_label, _path_parts and correct URLs
+    for child in promoted_node.children:
+        assert child._app_label == "promoted"
+        assert child._path_parts == [child.slug]
+        assert child.url.startswith("/-/design-system/promoted/")
+
