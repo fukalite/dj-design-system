@@ -6,8 +6,7 @@ Introduce a new API to `dj-design-system` that serves component metadata and liv
 ## Functional Requirements
 1. **Registry Endpoint:** Provide a base API endpoint/view that serializes and returns a list of all registered components, their accepted properties, and variants as JSON.
 2. **Render Endpoint:** Provide an API endpoint (or utilize existing gallery sandbox infrastructure) to serve the live, isolated HTML/CSS of a specific component state.
-3. **Token Endpoint:** Provide an API endpoint that serializes and returns the active design tokens (colors, spacing, typography) defined in the Django backend.
-4. **Wholesale Routing:** Provide a pre-configured URL router (`urls.py`) that consumers can include wholesale in their Django project (e.g., `path('api/components/', include('dj_design_system.api.urls'))`).
+3. **Wholesale Routing:** Provide a pre-configured URL router (`urls.py`) that consumers can include wholesale in their Django project (e.g., `path('api/components/', include('dj_design_system.api.urls'))`).
 
 ## Non-Functional Requirements
 - **Extensibility & Security:** The base views must be easily subclassable so consumers can override them to inject custom authentication, permissions, or caching logic.
@@ -18,7 +17,6 @@ Introduce a new API to `dj-design-system` that serves component metadata and liv
 - [ ] A developer can include the API route in their Django project with a single `include()` statement.
 - [ ] A GET request to the registry endpoint returns a valid JSON payload containing all registered components.
 - [ ] A GET request to the render endpoint for a valid component returns its isolated, rendered HTML/CSS.
-- [ ] A GET request to the token endpoint returns a valid JSON payload containing the design tokens.
 - [ ] The API can be secured by a consumer subclassing the views and adding custom permission classes.
 - [ ] The API response structure can be altered by a consumer extending the default serializers.
 
