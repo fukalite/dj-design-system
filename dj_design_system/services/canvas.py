@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+import json
 from urllib.parse import urlencode
 
 from django.db.models import Model
@@ -15,6 +16,7 @@ from dj_design_system.data import (
     CanvasSpec,
     ComponentMedia,
 )
+from dj_design_system.parameters.base import DictParam, JSONParam, ListParam
 from dj_design_system.parameters.model import ModelParam
 from dj_design_system.services.registry import (
     ComponentDoesNotExist,
@@ -204,6 +206,14 @@ def coerce_single(key: str, raw_value: str, spec) -> object:
             raise ValueError(
                 f"Parameter '{key}': no {model.__name__} with pk={raw_value!r}."
             )
+
+    if isinstance(spec, (ListParam, DictParam, JSONParam)):
+        if not raw_value.strip():
+            return [] if isinstance(spec, ListParam) else {}
+        try:
+            return json.loads(raw_value)
+        except json.JSONDecodeError:
+            raise ValueError(f"Parameter '{key}': expected valid JSON for {type(spec).__name__}.")
 
     return raw_value
 

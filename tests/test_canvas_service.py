@@ -4,6 +4,7 @@ import pytest
 from django.http import QueryDict
 
 from dj_design_system.data import CanvasSpec, ComponentMedia
+from dj_design_system.parameters.base import DictParam, JSONParam, ListParam
 from dj_design_system.services.canvas import (
     build_canvas_url,
     coerce_single,
@@ -198,3 +199,16 @@ class TestCoerceSingle:
 
         with pytest.raises(ValueError, match="expected int"):
             coerce_single("count", "abc", FakeSpec())
+
+    def test_json_param_coercion(self):
+        assert coerce_single("data", '{"foo": "bar"}', JSONParam()) == {"foo": "bar"}
+        assert coerce_single("data", '[1, 2]', ListParam()) == [1, 2]
+        assert coerce_single("data", '{"a": 1}', DictParam()) == {"a": 1}
+
+    def test_json_param_empty_string(self):
+        assert coerce_single("data", " ", ListParam()) == []
+        assert coerce_single("data", "", DictParam()) == {}
+
+    def test_json_param_invalid(self):
+        with pytest.raises(ValueError, match="expected valid JSON for ListParam"):
+            coerce_single("data", "invalid", ListParam())
