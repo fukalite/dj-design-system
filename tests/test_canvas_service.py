@@ -202,7 +202,7 @@ class TestCoerceSingle:
 
     def test_json_param_coercion(self):
         assert coerce_single("data", '{"foo": "bar"}', JSONParam()) == {"foo": "bar"}
-        assert coerce_single("data", '[1, 2]', ListParam()) == [1, 2]
+        assert coerce_single("data", "[1, 2]", ListParam()) == [1, 2]
         assert coerce_single("data", '{"a": 1}', DictParam()) == {"a": 1}
 
     def test_json_param_empty_string(self):

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 import json
+from typing import TYPE_CHECKING
 from urllib.parse import urlencode
 
 from django.db.models import Model
@@ -213,7 +213,9 @@ def coerce_single(key: str, raw_value: str, spec) -> object:
         try:
             return json.loads(raw_value)
         except json.JSONDecodeError:
-            raise ValueError(f"Parameter '{key}': expected valid JSON for {type(spec).__name__}.")
+            raise ValueError(
+                f"Parameter '{key}': expected valid JSON for {type(spec).__name__}."
+            )
 
     return raw_value
 
