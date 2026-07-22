@@ -19,7 +19,9 @@ def test_relative_links_treeprocessor(monkeypatch):
             "/path/to/docs/component/index.md",
             "/gallery/component/",
             children=[
-                MockNode("/path/to/docs/component/child.md", "/gallery/component/child/")
+                MockNode(
+                    "/path/to/docs/component/child.md", "/gallery/component/child/"
+                )
             ],
         ),
     ]
@@ -31,7 +33,7 @@ def test_relative_links_treeprocessor(monkeypatch):
     processor = RelativeLinksTreeprocessor(
         md=None, current_file_path=Path("/path/to/docs/current.md")
     )
-    
+
     root = ElementTree.Element("div")
     a1 = ElementTree.SubElement(root, "a", {"href": "another.md"})
     a2 = ElementTree.SubElement(root, "a", {"href": "component/index.md#section"})

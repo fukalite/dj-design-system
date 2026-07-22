@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from markdown.extensions import Extension
 from markdown.treeprocessors import Treeprocessor
 
+
 if TYPE_CHECKING:
     from xml.etree import ElementTree
 
@@ -30,9 +31,11 @@ class RelativeLinksTreeprocessor(Treeprocessor):
 
         def traverse(node: NavNode) -> None:
             if getattr(node, "doc_path", None) is not None:
-                mapping[node.doc_path.resolve()] = node.url
+                doc_path: Path = node.doc_path  # type: ignore[assignment]
+                mapping[doc_path.resolve()] = node.url
             if getattr(node, "index_doc_path", None) is not None:
-                mapping[node.index_doc_path.resolve()] = node.url
+                index_doc_path: Path = node.index_doc_path  # type: ignore[assignment]
+                mapping[index_doc_path.resolve()] = node.url
             for child in node.children:
                 traverse(child)
 
