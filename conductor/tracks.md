@@ -13,3 +13,6 @@
 
 - [ ] **Track: Figma Plugin Repository**
   *Link: [tracks/figma_plugin_20260722/index.md](tracks/figma_plugin_20260722/index.md)*
+
+- [ ] **Track: Integration Testing Support**
+  *Link: [tracks/integration_tests_20260722/index.md](tracks/integration_tests_20260722/index.md)*
