@@ -34,7 +34,22 @@ Develop the endpoint responsible for serving isolated HTML/CSS for a specific co
 
 ---
 
-## Phase 3: Wholesale Routing & Documentation
+## Phase 3: Design Token Endpoint
+Develop the endpoint responsible for serving design tokens for Figma synchronization.
+
+- [ ] Task: Write Failing Tests (`Red Phase`)
+  - [ ] Create `tests/api/test_tokens.py`.
+  - [ ] Write tests to verify the endpoint returns correctly formatted design tokens.
+- [ ] Task: Implement to Pass Tests (`Green Phase`)
+  - [ ] Update `dj_design_system/api/serializers.py` with token serializers.
+  - [ ] Update `dj_design_system/api/views.py` with `DesignTokenView`.
+- [ ] Task: Refactor and Verify Coverage
+  - [ ] Ensure >80% coverage for the new view.
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+---
+
+## Phase 4: Wholesale Routing & Documentation
 Bundle the API views into a clean routing configuration for consumers and document the usage.
 
 - [ ] Task: Write Failing Tests (`Red Phase`)
