@@ -67,14 +67,18 @@
                 loading="lazy"
                 title="Component preview"></iframe>
     </div>
-    <div class="gallery-md-canvas__code">
-        <div class="gallery-highlight">
+    <div class="gallery-md-canvas__code gallery-highlight">
+        {% if 'class="highlight"' in source_html %}
+            {{ source_html|safe }}
+        {% else %}
             <pre><code>{{ source_html|safe }}</code></pre>
-        </div>
+        {% endif %}
     </div>
-    <div class="gallery-md-canvas__html">
-        <div class="gallery-highlight">
+    <div class="gallery-md-canvas__html gallery-highlight">
+        {% if 'class="highlight"' in rendered_output_html %}
+            {{ rendered_output_html|safe }}
+        {% else %}
             <pre><code>{{ rendered_output_html|safe }}</code></pre>
-        </div>
+        {% endif %}
     </div>
 </div>

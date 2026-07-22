@@ -214,7 +214,7 @@
 }
 
 /* codehilite wraps in a div — remove double border/margin */
-.gallery-docs .gallery-highlight {
+:is(.gallery-docs, .gallery-sandbox) .gallery-highlight {
   background: var(--hl-block-bg);
   border-radius: var(--gallery-radius);
   border: 1px solid var(--hl-block-border);
@@ -222,7 +222,7 @@
   margin: 12px 0;
 }
 
-.gallery-docs .gallery-highlight pre {
+:is(.gallery-docs, .gallery-sandbox) .gallery-highlight pre {
   border: none;
   margin: 0;
   border-radius: 0;
