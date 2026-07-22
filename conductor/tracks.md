@@ -4,3 +4,6 @@
 
 - [ ] **Track: Remove Deprecated COMPONENT_NAMESPACES**
   *Link: [tracks/remove_namespaces_20260720/index.md](tracks/remove_namespaces_20260720/index.md)*
+
+- [ ] **Track: Figma API Integration**
+  *Link: [tracks/figma_api_20260722/index.md](tracks/figma_api_20260722/index.md)*
