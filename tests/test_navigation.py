@@ -954,4 +954,3 @@ def test_promote_to_app_integration(registry_with_two_apps):
         assert child._app_label == "promoted"
         assert child._path_parts == [child.slug]
         assert "/promoted/" in child.url
-
