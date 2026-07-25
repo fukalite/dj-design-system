@@ -1037,7 +1037,7 @@ h3.gallery-docs__section-heading:first-child {
   width: 100%;
 }
 
-.gallery-docs .gallery-usage__pre {
+:is(.gallery-docs, .gallery-sandbox) .gallery-usage__pre {
   background: var(--gallery-dark-code-bg) !important;
   border: 1px solid var(--gallery-dark-code-border) !important;
 }
@@ -1056,7 +1056,7 @@ h3.gallery-docs__section-heading:first-child {
   background: var(--gallery-dark-code-bg);
 }
 
-.gallery-docs .gallery-usage__code {
+:is(.gallery-docs, .gallery-sandbox) .gallery-usage__code {
   background: var(--gallery-dark-code-bg) !important;
   color: var(--gallery-dark-code-text) !important;
 }
