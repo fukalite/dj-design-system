@@ -28,6 +28,7 @@ from dj_design_system.services.canvas import (
     resolve_from_get_params,
 )
 from dj_design_system.services.markdown_canvas import CanvasExtension
+from dj_design_system.services.markdown_links import RelativeLinksExtension
 from dj_design_system.services.media import get_bundle_urls
 from dj_design_system.services.navigation import (
     build_breadcrumbs,
@@ -114,6 +115,7 @@ def _render_markdown(file_path: Path, app_label: str = "", theme_dict=None) -> s
             debug=settings.DEBUG,
             theme_dict=theme_dict,
         ),
+        RelativeLinksExtension(current_file_path=file_path),
         "fenced_code",
         "tables",
         "toc",

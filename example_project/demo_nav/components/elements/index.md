@@ -21,3 +21,7 @@ The canvas rendering engine allows you to seamlessly mix native HTML with compon
     </div>
 </div>
 ```
+
+## Relative Links
+
+You can seamlessly link between documentation using standard relative links. For example, check out the [Icon Element](icon/index.md) or read its [Accessibility Guidelines](icon/accessibility.md).

@@ -272,6 +272,17 @@ To specify content for a slot, simply add the slot name to your kwargs dictionar
 **When to use `GalleryParameter`**
 The `GalleryParameter` wrapper is **not required** for basic values (strings, booleans, dicts, etc). It is only necessary when you need to pass complex Django types (like QuerySets or Model instances) to the sandbox preview, but want to display a clean context variable name in the generated template tag documentation.
 
+## Relative Links in Markdown
+
+When writing markdown documentation, you can use standard relative file paths to link to other markdown documents within the design system. The gallery will automatically translate these relative paths into the correct dynamic gallery URLs, regardless of how your components are organized or aliased via settings.
+
+For example, if you are editing `components/button/index.md` and want to link to `components/icon/index.md`:
+
+```markdown
+See the [Icon Component](../icon/index.md) for more details.
+You can also use anchors: [Icon Attributes](../icon/index.md#attributes).
+```
+
 ## Live Demos in Markdown
 
 Markdown files (e.g. `index.md` in a component folder) can embed live component previews using fenced `canvas` blocks. Because the canvas block is rendered through Django's template engine, it fully supports **nested components**, **slots**, and **arbitrary HTML**.
