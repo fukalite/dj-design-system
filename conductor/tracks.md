@@ -16,3 +16,6 @@
 
 - [ ] **Track: Integration Testing Support**
   *Link: [tracks/integration_tests_20260722/index.md](tracks/integration_tests_20260722/index.md)*
+
+- [ ] **Track: Form Utilities**
+  *Link: [tracks/form_utilities_20260725/index.md](tracks/form_utilities_20260725/index.md)*
