@@ -19,3 +19,9 @@
 
 - [ ] **Track: Form Utilities**
   *Link: [tracks/form_utilities_20260725/index.md](tracks/form_utilities_20260725/index.md)*
+
+- [ ] **Track: Navigation Utilities**
+  *Link: [tracks/navigation_utilities_20260725/index.md](tracks/navigation_utilities_20260725/index.md)*
+
+- [ ] **Track: Display Utilities**
+  *Link: [tracks/display_utilities_20260725/index.md](tracks/display_utilities_20260725/index.md)*
