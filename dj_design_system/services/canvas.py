@@ -69,6 +69,7 @@ def resolve_from_get_params(
 def render_component(
     spec: CanvasSpec,
     registry: ComponentRegistry,
+    raise_errors: bool = False,
 ) -> str:
     """Instantiate a component from a ``CanvasSpec`` and return rendered HTML."""
     try:
@@ -98,6 +99,8 @@ def render_component(
 
         return str(component_class(**kwargs))
     except (ValueError, TypeError, KeyError) as exc:
+        if raise_errors:
+            raise
         return format_html(
             '<p class="gallery-canvas-error">Could not render: {}</p>', str(exc)
         )

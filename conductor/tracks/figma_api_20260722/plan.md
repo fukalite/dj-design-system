@@ -21,16 +21,16 @@ Develop the base API view and extensible serializers to list all registered comp
 ## Phase 2: Component Render Endpoint
 Develop the endpoint responsible for serving isolated HTML/CSS for a specific component.
 
-- [~] Task: Write Failing Tests (`Red Phase`)
-  - [~] Create `tests/api/test_render.py`.
-  - [ ] Write tests to verify the endpoint returns rendered HTML for a given component and valid properties.
-  - [ ] Write tests for 404/error handling if an invalid component is requested.
-- [ ] Task: Implement to Pass Tests (`Green Phase`)
-  - [ ] Update `dj_design_system/api/views.py` with `ComponentRenderView`.
-  - [ ] Wire up the view to use the existing Django template rendering logic for components.
-- [ ] Task: Refactor and Verify Coverage
-  - [ ] Ensure >80% coverage for the new view.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Write Failing Tests (`Red Phase`) 7236c43
+  - [x] Create `tests/api/test_render.py`.
+  - [x] Write tests to verify the endpoint returns rendered HTML for a given component and valid properties.
+  - [x] Write tests for 404/error handling if an invalid component is requested.
+- [x] Task: Implement to Pass Tests (`Green Phase`) 7236c43
+  - [x] Update `dj_design_system/api/views.py` with `ComponentRenderView`.
+  - [x] Wire up the view to use the existing Django template rendering logic for components.
+- [x] Task: Refactor and Verify Coverage 7236c43
+  - [x] Ensure >80% coverage for the new view.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
 

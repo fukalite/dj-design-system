@@ -105,6 +105,12 @@ class TestRenderComponent:
         # ButtonComponent requires 'label' param — should error
         assert "gallery-canvas-error" in html or "button" in html.lower()
 
+    def test_validation_error_raises_when_flag_set(self, registry_with_demo_components):
+        """Component validation errors raise exceptions when raise_errors is True."""
+        spec = CanvasSpec(component_name="nonexistent", params={})
+        with pytest.raises(ValueError, match="not found in registry"):
+            render_component(spec, registry_with_demo_components, raise_errors=True)
+
 
 # ---------------------------------------------------------------------------
 # get_component_media
