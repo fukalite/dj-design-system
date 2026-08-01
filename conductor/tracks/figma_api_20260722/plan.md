@@ -37,12 +37,12 @@ Develop the endpoint responsible for serving isolated HTML/CSS for a specific co
 ## Phase 3: Wholesale Routing & Documentation
 Bundle the API views into a clean routing configuration for consumers and document the usage.
 
-- [ ] Task: Write Failing Tests (`Red Phase`)
-  - [ ] Create `tests/api/test_urls.py` to ensure the wholesale `urls.py` correctly routes both endpoints.
-- [ ] Task: Implement to Pass Tests (`Green Phase`)
-  - [ ] Create `dj_design_system/api/urls.py` mapping the views to standard paths.
+- [x] Task: Write Failing Tests (`Red Phase`)
+  - [x] Create `tests/api/test_urls.py` to ensure the wholesale `urls.py` correctly routes both endpoints.
+- [x] Task: Implement to Pass Tests (`Green Phase`)
+  - [x] Create `dj_design_system/api/urls.py` mapping the views to standard paths.
   - [x] Task: Map endpoints (`registry/` and `render/`) in `urls.py`.
-- [ ] Task: Update Documentation
-  - [ ] Create/update documentation in `docs/` explaining how consumers can include `dj_design_system.api.urls` in their projects.
-  - [ ] Document how to subclass the views to add authentication and override serializers.
+- [x] Task: Update Documentation
+  - [x] Create/update documentation in `docs/` explaining how consumers can include `dj_design_system.api.urls` in their projects.
+  - [x] Document how to subclass the views to add authentication and override serializers.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
