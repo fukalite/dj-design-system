@@ -3,11 +3,11 @@
 This plan outlines the creation of an optional integration testing framework using a highly customizable iteration engine and a plugin architecture for running specific assessments.
 
 ## Phase 1: Foundation & Optional Distribution
-- [~] Task: Write Failing Tests (`Red Phase`)
-  - [ ] Verify the loading of the optional testing extra and basic fixture generation.
-- [ ] Task: Implement to Pass Tests (`Green Phase`)
-  - [ ] Scaffold the `[testing]` extra and base `pytest` fixtures.
-- [ ] Task: Refactor and Verify Coverage
+- [x] Task: Write Failing Tests (`Red Phase`) [1d30057]
+  - [x] Verify the loading of the optional testing extra and basic fixture generation.
+- [x] Task: Implement to Pass Tests (`Green Phase`) [1d30057]
+  - [x] Scaffold the `[testing]` extra and base `pytest` fixtures.
+- [x] Task: Refactor and Verify Coverage [1d30057]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
