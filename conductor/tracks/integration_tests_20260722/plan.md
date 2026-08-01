@@ -26,11 +26,11 @@ This plan outlines the creation of an optional integration testing framework usi
 ---
 
 ## Phase 3: Visual Regression Plugin
-- [~] Task: Write Failing Tests (`Red Phase`)
-  - [ ] Verify the snapshot plugin properly hooks into the iteration engine and captures states.
-- [ ] Task: Implement to Pass Tests (`Green Phase`)
-  - [ ] Implement Playwright snapshot logic wrapped as an assessment plugin.
-- [ ] Task: Refactor and Verify Coverage
+- [x] Task: Write Failing Tests (`Red Phase`) [31b70e6]
+  - [x] Verify the snapshot plugin properly hooks into the iteration engine and captures states.
+- [x] Task: Implement to Pass Tests (`Green Phase`) [31b70e6]
+  - [x] Implement Playwright snapshot logic wrapped as an assessment plugin.
+- [x] Task: Refactor and Verify Coverage [31b70e6]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
