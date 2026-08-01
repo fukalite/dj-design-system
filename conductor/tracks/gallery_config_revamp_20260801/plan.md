@@ -1,5 +1,13 @@
 # Implementation Plan: Explicit Per-Component Gallery Configuration
 
+## Core Concept: Named Variants
+- The `GalleryConfig` will manage "named variants".
+- **Defaults:** "basic" and "maximal" are the default named variants, but these can be altered, reconfigured, or entirely removed.
+- **Customization:** Additional variants can be freely added.
+- **Dynamic Rendering:** The gallery must render *all* defined named variants dynamically (similar to how it currently handles basic/maximal).
+- **Testing Integration:** These variants will be exposed and highly useful for automated testing.
+- **Navigation:** Non-default variants should automatically render in the side navigation, potentially with a custom icon.
+
 ## Phase 1: `GalleryConfig` Core & Discovery
 - [ ] Task: Implement `GalleryConfig` class
   - [ ] Write failing unit test for `GalleryConfig` definition and property validation.
