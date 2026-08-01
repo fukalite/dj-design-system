@@ -1,25 +1,30 @@
 import json
 import logging
 
-logger = logging.getLogger(__name__)
-
 from django.http import JsonResponse
+from django.templatetags.static import static
+from django.urls import reverse
+from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 
 from dj_design_system.api.serializers import (
-    ComponentListSerializer, 
+    ComponentListSerializer,
     ComponentNotFoundError,
     ComponentRenderRequestSerializer,
     ComponentValidationError,
 )
-from dj_design_system.services.canvas import render_component, get_component_media, build_canvas_url
-from dj_design_system.services.registry import component_registry
+from dj_design_system.services.canvas import (
+    build_canvas_url,
+    get_component_media,
+    render_component,
+)
 from dj_design_system.services.media import get_bundle_urls
+from dj_design_system.services.registry import component_registry
 from dj_design_system.settings import dds_settings
-from django.templatetags.static import static
-from django.urls import reverse
+
+
+logger = logging.getLogger(__name__)
 
 
 class ComponentRegistryView(View):
@@ -54,8 +59,10 @@ class ComponentRenderView(View):
         if not payload:
             return JsonResponse({"error": "Invalid JSON payload."}, status=400)
 
-        serializer = ComponentRenderRequestSerializer(data=payload, registry=component_registry)
-        
+        serializer = ComponentRenderRequestSerializer(
+            data=payload, registry=component_registry
+        )
+
         try:
             serializer.validate()
         except ComponentValidationError as exc:
@@ -72,22 +79,21 @@ class ComponentRenderView(View):
         except (ValueError, TypeError, KeyError):
             logger.exception("Failed to render component")
             return JsonResponse(
-                {"error": "Failed to render component. Please check your parameters."}, status=400
+                {"error": "Failed to render component. Please check your parameters."},
+                status=400,
             )
 
         media = get_component_media(spec=spec, registry=component_registry)
-        
+
         try:
             canvas_path = reverse("gallery-canvas-iframe")
         except Exception:
             canvas_path = "/_canvas/"
-            
+
         canvas_url = build_canvas_url(
-            spec, 
-            request.build_absolute_uri(canvas_path), 
-            registry=component_registry
+            spec, request.build_absolute_uri(canvas_path), registry=component_registry
         )
-        
+
         global_css = get_bundle_urls(dds_settings.GLOBAL_CSS_BUNDLES, "css") + [
             static(path) for path in dds_settings.GLOBAL_CSS
         ]
@@ -95,11 +101,13 @@ class ComponentRenderView(View):
             static(path) for path in dds_settings.GLOBAL_JS
         ]
 
-        return JsonResponse({
-            "html": rendered_html,
-            "css": media.css,
-            "js": media.js,
-            "global_css": global_css,
-            "global_js": global_js,
-            "canvas_url": canvas_url,
-        })
+        return JsonResponse(
+            {
+                "html": rendered_html,
+                "css": media.css,
+                "js": media.js,
+                "global_css": global_css,
+                "global_js": global_js,
+                "canvas_url": canvas_url,
+            }
+        )

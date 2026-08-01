@@ -12,7 +12,6 @@ from django.urls import include, path
 urlpatterns = [
     # Optional: Include the REST API endpoints
     path("api/", include("dj_design_system.api.urls")),
-    
     # ... your other routes
 ]
 ```
@@ -38,9 +37,11 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from dj_design_system.api.views import ComponentRegistryView, ComponentRenderView
 
+
 @method_decorator(login_required, name="dispatch")
 class SecureComponentRegistryView(ComponentRegistryView):
     pass
+
 
 @method_decorator(login_required, name="dispatch")
 class SecureComponentRenderView(ComponentRenderView):
@@ -67,6 +68,7 @@ The API views are built using standard Django `View` classes. If you need to cha
 ```python
 from dj_design_system.api.views import ComponentRegistryView
 from my_project.serializers import CustomRegistrySerializer
+
 
 class CustomComponentRegistryView(ComponentRegistryView):
     serializer_class = CustomRegistrySerializer

@@ -157,15 +157,12 @@ DJ_DESIGN_SYSTEM = {
             "button": "btn",
             # Flattens subfolders (e.g. cards__hero instead of cards__layouts__hero)
             "card": {
-                "prefix": "cards", 
+                "prefix": "cards",
                 "flatten": FlattenStrategy.ALL,
-                "label": "Custom Cards Label"
+                "label": "Custom Cards Label",
             },
             # Extract this folder to the root of the navigation gallery
-            "promoted_features": {
-                "promote_to_app": True,
-                "label": "Promoted Features"
-            }
+            "promoted_features": {"promote_to_app": True, "label": "Promoted Features"},
         }
     }
 }

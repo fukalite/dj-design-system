@@ -12,8 +12,10 @@ Subclass `TagComponent` for components that produce a single HTML fragment witho
 from dj_design_system.components import TagComponent
 from dj_design_system.parameters import StrParam
 
+
 class IconComponent(TagComponent):
     """Renders an SVG icon."""
+
     name = StrParam("The icon name.")
 
     class Meta:
@@ -37,8 +39,10 @@ The block body is automatically available as `content` in the template context â
 from dj_design_system.components import BlockComponent
 from dj_design_system.parameters import StrParam
 
+
 class CalloutComponent(BlockComponent):
     """A callout box."""
+
     type = StrParam("Callout type.", default="info")
 ```
 
@@ -64,16 +68,20 @@ from dj_design_system.components import BlockComponent
 from dj_design_system.parameters import StrParam
 from dj_design_system.slots import Slot
 
+
 class CardComponent(BlockComponent):
     """A card with optional header and footer slots."""
+
     title = StrParam("The card title.")
 
     class Meta:
         positional_args = ["title"]
         slots = {
-            "body":   Slot(required=True,  description="Main card content."),
+            "body": Slot(required=True, description="Main card content."),
             "header": Slot(required=False, description="Optional card header."),
-            "footer": Slot(required=False, description="Optional card footer.", default=""),
+            "footer": Slot(
+                required=False, description="Optional card footer.", default=""
+            ),
         }
 ```
 
@@ -132,7 +140,9 @@ Parameters are declared as class attributes using descriptor classes from `dj_de
 ```python
 class MyComponent(TagComponent):
     label = StrParam("Display text.")
-    size = StrParam("Size.", default="medium", choices=["small", "medium", "large"], css_class=True)
+    size = StrParam(
+        "Size.", default="medium", choices=["small", "medium", "large"], css_class=True
+    )
     highlighted = BoolParam(required=False, default=False, css_class=True)
 ```
 
@@ -154,6 +164,7 @@ You can create custom parameter types by subclassing `BaseParam`. You can suppor
 ```python
 from dj_design_system.parameters import BaseParam
 
+
 class RichTextParam(BaseParam):
     type = str | RichText
 ```
@@ -164,6 +175,7 @@ class RichTextParam(BaseParam):
 
 ```python
 from dj_design_system.parameters import ModelParam
+
 
 class ProfileParam(ModelParam):
     class Meta:
@@ -242,6 +254,7 @@ All CSS class config entries **must reference attributes that are listed in `Met
 ```python
 from dj_design_system.parameters import UserParam
 
+
 class ProfileCardComponent(TagComponent):
     template_format_str = "<div class='profile {classes}'>{user_first_name}</div>"
     user = UserParam("The user.")
@@ -298,7 +311,9 @@ Declare pairs of parameters that cannot both be set at the same time. A `ValueEr
 class IconButtonComponent(TagComponent):
     icon = StrParam("Icon name.", required=False)
     label = StrParam("Button label.", required=False)
-    icon_only_label = StrParam("Accessible label when no visible text is shown.", required=False)
+    icon_only_label = StrParam(
+        "Accessible label when no visible text is shown.", required=False
+    )
 
     class Meta:
         mutually_exclusive = [("label", "icon_only_label")]
@@ -447,6 +462,7 @@ Add a `Media` inner class to declare additional CSS or JS files beyond those fou
 ```python
 class IconComponent(TagComponent):
     """Renders an SVG icon."""
+
     name = StrParam("The icon name.")
 
     class Media:
@@ -465,9 +481,11 @@ class BaseCard(TagComponent):
     class Media:
         css = ["myapp/components/card/base.css"]
 
+
 class FancyCard(BaseCard):
     class Media:
         css = ["myapp/components/card/fancy.css"]
+
 
 # FancyCard.get_media().css ==
 # ["myapp/components/card/base.css", "myapp/components/card/fancy.css"]
@@ -480,11 +498,12 @@ from dj_design_system import component_registry
 
 # Via the registry
 info = component_registry.get_by_name("icon", app_label="myapp")
-print(info.media.css)   # ['myapp/components/icon/icon.css']
-print(info.media.js)    # []
+print(info.media.css)  # ['myapp/components/icon/icon.css']
+print(info.media.js)  # []
 
 # Via the component class directly
 from myapp.components.icon import IconComponent
+
 media = IconComponent.get_media()
 print(media.css)
 ```

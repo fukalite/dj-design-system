@@ -20,15 +20,21 @@ The [`demo_single`](https://github.com/fukalite/dj-design-system/tree/main/examp
 ```python
 # demo_single/components.py
 
+
 class PillComponent(TagComponent):
     """A pill-shaped label."""
+
     text = StrParam("The pill text.")
+
     class Meta:
         positional_args = ["text"]
 
+
 class ChipComponent(TagComponent):
     """A compact chip label."""
+
     text = StrParam("The chip text.")
+
     class Meta:
         positional_args = ["text"]
 ```
@@ -85,8 +91,10 @@ Declare `Meta.abstract = True` on any class you want excluded from discovery:
 ```python
 # demo_components/components/card/abstract_card.py
 
+
 class AbstractCardComponent(TagComponent):
     """Abstract base for all card components."""
+
     class Meta:
         abstract = True
 ```

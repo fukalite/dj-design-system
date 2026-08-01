@@ -3,6 +3,7 @@ from django.urls import resolve, reverse
 
 from dj_design_system.api.views import ComponentRegistryView, ComponentRenderView
 
+
 pytestmark = pytest.mark.django_db
 
 
