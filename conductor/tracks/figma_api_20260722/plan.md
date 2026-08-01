@@ -40,7 +40,8 @@ Bundle the API views into a clean routing configuration for consumers and docume
 - [ ] Task: Write Failing Tests (`Red Phase`)
   - [ ] Create `tests/api/test_urls.py` to ensure the wholesale `urls.py` correctly routes both endpoints.
 - [ ] Task: Implement to Pass Tests (`Green Phase`)
-  - [ ] Create `dj_design_system/api/urls.py` mapping the views to standard paths (e.g., `registry/` and `render/`).
+  - [ ] Create `dj_design_system/api/urls.py` mapping the views to standard paths.
+  - [x] Task: Map endpoints (`registry/` and `render/`) in `urls.py`.
 - [ ] Task: Update Documentation
   - [ ] Create/update documentation in `docs/` explaining how consumers can include `dj_design_system.api.urls` in their projects.
   - [ ] Document how to subclass the views to add authentication and override serializers.
