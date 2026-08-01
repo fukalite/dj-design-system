@@ -45,4 +45,4 @@ Bundle the API views into a clean routing configuration for consumers and docume
 - [x] Task: Update Documentation
   - [x] Create/update documentation in `docs/` explaining how consumers can include `dj_design_system.api.urls` in their projects.
   - [x] Document how to subclass the views to add authentication and override serializers.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
