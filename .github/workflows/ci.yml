@@ -23,7 +23,7 @@ jobs:
           python-version: "3.13"
 
       - name: Install dev dependencies
-        run: uv sync --extra dev
+        run: uv pip install -e ".[dev]"
 
       - name: Run linters
         run: just check
@@ -41,7 +41,7 @@ jobs:
           python-version: "3.13"
 
       - name: Install dev dependencies
-        run: uv sync --extra dev
+        run: uv pip install -e ".[dev]"
 
       - name: Run mypy
         run: just typecheck
@@ -100,18 +100,18 @@ jobs:
           python-version: "${{ matrix.python-version }}"
 
       - name: Install testing dependencies
-        run: uv sync --extra testing
+        run: uv pip install -e ".[testing]"
 
       - name: Pin Django version
         run: uv pip install "${{ matrix.django-version }}"
 
       - name: Run tests (with coverage)
         if: matrix.coverage
-        run: uv run pytest tests/ -m "not e2e" --cov --cov-report=xml
+        run: uv run --no-sync pytest tests/ -m "not e2e" --cov --cov-report=xml
 
       - name: Run tests
         if: "!matrix.coverage"
-        run: uv run pytest tests/ -m "not e2e"
+        run: uv run --no-sync pytest tests/ -m "not e2e"
 
       - name: Coverage comment
         if: matrix.coverage && github.event_name == 'pull_request'
@@ -134,7 +134,7 @@ jobs:
           python-version: "3.13"
 
       - name: Install testing dependencies
-        run: uv sync --extra testing
+        run: uv pip install -e ".[testing]"
 
       - name: Install Playwright browsers
         run: just install-playwright

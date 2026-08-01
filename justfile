@@ -7,7 +7,7 @@ default:
 
 # Install all dependencies (including dev, testing, docs)
 install:
-    uv sync --all-extras
+    uv pip install -e ".[testing,dev,docs]"
 
 # Install the pre-commit git hook (runs `just fix` before every commit)
 install-hooks:
@@ -23,49 +23,49 @@ install-hooks:
 
 # Run unit tests (excluding e2e)
 test:
-    uv run pytest tests/ -m "not e2e"
+    uv run --no-sync pytest tests/ -m "not e2e"
 
 # Run a single test by keyword pattern
 test-one pattern:
-    uv run pytest tests/ -k "{{pattern}}" -m "not e2e"
+    uv run --no-sync pytest tests/ -k "{{pattern}}" -m "not e2e"
 
 # Run end-to-end Playwright tests
 e2e:
-    uv run pytest tests/e2e/ -m e2e
+    uv run --no-sync pytest tests/e2e/ -m e2e
 
 # Check linting and formatting without making changes
 check:
-    uv run ruff check .
-    uv run djlint dj_design_system/templates --check
+    uv run --no-sync ruff check .
+    uv run --no-sync djlint dj_design_system/templates --check
 
 # Auto-fix all fixable lint and formatting issues (run by pre-commit hook)
 fix:
-    uv run ruff check --fix .
-    uv run ruff format .
-    uv run djlint dj_design_system/templates --reformat || true
+    uv run --no-sync ruff check --fix .
+    uv run --no-sync ruff format .
+    uv run --no-sync djlint dj_design_system/templates --reformat || true
 
 # Alias for fix
 fmt: fix
 
 # Run type checking
 typecheck:
-    uv run mypy dj_design_system/
+    uv run --no-sync mypy dj_design_system/
 
 # Run unit tests with coverage report
 coverage:
-    uv run pytest tests/ -m "not e2e" --cov --cov-report=term-missing
+    uv run --no-sync pytest tests/ -m "not e2e" --cov --cov-report=term-missing
 
 # Serve the MkDocs documentation site locally
 docs-serve:
-    uv run mkdocs serve
+    uv run --no-sync mkdocs serve
 
 # Build the MkDocs documentation site
 docs-build:
-    uv run mkdocs build
+    uv run --no-sync mkdocs build
 
 # Install Playwright browsers (run once after install)
 install-playwright:
-    uv run playwright install --with-deps chromium
+    uv run --no-sync playwright install --with-deps chromium
 
 # Build the distribution packages
 build:
@@ -74,8 +74,8 @@ build:
 # Start the example project gallery and open it in the browser
 demo:
     #!/usr/bin/env sh
-    uv run python example_project/manage.py migrate --run-syncdb
-    uv run python example_project/manage.py runserver 8000 &
+    uv run --no-sync python example_project/manage.py migrate --run-syncdb
+    uv run --no-sync python example_project/manage.py runserver 8000 &
     SERVER_PID=$!
     echo "Starting example project (PID $SERVER_PID) at http://localhost:8000/ ..."
     sleep 2
