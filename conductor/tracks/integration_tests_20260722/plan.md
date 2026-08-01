@@ -13,7 +13,7 @@ This plan outlines the creation of an optional integration testing framework usi
 ---
 
 ## Phase 2: Iteration Engine & Plugin Architecture
-- [ ] Task: Write Failing Tests (`Red Phase`)
+- [~] Task: Write Failing Tests (`Red Phase`)
   - [ ] Verify the engine yields the correct combinations and respects filtering hooks.
   - [ ] Verify the base plugin interface is called correctly.
 - [ ] Task: Implement to Pass Tests (`Green Phase`)
