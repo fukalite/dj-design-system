@@ -3,11 +3,7 @@ from unittest.mock import patch
 
 import pytest
 from django.test import RequestFactory
-from django.urls import reverse
-
 from dj_design_system.api.views import ComponentRegistryView
-from dj_design_system.data import ComponentInfo
-from dj_design_system.services.registry import ComponentRegistry
 
 
 pytestmark = pytest.mark.django_db

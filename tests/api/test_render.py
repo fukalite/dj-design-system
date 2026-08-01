@@ -110,4 +110,4 @@ class TestComponentRenderView:
                 assert response.status_code == 400
                 data = json.loads(response.content)
                 assert "error" in data
-                assert "missing 1 required positional argument: 'content'" in data["error"]
+                assert "Failed to render component. Please check your parameters." in data["error"]

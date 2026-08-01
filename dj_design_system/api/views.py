@@ -14,8 +14,7 @@ from dj_design_system.api.serializers import (
     ComponentRenderRequestSerializer,
     ComponentValidationError,
 )
-from dj_design_system.data import CanvasSpec
-from dj_design_system.services.canvas import _resolve_component, render_component, get_component_media, build_canvas_url
+from dj_design_system.services.canvas import render_component, get_component_media, build_canvas_url
 from dj_design_system.services.registry import component_registry
 from dj_design_system.services.media import get_bundle_urls
 from dj_design_system.settings import dds_settings
@@ -60,9 +59,9 @@ class ComponentRenderView(View):
         try:
             serializer.validate()
         except ComponentValidationError as exc:
-            return JsonResponse({"error": str(exc)}, status=400)
+            return JsonResponse({"error": exc.message}, status=400)
         except ComponentNotFoundError as exc:
-            return JsonResponse({"error": str(exc)}, status=404)
+            return JsonResponse({"error": exc.message}, status=404)
 
         spec = serializer.to_spec()
 
@@ -70,9 +69,10 @@ class ComponentRenderView(View):
             rendered_html = render_component(
                 spec=spec, registry=component_registry, raise_errors=True
             )
-        except (ValueError, TypeError, KeyError) as exc:
+        except (ValueError, TypeError, KeyError):
+            logger.exception("Failed to render component")
             return JsonResponse(
-                {"error": f"Failed to render component: {exc}"}, status=400
+                {"error": "Failed to render component. Please check your parameters."}, status=400
             )
 
         media = get_component_media(spec=spec, registry=component_registry)
