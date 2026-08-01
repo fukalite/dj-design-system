@@ -5,7 +5,7 @@ This plan outlines the technical phases and tasks required to implement the Comp
 ## Phase 1: Component Registry Endpoint
 Develop the base API view and extensible serializers to list all registered components.
 
-- [ ] Task: Write Failing Tests (`Red Phase`)
+- [~] Task: Write Failing Tests (`Red Phase`)
   - [ ] Create `tests/api/test_registry.py`.
   - [ ] Write tests to verify the endpoint returns a `200 OK` and a correctly structured JSON payload of registered components.
   - [ ] Write tests verifying that custom serializers can be injected/overridden.
