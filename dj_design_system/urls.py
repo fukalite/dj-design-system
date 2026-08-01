@@ -1,6 +1,7 @@
 from django.urls import path
 
 from dj_design_system import views
+from dj_design_system.api import views as api_views
 
 
 urlpatterns = [
@@ -13,6 +14,16 @@ urlpatterns = [
         "_canvas/",
         views.canvas_iframe_view,
         name="gallery-canvas-iframe",
+    ),
+    path(
+        "api/registry/",
+        api_views.ComponentRegistryView.as_view(),
+        name="api-registry",
+    ),
+    path(
+        "api/render/",
+        api_views.ComponentRenderView.as_view(),
+        name="api-render",
     ),
     # Catch-all: resolves to folder, component, or document
     # based on the node type found in the navigation tree.

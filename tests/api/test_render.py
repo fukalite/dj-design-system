@@ -35,6 +35,12 @@ class TestComponentRenderView:
             assert "html" in data
             assert "Warning message" in data["html"]
             assert "alert-warning" in data["html"]
+            assert "css" in data
+            assert "js" in data
+            assert "global_css" in data
+            assert "global_js" in data
+            assert "canvas_url" in data
+            assert data["canvas_url"].startswith("http")
 
     def test_render_400_bad_request_invalid_json(self):
         factory = RequestFactory()
