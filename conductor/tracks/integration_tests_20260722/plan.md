@@ -36,31 +36,31 @@ This plan outlines the creation of an optional integration testing framework usi
 ---
 
 ## Phase 4: Accessibility & Validation Plugins
-- [ ] Task: Write Failing Tests (`Red Phase`)
-  - [ ] Verify the a11y and HTML plugins correctly flag violations across the iteration loop.
-- [ ] Task: Implement to Pass Tests (`Green Phase`)
-  - [ ] Implement Axe-core and HTML validation logic wrapped as assessment plugins.
-- [ ] Task: Refactor and Verify Coverage
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Write Failing Tests (`Red Phase`)
+  - [x] Verify the a11y and HTML plugins correctly flag violations across the iteration loop.
+- [x] Task: Implement to Pass Tests (`Green Phase`)
+  - [x] Implement Axe-core and HTML validation logic wrapped as assessment plugins.
+- [x] Task: Refactor and Verify Coverage
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
 
 ## Phase 5: Example Project Integration & CI
-- [ ] Task: Integrate Testing Framework in Example Project
-  - [ ] Add specific test configuration to the example project.
-  - [ ] Ensure the tests can run successfully against the example project components.
-- [ ] Task: CI Integration
-  - [ ] Configure CI to run a limited subset of the integration tests (non-blocking).
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Integrate Testing Framework in Example Project
+  - [x] Add specific test configuration to the example project.
+  - [x] Ensure the tests can run successfully against the example project components.
+- [x] Task: CI Integration
+  - [x] Configure CI to run a limited subset of the integration tests (non-blocking).
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
 
 ## Phase 6: Documentation
-- [ ] Task: Document the Integration Testing Framework
-  - [ ] Explicitly cover how consumers can configure and use the iteration engine and plugins.
-- [ ] Task: Add Feature List to Docs
-  - [ ] Create a feature list up front in the main documentation mentioning all features with links.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Document the Integration Testing Framework
+  - [x] Explicitly cover how consumers can configure and use the iteration engine and plugins.
+- [x] Task: Add Feature List to Docs
+  - [x] Create a feature list up front in the main documentation mentioning all features with links.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
 
