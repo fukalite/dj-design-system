@@ -92,11 +92,28 @@ Uses [Axe-core](https://github.com/dequelabs/axe-core) to ensure your components
 from dj_design_system.testing.plugins import AccessibilityPlugin
 
 plugin = AccessibilityPlugin(
-    page=page,
+    page=page, 
     base_url=base_url,
     # You can disable specific axe rules (e.g., page-level rules for isolated components)
     disabled_rules=["landmark-one-main", "page-has-heading-one", "region"]
 )
+```
+
+#### Example Accessibility Failure
+When Axe-core detects a violation (such as poor color contrast), the test fails with detailed diagnostics:
+
+```text
+[badge | basic | dark | AccessibilityPlugin]: Accessibility violations found:
+Found 1 accessibility violations:
+Rule Violated:
+color-contrast - Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds
+    Impact Level: serious
+    Elements Affected:
+
+    1)      Target: span
+            Snippet: <span class="badge ">None</span>
+            Messages:
+            * Element has insufficient color contrast of 2.1 (foreground color: #ffffff, background color: #89b4fa). Expected contrast ratio of 4.5:1
 ```
 
 ### HTMLValidationPlugin
@@ -106,6 +123,17 @@ Performs strict parsing of the rendered HTML to ensure there are no orphaned or 
 from dj_design_system.testing.plugins import HTMLValidationPlugin
 
 plugin = HTMLValidationPlugin(page=page, base_url=base_url)
+```
+
+#### Example HTML Validation Failure
+If a component emits invalid HTML (such as closing a self-closing tag incorrectly), the strict parser will catch it:
+
+```text
+[divider | basic | light | HTMLValidationPlugin]: HTML validation failed:
+Mismatched closing tag: expected </div>, got </hr>
+Orphaned closing tag: </div>
+Orphaned closing tag: </body>
+Orphaned closing tag: </html>
 ```
 
 ### VisualRegressionPlugin
