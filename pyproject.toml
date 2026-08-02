@@ -41,6 +41,8 @@ Changelog = "https://github.com/fukalite/dj-design-system/blob/main/CHANGELOG.md
 testing = [
   "coverage",
   "factory-boy",
+  "pixelmatch",
+  "Pillow",
   "playwright",
   "pytest-cov",
   "pytest-django",
