@@ -57,3 +57,10 @@ staticfiles/
 # Agentic stuff
 graphify-out/cache/
 graphify-out/obsidian/
+scratch/
+
+# Testing Artifacts
+**/snapshots/actual/
+**/snapshots/diff/
+/*.png
+/demo_*.py
