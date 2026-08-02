@@ -35,6 +35,13 @@ class IterationEngine:
         
     def run_plugins(self, plugins):
         """Run all plugins on all valid combinations."""
+        errors = []
         for comp, variant, theme in self.get_combinations():
             for plugin in plugins:
-                plugin.run_assessment(comp, variant, theme)
+                try:
+                    plugin.run_assessment(comp, variant, theme)
+                except AssertionError as e:
+                    errors.append(f"[{comp.name} | {variant} | {theme} | {plugin.__class__.__name__}]: {e}")
+                    
+        if errors:
+            raise AssertionError("Component assessments failed:\n\n" + "\n\n".join(errors))

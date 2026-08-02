@@ -33,6 +33,14 @@ test-one pattern:
 e2e:
     uv run --no-sync pytest tests/e2e/ -m e2e
 
+# Run the example project's component assessment tests
+test-demo:
+    uv run --no-sync pytest example_project/tests/ --ds=example_project.settings
+
+# Update the visual regression baseline snapshots for the example project
+update-snapshots:
+    UPDATE_SNAPSHOTS=1 uv run --no-sync pytest example_project/tests/ --ds=example_project.settings
+
 # Check linting and formatting without making changes
 check:
     uv run --no-sync ruff check .

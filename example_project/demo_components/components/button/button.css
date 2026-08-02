@@ -9,25 +9,25 @@
   text-decoration: none;
 }
 
-.btn.btn-primary {
+.btn.primary {
   background-color: #1d70b8;
   color: #ffffff;
   border-color: #1d70b8;
 }
 
-.btn.btn-secondary {
+.btn.secondary {
   background-color: #f3f2f1;
   color: #0b0c0c;
   border-color: #0b0c0c;
 }
 
-.btn.btn-danger {
+.btn.danger {
   background-color: #d4351c;
   color: #ffffff;
   border-color: #d4351c;
 }
 
-.btn.btn-disabled,
+.btn.disabled,
 .btn[disabled] {
   opacity: 0.5;
   cursor: not-allowed;

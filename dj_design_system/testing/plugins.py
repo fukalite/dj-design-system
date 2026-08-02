@@ -113,7 +113,7 @@ class VisualRegressionPlugin(AssessmentPlugin):
 class AccessibilityPlugin(AssessmentPlugin):
     """Plugin that runs axe-core to detect accessibility violations."""
     
-    def __init__(self, page: Any, base_url: str = "http://localhost:8000"):
+    def __init__(self, page: Any, base_url: str = "http://localhost:8000", disabled_rules: list[str] = None):
         try:
             import playwright
         except ImportError:
@@ -124,6 +124,7 @@ class AccessibilityPlugin(AssessmentPlugin):
             
         self.page = page
         self.base_url = base_url
+        self.disabled_rules = disabled_rules or []
         
     def run_assessment(self, component: Any, variant: str, theme: str) -> None:
         try:
@@ -150,7 +151,12 @@ class AccessibilityPlugin(AssessmentPlugin):
         self.page.goto(url)
         
         axe = Axe()
-        results = axe.run(self.page)
+        
+        options = {"resultTypes": ["violations"]}
+        if self.disabled_rules:
+            options["rules"] = {rule: {"enabled": False} for rule in self.disabled_rules}
+            
+        results = axe.run(self.page, options=options)
         
         if results.violations_count > 0:
             msg = results.generate_report()
