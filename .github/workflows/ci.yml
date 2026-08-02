@@ -100,7 +100,7 @@ jobs:
           python-version: "${{ matrix.python-version }}"
 
       - name: Install testing dependencies
-        run: uv pip install -e ".[testing]"
+        run: uv pip install -e ".[dev]"
 
       - name: Pin Django version
         run: uv pip install "${{ matrix.django-version }}"
@@ -134,7 +134,7 @@ jobs:
           python-version: "3.13"
 
       - name: Install testing dependencies
-        run: uv pip install -e ".[testing]"
+        run: uv pip install -e ".[dev]"
 
       - name: Install Playwright browsers
         run: just install-playwright

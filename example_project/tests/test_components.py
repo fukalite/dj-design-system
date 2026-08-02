@@ -1,6 +1,4 @@
 import os
-
-import pytest
 from dj_design_system import component_registry
 from dj_design_system.testing.engine import IterationEngine
 from dj_design_system.testing.plugins import (

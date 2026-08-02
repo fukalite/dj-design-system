@@ -38,5 +38,5 @@ def test_all_standard_components(page, base_url):
         ),
     ]
 
-    engine = IterationEngine(components=components, plugins=plugins)
-    engine.run_all()
+    engine = IterationEngine(components=components)
+    engine.run_plugins(plugins)

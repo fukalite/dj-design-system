@@ -1,5 +1,3 @@
-import pytest
-
 def test_iteration_engine_combinations(mocker):
     """Verify the engine yields the correct combinations."""
     from dj_design_system.testing.engine import IterationEngine
