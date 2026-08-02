@@ -7,7 +7,7 @@ default:
 
 # Install all dependencies (including dev, testing, docs)
 install:
-    uv pip install -e ".[testing,dev,docs]"
+    uv pip install -e ".[dev,docs]"
 
 # Install the pre-commit git hook (runs `just fix` before every commit)
 install-hooks:

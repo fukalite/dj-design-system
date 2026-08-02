@@ -190,8 +190,8 @@ def test_html_validation_plugin_passes(mocker):
     from dj_design_system.testing.plugins import HTMLValidationPlugin
     
     mock_page = mocker.Mock()
-    # Mock locator().inner_html() to return valid HTML
-    mock_page.locator.return_value.inner_html.return_value = "<div><p>Valid HTML</p></div>"
+    # Mock goto().text() to return valid HTML
+    mock_page.goto.return_value.text.return_value = "<div><p>Valid HTML</p></div>"
     
     plugin = HTMLValidationPlugin(page=mock_page)
     
@@ -206,8 +206,8 @@ def test_html_validation_plugin_fails(mocker):
     from dj_design_system.testing.plugins import HTMLValidationPlugin
     
     mock_page = mocker.Mock()
-    # Mock locator().inner_html() to return invalid HTML (unclosed div)
-    mock_page.locator.return_value.inner_html.return_value = "<div><p>Invalid HTML"
+    # Mock goto().text() to return invalid HTML (unclosed div)
+    mock_page.goto.return_value.text.return_value = "<div><p>Invalid HTML"
     
     plugin = HTMLValidationPlugin(page=mock_page)
     

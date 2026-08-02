@@ -26,6 +26,14 @@ class VisualRegressionPlugin(AssessmentPlugin):
         update_snapshots: bool = False,
         enable_diff: bool = True,
     ):
+        try:
+            import playwright
+        except ImportError:
+            raise RuntimeError(
+                "Missing 'playwright' dependency for VisualRegressionPlugin. "
+                "Run: pip install 'dj-design-system[testing-visual]'"
+            )
+        
         self.page = page
         self.base_url = base_url.rstrip("/")
         self.baseline_dir = Path(baseline_dir)
@@ -106,12 +114,25 @@ class AccessibilityPlugin(AssessmentPlugin):
     """Plugin that runs axe-core to detect accessibility violations."""
     
     def __init__(self, page: Any, base_url: str = "http://localhost:8000"):
+        try:
+            import playwright
+        except ImportError:
+            raise RuntimeError(
+                "Missing 'playwright' dependency for AccessibilityPlugin. "
+                "Run: pip install 'dj-design-system[testing-a11y]'"
+            )
+            
         self.page = page
         self.base_url = base_url
         
     def run_assessment(self, component: Any, variant: str, theme: str) -> None:
-        import urllib.parse
-        from axe_playwright_python.sync_playwright import Axe
+        try:
+            from axe_playwright_python.sync_playwright import Axe
+        except ImportError:
+            raise RuntimeError(
+                "Missing dependencies for AccessibilityPlugin. "
+                "Run: pip install 'dj-design-system[testing-a11y]'"
+            )
         
         if variant == "basic":
             kwargs = component.gallery_basic_kwargs
@@ -140,6 +161,14 @@ class HTMLValidationPlugin(AssessmentPlugin):
     """Plugin that parses the component's HTML to detect structural issues like unclosed tags."""
     
     def __init__(self, page: Any, base_url: str = "http://localhost:8000"):
+        try:
+            import playwright
+        except ImportError:
+            raise RuntimeError(
+                "Missing 'playwright' dependency for HTMLValidationPlugin. "
+                "Run: pip install 'dj-design-system[testing-playwright]'"
+            )
+            
         self.page = page
         self.base_url = base_url
         

@@ -38,20 +38,36 @@ Documentation = "https://fukalite.github.io/dj-design-system/"
 Changelog = "https://github.com/fukalite/dj-design-system/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
-testing = [
-  "axe-playwright-python",
+dev = [
+  "dj-design-system[testing-all]",
+  "djlint",
+  "mypy",
+  "ruff",
+  "types-Markdown",
+  "types-Pygments",
   "coverage",
   "factory-boy",
-  "pixelmatch",
-  "Pillow",
-  "playwright",
   "pytest-cov",
   "pytest-django",
   "pytest-mock",
   "pytest-playwright",
 ]
-dev = ["djlint", "mypy", "ruff", "types-Markdown", "types-Pygments"]
 docs = ["mkdocs-material", "mkdocstrings-python"]
+testing-playwright = [
+  "playwright",
+]
+testing-visual = [
+  "playwright",
+  "pixelmatch",
+  "Pillow",
+]
+testing-a11y = [
+  "playwright",
+  "axe-playwright-python",
+]
+testing-all = [
+  "dj-design-system[testing-playwright,testing-visual,testing-a11y]",
+]
 
 [tool.hatch.version]
 source = "vcs"
