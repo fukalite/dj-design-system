@@ -149,3 +149,71 @@ def test_visual_regression_diff_mismatch(mocker, tmp_path):
         plugin.run_assessment(mock_comp, "basic", "light")
         
     mock_pixelmatch.assert_called_once()
+
+
+def test_accessibility_plugin_passes(mocker):
+    from dj_design_system.testing.plugins import AccessibilityPlugin
+    
+    mock_page = mocker.Mock()
+    mock_axe = mocker.patch("axe_playwright_python.sync_playwright.Axe")
+    mock_axe.return_value.run.return_value.violations_count = 0
+    
+    plugin = AccessibilityPlugin(page=mock_page)
+    
+    mock_comp = mocker.Mock()
+    mock_comp.qualified_name = "test_comp"
+    mock_comp.gallery_basic_kwargs = {}
+    
+    plugin.run_assessment(mock_comp, "basic", "light")
+    mock_axe.return_value.run.assert_called_once()
+
+
+def test_accessibility_plugin_fails(mocker):
+    from dj_design_system.testing.plugins import AccessibilityPlugin
+    
+    mock_page = mocker.Mock()
+    mock_axe = mocker.patch("axe_playwright_python.sync_playwright.Axe")
+    mock_axe.return_value.run.return_value.violations_count = 1
+    mock_axe.return_value.run.return_value.generate_report.return_value = "Ensure text has sufficient contrast"
+    
+    plugin = AccessibilityPlugin(page=mock_page)
+    
+    mock_comp = mocker.Mock()
+    mock_comp.qualified_name = "test_comp"
+    mock_comp.gallery_basic_kwargs = {}
+    
+    with pytest.raises(AssertionError, match="Accessibility violations found"):
+        plugin.run_assessment(mock_comp, "basic", "light")
+
+
+def test_html_validation_plugin_passes(mocker):
+    from dj_design_system.testing.plugins import HTMLValidationPlugin
+    
+    mock_page = mocker.Mock()
+    # Mock locator().inner_html() to return valid HTML
+    mock_page.locator.return_value.inner_html.return_value = "<div><p>Valid HTML</p></div>"
+    
+    plugin = HTMLValidationPlugin(page=mock_page)
+    
+    mock_comp = mocker.Mock()
+    mock_comp.qualified_name = "test_comp"
+    mock_comp.gallery_basic_kwargs = {}
+    
+    plugin.run_assessment(mock_comp, "basic", "light")
+
+
+def test_html_validation_plugin_fails(mocker):
+    from dj_design_system.testing.plugins import HTMLValidationPlugin
+    
+    mock_page = mocker.Mock()
+    # Mock locator().inner_html() to return invalid HTML (unclosed div)
+    mock_page.locator.return_value.inner_html.return_value = "<div><p>Invalid HTML"
+    
+    plugin = HTMLValidationPlugin(page=mock_page)
+    
+    mock_comp = mocker.Mock()
+    mock_comp.qualified_name = "test_comp"
+    mock_comp.gallery_basic_kwargs = {}
+    
+    with pytest.raises(AssertionError, match="HTML validation failed"):
+        plugin.run_assessment(mock_comp, "basic", "light")

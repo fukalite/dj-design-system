@@ -39,6 +39,7 @@ Changelog = "https://github.com/fukalite/dj-design-system/blob/main/CHANGELOG.md
 
 [project.optional-dependencies]
 testing = [
+  "axe-playwright-python",
   "coverage",
   "factory-boy",
   "pixelmatch",

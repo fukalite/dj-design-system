@@ -100,3 +100,104 @@ class VisualRegressionPlugin(AssessmentPlugin):
             diff_path.parent.mkdir(parents=True, exist_ok=True)
             diff_img.save(diff_path)
             raise AssertionError(f"Visual regression detected for {filename}: {mismatched_pixels} pixels differ. Diff saved to {diff_path}")
+
+
+class AccessibilityPlugin(AssessmentPlugin):
+    """Plugin that runs axe-core to detect accessibility violations."""
+    
+    def __init__(self, page: Any, base_url: str = "http://localhost:8000"):
+        self.page = page
+        self.base_url = base_url
+        
+    def run_assessment(self, component: Any, variant: str, theme: str) -> None:
+        import urllib.parse
+        from axe_playwright_python.sync_playwright import Axe
+        
+        if variant == "basic":
+            kwargs = component.gallery_basic_kwargs
+        elif variant == "maximal":
+            kwargs = component.gallery_maximal_kwargs
+        else:
+            kwargs = {}
+            
+        params = {"component": component.qualified_name, "theme": theme}
+        for key, value in kwargs.items():
+            if value is not None:
+                params[key] = str(value)
+                
+        url = f"{self.base_url}/_canvas/?{urllib.parse.urlencode(params, doseq=True)}"
+        self.page.goto(url)
+        
+        axe = Axe()
+        results = axe.run(self.page)
+        
+        if results.violations_count > 0:
+            msg = results.generate_report()
+            raise AssertionError(f"Accessibility violations found:\n{msg}")
+
+
+class HTMLValidationPlugin(AssessmentPlugin):
+    """Plugin that parses the component's HTML to detect structural issues like unclosed tags."""
+    
+    def __init__(self, page: Any, base_url: str = "http://localhost:8000"):
+        self.page = page
+        self.base_url = base_url
+        
+    def run_assessment(self, component: Any, variant: str, theme: str) -> None:
+        import urllib.parse
+        from html.parser import HTMLParser
+        
+        if variant == "basic":
+            kwargs = component.gallery_basic_kwargs
+        elif variant == "maximal":
+            kwargs = component.gallery_maximal_kwargs
+        else:
+            kwargs = {}
+            
+        params = {"component": component.qualified_name, "theme": theme}
+        for key, value in kwargs.items():
+            if value is not None:
+                params[key] = str(value)
+                
+        url = f"{self.base_url}/_canvas/?{urllib.parse.urlencode(params, doseq=True)}"
+        response = self.page.goto(url)
+        html_content = response.text()
+        
+        class StrictHTMLParser(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.stack = []
+                self.errors = []
+                self.void_elements = {
+                    'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 
+                    'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'
+                }
+                
+            def handle_starttag(self, tag, attrs):
+                if tag not in self.void_elements:
+                    self.stack.append(tag)
+                    
+            def handle_endtag(self, tag):
+                if not self.stack:
+                    self.errors.append(f"Orphaned closing tag: </{tag}>")
+                elif self.stack[-1] != tag:
+                    self.errors.append(f"Mismatched closing tag: expected </{self.stack[-1]}>, got </{tag}>")
+                    while self.stack and self.stack[-1] != tag:
+                        self.stack.pop()
+                    if self.stack:
+                        self.stack.pop()
+                else:
+                    self.stack.pop()
+                    
+            def close(self):
+                super().close()
+                if self.stack:
+                    self.errors.append(f"Unclosed tags remaining: {', '.join(self.stack)}")
+                    
+        parser = StrictHTMLParser()
+        parser.feed(html_content)
+        parser.close()
+        
+        if parser.errors:
+            msg = "\n".join(parser.errors)
+            raise AssertionError(f"HTML validation failed:\n{msg}")
