@@ -1,5 +1,7 @@
 import os
+
 import pytest
+
 
 # pytest-playwright runs an async event loop which triggers Django's
 # SynchronousOnlyOperation check during DB setup. Allow it explicitly.

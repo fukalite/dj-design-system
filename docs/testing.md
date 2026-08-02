@@ -49,6 +49,7 @@ from dj_design_system import component_registry
 from dj_design_system.testing.engine import IterationEngine
 from dj_design_system.testing.plugins import AccessibilityPlugin
 
+
 def test_component_accessibility(page, live_server):
     # 1. Instantiate the Axe accessibility plugin
     a11y_plugin = AccessibilityPlugin(page=page, base_url=live_server.url)
@@ -92,10 +93,10 @@ Uses [Axe-core](https://github.com/dequelabs/axe-core) to ensure your components
 from dj_design_system.testing.plugins import AccessibilityPlugin
 
 plugin = AccessibilityPlugin(
-    page=page, 
+    page=page,
     base_url=base_url,
     # You can disable specific axe rules (e.g., page-level rules for isolated components)
-    disabled_rules=["landmark-one-main", "page-has-heading-one", "region"]
+    disabled_rules=["landmark-one-main", "page-has-heading-one", "region"],
 )
 ```
 
@@ -170,6 +171,7 @@ The architecture is highly extensible. If you want to assert something specificâ
 ```python
 from dj_design_system.testing.engine import AssessmentPlugin
 import urllib.parse
+
 
 class MyCustomPlugin(AssessmentPlugin):
     def __init__(self, page, base_url):

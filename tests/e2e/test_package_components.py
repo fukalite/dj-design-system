@@ -1,4 +1,5 @@
 import os
+
 import pytest
 
 from dj_design_system import component_registry
@@ -18,7 +19,8 @@ def test_all_standard_components(page, base_url):
     """
     # Collect components that belong to the main 'dj_design_system' package
     components = [
-        info.component_class for info in component_registry.list_all()
+        info.component_class
+        for info in component_registry.list_all()
         if info.app_label == "dj_design_system"
     ]
 
