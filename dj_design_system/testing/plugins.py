@@ -141,8 +141,8 @@ class AccessibilityPlugin(AssessmentPlugin):
 
     def run_assessment(self, component: Any, variant: str, theme: str) -> None:
         try:
-            from axe_playwright_python.sync_playwright import (
-                Axe,  # type: ignore[import-untyped]
+            from axe_playwright_python.sync_playwright import (  # type: ignore[import-untyped]
+                Axe,
             )
         except ImportError:
             raise RuntimeError(
