@@ -21,19 +21,13 @@ jobs:
           gemini-key: ${{ secrets.GEMINI_API_KEY }}
           model: 'gemini-3.5-flash'
 
-          exclude: |
-            *.pyc
-            *requirements*.txt
-            uv.lock
-            .gitignore
-            *.md
-            tests/**
-            setup.cfg
 
           prompt: |
             You are a Senior Python Engineer specializing in the Django ecosystem and open-source PyPI package architecture.
 
             Review this Pull Request with an exclusive focus on Django and Pythonic best practices for reusable pluggable apps.
+
+            Ignore changes in *.pyc, *requirements*.txt, uv.lock, .gitignore, *.md, tests/**, and setup.cfg files.
 
             DO NOT comment on basic linting, formatting (PEP 8 spacing), or generic security checks (e.g., SQL injections), as these are handled by other automated CI tools.
 
