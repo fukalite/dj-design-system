@@ -32,7 +32,7 @@ jobs:
             DO NOT comment on basic linting, formatting (PEP 8 spacing), or generic security checks (e.g., SQL injections), as these are handled by other automated CI tools.
 
             CRITICAL AREAS OF FOCUS:
-            1. DJANGO IDIOMATICNESS: Ensurecode _feels_ like Django even when it's not strictly. This package aims to feel entirely natural to Django users, so APIs must adhere to Django norms.
+            1. DJANGO IDIOMATICNESS: Ensure code _feels_ like Django even when it's not strictly. This package aims to feel entirely natural to Django users, so APIs must adhere to Django norms.
             2. DATABASE EFFICIENCY: Look for hidden N+1 query traps, missing select_related/prefetch_related cues, or suboptimal database choices.
             3. PYTHONICITY: Evaluate usage of advanced Python paradigms (e.g., proper dunder methods, generators, type hinting, descriptors).
             4. BEST PRACTICES: Beyond PEP8, ensure that indentation and complexity are kept low with guard clauses and single purpose functions. Limit brittle patterns with enums and strict typing.
