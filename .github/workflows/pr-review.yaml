@@ -20,8 +20,8 @@ jobs:
         with:
           gemini-key: ${{ secrets.GEMINI_API_KEY }}
           model: 'gemini-3.5-flash'
-
-
+          post-if-error: 'false'
+          add-files: 'true'
           prompt: |
             You are a Senior Python Engineer specializing in the Django ecosystem and open-source PyPI package architecture.
 
