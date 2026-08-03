@@ -26,6 +26,16 @@ from dj_design_system.services.registry import (
 from dj_design_system.slots import SLOT_PARAM_PREFIX
 
 
+__all__ = [
+    "resolve_from_get_params",
+    "render_component",
+    "get_component_media",
+    "build_canvas_url",
+    "resolve_component",
+    "coerce_single",
+]
+
+
 if TYPE_CHECKING:
     from django.http import QueryDict
 
@@ -41,7 +51,7 @@ def resolve_from_get_params(
     if not component_name:
         raise ValueError("Missing required 'component' query parameter.")
 
-    info = _resolve_component(component_name, registry)
+    info = resolve_component(component_name, registry)
     param_specs = info.component_class.get_params()
     positional_arg_names = info.component_class.get_positional_args()
 
@@ -73,7 +83,7 @@ def render_component(
 ) -> str:
     """Instantiate a component from a ``CanvasSpec`` and return rendered HTML."""
     try:
-        info = _resolve_component(spec.component_name, registry)
+        info = resolve_component(spec.component_name, registry)
         component_class = info.component_class
         positional_arg_names = component_class.get_positional_args()
 
@@ -112,7 +122,7 @@ def get_component_media(
 ) -> ComponentMedia:
     """Return the CSS and JS media for a specific component."""
     try:
-        info = _resolve_component(spec.component_name, registry)
+        info = resolve_component(spec.component_name, registry)
         return info.media
     except ValueError:
         return ComponentMedia()
@@ -130,7 +140,7 @@ def build_canvas_url(
     try:
         if registry is None:
             registry = component_registry
-        info = _resolve_component(spec.component_name, registry)
+        info = resolve_component(spec.component_name, registry)
         positional_arg_names = info.component_class.get_positional_args()
     except (ValueError, ImportError):
         pass
@@ -145,7 +155,7 @@ def build_canvas_url(
     return f"{base_url}?{urlencode(query)}"
 
 
-def _resolve_component(name: str, registry: ComponentRegistry):
+def resolve_component(name: str, registry: ComponentRegistry):
     """Look up a component by name, raising ``ValueError`` on failure."""
     try:
         # Check for fully qualified name matches first

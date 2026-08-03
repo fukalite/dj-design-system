@@ -2,6 +2,7 @@ import logging
 from typing import Any, Iterable
 
 from dj_design_system.data import CanvasSpec, ComponentInfo
+from dj_design_system.exceptions import ComponentNotFoundError, ComponentValidationError
 from dj_design_system.services.registry import (
     ComponentDoesNotExist,
     ComponentRegistry,
@@ -10,22 +11,6 @@ from dj_design_system.services.registry import (
 
 
 logger = logging.getLogger(__name__)
-
-
-class ComponentValidationError(Exception):
-    """Raised when a component render request payload is invalid."""
-
-    def __init__(self, message: str) -> None:
-        self.message = message
-        super().__init__(message)
-
-
-class ComponentNotFoundError(Exception):
-    """Raised when a requested component cannot be found."""
-
-    def __init__(self, message: str) -> None:
-        self.message = message
-        super().__init__(message)
 
 
 class ComponentListSerializer:
@@ -68,20 +53,20 @@ class ComponentRenderRequestSerializer:
                 )
             else:
                 # If no app_label, try looking it up (this might raise MultipleComponentsFound)
-                from dj_design_system.services.canvas import _resolve_component
+                from dj_design_system.services.canvas import resolve_component
 
-                self.component_info = _resolve_component(name, self.registry)
+                self.component_info = resolve_component(name, self.registry)
         except ValueError as exc:
             msg = str(exc)
-            logger.error(f"Value error when resolving component '{name}': {msg}")
+            logger.error("Value error when resolving component '%s': %s", name, msg)
             if "not found" in msg.lower():
                 raise ComponentNotFoundError(msg)
             raise ComponentValidationError(msg)
         except ComponentDoesNotExist:
-            logger.error(f"Component '{name}' not found.")
+            logger.error("Component '%s' not found.", name)
             raise ComponentNotFoundError(f"Component '{name}' not found.")
         except MultipleComponentsFound:
-            logger.error(f"Component '{name}' is ambiguous.")
+            logger.error("Component '%s' is ambiguous.", name)
             raise ComponentValidationError(
                 f"Component '{name}' is ambiguous. Please provide 'app_label'."
             )

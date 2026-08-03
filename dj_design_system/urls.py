@@ -1,4 +1,4 @@
-from django.urls import include, path
+from django.urls import path
 
 from dj_design_system import views
 
@@ -13,10 +13,6 @@ urlpatterns = [
         "_canvas/",
         views.canvas_iframe_view,
         name="gallery-canvas-iframe",
-    ),
-    path(
-        "api/",
-        include("dj_design_system.api.urls"),
     ),
     # Catch-all: resolves to folder, component, or document
     # based on the node type found in the navigation tree.

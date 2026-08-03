@@ -21,10 +21,10 @@ from dj_design_system.forms import build_component_form
 from dj_design_system.parameters.base import _get_type_name
 from dj_design_system.parameters.model import ModelParam
 from dj_design_system.services.canvas import (
-    _resolve_component,
     build_canvas_url,
     get_component_media,
     render_component,
+    resolve_component,
     resolve_from_get_params,
 )
 from dj_design_system.services.markdown_canvas import CanvasExtension
@@ -482,7 +482,7 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
             context,
         )
 
-    info = _resolve_component(spec.component_name, component_registry)
+    info = resolve_component(spec.component_name, component_registry)
     app_label = info.app_label
     component_class = info.component_class
 

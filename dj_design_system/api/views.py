@@ -4,16 +4,16 @@ import logging
 from django.http import JsonResponse
 from django.templatetags.static import static
 from django.urls import reverse
+from django.urls.exceptions import NoReverseMatch
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
 from dj_design_system.api.serializers import (
     ComponentListSerializer,
-    ComponentNotFoundError,
     ComponentRenderRequestSerializer,
-    ComponentValidationError,
 )
+from dj_design_system.exceptions import ComponentNotFoundError, ComponentValidationError
 from dj_design_system.services.canvas import (
     build_canvas_url,
     get_component_media,
@@ -31,9 +31,10 @@ class ComponentRegistryView(View):
     """View to list all registered components."""
 
     serializer_class = ComponentListSerializer
+    registry = component_registry
 
     def get(self, request, *args, **kwargs):
-        components = component_registry.list_all()
+        components = self.registry.list_all()
         serializer = self.serializer_class(components)
         return JsonResponse(serializer.data(), safe=False)
 
@@ -42,22 +43,21 @@ class ComponentRegistryView(View):
 class ComponentRenderView(View):
     """View to render a specific component to HTML."""
 
-    def _get_payload(self, request) -> dict | None:
+    def _get_payload(self, request) -> tuple[dict | None, str | None]:
         if not request.body:
-            return None
+            return None, "Request body is empty."
         try:
             payload = json.loads(request.body)
-        except json.JSONDecodeError as exc:
-            logger.error(f"Invalid JSON payload received in ComponentRenderView: {exc}")
-            return None
+        except json.JSONDecodeError:
+            return None, "Request body is not valid JSON."
         if not isinstance(payload, dict):
-            return None
-        return payload
+            return None, "JSON payload must be an object, not an array."
+        return payload, None
 
     def post(self, request, *args, **kwargs):
-        payload = self._get_payload(request=request)
+        payload, error_msg = self._get_payload(request=request)
         if not payload:
-            return JsonResponse({"error": "Invalid JSON payload."}, status=400)
+            return JsonResponse({"error": error_msg}, status=400)
 
         serializer = ComponentRenderRequestSerializer(
             data=payload, registry=component_registry
@@ -87,7 +87,7 @@ class ComponentRenderView(View):
 
         try:
             canvas_path = reverse("gallery-canvas-iframe")
-        except Exception:
+        except NoReverseMatch:
             canvas_path = "/_canvas/"
 
         canvas_url = build_canvas_url(
