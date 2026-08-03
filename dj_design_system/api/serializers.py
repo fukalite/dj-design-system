@@ -3,6 +3,7 @@ from typing import Any, Iterable
 
 from dj_design_system.data import CanvasSpec, ComponentInfo
 from dj_design_system.exceptions import ComponentNotFoundError, ComponentValidationError
+from dj_design_system.services.canvas import resolve_component
 from dj_design_system.services.registry import (
     ComponentDoesNotExist,
     ComponentRegistry,
@@ -19,6 +20,7 @@ class ComponentListSerializer:
     def __init__(self, components: Iterable[ComponentInfo]) -> None:
         self.components = components
 
+    @property
     def data(self) -> list[dict[str, Any]]:
         return [self.serialize_component(c) for c in self.components]
 
@@ -52,9 +54,6 @@ class ComponentRenderRequestSerializer:
                     name, app_label=app_label
                 )
             else:
-                # If no app_label, try looking it up (this might raise MultipleComponentsFound)
-                from dj_design_system.services.canvas import resolve_component
-
                 self.component_info = resolve_component(name, self.registry)
         except ValueError as exc:
             msg = str(exc)

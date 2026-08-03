@@ -36,6 +36,7 @@ class TestComponentRegistryView:
             def __init__(self, components):
                 self.components = components
 
+            @property
             def data(self):
                 return [{"custom_key": c.name} for c in self.components]
 

@@ -36,28 +36,29 @@ class ComponentRegistryView(View):
     def get(self, request, *args, **kwargs):
         components = self.registry.list_all()
         serializer = self.serializer_class(components)
-        return JsonResponse(serializer.data(), safe=False)
+        return JsonResponse(serializer.data, safe=False)
 
 
 @method_decorator(csrf_exempt, name="dispatch")
 class ComponentRenderView(View):
     """View to render a specific component to HTML."""
 
-    def _get_payload(self, request) -> tuple[dict | None, str | None]:
+    def _get_payload(self, request) -> dict:
         if not request.body:
-            return None, "Request body is empty."
+            raise ComponentValidationError("Request body is empty.")
         try:
             payload = json.loads(request.body)
         except json.JSONDecodeError:
-            return None, "Request body is not valid JSON."
+            raise ComponentValidationError("Request body is not valid JSON.")
         if not isinstance(payload, dict):
-            return None, "JSON payload must be an object, not an array."
-        return payload, None
+            raise ComponentValidationError("JSON payload must be an object, not an array.")
+        return payload
 
     def post(self, request, *args, **kwargs):
-        payload, error_msg = self._get_payload(request=request)
-        if not payload:
-            return JsonResponse({"error": error_msg}, status=400)
+        try:
+            payload = self._get_payload(request=request)
+        except ComponentValidationError as exc:
+            return JsonResponse({"error": exc.message}, status=400)
 
         serializer = ComponentRenderRequestSerializer(
             data=payload, registry=component_registry
