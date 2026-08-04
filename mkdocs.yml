@@ -51,6 +51,7 @@ nav:
   - Registry: registry.md
   - Template Tags: templatetags.md
   - REST API: rest-api.md
+  - Integration Testing: testing.md
   - Organisation: organisation.md
   - API Reference:
       - Parameters: api/parameters.md

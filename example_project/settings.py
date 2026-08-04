@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     "example_project.demo_extra",
     "example_project.demo_nav",
     "example_project.demo_single",
+    "example_project.broken_components",
 ]
 
 MIDDLEWARE = [
@@ -129,6 +130,9 @@ DJ_DESIGN_SYSTEM = {
                 "promote_to_app": True,
                 "label": "Promoted App Demo",
             },
+        },
+        "broken_components": {
+            "": "broken",
         },
     },
 }

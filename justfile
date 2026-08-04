@@ -7,7 +7,7 @@ default:
 
 # Install all dependencies (including dev, testing, docs)
 install:
-    uv pip install -e ".[testing,dev,docs]"
+    uv pip install -e ".[dev,docs]"
 
 # Install the pre-commit git hook (runs `just fix` before every commit)
 install-hooks:
@@ -32,6 +32,14 @@ test-one pattern:
 # Run end-to-end Playwright tests
 e2e:
     uv run --no-sync pytest tests/e2e/ -m e2e
+
+# Run the example project's component assessment tests
+test-demo:
+    uv run --no-sync pytest example_project/tests/ --ds=example_project.settings
+
+# Update the visual regression baseline snapshots for the example project
+update-snapshots:
+    UPDATE_SNAPSHOTS=1 uv run --no-sync pytest example_project/tests/ --ds=example_project.settings
 
 # Check linting and formatting without making changes
 check:
