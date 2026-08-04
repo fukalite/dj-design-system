@@ -43,6 +43,9 @@ class ComponentRegistryView(View):
 class ComponentRenderView(View):
     """View to render a specific component to HTML."""
 
+    serializer_class = ComponentRenderRequestSerializer
+    registry = component_registry
+
     def _get_payload(self, request) -> dict:
         if not request.body:
             raise ComponentValidationError("Request body is empty.")
@@ -51,8 +54,15 @@ class ComponentRenderView(View):
         except json.JSONDecodeError:
             raise ComponentValidationError("Request body is not valid JSON.")
         if not isinstance(payload, dict):
-            raise ComponentValidationError("JSON payload must be an object, not an array.")
+            raise ComponentValidationError(
+                "JSON payload must be an object, not an array."
+            )
         return payload
+
+    def get_serializer(self, **kwargs) -> ComponentRenderRequestSerializer:
+        """Return the serializer instance with the configured registry."""
+        kwargs.setdefault("registry", self.registry)
+        return self.serializer_class(**kwargs)
 
     def post(self, request, *args, **kwargs):
         try:
@@ -60,9 +70,7 @@ class ComponentRenderView(View):
         except ComponentValidationError as exc:
             return JsonResponse({"error": exc.message}, status=400)
 
-        serializer = ComponentRenderRequestSerializer(
-            data=payload, registry=component_registry
-        )
+        serializer = self.get_serializer(data=payload)
 
         try:
             serializer.validate()
@@ -75,7 +83,7 @@ class ComponentRenderView(View):
 
         try:
             rendered_html = render_component(
-                spec=spec, registry=component_registry, raise_errors=True
+                spec=spec, registry=self.registry, raise_errors=True
             )
         except (ValueError, TypeError, KeyError):
             logger.exception("Failed to render component")
@@ -84,7 +92,7 @@ class ComponentRenderView(View):
                 status=400,
             )
 
-        media = get_component_media(spec=spec, registry=component_registry)
+        media = get_component_media(spec=spec, registry=self.registry)
 
         try:
             canvas_path = reverse("gallery-canvas-iframe")
@@ -92,7 +100,7 @@ class ComponentRenderView(View):
             canvas_path = "/_canvas/"
 
         canvas_url = build_canvas_url(
-            spec, request.build_absolute_uri(canvas_path), registry=component_registry
+            spec, request.build_absolute_uri(canvas_path), registry=self.registry
         )
 
         global_css = get_bundle_urls(dds_settings.GLOBAL_CSS_BUNDLES, "css") + [
