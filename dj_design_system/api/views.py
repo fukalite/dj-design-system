@@ -80,9 +80,24 @@ class ComponentRenderView(View):
         serializer = self.get_serializer(data=payload)
 
         if not serializer.is_valid():
-            error_message = serializer.errors.get("name", ["Unknown error"])[0]
-            status_code = 404 if "not found" in error_message.lower() else 400
-            return JsonResponse({"error": error_message}, status=status_code)
+            errors = serializer.errors
+            status_code = 400
+
+            if "name" in errors:
+                error_message = errors["name"][0]
+                if "not found" in error_message.lower():
+                    status_code = 404
+            else:
+                # Fallback to the first error message found in any field
+                error_message = next(iter(errors.values()))[0] if errors else "Unknown validation error"
+
+            return JsonResponse(
+                {
+                    "error": error_message,
+                    "errors": errors
+                },
+                status=status_code
+            )
 
         spec = serializer.to_spec()
 

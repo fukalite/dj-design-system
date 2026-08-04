@@ -2,6 +2,7 @@ import logging
 from typing import Any, Iterable
 
 from dj_design_system.data import CanvasSpec, ComponentInfo
+from dj_design_system.parameters.base import _get_type_name
 from dj_design_system.services.canvas import resolve_component
 from dj_design_system.services.registry import (
     ComponentDoesNotExist,
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class ComponentListSerializer:
-    """Serializer for a list of component metadata."""
+    """Serializer for a list of component metadata, including parameters and slots."""
 
     def __init__(self, components: Iterable[ComponentInfo]) -> None:
         self.components = components
@@ -22,6 +23,23 @@ class ComponentListSerializer:
     @property
     def data(self) -> list[dict[str, Any]]:
         return [self.serialize_component(c) for c in self.components]
+
+    def serialize_default(self, value: Any) -> Any:
+        """Safely serialize default values to JSON-compatible formats."""
+        if value is None:
+            return None
+        if isinstance(value, (str, int, float, bool)):
+            return value
+        if hasattr(value, "pk"):  # e.g., Django Model
+            return getattr(value, "pk")
+        if callable(value):
+            return getattr(value, "__name__", str(value))
+        try:
+            import json
+            json.dumps(value)
+            return value
+        except (TypeError, OverflowError):
+            return str(value)
 
     def serialize_component(self, component: ComponentInfo) -> dict[str, Any]:
         component_class = component.component_class
@@ -31,9 +49,9 @@ class ComponentListSerializer:
         for param_name, spec in component_class.get_params().items():
             param_type = getattr(spec, "type", str)
             parameters[param_name] = {
-                "type": param_type.__name__ if hasattr(param_type, "__name__") else str(param_type),
+                "type": _get_type_name(param_type),
                 "required": getattr(spec, "required", True),
-                "default": getattr(spec, "default", None),
+                "default": self.serialize_default(getattr(spec, "default", None)),
                 "choices": getattr(spec, "choices", None),
                 "description": getattr(spec, "description", ""),
             }
@@ -44,7 +62,7 @@ class ComponentListSerializer:
             for slot_name, slot in component_class.get_slots().items():
                 slots[slot_name] = {
                     "required": getattr(slot, "required", True),
-                    "default": getattr(slot, "default", None),
+                    "default": self.serialize_default(getattr(slot, "default", None)),
                     "description": getattr(slot, "description", ""),
                 }
 
