@@ -89,14 +89,14 @@ class ComponentRenderView(View):
                     status_code = 404
             else:
                 # Fallback to the first error message found in any field
-                error_message = next(iter(errors.values()))[0] if errors else "Unknown validation error"
+                error_message = (
+                    next(iter(errors.values()))[0]
+                    if errors
+                    else "Unknown validation error"
+                )
 
             return JsonResponse(
-                {
-                    "error": error_message,
-                    "errors": errors
-                },
-                status=status_code
+                {"error": error_message, "errors": errors}, status=status_code
             )
 
         spec = serializer.to_spec()
@@ -105,11 +105,11 @@ class ComponentRenderView(View):
             rendered_html = render_component(
                 spec=spec, registry=self.registry, raise_errors=True
             )
-        except Exception as exc:  # Catch all rendering/template exceptions
+        except Exception:  # Catch all rendering/template exceptions
             logger.exception("Failed to render component")
             return JsonResponse(
                 {
-                    "error": f"Failed to render component: {str(exc)}. Please check your parameters."
+                    "error": "Failed to render component. Please check your parameters and template syntax."
                 },
                 status=400,
             )
