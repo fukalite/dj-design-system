@@ -219,6 +219,14 @@ def coerce_single(key: str, raw_value: Any, spec) -> object:
         except (ValueError, TypeError):
             raise ValueError(f"Parameter '{key}': expected int, got '{raw_value}'.")
 
+    if expected_type is float:
+        if isinstance(raw_value, (int, float)):
+            return float(raw_value)
+        try:
+            return float(raw_value)
+        except (ValueError, TypeError):
+            raise ValueError(f"Parameter '{key}': expected float, got '{raw_value}'.")
+
     if isinstance(spec, ModelParam):
         model = spec._resolve_model()
         if isinstance(raw_value, model):

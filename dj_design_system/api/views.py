@@ -1,6 +1,7 @@
 import json
 import logging
 
+from django.conf import settings
 from django.http import JsonResponse
 from django.templatetags.static import static
 from django.urls import reverse
@@ -42,6 +43,10 @@ class ComponentRegistryView(View):
         serializer = self.get_serializer(components)
         return JsonResponse(serializer.data, safe=False)
 
+    def http_method_not_allowed(self, request, *args, **kwargs):
+        logger.warning("Method Not Allowed (%s): %s", request.method, request.path)
+        return JsonResponse({"error": "Method not allowed."}, status=405)
+
 
 @method_decorator(csrf_exempt, name="dispatch")
 class ComponentRenderView(View):
@@ -65,6 +70,10 @@ class ComponentRenderView(View):
                 "JSON payload must be an object, not an array."
             )
         return payload
+
+    def http_method_not_allowed(self, request, *args, **kwargs):
+        logger.warning("Method Not Allowed (%s): %s", request.method, request.path)
+        return JsonResponse({"error": "Method not allowed."}, status=405)
 
     def get_serializer(self, **kwargs) -> ComponentRenderRequestSerializer:
         """Return the serializer instance with the configured registry."""
@@ -105,14 +114,15 @@ class ComponentRenderView(View):
             rendered_html = render_component(
                 spec=spec, registry=self.registry, raise_errors=True
             )
-        except Exception:  # Catch all rendering/template exceptions
+        except Exception as exc:  # Catch all rendering/template exceptions
             logger.exception("Failed to render component")
-            return JsonResponse(
-                {
-                    "error": "Failed to render component. Please check your parameters and template syntax."
-                },
-                status=400,
-            )
+            error_payload = {
+                "error": "Failed to render component. Please check your parameters and template syntax."
+            }
+            if settings.DEBUG:
+                error_payload["details"] = str(exc)
+
+            return JsonResponse(error_payload, status=400)
 
         media = get_component_media(spec=spec, registry=self.registry)
 
@@ -125,6 +135,12 @@ class ComponentRenderView(View):
             spec, request.build_absolute_uri(canvas_path), registry=self.registry
         )
 
+        def to_absolute_static(path: str) -> str:
+            return request.build_absolute_uri(static(path))
+
+        absolute_css = [to_absolute_static(path) for path in media.css]
+        absolute_js = [to_absolute_static(path) for path in media.js]
+
         global_css = get_bundle_urls(dds_settings.GLOBAL_CSS_BUNDLES, "css") + [
             static(path) for path in dds_settings.GLOBAL_CSS
         ]
@@ -132,13 +148,16 @@ class ComponentRenderView(View):
             static(path) for path in dds_settings.GLOBAL_JS
         ]
 
+        absolute_global_css = [request.build_absolute_uri(url) for url in global_css]
+        absolute_global_js = [request.build_absolute_uri(url) for url in global_js]
+
         return JsonResponse(
             {
                 "html": rendered_html,
-                "css": media.css,
-                "js": media.js,
-                "global_css": global_css,
-                "global_js": global_js,
+                "css": absolute_css,
+                "js": absolute_js,
+                "global_css": absolute_global_css,
+                "global_js": absolute_global_js,
                 "canvas_url": canvas_url,
             }
         )

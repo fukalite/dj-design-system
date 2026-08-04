@@ -1,4 +1,3 @@
-import json
 import logging
 from typing import Any, Iterable
 
@@ -46,14 +45,14 @@ class ComponentListSerializer:
         if isinstance(value, dict):
             return {str(k): self.serialize_default(v) for k, v in value.items()}
         try:
-            # Use Django's JSON encoder to check serializability
-            json.dumps(value, cls=DjangoJSONEncoder)
-            return value
-        except (TypeError, OverflowError):
-            return str(value)
+            return DjangoJSONEncoder().default(value)
+        except TypeError:
+            return force_str(value)
 
     def serialize_choices(self, choices: Any) -> Any:
         """Normalize and resolve callable, grouped, or lazy choices."""
+        if hasattr(choices, "choices"):
+            choices = choices.choices
         if callable(choices):
             try:
                 choices = choices()
@@ -65,7 +64,7 @@ class ComponentListSerializer:
             return None
 
         if isinstance(choices, dict):
-            return {str(k): self.serialize_default(v) for k, v in choices.items()}
+            return {force_str(k): self.serialize_default(v) for k, v in choices.items()}
 
         if isinstance(choices, (list, tuple)):
             serialized = []
@@ -74,9 +73,9 @@ class ComponentListSerializer:
                     key, val = item
                     # Handle grouped choices: (group_label, choices_list)
                     if isinstance(val, (list, tuple)):
-                        serialized.append([str(key), self.serialize_choices(val)])
+                        serialized.append([force_str(key), self.serialize_choices(val)])
                     else:
-                        serialized.append([self.serialize_default(key), str(val)])
+                        serialized.append([self.serialize_default(key), force_str(val)])
                 else:
                     serialized.append(self.serialize_default(item))
             return serialized
@@ -180,6 +179,10 @@ class ComponentRenderRequestSerializer:
             self._is_valid = False
             return False
 
+        if self.component_info is None:
+            self._is_valid = False
+            return False
+
         # Coerce parameters and positional arguments
         component_class = self.component_info.component_class
         param_specs = component_class.get_params()
@@ -241,5 +244,5 @@ class ComponentRenderRequestSerializer:
         return CanvasSpec(
             component_name=self.component_info.qualified_name,
             params=self._coerced_params,
-            positional_args=self._coerced_positional_args,
+            positional_args=tuple(self._coerced_positional_args),
         )
