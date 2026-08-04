@@ -36,6 +36,7 @@ class ComponentListSerializer:
             return getattr(value, "__name__", str(value))
         try:
             import json
+
             json.dumps(value)
             return value
         except (TypeError, OverflowError):
