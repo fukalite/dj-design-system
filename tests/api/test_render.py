@@ -86,6 +86,40 @@ class TestComponentRenderView:
         view = ComponentRenderView.as_view()
         response = view(request)
         assert response.status_code == 405
+        assert "Allow" in response
+        assert "POST" in response["Allow"]
+
+    def test_render_400_bad_request_params_not_dict(
+        self, registry_with_demo_components
+    ):
+        factory = RequestFactory()
+        payload = {"name": "demo_components__alert", "params": "not-a-dict"}
+        request = factory.post(
+            "/api/render/",
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+        view = ComponentRenderView.as_view(registry=registry_with_demo_components)
+        response = view(request)
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert "params" in data["errors"]
+
+    def test_render_400_bad_request_positional_args_not_list(
+        self, registry_with_demo_components
+    ):
+        factory = RequestFactory()
+        payload = {"name": "demo_components__alert", "positional_args": "not-a-list"}
+        request = factory.post(
+            "/api/render/",
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+        view = ComponentRenderView.as_view(registry=registry_with_demo_components)
+        response = view(request)
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert "positional_args" in data["errors"]
 
     def test_render_400_on_component_render_error(self, registry_with_demo_components):
         """Test that if the component itself fails to render (e.g. missing args), it returns 400."""
@@ -111,3 +145,4 @@ class TestComponentRenderView:
                 "Failed to render component. Please check your parameters and template syntax."
                 in data["error"]
             )
+

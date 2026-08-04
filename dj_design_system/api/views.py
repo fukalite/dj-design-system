@@ -44,7 +44,9 @@ class ComponentRegistryView(View):
 
     def http_method_not_allowed(self, request, *args, **kwargs):
         logger.warning("Method Not Allowed (%s): %s", request.method, request.path)
-        return JsonResponse({"error": "Method not allowed."}, status=405)
+        response = JsonResponse({"error": "Method not allowed."}, status=405)
+        response["Allow"] = ", ".join(self._allowed_methods())
+        return response
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -72,7 +74,9 @@ class ComponentRenderView(View):
 
     def http_method_not_allowed(self, request, *args, **kwargs):
         logger.warning("Method Not Allowed (%s): %s", request.method, request.path)
-        return JsonResponse({"error": "Method not allowed."}, status=405)
+        response = JsonResponse({"error": "Method not allowed."}, status=405)
+        response["Allow"] = ", ".join(self._allowed_methods())
+        return response
 
     def get_serializer(self, **kwargs) -> ComponentRenderRequestSerializer:
         """Return the serializer instance with the configured registry."""
@@ -97,9 +101,10 @@ class ComponentRenderView(View):
                     status_code = 404
             else:
                 # Fallback to the first error message found in any field
+                first_error_list = next(iter(errors.values()), None)
                 error_message = (
-                    next(iter(errors.values()))[0]
-                    if errors
+                    first_error_list[0]
+                    if first_error_list
                     else "Unknown validation error"
                 )
 
@@ -113,7 +118,7 @@ class ComponentRenderView(View):
             rendered_html = render_component(
                 spec=spec, registry=self.registry, raise_errors=True
             )
-        except Exception as exc:  # Catch all rendering/template exceptions
+        except Exception:  # Catch all rendering/template exceptions
             logger.exception("Failed to render component")
             error_payload = {
                 "error": "Failed to render component. Please check your parameters and template syntax."

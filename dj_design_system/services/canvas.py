@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import json
+import logging
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlencode
 
+from django.core.exceptions import ValidationError
 from django.db.models import Model
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
@@ -40,6 +42,9 @@ if TYPE_CHECKING:
     from django.http import QueryDict
 
     from dj_design_system.services.registry import ComponentRegistry
+
+
+logger = logging.getLogger(__name__)
 
 
 def resolve_from_get_params(
@@ -217,7 +222,8 @@ def coerce_single(key: str, raw_value: Any, spec) -> object:
         try:
             return int(raw_value)
         except (ValueError, TypeError):
-            raise ValueError(f"Parameter '{key}': expected int, got '{raw_value}'.")
+            logger.warning("Failed to coerce parameter '%s' to int: %s", key, raw_value)
+            raise ValueError(f"Parameter '{key}': expected int.")
 
     if expected_type is float:
         if isinstance(raw_value, (int, float)):
@@ -225,7 +231,10 @@ def coerce_single(key: str, raw_value: Any, spec) -> object:
         try:
             return float(raw_value)
         except (ValueError, TypeError):
-            raise ValueError(f"Parameter '{key}': expected float, got '{raw_value}'.")
+            logger.warning(
+                "Failed to coerce parameter '%s' to float: %s", key, raw_value
+            )
+            raise ValueError(f"Parameter '{key}': expected float.")
 
     if isinstance(spec, ModelParam):
         model = spec._resolve_model()
@@ -233,10 +242,17 @@ def coerce_single(key: str, raw_value: Any, spec) -> object:
             return raw_value
         try:
             return model.objects.get(pk=raw_value)
-        except model.DoesNotExist:
-            raise ValueError(
-                f"Parameter '{key}': no {model.__name__} with pk={raw_value!r}."
+        except (model.DoesNotExist, ValidationError, ValueError, TypeError) as exc:
+            logger.warning(
+                "Failed to resolve ModelParam '%s' for model %s with pk %r: %s",
+                key,
+                model.__name__,
+                raw_value,
+                exc,
             )
+            raise ValueError(
+                f"Parameter '{key}': invalid primary key or no matching {model.__name__} found."
+            ) from exc
 
     if isinstance(spec, (ListParam, DictParam, JSONParam)):
         if isinstance(raw_value, (list, dict)):

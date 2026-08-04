@@ -22,7 +22,7 @@ class ComponentListSerializer:
     """Serializer for a list of component metadata, including parameters and slots."""
 
     def __init__(self, components: Iterable[ComponentInfo]) -> None:
-        self.components = components
+        self.components = list(components)
 
     @property
     def data(self) -> list[dict[str, Any]]:
@@ -150,8 +150,13 @@ class ComponentRenderRequestSerializer:
             short_name = parts[-1]
 
             if app_label and app_label != extracted_app_label:
+                logger.warning(
+                    "Mismatched 'app_label' (%s) and qualified name prefix (%s)",
+                    app_label,
+                    extracted_app_label,
+                )
                 self._errors["name"] = [
-                    f"Mismatched 'app_label' ({app_label}) and qualified name prefix ({extracted_app_label})."
+                    "Mismatched 'app_label' and qualified name prefix."
                 ]
                 self._is_valid = False
                 return False
@@ -188,43 +193,56 @@ class ComponentRenderRequestSerializer:
         param_specs = component_class.get_params()
         positional_arg_names = component_class.get_positional_args()
 
-        raw_params = self.data.get("params", {})
-        raw_positional = self.data.get("positional_args", [])
+        # Validate and normalize 'params'
+        raw_params = self.data.get("params")
+        if raw_params is None:
+            raw_params = {}
+        elif not isinstance(raw_params, dict):
+            self._errors["params"] = ["'params' must be a JSON object (dictionary)."]
+            self._is_valid = False
+            return False
+
+        # Validate and normalize 'positional_args'
+        raw_positional = self.data.get("positional_args")
+        if raw_positional is None:
+            raw_positional = []
+        elif not isinstance(raw_positional, list):
+            self._errors["positional_args"] = [
+                "'positional_args' must be a JSON array (list)."
+            ]
+            self._is_valid = False
+            return False
 
         # Coerce named parameters
         self._coerced_params = {}
-        if isinstance(raw_params, dict):
-            for key, val in raw_params.items():
-                if key in param_specs:
-                    try:
-                        self._coerced_params[key] = coerce_single(
-                            key, val, param_specs[key]
-                        )
-                    except ValueError as exc:
-                        self._errors.setdefault("params", []).append(str(exc))
-                else:
-                    self._coerced_params[key] = val
+        for key, val in raw_params.items():
+            if key in param_specs:
+                try:
+                    self._coerced_params[key] = coerce_single(
+                        key, val, param_specs[key]
+                    )
+                except ValueError as exc:
+                    self._errors.setdefault("params", []).append(str(exc))
+            else:
+                self._coerced_params[key] = val
 
         # Coerce positional arguments
         self._coerced_positional_args = []
-        if isinstance(raw_positional, list):
-            for i, val in enumerate(raw_positional):
-                if i < len(positional_arg_names):
-                    arg_name = positional_arg_names[i]
-                    spec = param_specs.get(arg_name)
-                    if spec:
-                        try:
-                            self._coerced_positional_args.append(
-                                coerce_single(arg_name, val, spec)
-                            )
-                        except ValueError as exc:
-                            self._errors.setdefault("positional_args", []).append(
-                                str(exc)
-                            )
-                    else:
-                        self._coerced_positional_args.append(val)
+        for i, val in enumerate(raw_positional):
+            if i < len(positional_arg_names):
+                arg_name = positional_arg_names[i]
+                spec = param_specs.get(arg_name)
+                if spec:
+                    try:
+                        self._coerced_positional_args.append(
+                            coerce_single(arg_name, val, spec)
+                        )
+                    except ValueError as exc:
+                        self._errors.setdefault("positional_args", []).append(str(exc))
                 else:
                     self._coerced_positional_args.append(val)
+            else:
+                self._coerced_positional_args.append(val)
 
         self._is_valid = not bool(self._errors)
         return self._is_valid
