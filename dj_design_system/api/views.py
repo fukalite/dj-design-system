@@ -119,9 +119,6 @@ class ComponentRenderView(View):
             error_payload = {
                 "error": "Failed to render component. Please check your parameters and template syntax."
             }
-            if settings.DEBUG:
-                error_payload["details"] = str(exc)
-
             return JsonResponse(error_payload, status=400)
 
         media = get_component_media(spec=spec, registry=self.registry)
