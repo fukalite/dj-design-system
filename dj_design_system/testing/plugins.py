@@ -1,6 +1,10 @@
+import shutil
 import urllib.parse
+from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
+
+from dj_design_system.testing.engine import AssessmentPlugin
 
 
 try:
@@ -10,10 +14,39 @@ except ImportError:
     Image: Any = None  # type: ignore[no-redef]
     pixelmatch: Any = None  # type: ignore[no-redef]
 
-from dj_design_system.testing.engine import AssessmentPlugin
+
+class PlaywrightAssessmentPlugin(AssessmentPlugin):
+    """Base class for Playwright-based assessment plugins."""
+    
+    def __init__(self, page: Any, base_url: str):
+        self.page = page
+        self.base_url = base_url.rstrip("/")
+
+    def _resolve_kwargs(self, component: Any, variant: str) -> dict[str, Any]:
+        if variant == "basic":
+            return component.gallery_basic_kwargs
+        elif variant == "maximal":
+            return component.gallery_maximal_kwargs
+        return {}
+
+    def _navigate_to_component(self, component: Any, variant: str, theme: str) -> Any:
+        kwargs = self._resolve_kwargs(component, variant)
+        params: dict[str, str] = {"component": component.qualified_name, "theme": theme}
+        
+        for key, value in kwargs.items():
+            if hasattr(value, "value"):
+                value = value.value
+            if value is not None:
+                if isinstance(value, bool):
+                    params[key] = "true" if value else "false"
+                else:
+                    params[key] = str(value)
+                    
+        url = f"{self.base_url}/_canvas/?{urllib.parse.urlencode(params, doseq=True)}"
+        return self.page.goto(url)
 
 
-class VisualRegressionPlugin(AssessmentPlugin):
+class VisualRegressionPlugin(PlaywrightAssessmentPlugin):
     """Assessment plugin for visual regression testing using Playwright."""
 
     def __init__(
@@ -34,9 +67,7 @@ class VisualRegressionPlugin(AssessmentPlugin):
                 "Missing 'playwright' dependency for VisualRegressionPlugin. "
                 "Run: pip install 'dj-design-system[testing-visual]'"
             )
-
-        self.page = page
-        self.base_url = base_url.rstrip("/")
+        super().__init__(page, base_url)
         self.baseline_dir = Path(baseline_dir)
         self.actual_dir = Path(actual_dir)
         self.diff_dir = Path(diff_dir)
@@ -52,27 +83,7 @@ class VisualRegressionPlugin(AssessmentPlugin):
 
     def run_assessment(self, component: Any, variant: str, theme: str) -> None:
         """Run a visual regression assessment."""
-        if variant == "basic":
-            kwargs = component.gallery_basic_kwargs
-        elif variant == "maximal":
-            kwargs = component.gallery_maximal_kwargs
-        else:
-            kwargs = {}
-
-        params = {"component": component.qualified_name, "theme": theme}
-
-        for key, value in kwargs.items():
-            if hasattr(value, "value"):
-                value = value.value
-            if value is not None:
-                if isinstance(value, bool):
-                    params[key] = "true" if value else "false"
-                else:
-                    params[key] = str(value)
-
-        url = f"{self.base_url}/_canvas/?{urllib.parse.urlencode(params, doseq=True)}"
-        self.page.goto(url)
-
+        self._navigate_to_component(component, variant, theme)
         wrapper = self.page.locator(".canvas-wrapper")
 
         filename = f"{component.qualified_name}_{variant}_{theme}.png"
@@ -89,8 +100,6 @@ class VisualRegressionPlugin(AssessmentPlugin):
         if not baseline_path.exists():
             if self.update_snapshots:
                 baseline_path.parent.mkdir(parents=True, exist_ok=True)
-                import shutil
-
                 shutil.copy2(actual_path, baseline_path)
                 return
             else:
@@ -118,7 +127,7 @@ class VisualRegressionPlugin(AssessmentPlugin):
             )
 
 
-class AccessibilityPlugin(AssessmentPlugin):
+class AccessibilityPlugin(PlaywrightAssessmentPlugin):
     """Plugin that runs axe-core to detect accessibility violations."""
 
     def __init__(
@@ -134,9 +143,7 @@ class AccessibilityPlugin(AssessmentPlugin):
                 "Missing 'playwright' dependency for AccessibilityPlugin. "
                 "Run: pip install 'dj-design-system[testing-a11y]'"
             )
-
-        self.page = page
-        self.base_url = base_url
+        super().__init__(page, base_url)
         self.disabled_rules = disabled_rules or []
 
     def run_assessment(self, component: Any, variant: str, theme: str) -> None:
@@ -150,21 +157,7 @@ class AccessibilityPlugin(AssessmentPlugin):
                 "Run: pip install 'dj-design-system[testing-a11y]'"
             )
 
-        if variant == "basic":
-            kwargs = component.gallery_basic_kwargs
-        elif variant == "maximal":
-            kwargs = component.gallery_maximal_kwargs
-        else:
-            kwargs = {}
-
-        params = {"component": component.qualified_name, "theme": theme}
-        for key, value in kwargs.items():
-            if value is not None:
-                params[key] = str(value)
-
-        url = f"{self.base_url}/_canvas/?{urllib.parse.urlencode(params, doseq=True)}"
-        self.page.goto(url)
-
+        self._navigate_to_component(component, variant, theme)
         axe = Axe()
 
         options: dict[str, Any] = {"resultTypes": ["violations"]}
@@ -180,7 +173,43 @@ class AccessibilityPlugin(AssessmentPlugin):
             raise AssertionError(f"Accessibility violations found:\n{msg}")
 
 
-class HTMLValidationPlugin(AssessmentPlugin):
+class StrictHTMLParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.stack: list[str] = []
+        self.errors: list[str] = []
+        self.void_elements = {
+            "area", "base", "br", "col", "embed", "hr", "img", 
+            "input", "link", "meta", "param", "source", "track", "wbr",
+        }
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag not in self.void_elements:
+            self.stack.append(tag)
+
+    def handle_endtag(self, tag: str) -> None:
+        if not self.stack:
+            self.errors.append(f"Orphaned closing tag: </{tag}>")
+        elif self.stack[-1] != tag:
+            self.errors.append(
+                f"Mismatched closing tag: expected </{self.stack[-1]}>, got </{tag}>"
+            )
+            while self.stack and self.stack[-1] != tag:
+                self.stack.pop()
+            if self.stack:
+                self.stack.pop()
+        else:
+            self.stack.pop()
+
+    def close(self) -> None:
+        super().close()
+        if self.stack:
+            self.errors.append(
+                f"Unclosed tags remaining: {', '.join(self.stack)}"
+            )
+
+
+class HTMLValidationPlugin(PlaywrightAssessmentPlugin):
     """Plugin that parses the component's HTML to detect structural issues like unclosed tags."""
 
     def __init__(self, page: Any, base_url: str = "http://localhost:8000"):
@@ -191,76 +220,11 @@ class HTMLValidationPlugin(AssessmentPlugin):
                 "Missing 'playwright' dependency for HTMLValidationPlugin. "
                 "Run: pip install 'dj-design-system[testing-playwright]'"
             )
-
-        self.page = page
-        self.base_url = base_url
+        super().__init__(page, base_url)
 
     def run_assessment(self, component: Any, variant: str, theme: str) -> None:
-        import urllib.parse
-        from html.parser import HTMLParser
-
-        if variant == "basic":
-            kwargs = component.gallery_basic_kwargs
-        elif variant == "maximal":
-            kwargs = component.gallery_maximal_kwargs
-        else:
-            kwargs = {}
-
-        params = {"component": component.qualified_name, "theme": theme}
-        for key, value in kwargs.items():
-            if value is not None:
-                params[key] = str(value)
-
-        url = f"{self.base_url}/_canvas/?{urllib.parse.urlencode(params, doseq=True)}"
-        response = self.page.goto(url)
+        response = self._navigate_to_component(component, variant, theme)
         html_content = response.text()
-
-        class StrictHTMLParser(HTMLParser):
-            def __init__(self):
-                super().__init__()
-                self.stack = []
-                self.errors = []
-                self.void_elements = {
-                    "area",
-                    "base",
-                    "br",
-                    "col",
-                    "embed",
-                    "hr",
-                    "img",
-                    "input",
-                    "link",
-                    "meta",
-                    "param",
-                    "source",
-                    "track",
-                    "wbr",
-                }
-
-            def handle_starttag(self, tag, attrs):
-                if tag not in self.void_elements:
-                    self.stack.append(tag)
-
-            def handle_endtag(self, tag):
-                if not self.stack:
-                    self.errors.append(f"Orphaned closing tag: </{tag}>")
-                elif self.stack[-1] != tag:
-                    self.errors.append(
-                        f"Mismatched closing tag: expected </{self.stack[-1]}>, got </{tag}>"
-                    )
-                    while self.stack and self.stack[-1] != tag:
-                        self.stack.pop()
-                    if self.stack:
-                        self.stack.pop()
-                else:
-                    self.stack.pop()
-
-            def close(self):
-                super().close()
-                if self.stack:
-                    self.errors.append(
-                        f"Unclosed tags remaining: {', '.join(self.stack)}"
-                    )
 
         parser = StrictHTMLParser()
         parser.feed(html_content)
