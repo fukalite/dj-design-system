@@ -108,7 +108,7 @@ def render_component(
                 return str(component_class(content=content, **kwargs))
 
         return str(component_class(**kwargs))
-    except (ValueError, TypeError, KeyError) as exc:
+    except Exception as exc:  # Catch all rendering/template exceptions
         if raise_errors:
             raise
         return format_html(

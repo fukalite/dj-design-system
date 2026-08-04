@@ -40,14 +40,21 @@ class ComponentRenderRequestSerializer:
         self.data = data
         self.registry = registry
         self.component_info: ComponentInfo | None = None
+        self._errors: dict[str, list[str]] = {}
+        self._is_valid: bool | None = None
 
-    def validate(self) -> None:
+    def is_valid(self) -> bool:
+        if self._is_valid is not None:
+            return self._is_valid
+
+        self._errors = {}
         name = self.data.get("name")
         if not name:
-            raise ComponentValidationError("Missing 'name' in payload.")
+            self._errors["name"] = ["Missing 'name' in payload."]
+            self._is_valid = False
+            return False
 
         app_label = self.data.get("app_label")
-
         try:
             if app_label:
                 self.component_info = self.registry.get_by_name(
@@ -55,24 +62,27 @@ class ComponentRenderRequestSerializer:
                 )
             else:
                 self.component_info = resolve_component(name, self.registry)
-        except ValueError as exc:
-            msg = str(exc)
-            logger.error("Value error when resolving component '%s': %s", name, msg)
-            if "not found" in msg.lower():
-                raise ComponentNotFoundError(msg)
-            raise ComponentValidationError(msg)
         except ComponentDoesNotExist:
-            logger.error("Component '%s' not found.", name)
-            raise ComponentNotFoundError(f"Component '{name}' not found.")
+            self._errors["name"] = [f"Component '{name}' not found."]
         except MultipleComponentsFound:
-            logger.error("Component '%s' is ambiguous.", name)
-            raise ComponentValidationError(
+            self._errors["name"] = [
                 f"Component '{name}' is ambiguous. Please provide 'app_label'."
-            )
+            ]
+        except ValueError as exc:
+            self._errors["name"] = [str(exc)]
+
+        self._is_valid = not bool(self._errors)
+        return self._is_valid
+
+    @property
+    def errors(self) -> dict[str, list[str]]:
+        if self._is_valid is None:
+            self.is_valid()
+        return self._errors
 
     def to_spec(self) -> CanvasSpec:
         if not self.component_info:
-            raise RuntimeError("Must call validate() before to_spec()")
+            raise RuntimeError("Must call is_valid() and ensure it returns True before calling to_spec()")
 
         return CanvasSpec(
             component_name=self.component_info.qualified_name,

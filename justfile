@@ -82,3 +82,7 @@ demo:
     xdg-open "http://localhost:8000/" 2>/dev/null || open "http://localhost:8000/" 2>/dev/null || echo "Open http://localhost:8000/ in your browser"
     echo "Press Ctrl+C to stop the server"
     wait $SERVER_PID
+
+# Fetch, parse, and display unresolved PR comments
+pr-comments pr_number="":
+    uv run --no-sync python scripts/pr_comments.py {{pr_number}}

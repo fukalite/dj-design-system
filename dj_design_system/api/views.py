@@ -47,6 +47,12 @@ class ComponentRenderView(View):
     registry = component_registry
 
     def _get_payload(self, request) -> dict:
+        content_type = request.META.get("CONTENT_TYPE", "")
+        if not content_type.startswith("application/json"):
+            raise ComponentValidationError(
+                "Content-Type must be 'application/json'."
+            )
+
         if not request.body:
             raise ComponentValidationError("Request body is empty.")
         try:
@@ -72,12 +78,10 @@ class ComponentRenderView(View):
 
         serializer = self.get_serializer(data=payload)
 
-        try:
-            serializer.validate()
-        except ComponentValidationError as exc:
-            return JsonResponse({"error": exc.message}, status=400)
-        except ComponentNotFoundError as exc:
-            return JsonResponse({"error": exc.message}, status=404)
+        if not serializer.is_valid():
+            error_message = serializer.errors.get("name", ["Unknown error"])[0]
+            status_code = 404 if "not found" in error_message.lower() else 400
+            return JsonResponse({"error": error_message}, status=status_code)
 
         spec = serializer.to_spec()
 
@@ -85,10 +89,10 @@ class ComponentRenderView(View):
             rendered_html = render_component(
                 spec=spec, registry=self.registry, raise_errors=True
             )
-        except (ValueError, TypeError, KeyError):
+        except Exception as exc:  # Catch all rendering/template exceptions
             logger.exception("Failed to render component")
             return JsonResponse(
-                {"error": "Failed to render component. Please check your parameters."},
+                {"error": f"Failed to render component: {str(exc)}. Please check your parameters."},
                 status=400,
             )
 
