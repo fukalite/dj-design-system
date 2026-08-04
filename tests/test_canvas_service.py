@@ -105,6 +105,12 @@ class TestRenderComponent:
         # ButtonComponent requires 'label' param — should error
         assert "gallery-canvas-error" in html or "button" in html.lower()
 
+    def test_validation_error_raises_when_flag_set(self, registry_with_demo_components):
+        """Component validation errors raise exceptions when raise_errors is True."""
+        spec = CanvasSpec(component_name="nonexistent", params={})
+        with pytest.raises(ValueError, match="not found in registry"):
+            render_component(spec, registry_with_demo_components, raise_errors=True)
+
 
 # ---------------------------------------------------------------------------
 # get_component_media
@@ -212,3 +218,21 @@ class TestCoerceSingle:
     def test_json_param_invalid(self):
         with pytest.raises(ValueError, match="expected valid JSON for ListParam"):
             coerce_single("data", "invalid", ListParam())
+
+    def test_model_param_invalid_pk_raises_value_error(self, db):
+        from django.contrib.auth import get_user_model
+
+        from dj_design_system.parameters.model import ModelParam
+
+        User = get_user_model()
+
+        class UserParam(ModelParam):
+            class Meta:
+                model = User
+                fields = "__all__"
+
+        spec = UserParam("user")
+        with pytest.raises(
+            ValueError, match="invalid primary key or no matching User found"
+        ):
+            coerce_single("user", "invalid_pk_abc", spec)

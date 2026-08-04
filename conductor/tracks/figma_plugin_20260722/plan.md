@@ -2,6 +2,14 @@
 
 This plan outlines the phases to bootstrap the new `dj-design-system-figma` repository, initialize its Conductor environment, and build the core plugin features using a Test-Driven Development (TDD) workflow.
 
+## Phase 0: Investigation & Strategy
+Before committing to building a custom plugin from scratch, investigate if adapting the Django API to mimic Storybook's `stories.json` contract is a viable shortcut.
+- [ ] Task: Evaluate `story.to.design` and `Storybook Connect` API requirements.
+- [ ] Task: Prototype transforming our `/api/registry/` output into a Storybook-compatible format.
+- [ ] Task: Decide whether to proceed with a custom plugin (Phase 1+) or pivot to a Django-to-Storybook adapter API track.
+
+---
+
 ## Phase 1: Repository & Conductor Initialization
 Establish the new repository and enforce the same rigorous SDD and task-running standards as the Django backend.
 
