@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urlencode
 
 from django.db.models import Model
@@ -200,19 +200,29 @@ def _coerce_params(
     return tuple(positional_args), keyword_params
 
 
-def coerce_single(key: str, raw_value: str, spec) -> object:
-    """Coerce a single string value to the type declared by a parameter spec."""
+def coerce_single(key: str, raw_value: Any, spec) -> object:
+    """Coerce a single value to the type declared by a parameter spec."""
     expected_type = getattr(spec, "type", str)
 
     if expected_type is bool:
-        return raw_value.lower() in ("true", "1", "yes")
+        if isinstance(raw_value, bool):
+            return raw_value
+        if isinstance(raw_value, str):
+            return raw_value.lower() in ("true", "1", "yes")
+        return bool(raw_value)
+
     if expected_type is int:
+        if isinstance(raw_value, int):
+            return raw_value
         try:
             return int(raw_value)
         except (ValueError, TypeError):
             raise ValueError(f"Parameter '{key}': expected int, got '{raw_value}'.")
+
     if isinstance(spec, ModelParam):
         model = spec._resolve_model()
+        if isinstance(raw_value, model):
+            return raw_value
         try:
             return model.objects.get(pk=raw_value)
         except model.DoesNotExist:
@@ -221,14 +231,17 @@ def coerce_single(key: str, raw_value: str, spec) -> object:
             )
 
     if isinstance(spec, (ListParam, DictParam, JSONParam)):
-        if not raw_value.strip():
-            return [] if isinstance(spec, ListParam) else {}
-        try:
-            return json.loads(raw_value)
-        except json.JSONDecodeError:
-            raise ValueError(
-                f"Parameter '{key}': expected valid JSON for {type(spec).__name__}."
-            )
+        if isinstance(raw_value, (list, dict)):
+            return raw_value
+        if isinstance(raw_value, str):
+            if not raw_value.strip():
+                return [] if isinstance(spec, ListParam) else {}
+            try:
+                return json.loads(raw_value)
+            except json.JSONDecodeError:
+                raise ValueError(
+                    f"Parameter '{key}': expected valid JSON for {type(spec).__name__}."
+                )
 
     return raw_value
 
