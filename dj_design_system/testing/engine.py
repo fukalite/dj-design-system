@@ -10,7 +10,7 @@ class AssessmentPlugin(abc.ABC):
     @abc.abstractmethod
     def run_assessment(self, component: ComponentInfo, variant: str, theme: str) -> None:
         """Run an assessment for a given component, variant, and theme."""
-        ...
+        pass
 
 
 class IterationEngine:
