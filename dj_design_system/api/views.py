@@ -33,9 +33,13 @@ class ComponentRegistryView(View):
     serializer_class = ComponentListSerializer
     registry = component_registry
 
+    def get_serializer(self, *args, **kwargs):
+        """Return the serializer instance."""
+        return self.serializer_class(*args, **kwargs)
+
     def get(self, request, *args, **kwargs):
         components = self.registry.list_all()
-        serializer = self.serializer_class(components)
+        serializer = self.get_serializer(components)
         return JsonResponse(serializer.data, safe=False)
 
 
@@ -47,8 +51,7 @@ class ComponentRenderView(View):
     registry = component_registry
 
     def _get_payload(self, request) -> dict:
-        content_type = request.META.get("CONTENT_TYPE", "")
-        if not content_type.startswith("application/json"):
+        if request.content_type != "application/json":
             raise ComponentValidationError("Content-Type must be 'application/json'.")
 
         if not request.body:

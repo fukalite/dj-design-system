@@ -24,11 +24,38 @@ class ComponentListSerializer:
         return [self.serialize_component(c) for c in self.components]
 
     def serialize_component(self, component: ComponentInfo) -> dict[str, Any]:
+        component_class = component.component_class
+
+        # Introspect and serialize parameters (properties)
+        parameters = {}
+        for param_name, spec in component_class.get_params().items():
+            param_type = getattr(spec, "type", str)
+            parameters[param_name] = {
+                "type": param_type.__name__ if hasattr(param_type, "__name__") else str(param_type),
+                "required": getattr(spec, "required", True),
+                "default": getattr(spec, "default", None),
+                "choices": getattr(spec, "choices", None),
+                "description": getattr(spec, "description", ""),
+            }
+
+        # Introspect and serialize slots if applicable
+        slots = {}
+        if hasattr(component_class, "has_slots") and component_class.has_slots():
+            for slot_name, slot in component_class.get_slots().items():
+                slots[slot_name] = {
+                    "required": getattr(slot, "required", True),
+                    "default": getattr(slot, "default", None),
+                    "description": getattr(slot, "description", ""),
+                }
+
         return {
             "name": component.name,
+            "qualified_name": component.qualified_name,
             "app_label": component.app_label,
             "relative_path": component.relative_path,
             "tag_type": component.tag_type.value,
+            "parameters": parameters,
+            "slots": slots,
         }
 
 
