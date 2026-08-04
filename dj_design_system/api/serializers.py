@@ -2,7 +2,6 @@ import logging
 from typing import Any, Iterable
 
 from dj_design_system.data import CanvasSpec, ComponentInfo
-from dj_design_system.exceptions import ComponentNotFoundError, ComponentValidationError
 from dj_design_system.services.canvas import resolve_component
 from dj_design_system.services.registry import (
     ComponentDoesNotExist,
@@ -82,7 +81,9 @@ class ComponentRenderRequestSerializer:
 
     def to_spec(self) -> CanvasSpec:
         if not self.component_info:
-            raise RuntimeError("Must call is_valid() and ensure it returns True before calling to_spec()")
+            raise RuntimeError(
+                "Must call is_valid() and ensure it returns True before calling to_spec()"
+            )
 
         return CanvasSpec(
             component_name=self.component_info.qualified_name,

@@ -13,7 +13,7 @@ from dj_design_system.api.serializers import (
     ComponentListSerializer,
     ComponentRenderRequestSerializer,
 )
-from dj_design_system.exceptions import ComponentNotFoundError, ComponentValidationError
+from dj_design_system.exceptions import ComponentValidationError
 from dj_design_system.services.canvas import (
     build_canvas_url,
     get_component_media,
@@ -49,9 +49,7 @@ class ComponentRenderView(View):
     def _get_payload(self, request) -> dict:
         content_type = request.META.get("CONTENT_TYPE", "")
         if not content_type.startswith("application/json"):
-            raise ComponentValidationError(
-                "Content-Type must be 'application/json'."
-            )
+            raise ComponentValidationError("Content-Type must be 'application/json'.")
 
         if not request.body:
             raise ComponentValidationError("Request body is empty.")
@@ -92,7 +90,9 @@ class ComponentRenderView(View):
         except Exception as exc:  # Catch all rendering/template exceptions
             logger.exception("Failed to render component")
             return JsonResponse(
-                {"error": f"Failed to render component: {str(exc)}. Please check your parameters."},
+                {
+                    "error": f"Failed to render component: {str(exc)}. Please check your parameters."
+                },
                 status=400,
             )
 

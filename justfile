@@ -84,5 +84,5 @@ demo:
     wait $SERVER_PID
 
 # Fetch, parse, and display unresolved PR comments
-pr-comments pr_number="":
+comments pr_number="":
     uv run --no-sync python scripts/pr_comments.py {{pr_number}}
