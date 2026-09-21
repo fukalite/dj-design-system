@@ -91,8 +91,8 @@ Discovery order follows `INSTALLED_APPS` order. To override a component, place y
 ```python
 INSTALLED_APPS = [
     # ...
-    "design_system_defaults",   # defines ButtonComponent
-    "my_project_components",    # also defines ButtonComponent — this one wins
+    "design_system_defaults",  # defines ButtonComponent
+    "my_project_components",  # also defines ButtonComponent — this one wins
 ]
 ```
 

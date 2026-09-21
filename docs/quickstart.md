@@ -70,13 +70,10 @@ A full list of settings is available in the [Settings API Reference](api/setting
 DJ_DESIGN_SYSTEM = {
     # The name displayed in the gallery navbar and page titles
     "DESIGN_SYSTEM_NAME": "Django Design System",
-    
     # Enable the gallery UI
     "ENABLE_GALLERY": True,
-    
     # If False, requires staff permissions (is_staff=True) to view the gallery
     "GALLERY_IS_PUBLIC": False,
-    
     # Global styles and scripts loaded in the gallery canvas and when using tags
     "GLOBAL_CSS": [],
     "GLOBAL_JS": [],

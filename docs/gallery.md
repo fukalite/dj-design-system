@@ -105,12 +105,12 @@ DJ_DESIGN_SYSTEM = {
     "COMPONENT_DIRECTORIES": {
         "myapp": {
             "card": {
-                "label": "Custom Cards Label", # Customizes the folder name in the nav
+                "label": "Custom Cards Label",  # Customizes the folder name in the nav
             },
             "promoted_features": {
-                "promote_to_app": True, # Pulls this folder out to the root navigation level
-                "label": "Promoted Features App" 
-            }
+                "promote_to_app": True,  # Pulls this folder out to the root navigation level
+                "label": "Promoted Features App",
+            },
         }
     }
 }
@@ -247,20 +247,15 @@ basic_kwargs = {
 maximal_kwargs = {
     "text": "Critical Alert!",
     "theme": "danger",
-    
     # To specify content for a slot, prefix the slot name with `slot__`
     "slot__icon": "<svg>...</svg>",
     "slot__body": "Here is the body content",
-    
     # For complex Django types or context variables, wrap them in GalleryParameter.
-    # Note: GalleryParameter is strictly optional. You do not need it for basic 
+    # Note: GalleryParameter is strictly optional. You do not need it for basic
     # Python types like strings, booleans, or ints.
     # - `value` is the actual instance passed to the sandbox iframe preview.
     # - `code` (optional) is what gets literally printed in the `{% badge ... %}` code block.
-    "user": GalleryParameter(
-        value=User.objects.first(), 
-        code="request.user" 
-    )
+    "user": GalleryParameter(value=User.objects.first(), code="request.user"),
 }
 ```
 

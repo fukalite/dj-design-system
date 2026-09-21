@@ -103,7 +103,7 @@ def _split_tag_params(params_str: str) -> list[str]:
     in_double_quotes = False
     in_single_quotes = False
     nesting_level = 0
-    
+
     for char in params_str:
         if char == '"' and not in_single_quotes:
             in_double_quotes = not in_double_quotes
@@ -113,14 +113,18 @@ def _split_tag_params(params_str: str) -> list[str]:
             nesting_level += 1
         elif char in "]})" and not (in_double_quotes or in_single_quotes):
             nesting_level -= 1
-            
-        if char == " " and not (in_double_quotes or in_single_quotes) and nesting_level <= 0:
+
+        if (
+            char == " "
+            and not (in_double_quotes or in_single_quotes)
+            and nesting_level <= 0
+        ):
             if current:
                 result.append(current)
             current = ""
         else:
             current += char
-            
+
     if current:
         result.append(current)
     return result

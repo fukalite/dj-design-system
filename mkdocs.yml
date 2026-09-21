@@ -50,6 +50,7 @@ nav:
   - Themes and Assets: themes.md
   - Registry: registry.md
   - Template Tags: templatetags.md
+  - REST API: rest-api.md
   - Organisation: organisation.md
   - API Reference:
       - Parameters: api/parameters.md
