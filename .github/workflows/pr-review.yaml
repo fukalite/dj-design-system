@@ -2,42 +2,74 @@ name: Gemini Code Review
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, ready_for_review]
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to review'
+        required: true
+
+concurrency:
+  group: gemini-review-${{ github.event.pull_request.number || github.event.issue.number || github.event.inputs.pr_number }}
+  cancel-in-progress: true
 
 jobs:
   review:
+    # Trigger conditions:
+    # 1. PR opened or marked ready for review (not draft)
+    # 2. PR comment starting with /review by a collaborator/contributor/owner
+    # 3. Manual workflow_dispatch
+    if: |
+      (github.event_name == 'pull_request' && github.event.pull_request.draft == false) ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.pull_request &&
+       startsWith(trim(github.event.comment.body), '/review') &&
+       contains(fromJson('["OWNER", "MEMBER", "COLLABORATOR", "CONTRIBUTOR"]'), github.event.comment.author_association)) ||
+      (github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
+      issues: write
 
     steps:
+      - name: Acknowledge review request
+        if: github.event_name == 'issue_comment'
+        run: |
+          gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions -f content='eyes' || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Checkout Code
         uses: actions/checkout@v4
-
-      - name: Gemini PR Review
-        uses: sshnaidm/gemini-code-review-action@v2
         with:
-          gemini-key: ${{ secrets.GEMINI_API_KEY }}
-          model: 'gemini-3.5-flash'
-          post-if-error: 'false'
-          add-files: 'true'
-          prompt: |
-            You are a Senior Python Engineer specializing in the Django ecosystem and open-source PyPI package architecture.
+          ref: ${{ github.event.pull_request.head.sha || '' }}
+          fetch-depth: 0
 
-            Review this Pull Request with an exclusive focus on Django and Pythonic best practices for reusable pluggable apps.
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
-            Ignore changes in *.pyc, *requirements*.txt, uv.lock, .gitignore, *.md, tests/**, and setup.cfg files.
+      - name: Run Gemini Inline PR Review
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number || github.event.inputs.pr_number }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || '' }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+          GEMINI_MODEL: 'gemini-3.8-flash'
+          INSTRUCTIONS_FILE: '.github/copilot-instructions.md'
+          USER_COMMENT: ${{ github.event.comment.body || '' }}
+        run: |
+          python3 .github/scripts/ai_pr_review.py
 
-            DO NOT comment on basic linting, formatting (PEP 8 spacing), or generic security checks (e.g., SQL injections), as these are handled by other automated CI tools.
-
-            CRITICAL AREAS OF FOCUS:
-            1. DJANGO IDIOMATICNESS: Ensure code _feels_ like Django even when it's not strictly. This package aims to feel entirely natural to Django users, so APIs must adhere to Django norms.
-            2. DATABASE EFFICIENCY: Look for hidden N+1 query traps, missing select_related/prefetch_related cues, or suboptimal database choices.
-            3. PYTHONICITY: Evaluate usage of advanced Python paradigms (e.g., proper dunder methods, generators, type hinting, descriptors).
-            4. BEST PRACTICES: Beyond PEP8, ensure that indentation and complexity are kept low with guard clauses and single purpose functions. Limit brittle patterns with enums and strict typing.
-
-            FORMAT REQUIREMENTS:
-            - Provide your reasoning clearly.
-            - Always provide a concise, runnable code example showing how to refactor or fix the issue.
-            - If a file or segment strictly meets modern Django plugin standards, skip it and leave no comment.
+      - name: Mark review request complete
+        if: github.event_name == 'issue_comment' && success()
+        run: |
+          gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions -f content='rocket' || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

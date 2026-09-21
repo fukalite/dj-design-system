@@ -13,7 +13,7 @@ from dj_design_system.api.serializers import (
     ComponentListSerializer,
     ComponentRenderRequestSerializer,
 )
-from dj_design_system.exceptions import ComponentNotFoundError, ComponentValidationError
+from dj_design_system.exceptions import ComponentValidationError
 from dj_design_system.services.canvas import (
     build_canvas_url,
     get_component_media,
@@ -33,10 +33,20 @@ class ComponentRegistryView(View):
     serializer_class = ComponentListSerializer
     registry = component_registry
 
+    def get_serializer(self, *args, **kwargs):
+        """Return the serializer instance."""
+        return self.serializer_class(*args, **kwargs)
+
     def get(self, request, *args, **kwargs):
         components = self.registry.list_all()
-        serializer = self.serializer_class(components)
+        serializer = self.get_serializer(components)
         return JsonResponse(serializer.data, safe=False)
+
+    def http_method_not_allowed(self, request, *args, **kwargs):
+        logger.warning("Method Not Allowed (%s): %s", request.method, request.path)
+        response = JsonResponse({"error": "Method not allowed."}, status=405)
+        response["Allow"] = ", ".join(self._allowed_methods())
+        return response
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -47,6 +57,9 @@ class ComponentRenderView(View):
     registry = component_registry
 
     def _get_payload(self, request) -> dict:
+        if request.content_type != "application/json":
+            raise ComponentValidationError("Content-Type must be 'application/json'.")
+
         if not request.body:
             raise ComponentValidationError("Request body is empty.")
         try:
@@ -58,6 +71,12 @@ class ComponentRenderView(View):
                 "JSON payload must be an object, not an array."
             )
         return payload
+
+    def http_method_not_allowed(self, request, *args, **kwargs):
+        logger.warning("Method Not Allowed (%s): %s", request.method, request.path)
+        response = JsonResponse({"error": "Method not allowed."}, status=405)
+        response["Allow"] = ", ".join(self._allowed_methods())
+        return response
 
     def get_serializer(self, **kwargs) -> ComponentRenderRequestSerializer:
         """Return the serializer instance with the configured registry."""
@@ -72,12 +91,26 @@ class ComponentRenderView(View):
 
         serializer = self.get_serializer(data=payload)
 
-        try:
-            serializer.validate()
-        except ComponentValidationError as exc:
-            return JsonResponse({"error": exc.message}, status=400)
-        except ComponentNotFoundError as exc:
-            return JsonResponse({"error": exc.message}, status=404)
+        if not serializer.is_valid():
+            errors = serializer.errors
+            status_code = 400
+
+            if "name" in errors:
+                error_message = errors["name"][0]
+                if "not found" in error_message.lower():
+                    status_code = 404
+            else:
+                # Fallback to the first error message found in any field
+                first_error_list = next(iter(errors.values()), None)
+                error_message = (
+                    first_error_list[0]
+                    if first_error_list
+                    else "Unknown validation error"
+                )
+
+            return JsonResponse(
+                {"error": error_message, "errors": errors}, status=status_code
+            )
 
         spec = serializer.to_spec()
 
@@ -85,12 +118,12 @@ class ComponentRenderView(View):
             rendered_html = render_component(
                 spec=spec, registry=self.registry, raise_errors=True
             )
-        except (ValueError, TypeError, KeyError):
+        except Exception:  # Catch all rendering/template exceptions
             logger.exception("Failed to render component")
-            return JsonResponse(
-                {"error": "Failed to render component. Please check your parameters."},
-                status=400,
-            )
+            error_payload = {
+                "error": "Failed to render component. Please check your parameters and template syntax."
+            }
+            return JsonResponse(error_payload, status=400)
 
         media = get_component_media(spec=spec, registry=self.registry)
 
@@ -103,6 +136,12 @@ class ComponentRenderView(View):
             spec, request.build_absolute_uri(canvas_path), registry=self.registry
         )
 
+        def to_absolute_static(path: str) -> str:
+            return request.build_absolute_uri(static(path))
+
+        absolute_css = [to_absolute_static(path) for path in media.css]
+        absolute_js = [to_absolute_static(path) for path in media.js]
+
         global_css = get_bundle_urls(dds_settings.GLOBAL_CSS_BUNDLES, "css") + [
             static(path) for path in dds_settings.GLOBAL_CSS
         ]
@@ -110,13 +149,16 @@ class ComponentRenderView(View):
             static(path) for path in dds_settings.GLOBAL_JS
         ]
 
+        absolute_global_css = [request.build_absolute_uri(url) for url in global_css]
+        absolute_global_js = [request.build_absolute_uri(url) for url in global_js]
+
         return JsonResponse(
             {
                 "html": rendered_html,
-                "css": media.css,
-                "js": media.js,
-                "global_css": global_css,
-                "global_js": global_js,
+                "css": absolute_css,
+                "js": absolute_js,
+                "global_css": absolute_global_css,
+                "global_js": absolute_global_js,
                 "canvas_url": canvas_url,
             }
         )

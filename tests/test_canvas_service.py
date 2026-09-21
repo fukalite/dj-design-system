@@ -218,3 +218,21 @@ class TestCoerceSingle:
     def test_json_param_invalid(self):
         with pytest.raises(ValueError, match="expected valid JSON for ListParam"):
             coerce_single("data", "invalid", ListParam())
+
+    def test_model_param_invalid_pk_raises_value_error(self, db):
+        from django.contrib.auth import get_user_model
+
+        from dj_design_system.parameters.model import ModelParam
+
+        User = get_user_model()
+
+        class UserParam(ModelParam):
+            class Meta:
+                model = User
+                fields = "__all__"
+
+        spec = UserParam("user")
+        with pytest.raises(
+            ValueError, match="invalid primary key or no matching User found"
+        ):
+            coerce_single("user", "invalid_pk_abc", spec)
