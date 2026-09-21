@@ -93,4 +93,4 @@ demo:
 
 # Fetch, parse, and display unresolved PR comments
 comments pr_number="":
-    uv run --no-sync python scripts/pr_comments.py {{pr_number}}
+    uv run --no-sync python .github/scripts/pr_comments.py {{pr_number}}
