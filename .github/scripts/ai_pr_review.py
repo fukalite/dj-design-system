@@ -19,6 +19,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+
 # Ignore non-code or documentation files
 IGNORE_PREFIXES = (
     "conductor/tracks/",
@@ -65,7 +66,9 @@ def get_pr_info(repo: str, pr_number: str, github_token: str) -> dict:
         return json.loads(resp.read().decode("utf-8"))
 
 
-def fetch_diff(repo: str, pr_number: str, github_token: str, base_sha: str, head_sha: str) -> str:
+def fetch_diff(
+    repo: str, pr_number: str, github_token: str, base_sha: str, head_sha: str
+) -> str:
     """Fetch the PR unified diff from local git or GitHub API."""
     if base_sha and head_sha:
         try:
@@ -108,10 +111,9 @@ def parse_and_annotate_diff(diff_text: str):
             parts = raw_line.split()
             b_path = parts[3]
             current_file = b_path[2:] if b_path.startswith("b/") else b_path
-            skip_current = (
-                any(current_file.startswith(p) for p in IGNORE_PREFIXES)
-                or any(current_file.endswith(s) for s in IGNORE_SUFFIXES)
-            )
+            skip_current = any(
+                current_file.startswith(p) for p in IGNORE_PREFIXES
+            ) or any(current_file.endswith(s) for s in IGNORE_SUFFIXES)
             if not skip_current:
                 files[current_file] = {"valid_lines": set(), "lines": []}
             new_line = None
@@ -229,11 +231,17 @@ Use the exact line numbers annotated at the start of each line (e.g. ' 42: + cod
                 return json.loads(text_content)
         except urllib.error.HTTPError as e:
             err_msg = e.read().decode("utf-8", errors="replace")
-            print(f"Warning: Gemini API call failed for model {candidate_model} (HTTP {e.code}): {err_msg}", file=sys.stderr)
+            print(
+                f"Warning: Gemini API call failed for model {candidate_model} (HTTP {e.code}): {err_msg}",
+                file=sys.stderr,
+            )
             last_error = e
             continue
         except Exception as e:
-            print(f"Warning: Request error for model {candidate_model}: {e}", file=sys.stderr)
+            print(
+                f"Warning: Request error for model {candidate_model}: {e}",
+                file=sys.stderr,
+            )
             last_error = e
             continue
 
@@ -271,15 +279,23 @@ def post_github_review(
 
     try:
         with urllib.request.urlopen(req) as resp:
-            print(f"Successfully posted PR review with {len(inline_comments)} inline comments (HTTP {resp.status}).")
+            print(
+                f"Successfully posted PR review with {len(inline_comments)} inline comments (HTTP {resp.status})."
+            )
             return
     except urllib.error.HTTPError as e:
         err_msg = e.read().decode("utf-8", errors="replace")
-        print(f"GitHub review submission failed with HTTP {e.code}: {err_msg}", file=sys.stderr)
+        print(
+            f"GitHub review submission failed with HTTP {e.code}: {err_msg}",
+            file=sys.stderr,
+        )
 
         # If an inline comment had an invalid line (422), fallback to top-level review body
         if e.code == 422 and inline_comments:
-            print("Retrying review submission with comments embedded in summary body...", file=sys.stderr)
+            print(
+                "Retrying review submission with comments embedded in summary body...",
+                file=sys.stderr,
+            )
             fallback_body = review_body + "\n\n### Inline Findings\n"
             for c in inline_comments:
                 fallback_body += f"\n- **`{c['path']}:{c['line']}`**:\n{c['body']}\n"
@@ -310,7 +326,9 @@ def main():
     head_sha = get_env_var("HEAD_SHA")
     base_sha = get_env_var("BASE_SHA")
     model = get_env_var("GEMINI_MODEL", "gemini-3.8-flash")
-    instructions_file = get_env_var("INSTRUCTIONS_FILE", ".github/copilot-instructions.md")
+    instructions_file = get_env_var(
+        "INSTRUCTIONS_FILE", ".github/copilot-instructions.md"
+    )
     user_comment = get_env_var("USER_COMMENT")
 
     if not gemini_key:
@@ -339,16 +357,22 @@ def main():
     if os.path.isfile(instructions_file):
         with open(instructions_file, "r", encoding="utf-8") as f:
             instructions = f.read()
-        print(f"Loaded instructions from {instructions_file} ({len(instructions)} chars).")
+        print(
+            f"Loaded instructions from {instructions_file} ({len(instructions)} chars)."
+        )
     else:
-        print(f"Notice: {instructions_file} not found; using standard review guidelines.")
+        print(
+            f"Notice: {instructions_file} not found; using standard review guidelines."
+        )
         instructions = "You are a Senior Python & Django Engineer. Review code for correctness, Django idiomaticness, security, and performance. Use ```suggestion blocks for fixes."
 
     if user_comment:
-        custom_focus = re.sub(r"^/review\b", "", user_comment.strip(), flags=re.IGNORECASE).strip()
+        custom_focus = re.sub(
+            r"^/review\b", "", user_comment.strip(), flags=re.IGNORECASE
+        ).strip()
         if custom_focus:
             print(f"Adding developer custom focus: '{custom_focus}'")
-            instructions += f"\n\n## Developer Specific Request for this Review\nThe developer explicitly requested: \"{custom_focus}\". Prioritize analyzing this aspect while upholding standard review quality."
+            instructions += f'\n\n## Developer Specific Request for this Review\nThe developer explicitly requested: "{custom_focus}". Prioritize analyzing this aspect while upholding standard review quality.'
 
     # 3. Fetch & Parse Diff
     print(f"Fetching diff for PR #{pr_number} in {repo}...")
@@ -356,7 +380,9 @@ def main():
     files_data = parse_and_annotate_diff(diff_text)
 
     if not files_data:
-        print("No relevant code modifications found in diff to review. Exiting cleanly.")
+        print(
+            "No relevant code modifications found in diff to review. Exiting cleanly."
+        )
         sys.exit(0)
 
     print(f"Reviewing {len(files_data)} modified code files...")
@@ -369,7 +395,9 @@ def main():
 
     # Truncate payload if unreasonably large to avoid context overload
     if len(diff_payload) > 120_000:
-        diff_payload = diff_payload[:120_000] + "\n\n... [Diff truncated for length] ..."
+        diff_payload = (
+            diff_payload[:120_000] + "\n\n... [Diff truncated for length] ..."
+        )
 
     # 5. Invoke Gemini
     print(f"Calling Gemini ({model})...")
@@ -391,22 +419,28 @@ def main():
         if fpath in files_data:
             valid_lines = files_data[fpath]["valid_lines"]
             if line in valid_lines:
-                valid_inline_comments.append({
-                    "path": fpath,
-                    "line": int(line),
-                    "side": "RIGHT",
-                    "body": body,
-                })
-            else:
-                # Try finding closest valid line within distance of 3
-                closest = min(valid_lines, key=lambda l: abs(l - line), default=None)
-                if closest is not None and abs(closest - line) <= 3:
-                    valid_inline_comments.append({
+                valid_inline_comments.append(
+                    {
                         "path": fpath,
-                        "line": int(closest),
+                        "line": int(line),
                         "side": "RIGHT",
                         "body": body,
-                    })
+                    }
+                )
+            else:
+                # Try finding closest valid line within distance of 3
+                closest = min(
+                    valid_lines, key=lambda line_num: abs(line_num - line), default=None
+                )
+                if closest is not None and abs(closest - line) <= 3:
+                    valid_inline_comments.append(
+                        {
+                            "path": fpath,
+                            "line": int(closest),
+                            "side": "RIGHT",
+                            "body": body,
+                        }
+                    )
                 else:
                     # Append to summary so comment isn't lost
                     summary += f"\n\n- **Note on `{fpath}:{line}`**: {body}"
@@ -414,7 +448,9 @@ def main():
             summary += f"\n\n- **Note on `{fpath}`**: {body}"
 
     # 7. Post Pull Request Review
-    print(f"Submitting review to PR #{pr_number} with {len(valid_inline_comments)} inline comments...")
+    print(
+        f"Submitting review to PR #{pr_number} with {len(valid_inline_comments)} inline comments..."
+    )
     post_github_review(
         repo=repo,
         pr_number=pr_number,
