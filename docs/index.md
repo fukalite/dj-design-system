@@ -66,6 +66,8 @@ The gallery generates the templatetag syntax automatically and shows a live prev
 
 **Markdown documentation** — place `index.md` or any other `.md` file alongside your components for narrative documentation that appears in the gallery.
 
+**Integration testing** — use the testing extras (like `[testing-all]`) to automatically assert accessibility, HTML validity, and visual regression across every variant of every component.
+
 ---
 
 ## Where to go next
@@ -79,5 +81,6 @@ The gallery generates the templatetag syntax automatically and shows a live prev
 | Configure the gallery UI                         | [Gallery](gallery.md)                                                                                  |
 | Use components in templates                      | [Templatetags](templatetags.md)                                                                        |
 | Understand how to structure my component library | [Organising components](organisation.md)                                                               |
+| Test your components automatically               | [Integration testing](testing.md)                                                                      |
 | Browse the full API reference                    | [Parameters](api/parameters.md) · [Components](api/components.md)                                      |
 | Contribute to the project                        | [Contributing](https://github.com/fukalite/dj-design-system/blob/main/CONTRIBUTING.md) |
