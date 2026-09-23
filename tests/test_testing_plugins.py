@@ -265,3 +265,14 @@ def test_strict_html_parser_detects_real_errors_with_void_elements():
     assert any("Unclosed tags remaining: div" in err for err in parser2.errors)
 
 
+def test_strict_html_parser_flags_explicit_closing_void_elements():
+    """Verify that explicit closing tags on void elements (e.g. </input>) are flagged as errors."""
+    from dj_design_system.testing.plugins import StrictHTMLParser
+
+    parser = StrictHTMLParser()
+    parser.feed('<div><input type="text"></input></div>')
+    parser.close()
+    assert any("</input>" in err for err in parser.errors)
+
+
+
