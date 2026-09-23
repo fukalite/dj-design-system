@@ -276,4 +276,7 @@ def _serialise_value(value: object) -> str:
         return "true" if value else "false"
     if isinstance(value, Model):
         return str(value.pk)
+    if isinstance(value, (list, dict)):
+        return json.dumps(value)
     return str(value)
+
