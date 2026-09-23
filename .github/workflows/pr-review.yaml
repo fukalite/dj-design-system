@@ -73,3 +73,10 @@ jobs:
           gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions -f content='rocket' || true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Mark review request failed
+        if: github.event_name == 'issue_comment' && failure()
+        run: |
+          gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions -f content='confused' || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,3 +1,4 @@
+import json
 import shutil
 import urllib.parse
 from html.parser import HTMLParser
@@ -39,6 +40,8 @@ class PlaywrightAssessmentPlugin(AssessmentPlugin):
             if value is not None:
                 if isinstance(value, bool):
                     params[key] = "true" if value else "false"
+                elif isinstance(value, (list, dict)):
+                    params[key] = json.dumps(value)
                 else:
                     params[key] = str(value)
                     
