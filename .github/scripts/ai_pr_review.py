@@ -162,6 +162,8 @@ def call_gemini(
     models_to_try = [model]
     if model != "gemini-3.8-flash":
         models_to_try.append("gemini-3.8-flash")
+    if model != "gemini-3.7-flash":
+        models_to_try.append("gemini-3.7-flash")
 
     schema = {
         "type": "OBJECT",
