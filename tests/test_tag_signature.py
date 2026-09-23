@@ -336,11 +336,15 @@ class TestTagSignatureEdgeCases:
         assert "heading" in sig.maximal
         assert "level" in sig.maximal
 
-    def test_required_kwarg_skipped_in_maximal(self):
-        """Required non-positional params are omitted from the maximal signature."""
+    def test_required_kwarg_included_in_signatures(self):
+        """Required non-positional params are included in minimal and maximal signatures."""
         sig = generate_tag_signature(RequiredKwargComponent)
-        # label is required but not positional → not in positional_args → skipped
-        assert "{% required_kwarg %}" == sig.maximal
+        # label is required and not positional → included as keyword arg
+        assert '{% required_kwarg label="foo" %}' == sig.maximal
+        assert '{% required_kwarg label="foo" %}' == sig.minimal
+        assert sig.minimal_spec.params.get("label") == "foo"
+        assert sig.maximal_spec.params.get("label") == "foo"
+
 
     def test_bool_css_no_default_generates_true(self):
         """BoolCSSClassParam with no default returns True as example value."""
@@ -488,3 +492,31 @@ class TestGalleryParameterFormatting:
 
         param = GalleryParameter(value="raw_value", code="my_var")
         assert _unwrap_example(param) == "raw_value"
+
+
+class RequiredKeywordComponent(TagComponent):
+    """Component with required keyword parameter not in positional_args."""
+
+    title = StrParam("The title", required=True)
+    subtitle = StrParam("Optional subtitle", required=False, default="Default Subtitle")
+
+    template_format_str = "<h1>{title}</h1><p>{subtitle}</p>"
+
+
+class TestRequiredKeywordParam:
+    """Test handling of required keyword parameters not in positional_args (#97)."""
+
+    def test_minimal_signature_includes_required_keyword_arg(self):
+        sig = generate_tag_signature(RequiredKeywordComponent)
+        assert 'title="foo"' in sig.minimal
+        assert sig.minimal_spec.params.get("title") == "foo"
+        assert "subtitle" not in sig.minimal
+        assert "subtitle" not in sig.minimal_spec.params
+
+    def test_maximal_signature_includes_required_keyword_arg(self):
+        sig = generate_tag_signature(RequiredKeywordComponent)
+        assert 'title="foo"' in sig.maximal
+        assert sig.maximal_spec.params.get("title") == "foo"
+        assert 'subtitle="Default Subtitle"' in sig.maximal
+        assert sig.maximal_spec.params.get("subtitle") == "Default Subtitle"
+

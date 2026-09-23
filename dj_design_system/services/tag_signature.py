@@ -407,7 +407,7 @@ def _unwrap_example(value: Any) -> Any:
 
 def _build_minimal_positional_values(
     positional_args: list[str], params: dict[str, Any], overrides: dict[str, Any]
-) -> tuple[list[str], list[Any]]:
+) -> tuple[list[str], list[Any], int]:
     minimal_positional = []
     minimal_positional_values = []
     str_index = 0
@@ -426,7 +426,7 @@ def _build_minimal_positional_values(
                     str_index += 1
                 minimal_positional.append(_format_positional_arg(value))
                 minimal_positional_values.append(_unwrap_example(value))
-    return minimal_positional, minimal_positional_values
+    return minimal_positional, minimal_positional_values, str_index
 
 
 def _build_maximal_positional_values(
@@ -475,13 +475,12 @@ def _build_maximal_keyword_values(
         if param_name in positional_args or param_name in overrides:
             continue
 
-        if not spec.required or spec.default is not None:
-            value = _generate_example_value(spec, param_name, str_index)
-            if isinstance(spec, StrParam):
-                str_index += 1
-            if value is not None:
-                maximal_keyword.append(_format_param_for_tag(param_name, value))
-                maximal_keyword_values[param_name] = _unwrap_example(value)
+        value = _generate_example_value(spec, param_name, str_index)
+        if isinstance(spec, StrParam):
+            str_index += 1
+        if value is not None:
+            maximal_keyword.append(_format_param_for_tag(param_name, value))
+            maximal_keyword_values[param_name] = _unwrap_example(value)
     return maximal_keyword, maximal_keyword_values
 
 
@@ -521,7 +520,7 @@ def generate_tag_signature(
     }
 
     # Minimal Signature
-    min_pos_fmt, min_pos_vals = _build_minimal_positional_values(
+    min_pos_fmt, min_pos_vals, min_str_index = _build_minimal_positional_values(
         positional_args, params, basic_kwargs
     )
 
@@ -533,6 +532,18 @@ def generate_tag_signature(
             continue
         min_kw_fmt.append(_format_param_for_tag(param_name, value))
         min_kw_vals[param_name] = _unwrap_example(value)
+
+    # Include required keyword parameters not in positional_args or basic_kwargs
+    for param_name, spec in params.items():
+        if param_name in positional_args or param_name in basic_kwargs:
+            continue
+        if spec.required:
+            value = _generate_example_value(spec, param_name, min_str_index)
+            if isinstance(spec, StrParam):
+                min_str_index += 1
+            if value is not None:
+                min_kw_fmt.append(_format_param_for_tag(param_name, value))
+                min_kw_vals[param_name] = _unwrap_example(value)
 
     minimal = _build_sig_raw(
         component_name,
