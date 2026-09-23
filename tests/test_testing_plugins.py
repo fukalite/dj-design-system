@@ -68,7 +68,30 @@ def test_visual_regression_plugin_maximal(mocker):
     assert "is_active=false" in url
 
 
+def test_playwright_assessment_plugin_navigates_with_json_params(mocker):
+    """Verify Playwright plugins serialise list and dict kwargs as valid JSON in URLs (#95)."""
+    from dj_design_system.testing.plugins import VisualRegressionPlugin
+
+    mock_page = mocker.Mock()
+    plugin = VisualRegressionPlugin(
+        page=mock_page, base_url="http://localhost:8000", enable_diff=False
+    )
+
+    mock_comp = mocker.Mock()
+    mock_comp.qualified_name = "test_app__test_component"
+    mock_comp.gallery_basic_kwargs = {
+        "links": [{"id": "intro", "text": "Introduction"}],
+        "metadata": {"tags": ["ui", "button"]},
+    }
+
+    plugin.run_assessment(mock_comp, "basic", "light")
+    url = mock_page.goto.call_args[0][0]
+    assert "links=%5B%7B%22id%22%3A+%22intro%22%2C+%22text%22%3A+%22Introduction%22%7D%5D" in url
+    assert "metadata=%7B%22tags%22%3A+%5B%22ui%22%2C+%22button%22%5D%7D" in url
+
+
 def test_visual_regression_plugin_unknown_variant(mocker):
+
     from dj_design_system.testing.plugins import VisualRegressionPlugin
 
     mock_page = mocker.Mock()
