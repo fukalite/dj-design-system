@@ -236,3 +236,32 @@ def test_html_validation_plugin_fails(mocker):
 
     with pytest.raises(AssertionError, match="HTML validation failed"):
         plugin.run_assessment(mock_comp, "basic", "light")
+
+
+def test_strict_html_parser_xhtml_self_closing_void_elements():
+    """Verify StrictHTMLParser does not raise errors on XHTML self-closing void elements (#96)."""
+    from dj_design_system.testing.plugins import StrictHTMLParser
+
+    parser = StrictHTMLParser()
+    parser.feed('<div><input type="range" /><br /><img src="foo.png" /><source srcset="test.webp" /></div>')
+    parser.close()
+    assert parser.errors == []
+
+
+def test_strict_html_parser_detects_real_errors_with_void_elements():
+    """Verify StrictHTMLParser still detects real errors when void elements are present."""
+    from dj_design_system.testing.plugins import StrictHTMLParser
+
+    # Mismatched tags around void element
+    parser = StrictHTMLParser()
+    parser.feed('<div><span><input type="checkbox" /></div></span>')
+    parser.close()
+    assert any("Mismatched closing tag" in err for err in parser.errors)
+
+    # Unclosed tag with void element
+    parser2 = StrictHTMLParser()
+    parser2.feed('<div><img src="pic.jpg" />')
+    parser2.close()
+    assert any("Unclosed tags remaining: div" in err for err in parser2.errors)
+
+

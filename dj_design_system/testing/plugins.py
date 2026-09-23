@@ -188,6 +188,8 @@ class StrictHTMLParser(HTMLParser):
             self.stack.append(tag)
 
     def handle_endtag(self, tag: str) -> None:
+        if tag in self.void_elements:
+            return
         if not self.stack:
             self.errors.append(f"Orphaned closing tag: </{tag}>")
         elif self.stack[-1] != tag:
