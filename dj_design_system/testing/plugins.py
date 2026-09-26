@@ -1,3 +1,4 @@
+import json
 import shutil
 import urllib.parse
 from html.parser import HTMLParser
@@ -39,6 +40,8 @@ class PlaywrightAssessmentPlugin(AssessmentPlugin):
             if value is not None:
                 if isinstance(value, bool):
                     params[key] = "true" if value else "false"
+                elif isinstance(value, (list, dict)):
+                    params[key] = json.dumps(value)
                 else:
                     params[key] = str(value)
                     
@@ -186,6 +189,11 @@ class StrictHTMLParser(HTMLParser):
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         if tag not in self.void_elements:
             self.stack.append(tag)
+
+    def handle_startendtag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        self.handle_starttag(tag, attrs)
+        if tag not in self.void_elements:
+            self.handle_endtag(tag)
 
     def handle_endtag(self, tag: str) -> None:
         if not self.stack:

@@ -68,7 +68,30 @@ def test_visual_regression_plugin_maximal(mocker):
     assert "is_active=false" in url
 
 
+def test_playwright_assessment_plugin_navigates_with_json_params(mocker):
+    """Verify Playwright plugins serialise list and dict kwargs as valid JSON in URLs (#95)."""
+    from dj_design_system.testing.plugins import VisualRegressionPlugin
+
+    mock_page = mocker.Mock()
+    plugin = VisualRegressionPlugin(
+        page=mock_page, base_url="http://localhost:8000", enable_diff=False
+    )
+
+    mock_comp = mocker.Mock()
+    mock_comp.qualified_name = "test_app__test_component"
+    mock_comp.gallery_basic_kwargs = {
+        "links": [{"id": "intro", "text": "Introduction"}],
+        "metadata": {"tags": ["ui", "button"]},
+    }
+
+    plugin.run_assessment(mock_comp, "basic", "light")
+    url = mock_page.goto.call_args[0][0]
+    assert "links=%5B%7B%22id%22%3A+%22intro%22%2C+%22text%22%3A+%22Introduction%22%7D%5D" in url
+    assert "metadata=%7B%22tags%22%3A+%5B%22ui%22%2C+%22button%22%5D%7D" in url
+
+
 def test_visual_regression_plugin_unknown_variant(mocker):
+
     from dj_design_system.testing.plugins import VisualRegressionPlugin
 
     mock_page = mocker.Mock()
@@ -236,3 +259,43 @@ def test_html_validation_plugin_fails(mocker):
 
     with pytest.raises(AssertionError, match="HTML validation failed"):
         plugin.run_assessment(mock_comp, "basic", "light")
+
+
+def test_strict_html_parser_xhtml_self_closing_void_elements():
+    """Verify StrictHTMLParser does not raise errors on XHTML self-closing void elements (#96)."""
+    from dj_design_system.testing.plugins import StrictHTMLParser
+
+    parser = StrictHTMLParser()
+    parser.feed('<div><input type="range" /><br /><img src="foo.png" /><source srcset="test.webp" /></div>')
+    parser.close()
+    assert parser.errors == []
+
+
+def test_strict_html_parser_detects_real_errors_with_void_elements():
+    """Verify StrictHTMLParser still detects real errors when void elements are present."""
+    from dj_design_system.testing.plugins import StrictHTMLParser
+
+    # Mismatched tags around void element
+    parser = StrictHTMLParser()
+    parser.feed('<div><span><input type="checkbox" /></div></span>')
+    parser.close()
+    assert any("Mismatched closing tag" in err for err in parser.errors)
+
+    # Unclosed tag with void element
+    parser2 = StrictHTMLParser()
+    parser2.feed('<div><img src="pic.jpg" />')
+    parser2.close()
+    assert any("Unclosed tags remaining: div" in err for err in parser2.errors)
+
+
+def test_strict_html_parser_flags_explicit_closing_void_elements():
+    """Verify that explicit closing tags on void elements (e.g. </input>) are flagged as errors."""
+    from dj_design_system.testing.plugins import StrictHTMLParser
+
+    parser = StrictHTMLParser()
+    parser.feed('<div><input type="text"></input></div>')
+    parser.close()
+    assert any("</input>" in err for err in parser.errors)
+
+
+

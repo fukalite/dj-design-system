@@ -12,12 +12,23 @@ Performs inline code reviews on GitHub Pull Requests by:
 
 import json
 import os
+import random
 import re
 import subprocess
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
+
+
+# Active Gemini 3 series models in order of preferred fallback
+CURRENT_GEMINI_MODELS = [
+    "gemini-3.8-flash",
+    "gemini-3.7-flash",
+    "gemini-3.5-flash",
+    "gemini-3.5-flash-lite",
+]
 
 
 # Ignore non-code or documentation files
@@ -158,12 +169,11 @@ def call_gemini(
     system_instructions: str,
     diff_payload: str,
 ) -> dict:
-    """Call the Gemini API requesting structured JSON output."""
+    """Call the Gemini API requesting structured JSON output with retries and model fallbacks."""
     models_to_try = [model]
-    if model != "gemini-3.8-flash":
-        models_to_try.append("gemini-3.8-flash")
-    if model != "gemini-3.7-flash":
-        models_to_try.append("gemini-3.7-flash")
+    for m in CURRENT_GEMINI_MODELS:
+        if m not in models_to_try:
+            models_to_try.append(m)
 
     schema = {
         "type": "OBJECT",
@@ -216,38 +226,107 @@ Use the exact line numbers annotated at the start of each line (e.g. ' 42: + cod
         },
     }
 
+    max_retries_per_model = 3
+    base_backoff_delay = 3.0  # seconds
     last_error = None
+
     for candidate_model in models_to_try:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{candidate_model}:generateContent?key={api_key}"
         data_bytes = json.dumps(req_body).encode("utf-8")
-        req = urllib.request.Request(
-            url,
-            data=data_bytes,
-            headers={"Content-Type": "application/json"},
-            method="POST",
-        )
-        try:
-            with urllib.request.urlopen(req) as resp:
-                resp_json = json.loads(resp.read().decode("utf-8"))
-                text_content = resp_json["candidates"][0]["content"]["parts"][0]["text"]
-                return json.loads(text_content)
-        except urllib.error.HTTPError as e:
-            err_msg = e.read().decode("utf-8", errors="replace")
-            print(
-                f"Warning: Gemini API call failed for model {candidate_model} (HTTP {e.code}): {err_msg}",
-                file=sys.stderr,
-            )
-            last_error = e
-            continue
-        except Exception as e:
-            print(
-                f"Warning: Request error for model {candidate_model}: {e}",
-                file=sys.stderr,
-            )
-            last_error = e
-            continue
 
-    raise RuntimeError(f"All Gemini model attempts failed. Last error: {last_error}")
+        for attempt in range(max_retries_per_model):
+            req = urllib.request.Request(
+                url,
+                data=data_bytes,
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            try:
+                print(
+                    f"Calling Gemini ({candidate_model}, attempt {attempt + 1}/{max_retries_per_model})..."
+                )
+                with urllib.request.urlopen(req, timeout=60) as resp:
+                    resp_json = json.loads(resp.read().decode("utf-8"))
+                    candidates = resp_json.get("candidates", [])
+                    if not candidates:
+                        raise ValueError(f"No response candidates returned: {resp_json}")
+                    parts = candidates[0].get("content", {}).get("parts", [])
+                    if not parts or "text" not in parts[0]:
+                        finish_reason = candidates[0].get("finishReason", "UNKNOWN")
+                        raise ValueError(
+                            f"Candidate missing text (finishReason: {finish_reason})"
+                        )
+                    text_content = parts[0]["text"].strip()
+                    if text_content.startswith("```"):
+                        text_content = re.sub(
+                            r"^```(?:json)?\s*|\s*```$", "", text_content
+                        )
+                    return json.loads(text_content)
+            except urllib.error.HTTPError as e:
+                err_msg = e.read().decode("utf-8", errors="replace")
+                last_error = f"HTTP {e.code} for {candidate_model}: {err_msg}"
+
+                # Retry on transient capacity, rate limit, or gateway errors
+                if e.code in (429, 500, 502, 503, 504):
+                    if attempt < max_retries_per_model - 1:
+                        jitter = random.uniform(0.5, 1.5)
+                        delay = min(25.0, base_backoff_delay * (2**attempt) + jitter)
+                        print(
+                            f"Warning: Gemini API returned HTTP {e.code} for model {candidate_model}. "
+                            f"Retrying in {delay:.1f}s (attempt {attempt + 1}/{max_retries_per_model})...",
+                            file=sys.stderr,
+                        )
+                        time.sleep(delay)
+                        continue
+                    else:
+                        print(
+                            f"Warning: Exhausted all {max_retries_per_model} attempts for {candidate_model} (HTTP {e.code}). "
+                            f"Falling back to next model...",
+                            file=sys.stderr,
+                        )
+                        break
+                else:
+                    # Non-retryable HTTP error (e.g. 400 Bad Request, 401 Unauthorized, 404 Not Found)
+                    print(
+                        f"Warning: Non-retryable HTTP {e.code} for model {candidate_model}: {err_msg}",
+                        file=sys.stderr,
+                    )
+                    break
+            except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
+                last_error = f"Network error for {candidate_model}: {e}"
+                if attempt < max_retries_per_model - 1:
+                    jitter = random.uniform(0.5, 1.5)
+                    delay = min(15.0, base_backoff_delay * (2**attempt) + jitter)
+                    print(
+                        f"Warning: Network error calling {candidate_model}: {e}. Retrying in {delay:.1f}s...",
+                        file=sys.stderr,
+                    )
+                    time.sleep(delay)
+                    continue
+                else:
+                    print(
+                        f"Warning: Network retries exhausted for {candidate_model}. Falling back to next model...",
+                        file=sys.stderr,
+                    )
+                    break
+            except json.JSONDecodeError as e:
+                last_error = f"JSON decode error from {candidate_model}: {e}"
+                print(
+                    f"Warning: Invalid JSON returned by {candidate_model}: {e}",
+                    file=sys.stderr,
+                )
+                break
+            except Exception as e:
+                last_error = f"Request error for {candidate_model}: {e}"
+                print(
+                    f"Warning: Unexpected error for model {candidate_model}: {e}",
+                    file=sys.stderr,
+                )
+                break
+
+    raise RuntimeError(
+        f"All Gemini model attempts exhausted ({', '.join(models_to_try)}). Last error: {last_error}"
+    )
 
 
 def post_github_review(
@@ -267,7 +346,10 @@ def post_github_review(
         "X-GitHub-Api-Version": "2022-11-28",
     }
 
-    review_body = f"### ⚡ Gemini Code Review\n\n{summary}"
+    if summary.startswith("### "):
+        review_body = summary
+    else:
+        review_body = f"### ⚡ Gemini Code Review\n\n{summary}"
 
     payload = {
         "commit_id": head_sha,
@@ -402,8 +484,35 @@ def main():
         )
 
     # 5. Invoke Gemini
-    print(f"Calling Gemini ({model})...")
-    review_output = call_gemini(gemini_key, model, instructions, diff_payload)
+    try:
+        review_output = call_gemini(gemini_key, model, instructions, diff_payload)
+    except RuntimeError as e:
+        print(f"\n❌ Gemini review generation failed: {e}", file=sys.stderr)
+        outage_notice = (
+            "### ⚠️ Gemini Code Review Temporarily Unavailable\n\n"
+            "The automated code review could not be completed because the Gemini API is currently experiencing "
+            "temporary upstream capacity limits (`HTTP 503 Service Unavailable`).\n\n"
+            "Automatic retries with exponential backoff were attempted across all active Gemini 3 models "
+            f"({', '.join(f'`{m}`' for m in CURRENT_GEMINI_MODELS)}), but all attempts were throttled by upstream demand.\n\n"
+            "💡 **Next steps:**\n"
+            "- Once Google API capacity recovers, you can re-trigger this review at any time by commenting `/review` on this PR.\n"
+        )
+        try:
+            print("Posting outage notification review to PR...", file=sys.stderr)
+            post_github_review(
+                repo=repo,
+                pr_number=pr_number,
+                github_token=github_token,
+                head_sha=head_sha,
+                summary=outage_notice,
+                inline_comments=[],
+            )
+        except Exception as post_err:
+            print(
+                f"Warning: Could not post outage notice to PR: {post_err}",
+                file=sys.stderr,
+            )
+        sys.exit(1)
 
     summary = review_output.get("summary", "Review complete.")
     raw_comments = review_output.get("comments", [])
