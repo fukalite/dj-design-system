@@ -4,9 +4,13 @@ import inspect
 from dataclasses import dataclass, field
 from functools import cached_property
 from pathlib import Path
-from typing import Any, Type
+from typing import TYPE_CHECKING, Any, Type
 
 from dj_design_system.types import FlattenStrategy, NodeType, TagType
+
+
+if TYPE_CHECKING:
+    from dj_design_system.gallery import GalleryConfig
 
 
 class InvalidTagType(Exception):
@@ -99,20 +103,40 @@ class ComponentInfo:
 
     @cached_property
     def _gallery_kwargs(self) -> tuple[dict, dict]:
+        cfg = self.gallery_config
+        basic_v = cfg.get_variant("basic")
+        maximal_v = cfg.get_variant("maximal")
+        return (
+            dict(basic_v.kwargs) if basic_v else {},
+            dict(maximal_v.kwargs) if maximal_v else {},
+        )
+
+    @cached_property
+    def gallery_config(self) -> "GalleryConfig":
+        from dj_design_system.gallery import GalleryConfig, Variant
+
+        source_file = None
         try:
-            source_file = Path(inspect.getfile(self.component_class))
+            if hasattr(self.component_class, "__file__"):
+                source_file = Path(self.component_class.__file__)
+            else:
+                source_file = Path(inspect.getfile(self.component_class))
         except (TypeError, OSError):
-            return {}, {}
+            source_file = None
+
+        if not source_file:
+            return GalleryConfig()
 
         source_dir = source_file.parent
 
         gallery_path = source_dir / f"{self.name}_gallery.py"
         if not gallery_path.is_file():
-            if source_file.name in ("component.py", "__init__.py"):
-                gallery_path = source_dir / "gallery.py"
+            gallery_path = source_dir / f"{self.name}.gallery.py"
+        if not gallery_path.is_file():
+            gallery_path = source_dir / "gallery.py"
 
         if not gallery_path.is_file():
-            return {}, {}
+            return GalleryConfig()
 
         import importlib.util
         import uuid
@@ -122,12 +146,27 @@ class ComponentInfo:
         if spec and spec.loader:
             mod = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(mod)
-            return (
-                getattr(mod, "basic_kwargs", {}),
-                getattr(mod, "maximal_kwargs", {}),
-            )
 
-        return {}, {}
+            cfg = getattr(mod, "config", None)
+            if isinstance(cfg, GalleryConfig):
+                return cfg
+
+            named_cfg = getattr(mod, f"{self.name}_config", None)
+            if isinstance(named_cfg, GalleryConfig):
+                return named_cfg
+
+            # Legacy fallback for basic_kwargs / maximal_kwargs
+            basic_kwargs = getattr(mod, "basic_kwargs", None)
+            maximal_kwargs = getattr(mod, "maximal_kwargs", None)
+            if basic_kwargs is not None or maximal_kwargs is not None:
+                variants = []
+                if basic_kwargs is not None:
+                    variants.append(Variant(name="basic", kwargs=basic_kwargs))
+                if maximal_kwargs is not None:
+                    variants.append(Variant(name="maximal", kwargs=maximal_kwargs))
+                return GalleryConfig(variants=variants)
+
+        return GalleryConfig()
 
     @property
     def qualified_name(self) -> str:
