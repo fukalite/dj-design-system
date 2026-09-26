@@ -1,0 +1,12 @@
+Task: Update Component Discovery in ComponentInfo
+
+Summary:
+- Updated ComponentInfo.gallery_config cached property to discover gallery configuration from {name}_gallery.py, {name}.gallery.py, or gallery.py.
+- Handled config attribute and component-specific {name}_config exports.
+- Implemented backwards compatibility fallback: if legacy basic_kwargs or maximal_kwargs are exported without config, synthesizes a GalleryConfig with basic and maximal variants.
+- Preserved lazy loading and cached property semantics for legacy gallery_basic_kwargs and gallery_maximal_kwargs.
+- Added comprehensive unit tests in tests/test_discovery_gallery.py.
+
+Created/Modified Files:
+- dj_design_system/data.py
+- tests/test_discovery_gallery.py
