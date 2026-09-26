@@ -11,7 +11,7 @@
 ---
 
 ## Phase 1: `Variant`, `GalleryConfig` & Component Discovery
-- [ ] Task: Implement `Variant` and `GalleryConfig` in `dj_design_system.gallery`
+- [x] Task: Implement `Variant` and `GalleryConfig` in `dj_design_system.gallery` [ca6872a]
   - [ ] Write failing unit tests for `Variant` and `GalleryConfig` attributes, validations, defaults, and dictionary coercions in `tests/test_gallery_config.py`.
   - [ ] Implement `dj_design_system/gallery.py` with `Variant`, `GalleryConfig`, and helper functions.
 - [ ] Task: Update Component Discovery in `ComponentInfo`
