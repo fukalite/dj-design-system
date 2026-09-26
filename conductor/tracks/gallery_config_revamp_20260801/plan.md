@@ -14,7 +14,7 @@
 - [x] Task: Implement `Variant` and `GalleryConfig` in `dj_design_system.gallery` [ca6872a]
   - [ ] Write failing unit tests for `Variant` and `GalleryConfig` attributes, validations, defaults, and dictionary coercions in `tests/test_gallery_config.py`.
   - [ ] Implement `dj_design_system/gallery.py` with `Variant`, `GalleryConfig`, and helper functions.
-- [ ] Task: Update Component Discovery in `ComponentInfo`
+- [x] Task: Update Component Discovery in `ComponentInfo` [693cf49]
   - [ ] Write failing unit tests in `tests/test_discovery_gallery.py` verifying that `ComponentInfo.gallery_config` loads from `gallery.py` or `<name>_gallery.py`, and falls back to synthesized config when legacy `basic_kwargs` exist.
   - [ ] Update `dj_design_system/data.py` to discover and attach `gallery_config`.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
