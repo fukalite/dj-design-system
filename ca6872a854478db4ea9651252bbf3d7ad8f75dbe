@@ -1,0 +1,12 @@
+Task: Implement Variant and GalleryConfig in dj_design_system.gallery
+
+Summary:
+- Defined Variant dataclass supporting custom names, labels, descriptions, kwargs, positional args, canvas templates, extra context, navigation icons, themes, and show_in_nav settings.
+- Defined GalleryConfig dataclass supporting hidden, icon, theme, group, order, smart hybrid canvas_template, extra_context, param_defaults, and coerced variant definitions.
+- Created unit tests in tests/test_gallery_config.py verifying property defaults, validations, and coercions.
+- Exported GalleryConfig and Variant from dj_design_system.
+
+Created/Modified Files:
+- dj_design_system/gallery.py
+- dj_design_system/__init__.py
+- tests/test_gallery_config.py
