@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import inspect
+import warnings
 from dataclasses import dataclass, field
 from functools import cached_property
 from pathlib import Path
@@ -95,10 +96,22 @@ class ComponentInfo:
 
     @property
     def gallery_basic_kwargs(self) -> dict[str, Any]:
+        warnings.warn(
+            f"ComponentInfo.gallery_basic_kwargs for '{self.name}' is deprecated and will be removed "
+            "in a future release. Use ComponentInfo.gallery_config.get_variant('basic').kwargs instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return self._gallery_kwargs[0]
 
     @property
     def gallery_maximal_kwargs(self) -> dict[str, Any]:
+        warnings.warn(
+            f"ComponentInfo.gallery_maximal_kwargs for '{self.name}' is deprecated and will be removed "
+            "in a future release. Use ComponentInfo.gallery_config.get_variant('maximal').kwargs instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return self._gallery_kwargs[1]
 
     @cached_property
@@ -159,6 +172,13 @@ class ComponentInfo:
             basic_kwargs = getattr(mod, "basic_kwargs", None)
             maximal_kwargs = getattr(mod, "maximal_kwargs", None)
             if basic_kwargs is not None or maximal_kwargs is not None:
+                warnings.warn(
+                    f"Component '{self.name}' defines legacy 'basic_kwargs' or 'maximal_kwargs' "
+                    f"in '{gallery_path.name}'. Defining kwargs directly in gallery files is deprecated "
+                    "and will be removed in a future release. Export 'config = GalleryConfig(...)' instead.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
                 variants = []
                 if basic_kwargs is not None:
                     variants.append(Variant(name="basic", kwargs=basic_kwargs))

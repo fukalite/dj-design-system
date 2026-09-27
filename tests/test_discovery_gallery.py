@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from dj_design_system.components import TagComponent
 from dj_design_system.data import ComponentInfo
 from dj_design_system.gallery import GalleryConfig
@@ -10,7 +12,7 @@ class DummyComponent(TagComponent):
         pass
 
 
-def test_discovery_with_explicit_gallery_config(tmp_path: Path, monkeypatch):
+def test_discovery_with_explicit_gallery_config(tmp_path: Path):
     comp_file = tmp_path / "test_comp.py"
     comp_file.write_text("class TestComponent: pass\n")
 
@@ -38,7 +40,12 @@ def test_discovery_with_explicit_gallery_config(tmp_path: Path, monkeypatch):
         relative_path="",
     )
 
-    cfg = info.gallery_config
+    import warnings
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        cfg = info.gallery_config
+
     assert isinstance(cfg, GalleryConfig)
     assert cfg.hidden is True
     assert cfg.order == 5
@@ -48,9 +55,6 @@ def test_discovery_with_explicit_gallery_config(tmp_path: Path, monkeypatch):
     assert cfg.variants[0].kwargs == {"label": "Click"}
     assert cfg.variants[1].name == "special"
     assert cfg.variants[1].kwargs == {"label": "Special"}
-
-    # Backwards-compatibility properties
-    assert info.gallery_basic_kwargs == {"label": "Click"}
 
 
 def test_discovery_with_directory_gallery_py(tmp_path: Path):
@@ -79,10 +83,9 @@ def test_discovery_with_directory_gallery_py(tmp_path: Path):
     )
 
     assert info.gallery_config.group == "Forms"
-    assert info.gallery_basic_kwargs == {"text": "Hi"}
 
 
-def test_discovery_legacy_fallback(tmp_path: Path):
+def test_discovery_legacy_fallback_emits_warning(tmp_path: Path):
     comp_file = tmp_path / "legacy.py"
     comp_file.write_text("class Legacy: pass\n")
 
@@ -102,7 +105,11 @@ def test_discovery_legacy_fallback(tmp_path: Path):
         relative_path="",
     )
 
-    cfg = info.gallery_config
+    with pytest.deprecated_call(
+        match="defines legacy 'basic_kwargs' or 'maximal_kwargs'"
+    ):
+        cfg = info.gallery_config
+
     assert isinstance(cfg, GalleryConfig)
     assert len(cfg.variants) == 2
     basic_v = cfg.get_variant("basic")
@@ -112,8 +119,30 @@ def test_discovery_legacy_fallback(tmp_path: Path):
     assert maximal_v is not None
     assert maximal_v.kwargs == {"title": "World", "count": 42}
 
-    assert info.gallery_basic_kwargs == {"title": "Hello"}
-    assert info.gallery_maximal_kwargs == {"title": "World", "count": 42}
+
+def test_legacy_property_access_emits_warning(tmp_path: Path):
+    comp_file = tmp_path / "legacy_prop.py"
+    comp_file.write_text("class LegacyProp: pass\n")
+
+    class LegacyProp(TagComponent):
+        __file__ = str(comp_file)
+
+    info = ComponentInfo(
+        component_class=LegacyProp,
+        name="legacy_prop",
+        app_label="test_app",
+        relative_path="",
+    )
+
+    with pytest.deprecated_call(
+        match="gallery_basic_kwargs for 'legacy_prop' is deprecated"
+    ):
+        assert info.gallery_basic_kwargs == {}
+
+    with pytest.deprecated_call(
+        match="gallery_maximal_kwargs for 'legacy_prop' is deprecated"
+    ):
+        assert info.gallery_maximal_kwargs == {}
 
 
 def test_discovery_no_gallery_file(tmp_path: Path):
@@ -133,5 +162,3 @@ def test_discovery_no_gallery_file(tmp_path: Path):
     cfg = info.gallery_config
     assert isinstance(cfg, GalleryConfig)
     assert cfg.variants == []
-    assert info.gallery_basic_kwargs == {}
-    assert info.gallery_maximal_kwargs == {}
