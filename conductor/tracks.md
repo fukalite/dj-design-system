@@ -28,3 +28,7 @@
 
 - [~] **Track: Explicit Per-Component Gallery Configuration**
   *Link: [tracks/gallery_config_revamp_20260801/index.md](tracks/gallery_config_revamp_20260801/index.md)*
+
+- [ ] **Track: Remove Deprecated Legacy Gallery Kwargs**
+  *Link: [tracks/deprecate_legacy_gallery_kwargs_20260927/index.md](tracks/deprecate_legacy_gallery_kwargs_20260927/index.md)*
+
