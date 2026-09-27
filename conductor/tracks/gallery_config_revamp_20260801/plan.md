@@ -61,7 +61,7 @@
 - [x] Task: Deprecation & Cleanup
   - [x] Deprecate legacy `_gallery_kwargs` properties in favor of `gallery_config`.
   - [x] Ensure all existing tests in `tests/` pass cleanly with full coverage.
-- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: 7da58e8]
 
 ---
 
