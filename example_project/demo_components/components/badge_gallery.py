@@ -1,9 +1,16 @@
-basic_kwargs = {
-    "text": "New",
-}
+from dj_design_system.gallery import GalleryConfig, Variant
 
-maximal_kwargs = {
-    "text": "Unread Messages",
-    "theme": "danger",
-    "classes": "font-bold",
-}
+
+config = GalleryConfig(
+    variants=[
+        Variant(name="basic", kwargs={"text": "New"}),
+        Variant(
+            name="maximal",
+            kwargs={
+                "text": "Unread Messages",
+                "theme": "danger",
+                "classes": "font-bold",
+            },
+        ),
+    ]
+)

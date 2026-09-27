@@ -54,14 +54,14 @@
 ---
 
 ## Phase 5: Migration Script & Cleanup
-- [ ] Task: Migration Script (`migrate_gallery_configs`)
-  - [ ] Write migration management command `dj_design_system/management/commands/migrate_gallery_configs.py` that parses legacy `*_gallery.py` files and transforms them into modern `GalleryConfig` exports.
-  - [ ] Write unit tests verifying the migration script on sample legacy components.
-  - [ ] Execute migration script on `example_project` components.
-- [ ] Task: Deprecation & Cleanup
-  - [ ] Deprecate legacy `_gallery_kwargs` properties in favor of `gallery_config`.
-  - [ ] Ensure all existing tests in `tests/` pass cleanly with full coverage.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Migration Script (`migrate_gallery_configs`)
+  - [x] Write migration management command `dj_design_system/management/commands/migrate_gallery_configs.py` that parses legacy `*_gallery.py` files and transforms them into modern `GalleryConfig` exports.
+  - [x] Write unit tests verifying the migration script on sample legacy components.
+  - [x] Execute migration script on `example_project` components.
+- [x] Task: Deprecation & Cleanup
+  - [x] Deprecate legacy `_gallery_kwargs` properties in favor of `gallery_config`.
+  - [x] Ensure all existing tests in `tests/` pass cleanly with full coverage.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
 
