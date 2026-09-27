@@ -24,15 +24,15 @@
 
 ---
 
-## Phase 2: Navigation, Sorting & Sidebar Updates
-- [ ] Task: Update Navigation Builder (`services/navigation.py`)
-  - [ ] Write failing unit tests for `hidden` exclusion, `icon` propagation, `order` sorting, `group` sub-folders, and variant child nodes in `tests/test_navigation_gallery.py`.
-  - [ ] Implement ordering, grouping, hidden filtering, and variant node insertion in `services/navigation.py`.
-  - [ ] Update `NavNode` in `dj_design_system/data.py` to support `icon`, `order`, and variant node representations.
-- [ ] Task: Update Frontend Sidebar (`navtree.html` and styles)
-  - [ ] Update `dj_design_system/templates/dj_design_system/gallery/navtree.html` to render custom icons and handle variant child links with active state matching `?variant=<name>`.
-  - [ ] Add necessary CSS styling in `dj_design_system/static/dj_design_system/gallery.css`.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+## Phase 2: Navigation, Sorting & Sidebar Updates [checkpoint: d5ff70a]
+- [x] Task: Update Navigation Builder (`services/navigation.py`) [447f8ab]
+  - [x] Write failing unit tests for `hidden` exclusion, `icon` propagation, `order` sorting, `group` sub-folders, and variant child nodes in `tests/test_navigation_gallery.py`.
+  - [x] Implement ordering, grouping, hidden filtering, and variant node insertion in `services/navigation.py`.
+  - [x] Update `NavNode` in `dj_design_system/data.py` to support `icon`, `order`, and variant node representations.
+- [x] Task: Update Frontend Sidebar (`navtree.html` and styles) [d5ff70a]
+  - [x] Update `dj_design_system/templates/dj_design_system/gallery/navtree.html` to render custom icons and handle variant child links with active state matching `?variant=<name>`.
+  - [x] Add necessary CSS styling in `dj_design_system/static/dj_design_system/gallery.css`.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
 
