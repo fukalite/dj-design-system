@@ -72,18 +72,25 @@ class _AppTreeBuilder:
         self.root = app_node
         self._nodes_by_path: dict[str, NavNode] = {}
 
-    def get_or_create_folder(self, path_parts: list[str]) -> NavNode:
+    def get_or_create_folder(
+        self, path_parts: list[str], labels_by_depth: dict[int, str] | None = None
+    ) -> NavNode:
         """Return the node at *path_parts*, creating intermediate folders as needed."""
         current = self.root
         for depth in range(len(path_parts)):
             path_key = "/".join(path_parts[: depth + 1])
             if path_key not in self._nodes_by_path:
-                node = NavNode(
-                    label=to_display_label(
+                label = (
+                    labels_by_depth.get(depth)
+                    if labels_by_depth and depth in labels_by_depth
+                    else to_display_label(
                         path_parts[depth],
                         app_label=self.root.slug,
                         path=".".join(path_parts[: depth + 1]),
-                    ),
+                    )
+                )
+                node = NavNode(
+                    label=label,
                     slug=path_parts[depth],
                     node_type=NodeType.FOLDER,
                 )
@@ -92,21 +99,53 @@ class _AppTreeBuilder:
             current = self._nodes_by_path[path_key]
         return current
 
+    def _attach_variants(self, node: NavNode, info: ComponentInfo) -> None:
+        """Attach visible variants as child nodes under a component node."""
+        for i, variant in enumerate(info.gallery_config.variants):
+            if variant.show_in_nav:
+                variant_node = NavNode(
+                    label=variant.label or to_display_label(variant.name),
+                    slug=variant.name,
+                    node_type=NodeType.VARIANT,
+                    variant=variant,
+                    icon=variant.icon,
+                    order=i,
+                )
+                node.children.append(variant_node)
+
     def add_component(self, info: ComponentInfo) -> None:
         """Add a component to the tree, applying the leaf-folder collapsing rule."""
+        if info.gallery_config.hidden:
+            return
+
         collapsed_parts = _effective_path_parts(info)
         raw_parts = info.relative_path.split(".") if info.relative_path else []
         is_collapsed = len(raw_parts) > len(collapsed_parts)
 
-        parent = self.get_or_create_folder(collapsed_parts)
+        labels_by_depth: dict[int, str] = {}
+        target_parts = list(collapsed_parts)
 
-        if is_collapsed:
+        if info.gallery_config.group:
+            group_segments = [
+                s.strip() for s in info.gallery_config.group.split("/") if s.strip()
+            ]
+            for seg in group_segments:
+                depth = len(target_parts)
+                labels_by_depth[depth] = seg
+                target_parts.append(seg.lower().replace(" ", "_"))
+
+        parent = self.get_or_create_folder(
+            target_parts, labels_by_depth=labels_by_depth
+        )
+
+        if is_collapsed and not info.gallery_config.group:
             raw_path = "/".join(raw_parts)
             if raw_path in self._nodes_by_path:
                 existing = self._nodes_by_path[raw_path]
                 existing.upgrade_to_component(
                     info, to_display_label(info.name, component=info)
                 )
+                self._attach_variants(existing, info)
                 return
 
         node = NavNode(
@@ -114,10 +153,13 @@ class _AppTreeBuilder:
             slug=info.name,
             node_type=NodeType.COMPONENT,
             component=info,
+            icon=info.gallery_config.icon,
+            order=info.gallery_config.order,
         )
+        self._attach_variants(node, info)
         parent.children.append(node)
 
-        if is_collapsed:
+        if is_collapsed and not info.gallery_config.group:
             self._nodes_by_path["/".join(raw_parts)] = node
 
     def add_markdown(self, dir_parts: list[str], md_path: Path) -> None:
@@ -153,15 +195,19 @@ def _discover_markdown_files(components_root: Path) -> list[tuple[list[str], Pat
 
 
 def _sort_children(node: NavNode) -> None:
-    """Recursively sort children by the configured type order, then alphabetically."""
+    """Recursively sort children by the configured type order, then order, then alphabetically."""
     nav_order = dds_settings.GALLERY_NAV_ORDER
 
-    def _sort_key(child: NavNode) -> tuple[int, str]:
+    def _sort_key(child: NavNode) -> tuple[int, int, str]:
         if not isinstance(nav_order, list):
-            return (0, child.label.lower())
+            return (0, child.order, child.label.lower())
 
         rank = {nt: i for i, nt in enumerate(nav_order)}
-        return (rank.get(child.node_type, len(nav_order)), child.label.lower())
+        return (
+            rank.get(child.node_type, len(nav_order)),
+            child.order,
+            child.label.lower(),
+        )
 
     node.children.sort(key=_sort_key)
     for child in node.children:
@@ -182,6 +228,10 @@ def _annotate_paths(
         node._path_parts = []
         child_app = node.slug
         child_parts: list[str] = []
+    elif node.node_type == NodeType.VARIANT:
+        node._path_parts = list(parent_parts)
+        child_app = app_label
+        child_parts = node._path_parts
     else:
         node._path_parts = parent_parts + [node.slug]
         child_app = app_label
@@ -351,6 +401,9 @@ def _collect_search_entries(
         doc = (node.component.component_class.__doc__ or "").strip()
         if doc:
             content_parts.append(strip_markdown(doc))
+    elif node.is_variant and node.variant is not None:
+        if node.variant.description:
+            content_parts.append(strip_markdown(node.variant.description))
     if node.has_index_doc and node.index_doc_path is not None:
         try:
             raw = node.index_doc_path.read_text(encoding="utf-8")

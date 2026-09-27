@@ -7,7 +7,7 @@ from functools import cached_property
 from pathlib import Path
 from typing import Any, Type
 
-from dj_design_system.gallery import GalleryConfig, load_gallery_config
+from dj_design_system.gallery import GalleryConfig, Variant, load_gallery_config
 from dj_design_system.types import FlattenStrategy, NodeType, TagType
 
 
@@ -278,9 +278,9 @@ class ComponentInfo:
 class NavNode:
     """A single node in the gallery navigation tree.
 
-    A node can represent an app root, a folder, a component, or a markdown
-    document — or a combination (e.g. a folder that also carries a component
-    when the leaf-folder collapsing rule is applied).
+    A node can represent an app root, a folder, a component, a markdown
+    document, or a component variant — or a combination (e.g. a folder that
+    also carries a component when the leaf-folder collapsing rule is applied).
     """
 
     label: str
@@ -288,8 +288,11 @@ class NavNode:
     node_type: NodeType
     children: list[NavNode] = field(default_factory=list)
     component: ComponentInfo | None = None
+    variant: Variant | None = None
     doc_path: Path | None = None
     index_doc_path: Path | None = None
+    icon: str | None = None
+    order: int = 0
     _app_label: str = ""
     _path_parts: list[str] = field(default_factory=list)
 
@@ -307,6 +310,12 @@ class NavNode:
             raise ValueError(
                 f"{self.node_type.value.upper()} nodes must not carry a doc_path"
             )
+        if self.node_type == NodeType.VARIANT and self.variant is None:
+            raise ValueError("VARIANT nodes must have a Variant")
+        if self.node_type != NodeType.VARIANT and self.variant is not None:
+            raise ValueError(
+                f"{self.node_type.value.upper()} nodes must not carry a Variant"
+            )
 
     # ------------------------------------------------------------------
     # Mutation helpers — keep *node_type* and data fields in sync
@@ -317,6 +326,8 @@ class NavNode:
         self.component = info
         self.node_type = NodeType.COMPONENT
         self.label = label
+        self.icon = info.gallery_config.icon
+        self.order = info.gallery_config.order
 
     # ------------------------------------------------------------------
     # Convenience predicates
@@ -335,6 +346,10 @@ class NavNode:
         return self.node_type == NodeType.DOCUMENT
 
     @property
+    def is_variant(self) -> bool:
+        return self.node_type == NodeType.VARIANT
+
+    @property
     def has_index_doc(self) -> bool:
         return self.index_doc_path is not None
 
@@ -351,9 +366,13 @@ class NavNode:
         path = "/".join(self._path_parts)
 
         if not path:
-            return reverse("gallery-node-root", kwargs={"app_label": app})
+            base_url = reverse("gallery-node-root", kwargs={"app_label": app})
+        else:
+            base_url = reverse("gallery-node", kwargs={"app_label": app, "path": path})
 
-        return reverse("gallery-node", kwargs={"app_label": app, "path": path})
+        if self.node_type == NodeType.VARIANT:
+            return f"{base_url}?variant={self.slug}"
+        return base_url
 
     @property
     def active_path(self) -> str:
@@ -367,3 +386,8 @@ class NavNode:
 
         gallery_root = reverse("gallery")
         return self.url.removeprefix(gallery_root).rstrip("/")
+
+    @property
+    def base_active_path(self) -> str:
+        """Return the active path without query parameters."""
+        return self.active_path.split("?")[0].rstrip("/")
