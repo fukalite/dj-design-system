@@ -16,6 +16,11 @@ With the introduction of explicit per-component `GalleryConfig` and named `Varia
 3. **Deprecation Warnings**:
    - Clean up emitted `DeprecationWarning` calls once legacy paths and properties are removed.
 
+## Migration & User Guidance
+- **Documentation**: Upgrade guide with before/after examples is documented in `docs/gallery.md` under [Upgrading Legacy Gallery Configurations](docs/gallery.md#upgrading-legacy-gallery-configurations).
+- **Changelog & Patch Notes**: Deprecations and migration notes are recorded under `[Unreleased]` in `CHANGELOG.md`.
+- **Automated Tooling**: Automated migration command `python manage.py migrate_gallery_configs` is provided to upgrade component gallery files seamlessly before removal.
+
 ## Acceptance Criteria
 - Module-level `basic_kwargs` and `maximal_kwargs` are no longer recognized as fallback gallery configurations.
 - Accessing `gallery_basic_kwargs` or `gallery_maximal_kwargs` on `ComponentInfo` raises `AttributeError`.

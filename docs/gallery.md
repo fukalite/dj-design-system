@@ -230,16 +230,39 @@ DJ_DESIGN_SYSTEM = {
 
 ## Customising Gallery Examples
 
-By default, the gallery generates minimal and maximal usage examples automatically based on the parameter types. You can override these examples by creating a side-car Python file next to your component.
+By default, the gallery generates minimal and maximal usage examples automatically based on the parameter types. You can customize examples and configure rich component metadata by creating a side-car Python file next to your component (`gallery.py` or `<component_name>_gallery.py`).
 
-The gallery autodiscovery checks for a `[component_name]_gallery.py` file next to your component (e.g. `badge_gallery.py` next to `badge.py`). If your component is defined in a package (e.g. `button/component.py`), it will also check for `button/gallery.py`.
+### Modern Configuration: `GalleryConfig`
 
-Inside this file, you can define `basic_kwargs` and `maximal_kwargs` dictionaries:
+Export a `config` instance of `GalleryConfig`:
 
 ```python
-# badge_gallery.py
-from dj_design_system.data import GalleryParameter
+# button_gallery.py or gallery.py
+from dj_design_system.gallery import GalleryConfig, Variant
 
+config = GalleryConfig(
+    icon="mdi:button",
+    order=10,
+    group="Actions",
+    variants=[
+        Variant(name="basic", kwargs={"label": "Click me"}),
+        Variant(name="maximal", kwargs={"label": "Click me", "theme": "primary"}),
+        Variant(name="danger", label="Destructive Action", kwargs={"label": "Delete", "theme": "danger"}),
+    ],
+)
+```
+
+> [!WARNING] Deprecation Notice: Legacy Kwargs
+> Defining `basic_kwargs` and `maximal_kwargs` dictionaries directly in gallery files is deprecated and will be removed in a future release. 
+> Export `config = GalleryConfig(...)` instead. The gallery currently maintains backwards compatibility and automatically synthesizes a `GalleryConfig` while emitting a `DeprecationWarning`.
+
+### Upgrading Legacy Gallery Configurations
+
+If you have existing components using `basic_kwargs` and `maximal_kwargs`, upgrading is simple:
+
+#### Before (Legacy)
+```python
+# badge_gallery.py
 basic_kwargs = {
     "text": "New basic badge",
 }
@@ -251,15 +274,47 @@ maximal_kwargs = {
     "slot__icon": "<svg>...</svg>",
     "slot__body": "Here is the body content",
     # For complex Django types or context variables, wrap them in GalleryParameter.
-    # Note: GalleryParameter is strictly optional. You do not need it for basic
-    # Python types like strings, booleans, or ints.
-    # - `value` is the actual instance passed to the sandbox iframe preview.
-    # - `code` (optional) is what gets literally printed in the `{% badge ... %}` code block.
     "user": GalleryParameter(value=User.objects.first(), code="request.user"),
 }
 ```
 
-This allows you to provide specific parameter values for the gallery's `basic` (minimal) and `maximal` preview modes. 
+#### After (Modern)
+```python
+# badge_gallery.py or gallery.py
+from dj_design_system.gallery import GalleryConfig, Variant
+
+config = GalleryConfig(
+    variants=[
+        Variant(name="basic", kwargs={"text": "New basic badge"}),
+        Variant(
+            name="maximal",
+            kwargs={
+                "text": "Critical Alert!",
+                "theme": "danger",
+                "slot__icon": "<svg>...</svg>",
+                "slot__body": "Here is the body content",
+                "user": GalleryParameter(value=User.objects.first(), code="request.user"),
+            },
+        ),
+    ]
+)
+```
+
+You can also use dictionary shorthand for variants:
+```python
+config = GalleryConfig(
+    variants=[
+        {"name": "basic", "kwargs": {"text": "New basic badge"}},
+        {"name": "maximal", "kwargs": {"text": "Critical Alert!", "theme": "danger"}},
+    ]
+)
+```
+
+#### Automated Migration Command
+An automated management command is provided to scan and upgrade your existing gallery files automatically:
+```bash
+python manage.py migrate_gallery_configs
+```
 
 **Filling Slots**
 To specify content for a slot, simply add the slot name to your kwargs dictionary prefixed with `slot__` (e.g., `"slot__body": "Content"`).
