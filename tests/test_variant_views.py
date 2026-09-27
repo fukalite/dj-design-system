@@ -119,6 +119,7 @@ class TestVariantViews:
             b'value="maximal"' in response.content
             or b"variant=maximal" in response.content
         )
+        assert b"onchange=" not in response.content
 
     def test_unknown_variant_returns_404(self, client: Client):
         url = reverse(

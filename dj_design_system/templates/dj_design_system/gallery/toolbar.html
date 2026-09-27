@@ -10,8 +10,7 @@
                     class="gallery-sandbox-toolbar__select"
                     data-gallery-variant-select
                     aria-label="Select variant preset"
-                    title="Select variant preset"
-                    onchange="window.location.href=this.value">
+                    title="Select variant preset">
                 <option value="{{ component_base_url }}"
                         {% if not active_variant %} selected{% endif %}>Default</option>
                 {% for v in gallery_variants %}
