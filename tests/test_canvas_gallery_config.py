@@ -82,7 +82,10 @@ class TestCanvasSmartHybridTemplate:
         )
 
         output = render_component(spec, reg)
-        assert '<div class="banner"><span>Static Banner: Important Notice</span></div>' in output
+        assert (
+            '<div class="banner"><span>Static Banner: Important Notice</span></div>'
+            in output
+        )
         # In raw mode without {{ component }}, the default component tag is not automatically rendered
         assert '<button class="btn' not in output
 
@@ -221,7 +224,7 @@ class TestCanvasCallableResolution:
 
     def test_canvas_template_error_handling(self):
         config = GalleryConfig(
-            canvas_template='<div>{% invalid_tag %}</div>',
+            canvas_template="<div>{% invalid_tag %}</div>",
         )
         reg = create_test_registry(config)
         spec = CanvasSpec(component_name="dummy_button", params={})
@@ -272,7 +275,10 @@ class TestCanvasVariantIntegration:
 
         error_html = render_component(spec, reg, raise_errors=False)
         assert "gallery-canvas-error" in error_html
-        assert "Variant &#x27;nonexistent&#x27; not found" in error_html or "Variant 'nonexistent' not found" in error_html
+        assert (
+            "Variant &#x27;nonexistent&#x27; not found" in error_html
+            or "Variant 'nonexistent' not found" in error_html
+        )
 
     def test_variant_positional_args_used_when_not_in_spec(self):
         class ButtonWithPositional(TagComponent):

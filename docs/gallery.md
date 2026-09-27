@@ -247,7 +247,11 @@ config = GalleryConfig(
     variants=[
         Variant(name="basic", kwargs={"label": "Click me"}),
         Variant(name="maximal", kwargs={"label": "Click me", "theme": "primary"}),
-        Variant(name="danger", label="Destructive Action", kwargs={"label": "Delete", "theme": "danger"}),
+        Variant(
+            name="danger",
+            label="Destructive Action",
+            kwargs={"label": "Delete", "theme": "danger"},
+        ),
     ],
 )
 ```
@@ -293,7 +297,9 @@ config = GalleryConfig(
                 "theme": "danger",
                 "slot__icon": "<svg>...</svg>",
                 "slot__body": "Here is the body content",
-                "user": GalleryParameter(value=User.objects.first(), code="request.user"),
+                "user": GalleryParameter(
+                    value=User.objects.first(), code="request.user"
+                ),
             },
         ),
     ]

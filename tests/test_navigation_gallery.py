@@ -361,5 +361,8 @@ class TestNavTreeTemplate:
             or "gallery-nav__link--active" in html
         )
         # Parent details should be open
-        assert "<details class=\"gallery-nav__folder\"\n             open>" in html or "<details class=\"gallery-nav__folder\" open>" in html or " open>" in html
-
+        assert (
+            '<details class="gallery-nav__folder"\n             open>' in html
+            or '<details class="gallery-nav__folder" open>' in html
+            or " open>" in html
+        )

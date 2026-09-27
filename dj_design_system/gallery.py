@@ -52,6 +52,27 @@ class Variant:
         self.kwargs = dict(self.kwargs or {})
         self.extra_context = dict(self.extra_context or {})
 
+    def __str__(self) -> str:
+        return self.name
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, str):
+            return self.name == other
+        if isinstance(other, Variant):
+            return (
+                self.name == other.name
+                and self.label == other.label
+                and self.description == other.description
+                and self.kwargs == other.kwargs
+                and self.positional_args == other.positional_args
+                and self.canvas_template == other.canvas_template
+                and self.extra_context == other.extra_context
+                and self.icon == other.icon
+                and self.theme == other.theme
+                and self.show_in_nav == other.show_in_nav
+            )
+        return False
+
 
 @dataclass
 class GalleryConfig:

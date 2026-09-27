@@ -2,6 +2,28 @@
 {% load static %}
 <div class="gallery-sandbox-toolbar"
      data-measure-script="{% static 'dj_design_system/gallery-measure.js' %}">
+    {# ── Variant Presets ── #}
+    {% if gallery_variants %}
+        <div class="gallery-sandbox-toolbar__group gallery-sandbox-toolbar__presets">
+            <label for="gallery-variant-select" class="gallery-visually-hidden">Preset:</label>
+            <select id="gallery-variant-select"
+                    class="gallery-sandbox-toolbar__select"
+                    data-gallery-variant-select
+                    aria-label="Select variant preset"
+                    title="Select variant preset"
+                    onchange="window.location.href=this.value">
+                <option value="{{ component_base_url }}"
+                        {% if not active_variant %} selected{% endif %}>Default</option>
+                {% for v in gallery_variants %}
+                    <option value="{{ component_base_url }}?variant={{ v.name }}"
+                            {% if active_variant and active_variant.name == v.name %}selected{% endif %}>
+                        {{ v.label }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+    {% endif %}
+
     {# ── Background colour ── #}
     <div class="gallery-sandbox-toolbar__group gallery-sandbox-toolbar__bg">
         <button class="gallery-sandbox-toolbar__btn gallery-sandbox-toolbar__bg-toggle"

@@ -173,8 +173,12 @@ class TestBuildCanvasUrl:
             },
         )
         url = build_canvas_url(spec, "/base/")
-        assert "items=%5B%7B%22id%22%3A+%22home%22%2C+%22label%22%3A+%22Home%22%7D%5D" in url
+        assert (
+            "items=%5B%7B%22id%22%3A+%22home%22%2C+%22label%22%3A+%22Home%22%7D%5D"
+            in url
+        )
         from urllib.parse import parse_qs, urlparse
+
         query_params = parse_qs(urlparse(url).query)
         assert coerce_single("items", query_params["items"][0], ListParam()) == [
             {"id": "home", "label": "Home"}
@@ -182,7 +186,6 @@ class TestBuildCanvasUrl:
         assert coerce_single("config", query_params["config"][0], DictParam()) == {
             "nested": True
         }
-
 
 
 # ---------------------------------------------------------------------------

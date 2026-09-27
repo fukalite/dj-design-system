@@ -169,9 +169,7 @@ def render_component(
             positional_arg_names, positional_args, merged_params
         )
 
-        resolved_kwargs = {
-            k: _resolve_param_value(v) for k, v in merged_params.items()
-        }
+        resolved_kwargs = {k: _resolve_param_value(v) for k, v in merged_params.items()}
 
         if canvas_template:
             has_component_placeholder = bool(
@@ -370,4 +368,3 @@ def _serialise_value(value: object) -> str:
     if isinstance(value, (list, dict)):
         return json.dumps(value)
     return str(value)
-

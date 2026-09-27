@@ -8,7 +8,9 @@ class AssessmentPlugin(abc.ABC):
     """Base interface for assessment plugins."""
 
     @abc.abstractmethod
-    def run_assessment(self, component: ComponentInfo, variant: str, theme: str) -> None:
+    def run_assessment(
+        self, component: ComponentInfo, variant: str, theme: str
+    ) -> None:
         """Run an assessment for a given component, variant, and theme."""
         pass
 
@@ -27,7 +29,9 @@ class IterationEngine:
         self.variants = variants or ["basic", "maximal"]
         self._filters: list[Callable[[ComponentInfo, str, str], bool]] = []
 
-    def add_filter(self, filter_func: Callable[[ComponentInfo, str, str], bool]) -> None:
+    def add_filter(
+        self, filter_func: Callable[[ComponentInfo, str, str], bool]
+    ) -> None:
         """Add a filter hook to customize the loop."""
         self._filters.append(filter_func)
 
@@ -45,7 +49,9 @@ class IterationEngine:
                 return False
         return True
 
-    def run_plugins(self, plugins: list[AssessmentPlugin], fail_fast: bool = False) -> None:
+    def run_plugins(
+        self, plugins: list[AssessmentPlugin], fail_fast: bool = False
+    ) -> None:
         """Run all plugins on all valid combinations."""
         errors: list[str] = []
         for comp, variant, theme in self.get_combinations():
@@ -55,7 +61,9 @@ class IterationEngine:
                 except Exception as e:
                     error_msg = f"[{comp.qualified_name} | {variant} | {theme} | {plugin.__class__.__name__}]: {e}"
                     if fail_fast:
-                        raise AssertionError(f"Component assessment failed (fail_fast=True):\n\n{error_msg}") from e
+                        raise AssertionError(
+                            f"Component assessment failed (fail_fast=True):\n\n{error_msg}"
+                        ) from e
                     errors.append(error_msg)
 
         if errors:

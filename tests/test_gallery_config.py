@@ -130,4 +130,3 @@ class TestGalleryConfig:
                     Variant(name="danger"),
                 ]
             )
-
