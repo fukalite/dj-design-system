@@ -81,7 +81,7 @@ class _AppTreeBuilder:
             path_key = "/".join(path_parts[: depth + 1])
             if path_key not in self._nodes_by_path:
                 label = (
-                    labels_by_depth.get(depth)
+                    labels_by_depth[depth]
                     if labels_by_depth and depth in labels_by_depth
                     else to_display_label(
                         path_parts[depth],
