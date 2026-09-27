@@ -13,12 +13,25 @@ Expects: node (NavNode), depth (int), active_path (str) from parent context.{% e
 {% elif node.has_children %}
     {# ── Folder / expandable node ── #}
     <details class="gallery-nav__folder"
-             {% if active_path and node.active_path in active_path %}open{% endif %}>
+             {% if active_path and node.active_path in active_path or active_path and node.base_active_path in active_path %}open{% endif %}>
         <summary class="gallery-nav__link gallery-nav__link--folder"
                  data-depth="{{ depth }}">
             <a href="{{ node.url }}"
-               class="gallery-nav__folder-link{% if active_path == node.active_path %} gallery-nav__link--active{% endif %}">
-                {% if node.is_component %}
+               class="gallery-nav__folder-link{% if active_path == node.active_path and not active_variant %} gallery-nav__link--active{% endif %}">
+                {% if node.icon %}
+                    {% if "<svg" in node.icon %}
+                        <span class="gallery-nav__icon gallery-nav__icon--custom"
+                              aria-hidden="true">{{ node.icon|safe }}</span>
+                    {% elif "/" in node.icon or ".svg" in node.icon or "data:" in node.icon %}
+                        <span class="gallery-nav__icon gallery-nav__icon--custom"
+                              style="-webkit-mask-image: url('{{ node.icon }}');
+                                     mask-image: url('{{ node.icon }}')"
+                              aria-hidden="true"></span>
+                    {% else %}
+                        <span class="gallery-nav__icon gallery-nav__icon--custom {{ node.icon }}"
+                              aria-hidden="true"></span>
+                    {% endif %}
+                {% elif node.is_component %}
                     <span class="gallery-nav__icon gallery-nav__icon--component"
                           aria-hidden="true"></span>
                 {% else %}
@@ -33,15 +46,31 @@ Expects: node (NavNode), depth (int), active_path (str) from parent context.{% e
         {% endfor %}
     </details>
 {% else %}
-    {# ── Leaf node (component or document) ───────────────────────── #}
-    <a class="gallery-nav__link{% if active_path == node.active_path %} gallery-nav__link--active{% endif %}"
+    {# ── Leaf node (component, variant, or document) ─────────────── #}
+    <a class="gallery-nav__link{% if node.is_variant %} gallery-nav__link--variant{% endif %}{% if node.is_variant and active_path == node.base_active_path and active_variant == node.slug or not node.is_variant and active_path == node.active_path and not active_variant %} gallery-nav__link--active{% endif %}"
        href="{{ node.url }}"
        data-depth="{{ depth }}">
-        {% if node.is_component %}
+        {% if node.icon %}
+            {% if "<svg" in node.icon %}
+                <span class="gallery-nav__icon gallery-nav__icon--custom"
+                      aria-hidden="true">{{ node.icon|safe }}</span>
+            {% elif "/" in node.icon or ".svg" in node.icon or "data:" in node.icon %}
+                <span class="gallery-nav__icon gallery-nav__icon--custom"
+                      style="-webkit-mask-image: url('{{ node.icon }}');
+                             mask-image: url('{{ node.icon }}')"
+                      aria-hidden="true"></span>
+            {% else %}
+                <span class="gallery-nav__icon gallery-nav__icon--custom {{ node.icon }}"
+                      aria-hidden="true"></span>
+            {% endif %}
+        {% elif node.is_component %}
             <span class="gallery-nav__icon gallery-nav__icon--component"
                   aria-hidden="true"></span>
         {% elif node.is_document %}
             <span class="gallery-nav__icon gallery-nav__icon--doc" aria-hidden="true"></span>
+        {% elif node.is_variant %}
+            <span class="gallery-nav__icon gallery-nav__icon--variant"
+                  aria-hidden="true"></span>
         {% endif %}
         {{ node.label }}
     </a>

@@ -90,16 +90,19 @@ def get_base_context(
     """Return context shared by all gallery views."""
     nav_tree = build_navigation()
     active_theme = get_default_theme().value
+    active_variant = ""
     if request:
         active_theme = (
             request.GET.get("theme") or request.COOKIES.get("dds_theme") or active_theme
         )
+        active_variant = request.GET.get("variant", "")
     return {
         "nav_tree": nav_tree,
         "search_index": build_search_index(nav_tree),
         "design_system_name": dds_settings.DESIGN_SYSTEM_NAME,
         "active_app": active_app,
         "active_path": active_path,
+        "active_variant": active_variant,
         "available_themes": get_themes(),
         "active_theme": active_theme,
     }

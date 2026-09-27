@@ -265,3 +265,101 @@ class TestNavigationVariants:
         assert "destructive" in entry["content"]
         assert "?variant=danger" in entry["url"]
         assert "Test app / Button" in entry["breadcrumb"]
+
+
+class TestNavTreeTemplate:
+    """Tests for HTML rendering of the sidebar tree via navtree.html."""
+
+    def test_custom_svg_icon_renders(self):
+        from django.template.loader import render_to_string
+
+        svg_icon = '<svg viewBox="0 0 24 24"><path d="M0 0h24v24H0z"/></svg>'
+        info = make_info_with_config("button", GalleryConfig(icon=svg_icon))
+        tree = _build_navigation([info])
+
+        html = render_to_string(
+            "dj_design_system/gallery/navtree.html",
+            {"node": tree[0], "depth": 0, "active_path": "", "active_variant": ""},
+        )
+        assert 'class="gallery-nav__icon gallery-nav__icon--custom"' in html
+        assert svg_icon in html
+
+    def test_custom_class_icon_renders(self):
+        from django.template.loader import render_to_string
+
+        info = make_info_with_config("button", GalleryConfig(icon="mdi-star"))
+        tree = _build_navigation([info])
+
+        html = render_to_string(
+            "dj_design_system/gallery/navtree.html",
+            {"node": tree[0], "depth": 0, "active_path": "", "active_variant": ""},
+        )
+        assert "gallery-nav__icon--custom mdi-star" in html
+
+    def test_custom_mask_icon_renders(self):
+        from django.template.loader import render_to_string
+
+        info = make_info_with_config(
+            "button", GalleryConfig(icon="/static/icons/btn.svg")
+        )
+        tree = _build_navigation([info])
+
+        html = render_to_string(
+            "dj_design_system/gallery/navtree.html",
+            {"node": tree[0], "depth": 0, "active_path": "", "active_variant": ""},
+        )
+        assert "url('/static/icons/btn.svg')" in html
+
+    def test_variant_child_links_render(self):
+        from django.template.loader import render_to_string
+
+        config = GalleryConfig(
+            variants=[
+                Variant(name="primary", label="Primary Button"),
+                Variant(name="danger", label="Danger Button"),
+            ]
+        )
+        info = make_info_with_config("button", config)
+        tree = _build_navigation([info])
+
+        html = render_to_string(
+            "dj_design_system/gallery/navtree.html",
+            {"node": tree[0], "depth": 0, "active_path": "", "active_variant": ""},
+        )
+        assert "gallery-nav__link--variant" in html
+        assert "?variant=primary" in html
+        assert "?variant=danger" in html
+        assert "Primary Button" in html
+        assert "Danger Button" in html
+
+    def test_variant_active_state(self):
+        from django.template.loader import render_to_string
+
+        config = GalleryConfig(
+            variants=[
+                Variant(name="primary", label="Primary Button"),
+                Variant(name="danger", label="Danger Button"),
+            ]
+        )
+        info = make_info_with_config("button", config)
+        tree = _build_navigation([info])
+
+        # Active variant is "danger"
+        html = render_to_string(
+            "dj_design_system/gallery/navtree.html",
+            {
+                "node": tree[0],
+                "depth": 0,
+                "active_path": "test_app/button",
+                "active_variant": "danger",
+            },
+        )
+        # Danger variant should have active class
+        assert (
+            'class="gallery-nav__link gallery-nav__link--variant gallery-nav__link--active"'
+            in html
+            or "gallery-nav__link--active" in html
+        )
+        # Parent details should be open
+        assert "<details class=\"gallery-nav__folder\"\n             open>" in html or "<details class=\"gallery-nav__folder\" open>" in html or " open>" in html
+
