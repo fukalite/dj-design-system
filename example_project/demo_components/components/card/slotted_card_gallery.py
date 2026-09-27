@@ -2,7 +2,6 @@ from dj_design_system.gallery import GalleryConfig, Variant
 
 
 config = GalleryConfig(
-    icon="ph:cards",
     order=4,
     variants=[
         Variant(
@@ -24,7 +23,6 @@ config = GalleryConfig(
                 "slot_body": "<p style='margin:0; color:#475569;'>Includes all enterprise components, full variant previews, and visual regression testing.</p>",
                 "slot_footer": "<button type='button' style='width: 100%; padding: 8px; background: #4f46e5; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;'>Subscribe Now</button>",
             },
-            icon="ph:currency-circle-dollar",
             show_in_nav=True,
         ),
         Variant(
@@ -50,7 +48,6 @@ config = GalleryConfig(
     {% endslotted_card %}
 </div>
 """,
-            icon="ph:grid-four",
             show_in_nav=True,
         ),
     ],

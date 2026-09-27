@@ -2,7 +2,6 @@ from dj_design_system.gallery import GalleryConfig, Variant
 
 
 config = GalleryConfig(
-    icon="ph:cursor-click",
     order=1,
     variants=[
         Variant(
@@ -15,7 +14,6 @@ config = GalleryConfig(
             label="Destructive Action",
             description="Use danger buttons for actions that cannot be undone, such as deleting a record.",
             kwargs={"label": "Delete Item", "variant": "danger"},
-            icon="ph:trash",
             show_in_nav=True,
         ),
         Variant(
@@ -23,7 +21,6 @@ config = GalleryConfig(
             label="Disabled State",
             description="Buttons in a disabled state ignore user interaction and indicate unavailability.",
             kwargs={"label": "Unavailable Action", "disabled": True},
-            icon="ph:prohibit",
             show_in_nav=True,
         ),
         Variant(

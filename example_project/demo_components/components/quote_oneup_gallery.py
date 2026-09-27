@@ -3,7 +3,6 @@ from dj_design_system.gallery import GalleryConfig, Variant
 
 
 config = GalleryConfig(
-    icon="ph:quotes",
     order=5,
     variants=[
         Variant(
@@ -42,7 +41,6 @@ config = GalleryConfig(
     {{ component }}
 </div>
 """,
-            icon="ph:article",
             show_in_nav=True,
         ),
     ],

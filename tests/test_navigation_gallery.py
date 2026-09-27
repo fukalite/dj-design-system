@@ -366,3 +366,35 @@ class TestNavTreeTemplate:
             or '<details class="gallery-nav__folder" open>' in html
             or " open>" in html
         )
+
+    def test_component_with_variants_icon_renders(self):
+        from django.template.loader import render_to_string
+
+        config = GalleryConfig(
+            variants=[
+                Variant(name="primary", label="Primary Button"),
+                Variant(name="danger", label="Danger Button"),
+            ]
+        )
+        info = make_info_with_config("button", config)
+        tree = _build_navigation([info])
+
+        html = render_to_string(
+            "dj_design_system/gallery/navtree.html",
+            {"node": tree[0], "depth": 0, "active_path": "", "active_variant": ""},
+        )
+        assert "gallery-nav__icon--component-variants" in html
+        assert "gallery-nav__icon--variant" in html
+
+    def test_component_without_variants_icon_renders(self):
+        from django.template.loader import render_to_string
+
+        info = make_info_with_config("button", GalleryConfig())
+        tree = _build_navigation([info])
+
+        html = render_to_string(
+            "dj_design_system/gallery/navtree.html",
+            {"node": tree[0], "depth": 0, "active_path": "", "active_variant": ""},
+        )
+        assert "gallery-nav__icon--component" in html
+

@@ -2,7 +2,6 @@ from dj_design_system.gallery import GalleryConfig, Variant
 
 
 config = GalleryConfig(
-    icon="ph:tag",
     order=2,
     variants=[
         Variant(name="basic", label="Default Badge", kwargs={"text": "New"}),
@@ -19,7 +18,6 @@ config = GalleryConfig(
             label="System Status Indicator",
             description="Status pill used in admin dashboards to indicate service health.",
             kwargs={"text": "Service Operational", "classes": "badge-status"},
-            icon="ph:circle-wavy-check",
             show_in_nav=True,
         ),
         Variant(
@@ -27,7 +25,6 @@ config = GalleryConfig(
             label="Dynamic Unread Counter",
             description="Demonstrates dynamic callable evaluation at render time instead of import time.",
             kwargs={"text": lambda: "Pending Tasks (42)"},
-            icon="ph:bell-ringing",
             show_in_nav=True,
         ),
     ],

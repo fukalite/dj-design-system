@@ -3,7 +3,6 @@ from dj_design_system.gallery import GalleryConfig, Variant
 
 config = GalleryConfig(
     theme="dark",
-    icon="ph:warning-circle",
     order=3,
     variants=[
         Variant(
@@ -22,7 +21,6 @@ config = GalleryConfig(
                 "level": "error",
                 "content": "Authentication cluster connection lost. Attempting auto-reconnect.",
             },
-            icon="ph:shield-warning",
             show_in_nav=True,
         ),
         Variant(
