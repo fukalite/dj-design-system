@@ -63,8 +63,19 @@
 ---
 
 ## Phase 6: Documentation & Examples
-- [ ] Task: Comprehensive Documentation
-  - [ ] Document `GalleryConfig`, `Variant`, `canvas_template`, navigation ordering, and callables in project docs.
+- [ ] Task: Comprehensive API Documentation
+  - [ ] Create `docs/api/gallery.md` documenting `GalleryConfig` and `Variant` using `mkdocstrings`.
+  - [ ] Add `Gallery Configuration` under `API Reference` in `mkdocs.yml`.
+- [ ] Task: Revamped Getting Started (`docs/quickstart.md`)
+  - [ ] Add explicit guide on creating `gallery.py` / `{name}_gallery.py` alongside components.
+  - [ ] Update component creation walkthrough to demonstrate `GalleryConfig` and custom variants.
+- [ ] Task: Overhaul Gallery Documentation & Variants Guide (`docs/gallery.md`)
+  - [ ] Replace legacy `basic_kwargs`/`maximal_kwargs` section with explicit `gallery.py` instructions.
+  - [ ] Add dedicated comprehensive guide for Named Variants (defaults, custom variants, deep-linking, previewing, and icons).
+  - [ ] Document Smart Hybrid `canvas_template` (`{{ component }}` wrapper vs raw template syntax).
+  - [ ] Document sidebar properties (`order`, `group`, `icon`, `hidden`).
+- [ ] Task: Full Documentation Assessment & Modernization
+  - [ ] Review and update `docs/components.md`, `docs/organisation.md`, `docs/testing.md`, `docs/templatetags.md`, and `docs/index.md` to ensure all references to gallery setup and configurations are accurate and cohesive.
 - [ ] Task: Example Project Showcase
   - [ ] Add rich examples in `example_project` demonstrating custom variants, custom icons, groupings, and canvas templates.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
