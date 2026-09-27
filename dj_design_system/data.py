@@ -23,13 +23,14 @@ BLOCK_CONTENT_PLACEHOLDER = "Sample content"
 class CanvasSpec:
     """Specification for rendering a single component inside a canvas.
 
-    Holds the component name, keyword parameters, and any positional arguments
-    needed to instantiate and render the component.
+    Holds the component name, keyword parameters, positional arguments,
+    and optional variant name needed to instantiate and render the component.
     """
 
     component_name: str
     params: dict[str, Any] = field(default_factory=dict)
     positional_args: tuple[Any, ...] = field(default_factory=tuple)
+    variant: str | None = None
 
 
 @dataclass(frozen=True)

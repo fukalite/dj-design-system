@@ -37,10 +37,10 @@
 ---
 
 ## Phase 3: Canvas Rendering & Smart Hybrid `canvas_template`
-- [ ] Task: Canvas Renderer Service Updates (`services/canvas.py` and `services/canvas_renderer.py`)
-  - [ ] Write failing unit tests in `tests/test_canvas_gallery_config.py` verifying Smart Hybrid `canvas_template` (`{{ component }}` vs raw template), `extra_context`, and callable parameter resolution.
-  - [ ] Implement `canvas_template` wrapping and callable evaluation in `services/canvas.py` / `services/canvas_renderer.py`.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Canvas Renderer Service Updates (`services/canvas.py` and `services/canvas_renderer.py`)
+  - [x] Write failing unit tests in `tests/test_canvas_gallery_config.py` verifying Smart Hybrid `canvas_template` (`{{ component }}` vs raw template), `extra_context`, and callable parameter resolution.
+  - [x] Implement `canvas_template` wrapping and callable evaluation in `services/canvas.py` / `services/canvas_renderer.py`.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
 
