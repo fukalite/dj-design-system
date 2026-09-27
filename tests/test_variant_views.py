@@ -83,6 +83,13 @@ class TestVariantViews:
         # Focused variant view
         assert b"Maximal" in response.content
         assert b"variant=maximal" in response.content
+        # Breadcrumbs contain parent component link and variant as current crumb
+        breadcrumbs = response.context["breadcrumbs"]
+        assert breadcrumbs[-2]["url"] == url
+        assert breadcrumbs[-2]["label"] == "Badge"
+        assert breadcrumbs[-1]["label"] == "Maximal"
+        assert "url" not in breadcrumbs[-1]
+        assert b"gallery-back-link" not in response.content
 
     def test_variant_view_prefills_sandbox_form(self, client: Client):
         url = reverse(

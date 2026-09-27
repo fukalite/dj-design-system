@@ -521,11 +521,16 @@ def _render_component(request, context, node, app_label, path_parts):
     # but we override active_theme with the resolved component-specific one for the UI overrides.
     # Note: the global available_themes from base context shouldn't be overwritten.
     context["sandbox_active_theme"] = active_theme
-    context["breadcrumbs"] = build_breadcrumbs(
+    component_label = to_display_label(info.name, component=info)
+    crumbs = build_breadcrumbs(
         app_label,
         path_parts[:-1] if path_parts else [],
-        to_display_label(info.name, component=info),
+        component_label,
     )
+    if active_variant:
+        crumbs[-1]["url"] = node.url
+        crumbs.append({"label": active_variant.label})
+    context["breadcrumbs"] = crumbs
 
     if node.has_index_doc:
         theme_dict = get_theme(context.get("active_theme"))

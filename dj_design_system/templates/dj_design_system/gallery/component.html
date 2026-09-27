@@ -79,11 +79,6 @@
                             {% endif %}
                             <pre class="gallery-usage__pre"><code class="gallery-usage__code">{% if variant_signature.minimal_html %}{{ variant_signature.minimal_html|safe }}{% else %}{{ variant_signature.minimal }}{% endif %}</code></pre>
                         </div>
-
-                        <div class="gallery-variant-view__footer">
-                            <a href="{{ component_base_url }}"
-                               class="gallery-back-link">← All examples &amp; full documentation</a>
-                        </div>
                     </div>
                 {% else %}
                     {# 1. Component docstring (class-level description) #}
