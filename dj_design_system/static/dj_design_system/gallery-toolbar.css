@@ -36,6 +36,10 @@
   position: relative;
 }
 
+form.gallery-sandbox-toolbar__presets {
+  margin: 0;
+}
+
 /* Generic toolbar button */
 .gallery-sandbox-toolbar__btn {
   display: inline-flex;

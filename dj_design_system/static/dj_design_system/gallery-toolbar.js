@@ -316,22 +316,11 @@
     /* -- Variant preset selector -- */
 
     var variantSelect = document.querySelector("[data-gallery-variant-select]");
-    if (variantSelect) {
+    if (variantSelect && variantSelect.form) {
       variantSelect.addEventListener(
         "change",
         function () {
-          var target = variantSelect.value;
-          if (!target) return;
-          try {
-            var parsed = new URL(target, window.location.origin);
-            if (parsed.origin === window.location.origin) {
-              window.location.assign(
-                parsed.pathname + parsed.search + parsed.hash,
-              );
-            }
-          } catch (e) {
-            // Ignore invalid URL
-          }
+          variantSelect.form.submit();
         },
         { signal: signal },
       );
