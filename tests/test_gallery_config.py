@@ -131,10 +131,3 @@ class TestGalleryConfig:
                 ]
             )
 
-    def test_invalid_order_raises_error(self):
-        with pytest.raises(TypeError, match="order must be an integer"):
-            GalleryConfig(order="10")  # type: ignore
-
-    def test_invalid_hidden_raises_error(self):
-        with pytest.raises(TypeError, match="hidden must be a boolean"):
-            GalleryConfig(hidden="true")  # type: ignore

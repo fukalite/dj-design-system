@@ -5,13 +5,10 @@ import warnings
 from dataclasses import dataclass, field
 from functools import cached_property
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Type
+from typing import Any, Type
 
+from dj_design_system.gallery import GalleryConfig, load_gallery_config
 from dj_design_system.types import FlattenStrategy, NodeType, TagType
-
-
-if TYPE_CHECKING:
-    from dj_design_system.gallery import GalleryConfig
 
 
 class InvalidTagType(Exception):
@@ -125,9 +122,7 @@ class ComponentInfo:
         )
 
     @cached_property
-    def gallery_config(self) -> "GalleryConfig":
-        from dj_design_system.gallery import GalleryConfig, Variant
-
+    def gallery_config(self) -> GalleryConfig:
         source_file = None
         try:
             if hasattr(self.component_class, "__file__"):
@@ -140,53 +135,7 @@ class ComponentInfo:
         if not source_file:
             return GalleryConfig()
 
-        source_dir = source_file.parent
-
-        gallery_path = source_dir / f"{self.name}_gallery.py"
-        if not gallery_path.is_file():
-            gallery_path = source_dir / f"{self.name}.gallery.py"
-        if not gallery_path.is_file():
-            gallery_path = source_dir / "gallery.py"
-
-        if not gallery_path.is_file():
-            return GalleryConfig()
-
-        import importlib.util
-        import uuid
-
-        mod_name = f"dj_design_system_gallery_{uuid.uuid4().hex}"
-        spec = importlib.util.spec_from_file_location(mod_name, gallery_path)
-        if spec and spec.loader:
-            mod = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(mod)
-
-            cfg = getattr(mod, "config", None)
-            if isinstance(cfg, GalleryConfig):
-                return cfg
-
-            named_cfg = getattr(mod, f"{self.name}_config", None)
-            if isinstance(named_cfg, GalleryConfig):
-                return named_cfg
-
-            # Legacy fallback for basic_kwargs / maximal_kwargs
-            basic_kwargs = getattr(mod, "basic_kwargs", None)
-            maximal_kwargs = getattr(mod, "maximal_kwargs", None)
-            if basic_kwargs is not None or maximal_kwargs is not None:
-                warnings.warn(
-                    f"Component '{self.name}' defines legacy 'basic_kwargs' or 'maximal_kwargs' "
-                    f"in '{gallery_path.name}'. Defining kwargs directly in gallery files is deprecated "
-                    "and will be removed in a future release. Export 'config = GalleryConfig(...)' instead.",
-                    DeprecationWarning,
-                    stacklevel=2,
-                )
-                variants = []
-                if basic_kwargs is not None:
-                    variants.append(Variant(name="basic", kwargs=basic_kwargs))
-                if maximal_kwargs is not None:
-                    variants.append(Variant(name="maximal", kwargs=maximal_kwargs))
-                return GalleryConfig(variants=variants)
-
-        return GalleryConfig()
+        return load_gallery_config(source_file.parent, self.name)
 
     @property
     def qualified_name(self) -> str:

@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+import importlib.util
+import uuid
+import warnings
 from dataclasses import dataclass, field
-from typing import Any, Iterable, Mapping, Sequence
+from pathlib import Path
+from typing import Any, Mapping
 
 
 @dataclass
@@ -44,14 +48,9 @@ class Variant:
         if self.show_in_nav is None:
             self.show_in_nav = False if self.name in ("basic", "maximal") else True
 
-        if isinstance(self.positional_args, (list, tuple)):
-            self.positional_args = tuple(self.positional_args)
-
-        if not isinstance(self.kwargs, dict):
-            self.kwargs = dict(self.kwargs)
-
-        if not isinstance(self.extra_context, dict):
-            self.extra_context = dict(self.extra_context)
+        self.positional_args = tuple(self.positional_args or ())
+        self.kwargs = dict(self.kwargs or {})
+        self.extra_context = dict(self.extra_context or {})
 
 
 @dataclass
@@ -84,57 +83,29 @@ class GalleryConfig:
     variants: list[Variant] = field(default_factory=list)
 
     def __post_init__(self) -> None:
-        if not isinstance(self.hidden, bool):
-            raise TypeError(
-                f"hidden must be a boolean, got {type(self.hidden).__name__}"
-            )
+        self.extra_context = dict(self.extra_context or {})
+        self.param_defaults = dict(self.param_defaults or {})
 
-        if not isinstance(self.order, int):
-            raise TypeError(
-                f"order must be an integer, got {type(self.order).__name__}"
-            )
-
-        if not isinstance(self.extra_context, dict):
-            self.extra_context = dict(self.extra_context)
-
-        if not isinstance(self.param_defaults, dict):
-            self.param_defaults = dict(self.param_defaults)
-
-        coerced_variants: list[Variant] = []
         if isinstance(self.variants, Mapping):
-            for var_name, var_data in self.variants.items():
-                if isinstance(var_data, Variant):
-                    coerced_variants.append(var_data)
-                elif isinstance(var_data, dict):
-                    data = dict(var_data)
-                    data.setdefault("name", var_name)
-                    coerced_variants.append(Variant(**data))
-                else:
-                    raise TypeError(
-                        f"Invalid variant definition for '{var_name}': {var_data!r}"
-                    )
-        elif isinstance(self.variants, (Sequence, Iterable)):
-            for item in self.variants:
-                if isinstance(item, Variant):
-                    coerced_variants.append(item)
-                elif isinstance(item, dict):
-                    coerced_variants.append(Variant(**item))
-                else:
-                    raise TypeError(f"Invalid variant item: {item!r}")
+            raw = [
+                v if isinstance(v, Variant) else Variant(name=k, **v)
+                for k, v in self.variants.items()
+            ]
         else:
-            raise TypeError(
-                f"variants must be a list or dict, got {type(self.variants).__name__}"
-            )
+            raw = [
+                v if isinstance(v, Variant) else Variant(**v)
+                for v in (self.variants or [])
+            ]
 
         seen_names: set[str] = set()
-        for v in coerced_variants:
+        for v in raw:
             if v.name in seen_names:
                 raise ValueError(
                     f"Duplicate variant name: '{v.name}' in GalleryConfig."
                 )
             seen_names.add(v.name)
 
-        self.variants = coerced_variants
+        self.variants = raw
 
     def get_variant(self, name: str) -> Variant | None:
         """Return the variant matching *name*, or None."""
@@ -142,3 +113,64 @@ class GalleryConfig:
             if v.name == name:
                 return v
         return None
+
+
+def load_gallery_config(source_dir: Path, component_name: str) -> GalleryConfig:
+    """Discover, import, and return the GalleryConfig for a component.
+
+    Checks for ``{name}_gallery.py``, ``{name}.gallery.py``, or ``gallery.py``
+    within *source_dir*. If found, imports the module safely and extracts
+    the ``config`` (or ``{name}_config``) object. If legacy ``basic_kwargs``
+    or ``maximal_kwargs`` are present without a config, emits a
+    ``DeprecationWarning`` and synthesizes a fallback config.
+    """
+    candidates = [
+        source_dir / f"{component_name}_gallery.py",
+        source_dir / f"{component_name}.gallery.py",
+        source_dir / "gallery.py",
+    ]
+
+    gallery_path = None
+    for p in candidates:
+        if p.is_file():
+            gallery_path = p
+            break
+
+    if not gallery_path:
+        return GalleryConfig()
+
+    mod_name = f"dj_design_system_gallery_{uuid.uuid4().hex}"
+    spec = importlib.util.spec_from_file_location(mod_name, gallery_path)
+    if not (spec and spec.loader):
+        return GalleryConfig()
+
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
+    cfg = getattr(mod, "config", None)
+    if isinstance(cfg, GalleryConfig):
+        return cfg
+
+    named_cfg = getattr(mod, f"{component_name}_config", None)
+    if isinstance(named_cfg, GalleryConfig):
+        return named_cfg
+
+    # Legacy fallback for basic_kwargs / maximal_kwargs
+    basic_kwargs = getattr(mod, "basic_kwargs", None)
+    maximal_kwargs = getattr(mod, "maximal_kwargs", None)
+    if basic_kwargs is not None or maximal_kwargs is not None:
+        warnings.warn(
+            f"Component '{component_name}' defines legacy 'basic_kwargs' or 'maximal_kwargs' "
+            f"in '{gallery_path.name}'. Defining kwargs directly in gallery files is deprecated "
+            "and will be removed in a future release. Export 'config = GalleryConfig(...)' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        variants: list[Variant] = []
+        if basic_kwargs is not None:
+            variants.append(Variant(name="basic", kwargs=basic_kwargs))
+        if maximal_kwargs is not None:
+            variants.append(Variant(name="maximal", kwargs=maximal_kwargs))
+        return GalleryConfig(variants=variants)
+
+    return GalleryConfig()
