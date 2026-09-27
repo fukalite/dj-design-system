@@ -1,0 +1,3 @@
+Phase: 1
+Task: Apply Review Improvements (Imports & Type Cleanups)
+Details: Streamlined imports by relocating load_gallery_config to gallery.py, removed in-function imports in data.py, and removed defensive primitive isinstance checks from GalleryConfig in favor of standard dataclass typing.
