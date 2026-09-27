@@ -17,6 +17,9 @@
 - [x] Task: Update Component Discovery in `ComponentInfo` [693cf49]
   - [x] Write failing unit tests in `tests/test_discovery_gallery.py` verifying that `ComponentInfo.gallery_config` loads from `gallery.py` or `<name>_gallery.py`, and falls back to synthesized config when legacy `basic_kwargs` exist.
   - [x] Update `dj_design_system/data.py` to discover and attach `gallery_config`.
+- [x] Task: Apply Review Improvements (Imports & Type Cleanups) [686f1f2]
+  - [x] Streamline imports by moving `load_gallery_config` into `dj_design_system/gallery.py` and removing in-function imports in `data.py`.
+  - [x] Simplify `GalleryConfig` by relying on dataclass type conventions rather than redundant primitive `isinstance` checks.
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
@@ -77,5 +80,6 @@
 - [ ] Task: Full Documentation Assessment & Modernization
   - [ ] Review and update `docs/components.md`, `docs/organisation.md`, `docs/testing.md`, `docs/templatetags.md`, and `docs/index.md` to ensure all references to gallery setup and configurations are accurate and cohesive.
 - [ ] Task: Example Project Showcase
-  - [ ] Add rich examples in `example_project` demonstrating custom variants, custom icons, groupings, and canvas templates.
+  - [ ] Add rich, comprehensive examples in `example_project` demonstrating custom variants, custom icons, groupings, themes, and canvas templates across demo components (`button`, `badge`, `card`, `alert`, `quote_oneup`).
+  - [ ] Ensure variant examples are formatted and documented so they can be directly referenced and embedded in the revamped documentation.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)

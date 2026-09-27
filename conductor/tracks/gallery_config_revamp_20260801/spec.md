@@ -69,11 +69,12 @@ Revamp the component gallery configuration by introducing a strictly-typed, expl
 - Port legacy `*_gallery.py` files containing `basic_kwargs` / `maximal_kwargs` to the new `GalleryConfig` format.
 - Clean up obsolete `_gallery_kwargs` references.
 
-### 7. Documentation Requirements
+### 7. Documentation & Example Project Requirements
 - **Comprehensive API Docs**: Dedicated page `docs/api/gallery.md` documenting `GalleryConfig` and `Variant` APIs with `mkdocstrings`, included in `mkdocs.yml`.
 - **Revamped Getting Started**: Overhaul `docs/quickstart.md` to introduce component authoring with explicit `gallery.py` configuration.
 - **Dedicated Variants & Gallery Guide**: Revamp `docs/gallery.md` to document explicit configuration, provide an in-depth Named Variants guide (defaults, custom variants, deep-linking, previewing, icons), and explain Smart Hybrid `canvas_template`.
 - **Full Documentation Assessment**: Audit and update all existing docs (`docs/components.md`, `docs/organisation.md`, `docs/testing.md`, etc.) to remove deprecated conventions and ensure site-wide consistency.
+- **Comprehensive Example Project Showcase**: Add comprehensive examples of new variants to `example_project` across key demo components (e.g. `button`, `badge`, `card`, `alert`, `quote_oneup`) demonstrating varied configurations, custom icons, groupings, themes, and canvas templates, specifically designed to be referenced and embedded throughout the revamped documentation.
 
 ## Acceptance Criteria
 - `Variant` and `GalleryConfig` classes fully implemented with strict type hints and validation.
@@ -83,5 +84,7 @@ Revamp the component gallery configuration by introducing a strictly-typed, expl
 - Smart Hybrid `canvas_template` works for both `{{ component }}` wrappers and raw template tags.
 - Callable `param_defaults` evaluate correctly at render time.
 - Migration script converts existing demo components cleanly without loss of preview capability.
+- Comprehensive variant examples added to `example_project` and referenced in docs.
 - Full documentation suite is updated with API reference, revamped getting started, variants guide, and cross-site assessment.
 - All existing and new tests pass with >80% coverage and `just check` passes cleanly.
+
