@@ -1,0 +1,3 @@
+Phase: 2
+Task: Update Frontend Sidebar (navtree.html and styles)
+Details: Updated navtree.html to render custom SVG and mask-image icons, render variant child links with ?variant query params, and reflect active variant states with open parent folders. Styled variant indentation and icons in gallery.css.
