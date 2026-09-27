@@ -211,6 +211,32 @@ Use it in a template:
 {% endcard %}
 ```
 
+## Configuring Gallery Previews & Variants
+
+By default, the gallery synthesizes minimal and maximal examples automatically. To provide custom metadata, named variants, themes, and canvas layouts, create a `gallery.py` (or `<component_name>_gallery.py`) file in the same directory as your component:
+
+```python
+# myapp/components/card_gallery.py
+from dj_design_system.gallery import GalleryConfig, Variant
+
+config = GalleryConfig(
+    icon="ph:cards",
+    order=1,
+    variants=[
+        Variant(name="basic", kwargs={"title": "Simple Card"}),
+        Variant(
+            name="featured",
+            label="Featured Card",
+            description="Card highlighted with custom gradient styling.",
+            kwargs={"title": "Featured Story", "content": "Exclusive report."},
+            show_in_nav=True,
+        ),
+    ],
+)
+```
+
+The gallery will automatically discover `config`, display your custom variants in the navigation sidebar, and provide deep links (`?variant=featured`) with dedicated variant documentation. For complete configuration options, see the [Gallery Guide](gallery.md) and [Gallery API Reference](api/gallery.md).
+
 ## Loading Template Tags
 
 There are two ways to load component template tags:

@@ -228,9 +228,9 @@ DJ_DESIGN_SYSTEM = {
 }
 ```
 
-## Customising Gallery Examples
+## Customising Gallery Examples & Configuration
 
-By default, the gallery generates minimal and maximal usage examples automatically based on the parameter types. You can customize examples and configure rich component metadata by creating a side-car Python file next to your component (`gallery.py` or `<component_name>_gallery.py`).
+By default, the gallery generates minimal and maximal usage examples automatically based on parameter types. You can customize examples and configure rich component metadata by creating a side-car Python file next to your component (`gallery.py` or `<component_name>_gallery.py`).
 
 ### Modern Configuration: `GalleryConfig`
 
@@ -241,28 +241,183 @@ Export a `config` instance of `GalleryConfig`:
 from dj_design_system.gallery import GalleryConfig, Variant
 
 config = GalleryConfig(
-    icon="mdi:button",
-    order=10,
+    icon="ph:cursor-click",
+    order=1,
     group="Actions",
     variants=[
-        Variant(name="basic", kwargs={"label": "Click me"}),
-        Variant(name="maximal", kwargs={"label": "Click me", "theme": "primary"}),
+        Variant(name="basic", label="Primary Button", kwargs={"label": "Click me"}),
         Variant(
             name="danger",
             label="Destructive Action",
-            kwargs={"label": "Delete", "theme": "danger"},
+            description="Use danger buttons for actions that cannot be undone, such as deleting a record.",
+            kwargs={"label": "Delete Account", "variant": "danger"},
+            icon="ph:trash",
+            show_in_nav=True,
         ),
     ],
 )
 ```
 
+#### `GalleryConfig` Options
+
+| Attribute | Type | Default | Description |
+| --- | --- | --- | --- |
+| `variants` | `list[Variant]` or `list[dict]` | `[]` | List of named component variants. Supports `Variant` instances or shorthand dicts. |
+| `order` | `int` | `0` | Explicit ordering priority in the sidebar navigation. Lower numbers appear first. |
+| `group` | `str | None` | `None` | Grouping sub-folder name in the sidebar navigation. |
+| `icon` | `str | None` | `None` | Custom icon identifier (e.g. `"ph:cursor-click"`) for the component in the sidebar. |
+| `theme` | `str | None` | `None` | Default theme override for previewing this component in the canvas. |
+| `hidden` | `bool` | `False` | When `True`, hides the component and its variants from sidebar navigation and search. |
+| `canvas_template`| `str | None` | `None` | HTML layout template for canvas previews (operates in Smart Hybrid mode). |
+| `extra_context` | `dict[str, Any]` | `{}` | Context variables passed into canvas templates. |
+| `param_defaults` | `dict[str, Any]` | `{}` | Base parameter defaults (supports values or callables for dynamic resolution). |
+
+---
+
+## Named Variants
+
+The `Variant` class defines specific component variations, configurations, and documentation snippets.
+
+```python
+from dj_design_system.gallery import Variant
+
+Variant(
+    name="danger",
+    label="Destructive Action",
+    description="Rendered with high-visibility red contrast for irreversible actions.",
+    kwargs={"label": "Delete Item", "variant": "danger"},
+    positional_args=(),
+    canvas_template=None,
+    extra_context={},
+    icon="ph:trash",
+    theme=None,
+    show_in_nav=True,
+)
+```
+
+### Variant Attributes
+
+- **`name`** (`str`): Unique slug identifier (e.g. `"basic"`, `"maximal"`, `"danger"`).
+- **`label`** (`str | None`): Display label used in navigation and documentation. Defaults to title-cased name.
+- **`description`** (`str | None`): Markdown documentation explaining the intended use of this variant.
+- **`kwargs`** (`dict[str, Any]`): Parameter keyword arguments passed to the component tag. Supports static values, `GalleryParameter`, or dynamic callables.
+- **`positional_args`** (`tuple[Any, ...]`): Positional argument values passed to the component tag.
+- **`canvas_template`** (`str | None`): Variant-specific canvas layout template overriding the component's `canvas_template`.
+- **`extra_context`** (`dict[str, Any]`): Extra context variables merged into preview rendering for this variant.
+- **`icon`** (`str | None`): Custom icon identifier displayed next to the variant in the sidebar.
+- **`theme`** (`str | None`): Theme override applied when previewing this specific variant.
+- **`show_in_nav`** (`bool`): Whether this variant appears as a nested child link in the sidebar navigation. Defaults to `False` for default variants (`basic`, `maximal`) and `True` for custom variants.
+
+### Focused Variant View & Breadcrumb Navigation
+
+When navigating to a variant via deep-link (e.g. `/demo_components/badge/?variant=status`):
+
+1. **Focused Documentation**: The usage section displays the dedicated variant title, badge, markdown description, a focused live preview canvas, and syntax-highlighted tag code.
+2. **Breadcrumb Trail**: The active variant is appended as the terminal crumb:  
+   `Gallery / Demo Components / Badge / Status Indicator`  
+   Clicking the parent component in the breadcrumbs navigates directly back to the full component overview.
+3. **Sandbox Pre-filling**: Form fields in the interactive Sandbox pane are automatically populated with the variant's arguments, and the toolbar preset selector reflects the active preset.
+
+---
+
+## Smart Hybrid `canvas_template`
+
+The `canvas_template` option on `GalleryConfig` or `Variant` allows you to customize the HTML canvas wrapping your component preview. It operates in **Smart Hybrid mode**:
+
+### 1. Wrapper Mode (`{{ component }}` present)
+
+When your template string contains the `{{ component }}` placeholder, the component is rendered first and injected into your wrapper HTML along with any `extra_context`:
+
+```python
+config = GalleryConfig(
+    canvas_template="""
+    <div style="max-width: 400px; margin: 2rem auto; padding: 1.5rem; background: #f8fafc; border-radius: 8px;">
+        <h4 style="margin-top:0;">Dialog Preview</h4>
+        {{ component }}
+    </div>
+    """
+)
+```
+
+### 2. Raw Template Mode (`{{ component }}` absent)
+
+When `{{ component }}` is omitted, the template is rendered directly through Django's template engine as raw template code. `{% load design_components %}` is automatically injected if not already present:
+
+```python
+Variant(
+    name="grid_preview",
+    label="Card Grid Showcase",
+    canvas_template="""
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        {% card title="Card 1" %}<p>Body 1</p>{% endcard %}
+        {% card title="Card 2" %}<p>Body 2</p>{% endcard %}
+    </div>
+    """,
+    show_in_nav=True,
+)
+```
+
+---
+
+## Dynamic Callables & Parameter Evaluation
+
+To avoid evaluating database queries or stateful models at Python import time, you can pass callables in `param_defaults` or variant `kwargs`:
+
+```python
+config = GalleryConfig(
+    param_defaults={
+        # Evaluated at canvas render time, NOT at import time:
+        "active_user": lambda: User.objects.filter(is_active=True).first(),
+        "timestamp": timezone.now,
+    }
+)
+```
+
+---
+
+## Filling Slots in Variants
+
+For components that accept named slots, provide slot content in variant `kwargs` using the `slot__` prefix:
+
+```python
+Variant(
+    name="product_card",
+    kwargs={
+        "title": "Pro Plan",
+        "slot__header": "<img src='banner.jpg' alt='Header'>",
+        "slot__body": "<p>Full access to all components.</p>",
+        "slot__footer": "<button type='button'>Upgrade</button>",
+    },
+)
+```
+
+---
+
+## Upgrading Legacy Gallery Configurations
+
 > [!WARNING] Deprecation Notice: Legacy Kwargs
 > Defining `basic_kwargs` and `maximal_kwargs` dictionaries directly in gallery files is deprecated and will be removed in a future release. 
 > Export `config = GalleryConfig(...)` instead. The gallery currently maintains backwards compatibility and automatically synthesizes a `GalleryConfig` while emitting a `DeprecationWarning`.
 
-### Upgrading Legacy Gallery Configurations
+### Automated Migration Command
 
-If you have existing components using `basic_kwargs` and `maximal_kwargs`, upgrading is simple:
+Django Design System includes an automated management command that uses AST parsing to safely upgrade legacy `*_gallery.py` files across your apps:
+
+```bash
+# Check if unmigrated files exist (useful for CI)
+python manage.py migrate_gallery_configs --check
+
+# Dry-run migration
+python manage.py migrate_gallery_configs --dry-run
+
+# Perform migration across all apps
+python manage.py migrate_gallery_configs
+
+# Keep legacy basic_kwargs/maximal_kwargs variables alongside config
+python manage.py migrate_gallery_configs --keep-legacy
+```
+
+### Manual Comparison
 
 #### Before (Legacy)
 ```python
@@ -274,10 +429,7 @@ basic_kwargs = {
 maximal_kwargs = {
     "text": "Critical Alert!",
     "theme": "danger",
-    # To specify content for a slot, prefix the slot name with `slot__`
-    "slot__icon": "<svg>...</svg>",
     "slot__body": "Here is the body content",
-    # For complex Django types or context variables, wrap them in GalleryParameter.
     "user": GalleryParameter(value=User.objects.first(), code="request.user"),
 }
 ```
@@ -295,38 +447,15 @@ config = GalleryConfig(
             kwargs={
                 "text": "Critical Alert!",
                 "theme": "danger",
-                "slot__icon": "<svg>...</svg>",
                 "slot__body": "Here is the body content",
                 "user": GalleryParameter(
-                    value=User.objects.first(), code="request.user"
+                    value=lambda: User.objects.first(), code="request.user"
                 ),
             },
         ),
     ]
 )
 ```
-
-You can also use dictionary shorthand for variants:
-```python
-config = GalleryConfig(
-    variants=[
-        {"name": "basic", "kwargs": {"text": "New basic badge"}},
-        {"name": "maximal", "kwargs": {"text": "Critical Alert!", "theme": "danger"}},
-    ]
-)
-```
-
-#### Automated Migration Command
-An automated management command is provided to scan and upgrade your existing gallery files automatically:
-```bash
-python manage.py migrate_gallery_configs
-```
-
-**Filling Slots**
-To specify content for a slot, simply add the slot name to your kwargs dictionary prefixed with `slot__` (e.g., `"slot__body": "Content"`).
-
-**When to use `GalleryParameter`**
-The `GalleryParameter` wrapper is **not required** for basic values (strings, booleans, dicts, etc). It is only necessary when you need to pass complex Django types (like QuerySets or Model instances) to the sandbox preview, but want to display a clean context variable name in the generated template tag documentation.
 
 ## Relative Links in Markdown
 
