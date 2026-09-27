@@ -49,7 +49,7 @@
   - [x] Write tests in `tests/test_variant_views.py` verifying that requesting `?variant=<name>` activates the variant view and pre-fills sandbox form kwargs.
   - [x] Update `views.py` to resolve active variant, construct preview URLs, and pass variant context.
   - [x] Update `component.html` and `sandbox_fragment.html` to render focused variant view and sandbox preset dropdown.
-- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [checkpoint: b3e2b99]
 
 ---
 
