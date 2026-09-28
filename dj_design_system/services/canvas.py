@@ -156,25 +156,31 @@ def merge_variant_params(
     return merged
 
 
+def _render_block_component(
+    component_class: type[BlockComponent], kwargs: dict[str, Any]
+) -> str:
+    """Instantiate and render a BlockComponent with slots or default content."""
+    kw = dict(kwargs)
+    if component_class.has_slots():
+        slots = {}
+        slot_keys = [k for k in kw if k.startswith(SLOT_PARAM_PREFIX)]
+        for key in slot_keys:
+            slot_name = key[len(SLOT_PARAM_PREFIX) :]
+            slots[slot_name] = kw.pop(key)
+        for name, slot in component_class.get_slots().items():
+            if name not in slots and slot.required:
+                slots[name] = slot.default or f"Sample {name} content"
+        return str(component_class(slots=slots, **kw))
+
+    content = kw.pop("content", BLOCK_CONTENT_PLACEHOLDER)
+    return str(component_class(content=content, **kw))
+
+
 def _render_component_class(component_class: type, kwargs: dict[str, Any]) -> str:
     """Instantiate and render a component class with given keyword arguments."""
-    kw = dict(kwargs)
     if issubclass(component_class, BlockComponent):
-        if component_class.has_slots():
-            slots = {}
-            slot_keys = [k for k in kw if k.startswith(SLOT_PARAM_PREFIX)]
-            for key in slot_keys:
-                slot_name = key[len(SLOT_PARAM_PREFIX) :]
-                slots[slot_name] = kw.pop(key)
-            for name, slot in component_class.get_slots().items():
-                if name not in slots and slot.required:
-                    slots[name] = slot.default or f"Sample {name} content"
-            return str(component_class(slots=slots, **kw))
-        else:
-            content = kw.pop("content", BLOCK_CONTENT_PLACEHOLDER)
-            return str(component_class(content=content, **kw))
-
-    return str(component_class(**kw))
+        return _render_block_component(component_class, kwargs)
+    return str(component_class(**kwargs))
 
 
 @lru_cache(maxsize=128)
@@ -184,6 +190,63 @@ def _compile_canvas_template(template_str: str) -> Template:
     Raises TemplateSyntaxError if the template string has invalid syntax.
     """
     return Template(template_str)
+
+
+def _resolve_variant(
+    config: GalleryConfig, component_name: str, variant_name: str | None
+) -> Variant | None:
+    """Retrieve variant from config or raise VariantNotFoundError if specified but missing."""
+    if not variant_name:
+        return None
+    variant_obj = config.get_variant(variant_name)
+    if variant_obj is None:
+        raise VariantNotFoundError(
+            f"Variant '{variant_name}' not found for component '{component_name}'."
+        )
+    return variant_obj
+
+
+def _resolve_extra_context(
+    config: GalleryConfig, variant: Variant | None = None
+) -> dict[str, Any]:
+    """Merge and resolve extra_context from GalleryConfig and Variant."""
+    merged_extra: dict[str, Any] = dict(config.extra_context)
+    if variant and variant.extra_context:
+        merged_extra.update(variant.extra_context)
+    return {k: _resolve_param_value(v) for k, v in merged_extra.items()}
+
+
+def _render_with_canvas_template(
+    component_class: type,
+    canvas_template: str,
+    resolved_kwargs: dict[str, Any],
+    extra_context: dict[str, Any],
+) -> str:
+    """Render a component wrapped in a custom canvas Django template string."""
+    has_component_placeholder = bool(
+        re.search(r"\{\{\s*component\b[^}]*\}\}", canvas_template)
+    )
+    template_kwargs = dict(resolved_kwargs)
+
+    if has_component_placeholder:
+        component_html = _render_component_class(component_class, dict(resolved_kwargs))
+        context_dict = {
+            **template_kwargs,
+            **extra_context,
+            "component": mark_safe(component_html),
+        }
+    else:
+        context_dict = {
+            **template_kwargs,
+            **extra_context,
+        }
+
+    template_str = canvas_template
+    if not re.search(r"{%\n?\s*load\s+[^%]*\bdesign_components\b[^%]*%}", template_str):
+        template_str = f"{{% load design_components %}}\n{template_str}"
+
+    template = _compile_canvas_template(template_str)
+    return template.render(Context(context_dict))
 
 
 def render_component(
@@ -197,28 +260,13 @@ def render_component(
         component_class = info.component_class
         config: GalleryConfig = getattr(info, "gallery_config", GalleryConfig())
 
-        variant_obj: Variant | None = None
-        if spec.variant:
-            variant_obj = config.get_variant(spec.variant)
-            if variant_obj is None:
-                raise VariantNotFoundError(
-                    f"Variant '{spec.variant}' not found for component '{spec.component_name}'."
-                )
-
+        variant_obj = _resolve_variant(config, spec.component_name, spec.variant)
         canvas_template = (
             variant_obj.canvas_template
             if variant_obj and variant_obj.canvas_template is not None
             else config.canvas_template
         )
-
-        merged_extra_context: dict[str, Any] = dict(config.extra_context)
-        if variant_obj and variant_obj.extra_context:
-            merged_extra_context.update(variant_obj.extra_context)
-
-        resolved_extra_context = {
-            k: _resolve_param_value(v) for k, v in merged_extra_context.items()
-        }
-
+        resolved_extra_context = _resolve_extra_context(config, variant_obj)
         resolved_kwargs = merge_variant_params(
             component_class,
             config=config,
@@ -229,34 +277,12 @@ def render_component(
         )
 
         if canvas_template:
-            has_component_placeholder = bool(
-                re.search(r"\{\{\s*component\b[^}]*\}\}", canvas_template)
+            return _render_with_canvas_template(
+                component_class,
+                canvas_template,
+                resolved_kwargs,
+                resolved_extra_context,
             )
-            template_kwargs = dict(resolved_kwargs)
-
-            if has_component_placeholder:
-                component_html = _render_component_class(
-                    component_class, dict(resolved_kwargs)
-                )
-                context_dict = {
-                    **template_kwargs,
-                    **resolved_extra_context,
-                    "component": mark_safe(component_html),
-                }
-            else:
-                context_dict = {
-                    **template_kwargs,
-                    **resolved_extra_context,
-                }
-
-            template_str = canvas_template
-            if not re.search(
-                r"{%\n?\s*load\s+[^%]*\bdesign_components\b[^%]*%}", template_str
-            ):
-                template_str = f"{{% load design_components %}}\n{template_str}"
-
-            template = _compile_canvas_template(template_str)
-            return template.render(Context(context_dict))
 
         return _render_component_class(component_class, resolved_kwargs)
     except Exception as exc:  # Catch all rendering/template exceptions
