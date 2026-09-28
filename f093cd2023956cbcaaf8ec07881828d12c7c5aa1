@@ -1,0 +1,9 @@
+Task: Phase 2 — Pin the Playwright version; CI tag sync test
+
+Summary: justfile defines playwright_version := "1.63.0" (latest on PyPI and what CI currently resolves; mcr image v1.63.0-noble exists for amd64 and arm64). New tests/test_visual_config.py asserts the pin exists, that every mcr.microsoft.com/playwright/python image tag in .github/workflows matches it (vacuous until the Phase 4 job exists), and that the e2e recipe excludes the visual marker. just e2e now runs -m "e2e and not visual".
+
+Files: justfile, tests/test_visual_config.py (new, 3 tests)
+
+Why: Screenshots are only comparable when rendered by the same Playwright/Chromium build; a single pinned version prevents drift between local baselines and CI.
+
+Verification: tests failed before the justfile change and pass after; just test (713 passed), just e2e (28 passed, 1 skipped), just check clean.

@@ -1,0 +1,13 @@
+Task: Phase 1 — shared screenshot comparison helper (Red + helper part of Green)
+
+Summary: Added dj_design_system/testing/visual.py with compare_images() (pixel mismatch count/ratio; ScreenshotMismatch on size mismatch) and assert_matches_baseline() (writes <failure_dir>/<stem>/expected|actual|diff.png on failure; configurable threshold and max_mismatch_ratio; missing baseline fails; update mode creates/overwrites only changed baselines). Refactored VisualRegressionPlugin to use compare_images() with identical public behaviour and messages.
+
+Files:
+- dj_design_system/testing/visual.py (new)
+- dj_design_system/testing/plugins.py
+- tests/test_testing_visual.py (new, 12 tests)
+- tests/test_testing_plugins.py (diff-mismatch test now mocks compare_images)
+
+Why: One comparison implementation shared by the gallery visual regression suite (track 0) and the public plugin, with review artefacts CI can upload.
+
+Verification: just test (710 passed), just check, just typecheck clean; visual.py coverage 92%.

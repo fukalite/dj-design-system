@@ -1,0 +1,24 @@
+Task: Phase 1 — Refactor and Verify Coverage
+
+Summary: Measured coverage of the Phase 1 modules. capture.py initially reported 82% because Playwright's sync API runs on greenlets and coverage did not trace them (lines after page.evaluate/page.screenshot looked uncovered). Added concurrency = ["greenlet", "thread"] to [tool.coverage.run]. No refactor needed.
+
+Files: pyproject.toml
+
+Coverage: dj_design_system/testing/visual.py 92%; tests/e2e/visual/capture.py 100%.
+Verification: CI-style 'pytest tests/ -m "not e2e" --cov' (710 passed), just check, just typecheck clean.
+
+PHASE VERIFICATION REPORT — Track 0, Phase 1: Harness & Comparison
+
+Automated tests:
+- Command: just test && just e2e
+- Result: 710 passed (unit); 28 passed, 1 skipped (e2e).
+- Coverage: dj_design_system/testing/visual.py 92%; tests/e2e/visual/capture.py 100% (with greenlet tracing).
+
+Manual verification:
+1. pytest tests/test_testing_visual.py tests/e2e/test_visual_capture.py -m 'e2e or not e2e' -v -> user saw 19 passed.
+2. Generated a screenshot via the round-trip test with --basetemp=/tmp/dds-visual and opened output/actual/index.png (corrected path: test_update_then_compare_round0). Gallery index rendered correctly.
+3. pytest tests/test_testing_plugins.py -v -> passed.
+
+Finding: the gallery sidebar and main panes scroll internally, so full-page screenshots stop at the viewport height. Added a Phase 3 task (commit 3a47054) to capture scroll containers fully.
+
+User confirmation: 'you have my confirmation' (2026-09-28).
