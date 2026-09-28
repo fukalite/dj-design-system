@@ -9,6 +9,7 @@ from dj_design_system.data import CanvasSpec, ComponentInfo, GalleryParameter
 from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.parameters.base import StrParam
 from dj_design_system.services.canvas import (
+    VariantNotFoundError,
     _compile_canvas_template,
     build_canvas_url,
     render_component,
@@ -302,7 +303,9 @@ class TestCanvasVariantIntegration:
             variant="nonexistent",
         )
 
-        with pytest.raises(ValueError, match="Variant 'nonexistent' not found"):
+        with pytest.raises(
+            VariantNotFoundError, match="Variant 'nonexistent' not found"
+        ):
             render_component(spec, reg, raise_errors=True)
 
         error_html = render_component(spec, reg, raise_errors=False)

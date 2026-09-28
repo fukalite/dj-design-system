@@ -12,8 +12,7 @@ Expects: node (NavNode), depth (int), active_path (str) from parent context.{% e
     </div>
 {% elif node.has_children %}
     {# ── Folder / expandable node ── #}
-    <details class="gallery-nav__folder"
-             {% if active_path and node.active_path in active_path or active_path and node.base_active_path in active_path %}open{% endif %}>
+    <details class="gallery-nav__folder" {% if active_path %}{% if node.active_path in active_path or node.base_active_path in active_path %}open{% endif %}{% endif %}>
         <summary class="gallery-nav__link gallery-nav__link--folder"
                  data-depth="{{ depth }}">
             <a href="{{ node.url }}"

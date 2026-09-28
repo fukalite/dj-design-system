@@ -22,6 +22,7 @@ from dj_design_system.data import (
     ComponentMedia,
     GalleryParameter,
 )
+from dj_design_system.exceptions import VariantNotFoundError
 from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.parameters.base import DictParam, JSONParam, ListParam
 from dj_design_system.parameters.model import ModelParam
@@ -40,6 +41,7 @@ __all__ = [
     "build_canvas_url",
     "resolve_component",
     "coerce_single",
+    "VariantNotFoundError",
 ]
 
 
@@ -146,7 +148,7 @@ def render_component(
         if spec.variant:
             variant_obj = config.get_variant(spec.variant)
             if variant_obj is None:
-                raise ValueError(
+                raise VariantNotFoundError(
                     f"Variant '{spec.variant}' not found for component '{spec.component_name}'."
                 )
 

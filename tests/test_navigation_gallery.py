@@ -397,4 +397,3 @@ class TestNavTreeTemplate:
             {"node": tree[0], "depth": 0, "active_path": "", "active_variant": ""},
         )
         assert "gallery-nav__icon--component" in html
-

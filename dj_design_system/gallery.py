@@ -27,7 +27,9 @@ class Variant:
         icon: Optional icon name or SVG path for sidebar navigation.
         theme: Optional theme override when previewing this variant.
         show_in_nav: Whether to display this variant as a child node in the gallery sidebar navigation.
-            Defaults to False for default variants ("basic", "maximal") and True for custom variants.
+            When left as None, defaults to False for standard built-in variants ("basic", "maximal")
+            so they do not clutter the sidebar tree, and True for custom named variants.
+            Explicitly set to True or False to override this default.
     """
 
     name: str
