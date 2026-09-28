@@ -5,7 +5,7 @@
 - [x] Task: Add `aria-current="page"` to active nav items [7b2c6f3]
 - [x] Task: Fix inaccessible tab switcher radio inputs in `component.html` [0ab3ad5]
 - [x] Task: Fix auto-submit on variant selector (or event loop) for keyboard users [55e73ae]
-- [ ] Task: Add Escape key handlers to toolbar popouts
+- [x] Task: Add Escape key handlers to toolbar popouts [2602036]
 - [ ] Task: Make drawer resizer accessible to keyboard users
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
