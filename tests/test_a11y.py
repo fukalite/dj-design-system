@@ -161,3 +161,24 @@ class TestNavtreeAccessibility:
         resizer_end = html.find('>', resizer_idx)
         resizer_tag = html[resizer_start:resizer_end + 1]
         assert 'aria-hidden="true"' not in resizer_tag
+
+    def test_css_design_tokens_in_root_and_dark_theme(self):
+        """gallery.css must define complete tokens in :root and .gallery-theme-dark."""
+        from pathlib import Path
+        css_path = Path("dj_design_system/static/dj_design_system/gallery.css")
+        content = css_path.read_text(encoding="utf-8")
+
+        # :root tokens
+        assert "--gallery-danger:" in content or "--gallery-error:" in content
+        assert "--gallery-tabs-active-bg:" in content
+        assert "--gallery-nav-indent:" in content
+
+        # dark theme tokens
+        dark_theme_start = content.find(".gallery-theme-dark")
+        dark_theme_end = content.find("}", dark_theme_start)
+        assert dark_theme_start != -1 and dark_theme_end != -1
+        dark_css = content[dark_theme_start:dark_theme_end]
+
+        assert "--gallery-sidebar-hover:" in dark_css
+        assert "--gallery-sidebar-active:" in dark_css
+        assert "--gallery-danger:" in dark_css or "--gallery-error:" in dark_css
