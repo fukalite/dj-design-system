@@ -8,11 +8,10 @@ import markdown as markdown_lib
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.http import Http404, HttpRequest, HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import render
 from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.html import format_html, format_html_join
-from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from dj_design_system.components import BlockComponent
@@ -69,10 +68,9 @@ def gallery_access_required(view_func):
             return view_func(request, *args, **kwargs)
 
         if not request.user.is_authenticated:
-            url = f"{settings.LOGIN_URL}?next={request.path}"
-            if not url_has_allowed_host_and_scheme(url, allowed_hosts=None):
-                url = "/"
-            return redirect(url)
+            from django.contrib.auth.views import redirect_to_login
+
+            return redirect_to_login(request.get_full_path())
 
         if not request.user.has_perm(GALLERY_PERMISSION):
             raise PermissionDenied
