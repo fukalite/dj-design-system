@@ -7,10 +7,10 @@
 - [x] Task: Consolidate scattered exception hierarchy [313440f]
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [7d939e1]
 
-## Phase 2: View & Service Decomposition
-- [ ] Task: Split `views.py` into a `views/` package (`gallery.py`, `component.py`, `canvas.py`, `decorators.py`)
-- [ ] Task: Extract variant parameter merging logic into a single shared helper
-- [ ] Task: Decompose `render_component` into smaller functions
-- [ ] Task: Move URL resolution logic out of `NavNode` into navigation service
-- [ ] Task: Refactor `GalleryConfig` to use a factory method for dict/mapping unpacking
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+## Phase 2: View & Service Decomposition [checkpoint: 50c890b]
+- [x] Task: Split `views.py` into a `views/` package (`gallery.py`, `component.py`, `canvas.py`, `decorators.py`) [d093658]
+- [x] Task: Extract variant parameter merging logic into a single shared helper [06cd392]
+- [x] Task: Decompose `render_component` into smaller functions [30b0ea2]
+- [x] Task: Move URL resolution logic out of `NavNode` into navigation service [74a4c95]
+- [x] Task: Refactor `GalleryConfig` to use a factory method for dict/mapping unpacking [50c890b]
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [50c890b]
