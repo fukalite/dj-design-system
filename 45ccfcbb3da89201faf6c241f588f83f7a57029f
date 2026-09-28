@@ -1,0 +1,9 @@
+Task: Phase 3 — Capture Scrolling Regions
+
+Summary: Added find_clipped_containers() (visible elements with overflow-y auto/scroll/hidden whose scrollHeight exceeds clientHeight) and fit_viewport_to_content() (grows the viewport height, keeping width, re-settling after each resize; raises AssertionError past max_height=12000). ScreenshotRecorder.check() fits by default (fit=False opts out). On the index page the scrolling element is nav.gallery-nav inside the sidebar. Regenerated the index baseline in the pinned container (1280x720 -> 1280x726; the nav overflowed by 6px, so only Pill's bottom padding had been clipped).
+
+Files: tests/e2e/visual/capture.py, tests/e2e/test_visual_capture.py (6 new e2e tests), tests/e2e/visual/baselines/index.png
+
+Why: Baselines must capture all gallery content, not just what fits a default viewport.
+
+Verification: new tests red then green (13 passed); just update-visual-baselines then just visual passed; just test (727 passed), just check, just typecheck clean.
