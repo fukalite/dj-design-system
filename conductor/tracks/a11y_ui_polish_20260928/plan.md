@@ -11,7 +11,7 @@
 
 ## Phase 2: UI & Frontend Polish
 - [x] Task: Add missing CSS design tokens to `:root` and dark theme [1be5be1]
-- [ ] Task: Extract icon rendering logic in `navtree.html` to a reusable partial
+- [x] Task: Extract icon rendering logic in `navtree.html` to a reusable partial [f68e6d3]
 - [ ] Task: Replace hardcoded CSS depth indentation with custom properties
 - [ ] Task: Vendor HTMX locally to remove `unpkg.com` dependency
 - [ ] Task: Fix BEM naming inconsistencies
