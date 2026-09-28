@@ -5,7 +5,7 @@
     {# ── Variant Presets ── #}
     {% if gallery_variants %}
         <form method="get"
-              action="{{ component_base_url }}"
+              action="{{ component_base_url }}#pane-sandbox"
               class="gallery-sandbox-toolbar__group gallery-sandbox-toolbar__presets">
             {% if active_theme %}<input type="hidden" name="theme" value="{{ active_theme }}">{% endif %}
             <label for="gallery-variant-select" class="gallery-visually-hidden">Preset:</label>
