@@ -7,7 +7,7 @@
 - [x] Task: Fix auto-submit on variant selector (or event loop) for keyboard users [55e73ae]
 - [x] Task: Add Escape key handlers to toolbar popouts [2602036]
 - [x] Task: Make drawer resizer accessible to keyboard users [122bcd7]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [a3c8a55]
 
 ## Phase 2: UI & Frontend Polish
 - [ ] Task: Add missing CSS design tokens to `:root` and dark theme
