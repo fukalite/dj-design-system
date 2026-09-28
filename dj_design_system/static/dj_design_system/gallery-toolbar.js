@@ -90,6 +90,18 @@
       },
       { signal: signal },
     );
+
+    document.addEventListener(
+      "keydown",
+      function (e) {
+        if (e.key === "Escape" && !panel.hidden) {
+          panel.hidden = true;
+          toggle.setAttribute("aria-expanded", "false");
+          toggle.focus();
+        }
+      },
+      { signal: signal },
+    );
   }
 
   /**

@@ -136,3 +136,12 @@ class TestNavtreeAccessibility:
         assert "isKeyNav" in content or "isKeyboard" in content
         assert "ArrowDown" in content
         assert "Enter" in content
+
+    def test_toolbar_popouts_escape_key_handler(self):
+        """gallery-toolbar.js must include an Escape key listener to close open popouts and refocus toggle."""
+        from pathlib import Path
+        js_path = Path("dj_design_system/static/dj_design_system/gallery-toolbar.js")
+        content = js_path.read_text(encoding="utf-8")
+
+        assert "Escape" in content
+        assert "toggle.focus()" in content
