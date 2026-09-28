@@ -1,0 +1,9 @@
+Task: Phase 2 — update-visual-baselines regenerates all screenshots
+
+Summary: Added prune_orphaned_baselines() (deletes baseline PNGs not produced in the run) and should_prune() (true only for update mode, all args covering the suite dir — no single file or ::test targets — zero deselected and zero failed tests) to tests/e2e/visual/capture.py. The suite conftest records deselected suite items (pytest_deselected) and prunes in pytest_sessionfinish. Changed baselines are rewritten and unchanged ones left untouched by assert_matches_baseline (Phase 1).
+
+Files: tests/e2e/visual/capture.py, tests/e2e/visual/conftest.py, tests/test_visual_prune.py (new, 10 tests)
+
+Why: A single command must be able to regenerate all baselines at any later date without leaving stale PNGs, and without ever deleting baselines on partial runs.
+
+Verification: unit tests red then green; in the pinned container, a file-targeted update run kept an injected orphan.png, a full just update-visual-baselines removed it and left index.png's mtime unchanged; just test (727 passed), just check, just typecheck clean.
