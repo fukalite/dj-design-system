@@ -1,6 +1,11 @@
 # dj-design-system — task runner
 # Requires: just (https://just.systems), uv (https://docs.astral.sh/uv/)
 
+# Playwright version for the gallery visual regression suite. Baselines are
+# rendered in mcr.microsoft.com/playwright/python:v<version>-noble, and CI's
+# visual-regression job must use the same tag (tests/test_visual_config.py).
+playwright_version := "1.63.0"
+
 # Show available recipes
 default:
     @just --list
@@ -29,9 +34,9 @@ test:
 test-one pattern:
     uv run --no-sync pytest tests/ -k "{{pattern}}" -m "not e2e"
 
-# Run end-to-end Playwright tests
+# Run end-to-end Playwright tests (the visual suite runs separately via `just visual`)
 e2e:
-    uv run --no-sync pytest tests/e2e/ -m e2e
+    uv run --no-sync pytest tests/e2e/ -m "e2e and not visual"
 
 # Run the example project's component assessment tests
 test-demo:
