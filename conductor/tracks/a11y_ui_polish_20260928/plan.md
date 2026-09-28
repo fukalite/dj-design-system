@@ -3,7 +3,7 @@
 ## Phase 1: WCAG Accessibility Fixes
 - [x] Task: Fix nested interactive controls (`<a>` inside `<summary>`) in `navtree.html` [9c8776d]
 - [x] Task: Add `aria-current="page"` to active nav items [7b2c6f3]
-- [ ] Task: Fix inaccessible tab switcher radio inputs in `component.html`
+- [x] Task: Fix inaccessible tab switcher radio inputs in `component.html` [0ab3ad5]
 - [ ] Task: Fix auto-submit on variant selector (or event loop) for keyboard users
 - [ ] Task: Add Escape key handlers to toolbar popouts
 - [ ] Task: Make drawer resizer accessible to keyboard users
