@@ -17,12 +17,12 @@ Captures a deterministic Playwright screenshot baseline of the current gallery i
 ---
 
 ## Phase 2: Pinned Rendering Environment & Recipes
-- [ ] Task: Pin the Playwright version in the `justfile`; add a unit test that the CI container tag matches it.
-- [ ] Task: Add `just visual-run` (direct), and `just visual` / `just update-visual-baselines` (in the pinned `linux/amd64` container, installing `playwright==<version>`).
+- [x] Task: Pin the Playwright version in the `justfile`; add a unit test that the CI container tag matches it. [f093cd2]
+- [~] Task: Add `just visual-run` (direct), and `just visual` / `just update-visual-baselines` (in the pinned `linux/amd64` container, installing `playwright==<version>`).
 - [ ] Task: `just update-visual-baselines` regenerates **all** gallery screenshots in one command
   - [ ] Write failing tests: update mode rewrites only changed baselines, and deletes orphaned baselines (files no screenshot test produced) after a full run.
   - [ ] Implement pruning in the suite's session teardown, only when the whole suite ran in update mode (never on a filtered `-k` run).
-- [ ] Task: Change `just e2e` to exclude the `visual` marker.
+- [x] Task: Change `just e2e` to exclude the `visual` marker. [f093cd2]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
