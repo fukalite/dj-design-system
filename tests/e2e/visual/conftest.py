@@ -14,6 +14,8 @@ import pytest
 from tests.e2e.visual.capture import (
     ScreenshotRecorder,
     block_external_requests,
+    prune_orphaned_baselines,
+    should_prune,
     stabilise,
 )
 
@@ -21,6 +23,9 @@ from tests.e2e.visual.capture import (
 SUITE_DIR = Path(__file__).resolve().parent
 BASELINE_DIR = SUITE_DIR / "baselines"
 OUTPUT_DIR = SUITE_DIR / "output"
+
+# Shared between the session fixture and the session-finish hook.
+_run: dict = {"recorder": None, "deselected": 0}
 
 
 def update_mode() -> bool:
@@ -32,7 +37,34 @@ def update_mode() -> bool:
 def screenshot_recorder() -> ScreenshotRecorder:
     """A recorder shared by the whole run; output from previous runs is cleared."""
     shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
-    return ScreenshotRecorder(BASELINE_DIR, OUTPUT_DIR, update=update_mode())
+    recorder = ScreenshotRecorder(BASELINE_DIR, OUTPUT_DIR, update=update_mode())
+    _run["recorder"] = recorder
+    return recorder
+
+
+def pytest_deselected(items):
+    """Count deselected suite tests (e.g. via ``-k``) so pruning is skipped."""
+    _run["deselected"] += sum(
+        1 for item in items if SUITE_DIR in Path(str(item.path)).parents
+    )
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """After a full update run, delete baselines no screenshot produced."""
+    recorder = _run["recorder"]
+    if recorder is None:
+        return
+    invocation_dir = session.config.invocation_params.dir
+    args = [str(invocation_dir / arg) for arg in session.config.args]
+    if should_prune(
+        update=recorder.update,
+        args=args or [str(invocation_dir)],
+        suite_dir=SUITE_DIR,
+        deselected=_run["deselected"],
+        failed=session.testsfailed,
+    ):
+        for path in prune_orphaned_baselines(BASELINE_DIR, recorder.produced):
+            print(f"\nRemoved orphaned baseline: {path.relative_to(SUITE_DIR)}")
 
 
 @pytest.fixture
