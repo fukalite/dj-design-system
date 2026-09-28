@@ -33,13 +33,14 @@ Captures a deterministic Playwright screenshot baseline of the current gallery i
 - [x] Task: Static States [d6519d6]
   - [x] Index, folder, documentation and component pages.
   - [x] Light and dark gallery themes; wide and narrow viewports.
-- [~] Task: Interactive States
-  - [ ] Mobile sidebar open; breadcrumb flyout open.
-  - [ ] Each sandbox toolbar popout open; outline and RTL toggles active.
-  - [ ] Search results with a query entered.
-  - [ ] Documentation / sandbox tab switch on a narrow viewport.
-- [ ] Task: Generate baselines with `just update-visual-baselines` against the current `main` gallery and commit them.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Interactive States [bd1b89d]
+  - [x] Mobile sidebar open; breadcrumb flyout open.
+  - [x] Each sandbox toolbar popout open; outline and RTL toggles active.
+  - [x] Search results with a query entered.
+  - [x] Documentation / sandbox tab switch on a narrow viewport.
+  - [x] Make canvas iframe capture deterministic: wait for the canvas-resize loop to converge and replay reports lost before the gallery listener attaches (issue #111).
+- [x] Task: Generate baselines with `just update-visual-baselines` against the current `main` gallery and commit them. [d6519d6, bd1b89d] (40 baselines)
+- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
 
