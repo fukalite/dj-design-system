@@ -44,6 +44,32 @@ class TestCanvasIframeView:
         assert "<!DOCTYPE html>" in content
         assert "Test" in content
 
+    def test_slotted_card_renders_unescaped(self):
+        """Regression: the slotted card's HTML used to be shown as escaped text."""
+        client = Client()
+        url = reverse("gallery-canvas-iframe")
+        response = client.get(
+            url, {"component": "slotted_card", "title": "Hello", "slot__body": "Body"}
+        )
+        content = response.content.decode()
+        assert "<h3 class='slotted-card__title'>Hello</h3>" in content
+        assert "&lt;div class=" not in content
+        assert "gallery-canvas-warning" not in content
+
+    def test_plain_str_render_shows_escaped_output_with_warning(self, mocker):
+        mocker.patch(
+            "dj_design_system.views.render_component",
+            return_value="<b>Hi</b>",
+        )
+        client = Client()
+        url = reverse("gallery-canvas-iframe")
+        response = client.get(url, {"component": "rich_button", "label": "Hi"})
+        content = response.content.decode()
+        assert "gallery-canvas-warning" in content
+        assert "returned a plain <code>str</code>" in content
+        assert "&lt;b&gt;Hi&lt;/b&gt;" in content
+        assert "<b>Hi</b>" not in content
+
     def test_css_cascade_order(self):
         """Global CSS should appear before canvas CSS and component CSS."""
         client = Client()

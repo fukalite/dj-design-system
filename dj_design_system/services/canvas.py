@@ -10,7 +10,7 @@ from urllib.parse import urlencode
 from django.core.exceptions import ValidationError
 from django.db.models import Model
 from django.utils.html import format_html
-from django.utils.safestring import mark_safe
+from django.utils.safestring import SafeData, mark_safe
 
 from dj_design_system.components import BlockComponent
 from dj_design_system.data import (
@@ -45,6 +45,10 @@ if TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
+
+# Component classes already warned about returning a plain ``str`` from
+# ``render()``, so the log isn't flooded on every canvas request.
+_warned_unsafe_render: set[type] = set()
 
 
 def resolve_from_get_params(
@@ -107,18 +111,37 @@ def render_component(
                 for name, slot in component_class.get_slots().items():
                     if name not in slots and slot.required:
                         slots[name] = slot.default or f"Sample {name} content"
-                return str(component_class(slots=slots, **kwargs))
+                return _render_instance(component_class(slots=slots, **kwargs))
             else:
                 content = kwargs.pop("content", BLOCK_CONTENT_PLACEHOLDER)
-                return str(component_class(content=content, **kwargs))
+                return _render_instance(component_class(content=content, **kwargs))
 
-        return str(component_class(**kwargs))
+        return _render_instance(component_class(**kwargs))
     except Exception as exc:  # Catch all rendering/template exceptions
         if raise_errors:
             raise
         return format_html(
             '<p class="gallery-canvas-error">Could not render: {}</p>', str(exc)
         )
+
+
+def _render_instance(component: Any) -> str:
+    """Render a component instance, warning once if the output isn't marked safe.
+
+    A custom ``render()`` that returns a plain ``str`` is emitted unescaped by
+    template tags but escaped by the canvas, so it shows up as literal HTML in
+    the gallery. The output is returned unchanged; callers decide how to show it.
+    """
+    html = str(component)
+    component_class = type(component)
+    if not isinstance(html, SafeData) and component_class not in _warned_unsafe_render:
+        _warned_unsafe_render.add(component_class)
+        logger.warning(
+            "%s.render() returned a plain str, so the gallery canvas will escape "
+            "its HTML. Return format_html(...) or mark_safe(...) instead.",
+            component_class.__qualname__,
+        )
+    return html
 
 
 def get_component_media(
