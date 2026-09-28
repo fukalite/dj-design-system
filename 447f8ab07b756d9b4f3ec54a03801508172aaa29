@@ -1,0 +1,3 @@
+Phase: 2
+Task: Update Navigation Builder (services/navigation.py)
+Details: Implemented hidden component exclusion, icon propagation, order-based sorting, group sub-folders, and variant child node construction in services/navigation.py and NavNode.
