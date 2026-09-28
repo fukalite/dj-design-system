@@ -1,9 +1,20 @@
-Task: Refactor GalleryConfig to use a factory method for dict/mapping unpacking
-Status: Completed
-Commit: 50c890b
+Phase: Phase 2: View & Service Decomposition
+Status: Verified & Completed
+Target Commit: 50c890b
+Tasks Completed:
+1. Split views.py into a views/ package (gallery.py, component.py, canvas.py, decorators.py) [d093658]
+2. Extract variant parameter merging logic into merge_variant_params helper [06cd392]
+3. Decompose render_component into smaller focused functions [30b0ea2]
+4. Move URL resolution logic out of NavNode into navigation service [74a4c95]
+5. Refactor GalleryConfig and Variant to use from_dict factory methods [50c890b]
+
 Verification:
-- Added Variant.from_dict and GalleryConfig.from_dict factory methods in dj_design_system/gallery.py.
-- Normalized variant creation through _normalize_variants and Variant.from_dict.
-- Updated load_gallery_config to deserialize dictionary configs via GalleryConfig.from_dict.
-- Added comprehensive unit tests in tests/test_gallery_config.py and tests/test_discovery_gallery.py.
-- All 830 tests passed.
+- Automated tests: `just check && just test` passed (830 unit tests passed, 0 lint errors, 0 template errors).
+- All decomposed views, helpers, and navigation resolution logic covered by dedicated test modules:
+  * tests/test_views_package.py
+  * tests/test_variant_params.py
+  * tests/test_canvas_decomposition.py
+  * tests/test_navigation_url_resolution.py
+  * tests/test_gallery_config.py
+  * tests/test_discovery_gallery.py
+- Backward compatibility preserved across all public API and view interfaces.
