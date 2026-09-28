@@ -1,0 +1,14 @@
+Task: Consolidate scattered exception hierarchy
+
+Summary:
+- Introduced DJDesignSystemError as root base class in dj_design_system/exceptions.py.
+- Made ComponentValidationError, ComponentNotFoundError, VariantNotFoundError, InvalidTagType, ComponentDoesNotExist, and MultipleComponentsFound inherit from DJDesignSystemError.
+- Subclassed ComponentDoesNotExist from ComponentNotFoundError while maintaining backwards-compatible imports.
+- Re-exported InvalidTagType in dj_design_system/data.py and ComponentDoesNotExist / MultipleComponentsFound in dj_design_system/services/registry.py.
+- Added comprehensive unit tests in tests/test_exceptions.py validating inheritance and backwards-compatible import paths.
+
+Modified Files:
+- dj_design_system/exceptions.py
+- dj_design_system/data.py
+- dj_design_system/services/registry.py
+- tests/test_exceptions.py

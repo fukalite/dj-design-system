@@ -1,0 +1,28 @@
+Task: Harden Phase 1 Core Performance & API Cleanup
+
+Summary:
+- Upgraded build_search_index to use a dedicated @lru_cache for the canonical navigation tree and bounded OrderedDict with FIFO eviction for arbitrary trees, preventing ID reuse hazards and memory leaks.
+- Updated Variant.__eq__ to return NotImplemented for non-Variant operands per Python data model protocol.
+- Standardized self.message initialization across DJDesignSystemError and all domain subclasses.
+- Re-exported DJDesignSystemError in dj_design_system/__init__.py.
+- Made HX-Request header inspection resilient with getattr fallback in get_base_context.
+- Added comprehensive unit tests validating all hardened behaviors across test_exceptions.py, test_gallery_config.py, and test_public_api.py.
+
+Modified Files:
+- dj_design_system/services/navigation.py
+- dj_design_system/gallery.py
+- dj_design_system/exceptions.py
+- dj_design_system/__init__.py
+- dj_design_system/views.py
+- tests/test_exceptions.py
+- tests/test_gallery_config.py
+- tests/test_public_api.py
+
+Phase 1 Verification Report:
+- All 806 unit tests passed cleanly via pytest.
+- Code formatting and linting verified with ruff check and djlint.
+- Caching implemented for build_navigation() (@lru_cache) and build_search_index() (canonical @lru_cache + bounded OrderedDict LRU).
+- Search index execution skipped for HTMX fragment requests.
+- Top-level API surface cleanly exposes BaseComponent, TagComponent, BlockComponent, Slot, GalleryConfig, Variant, GalleryParameter, ComponentRegistry, component_registry, and DJDesignSystemError.
+- Variant.__eq__ refactored to eliminate string comparison and adhere to Python data model returning NotImplemented.
+- Consolidated domain exception hierarchy established under root DJDesignSystemError with backward-compatible aliases.

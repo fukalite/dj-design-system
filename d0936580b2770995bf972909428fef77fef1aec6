@@ -1,0 +1,7 @@
+Task: Decompose views.py into focused view modules
+Status: Completed
+Commit: d093658
+Verification:
+- Split views.py into dj_design_system/views/{decorators,canvas,component,gallery}.py and __init__.py.
+- Maintained 100% backward compatibility via re-exports in __init__.py.
+- Verified test suite passes: 808 passed, 0 failures.
