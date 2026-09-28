@@ -8,12 +8,9 @@ from pathlib import Path
 from typing import Any, Type
 from urllib.parse import urlencode
 
+from dj_design_system.exceptions import InvalidTagType
 from dj_design_system.gallery import GalleryConfig, Variant, load_gallery_config
 from dj_design_system.types import FlattenStrategy, NodeType, TagType
-
-
-class InvalidTagType(Exception):
-    """Raised when a component class is not a TagComponent or BlockComponent."""
 
 
 BLOCK_CONTENT_PLACEHOLDER = "Sample content"

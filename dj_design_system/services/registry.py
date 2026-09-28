@@ -6,6 +6,10 @@ from typing import Any, Type
 
 from dj_design_system import settings
 from dj_design_system.data import ComponentInfo, ComponentMedia
+from dj_design_system.exceptions import (
+    ComponentDoesNotExist,
+    MultipleComponentsFound,
+)
 from dj_design_system.services.component import (
     derive_name,
     derive_relative_path,
@@ -13,14 +17,6 @@ from dj_design_system.services.component import (
     is_abstract,
 )
 from dj_design_system.types import FlattenStrategy, TagType
-
-
-class ComponentDoesNotExist(Exception):
-    """Raised when a component lookup finds no matching component."""
-
-
-class MultipleComponentsFound(Exception):
-    """Raised when a component lookup finds multiple matching components."""
 
 
 class ComponentRegistry:
