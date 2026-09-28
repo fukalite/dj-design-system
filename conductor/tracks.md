@@ -23,3 +23,12 @@
 - [ ] **Track: Remove Deprecated Legacy Gallery Kwargs**
   *Link: [tracks/deprecate_legacy_gallery_kwargs_20260927/index.md](tracks/deprecate_legacy_gallery_kwargs_20260927/index.md)*
 
+
+- [ ] **Track: Security & Canvas Hardening**
+  *Link: [conductor/tracks/security_canvas_hardening_20260928/index.md](conductor/tracks/security_canvas_hardening_20260928/index.md)*
+
+- [ ] **Track: Accessibility & UI Polish**
+  *Link: [conductor/tracks/a11y_ui_polish_20260928/index.md](conductor/tracks/a11y_ui_polish_20260928/index.md)*
+
+- [ ] **Track: Architecture & Performance Refactoring**
+  *Link: [conductor/tracks/arch_perf_refactor_20260928/index.md](conductor/tracks/arch_perf_refactor_20260928/index.md)*
