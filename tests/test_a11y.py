@@ -145,3 +145,19 @@ class TestNavtreeAccessibility:
 
         assert "Escape" in content
         assert "toggle.focus()" in content
+
+    def test_drawer_resizer_accessibility(self):
+        """Drawer resizer must have role='separator', tabindex='0', and not be aria-hidden."""
+        html = render_to_string("dj_design_system/gallery/sandbox_fragment.html", {"param_rows": [{"name": "test"}]})
+
+        assert 'data-gallery-resizer' in html
+        assert 'role="separator"' in html
+        assert 'tabindex="0"' in html
+        assert 'aria-orientation="horizontal"' in html
+        assert 'aria-label=' in html
+        # Must not be aria-hidden
+        resizer_idx = html.find('data-gallery-resizer')
+        resizer_start = html.rfind('<div', 0, resizer_idx)
+        resizer_end = html.find('>', resizer_idx)
+        resizer_tag = html[resizer_start:resizer_end + 1]
+        assert 'aria-hidden="true"' not in resizer_tag

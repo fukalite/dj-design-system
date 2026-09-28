@@ -585,6 +585,16 @@ body {
   background: var(--gallery-text-muted);
 }
 
+.gallery-sandbox__resizer:focus-visible {
+  outline: 2px solid var(--gallery-accent);
+  outline-offset: -2px;
+  background: var(--gallery-accent);
+}
+
+.gallery-sandbox__resizer:focus-visible::after {
+  background: var(--gallery-sidebar-heading);
+}
+
 .gallery-sandbox__controls {
   flex: 1;
   overflow-y: auto;

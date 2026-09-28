@@ -724,6 +724,44 @@
         resizer.addEventListener("pointerup", onPointerUp);
         document.body.style.cursor = "ns-resize";
       }, { signal: signal });
+
+      resizer.addEventListener(
+        "keydown",
+        function (e) {
+          var step = 20;
+          var minHeight = 48;
+          var containerMax = container.offsetHeight - 50;
+          var thirtyVh = window.innerHeight * 0.3;
+          var maxAllowedByContent = Math.max(thirtyVh, drawer.scrollHeight);
+          var maxHeight = Math.min(containerMax, maxAllowedByContent);
+          var currentHeight = drawer.offsetHeight;
+
+          if (e.key === "ArrowUp") {
+            e.preventDefault();
+            var newHeight = Math.min(currentHeight + step, maxHeight);
+            drawer.style.height = newHeight + "px";
+            drawer.style.maxHeight = "none";
+            resizer.setAttribute("aria-valuenow", newHeight);
+          } else if (e.key === "ArrowDown") {
+            e.preventDefault();
+            var newHeight = Math.max(currentHeight - step, minHeight);
+            drawer.style.height = newHeight + "px";
+            drawer.style.maxHeight = "none";
+            resizer.setAttribute("aria-valuenow", newHeight);
+          } else if (e.key === "Home") {
+            e.preventDefault();
+            drawer.style.height = minHeight + "px";
+            drawer.style.maxHeight = "none";
+            resizer.setAttribute("aria-valuenow", minHeight);
+          } else if (e.key === "End") {
+            e.preventDefault();
+            drawer.style.height = maxHeight + "px";
+            drawer.style.maxHeight = "none";
+            resizer.setAttribute("aria-valuenow", maxHeight);
+          }
+        },
+        { signal: signal },
+      );
     }
   }
 
