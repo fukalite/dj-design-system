@@ -6,10 +6,10 @@ Captures a deterministic Playwright screenshot baseline of the current gallery i
 - [x] Task: Write Failing Tests (`Red Phase`) [5f29cf1]
   - [x] The comparison helper passes identical images, fails on differences beyond tolerance, fails on size mismatch, and writes `expected` / `actual` / `diff` files.
   - [x] A missing baseline fails normally and is created in update mode.
-- [~] Task: Implement to Pass Tests (`Green Phase`)
+- [x] Task: Implement to Pass Tests (`Green Phase`) [29bc1fe]
   - [x] Extract or add a shared `pixelmatch` comparison helper (reusing `VisualRegressionPlugin` logic). [5f29cf1]
-  - [ ] Add the `visual` marker.
-  - [ ] Add capture helpers: wait for iframes and `document.fonts.ready`, disable animations, mask dynamic regions, block external network.
+  - [x] Add the `visual` marker. [29bc1fe]
+  - [x] Add capture helpers: wait for iframes and `document.fonts.ready`, disable animations, mask dynamic regions, block external network. [29bc1fe]
 - [ ] Task: Refactor and Verify Coverage
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
