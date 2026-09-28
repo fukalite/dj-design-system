@@ -6,7 +6,7 @@ from collections import OrderedDict
 from functools import lru_cache
 from html.parser import HTMLParser
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urlencode
 
 import markdown as markdown_lib
@@ -20,7 +20,7 @@ from dj_design_system.types import NodeType
 
 
 _SEARCH_INDEX_CACHE_MAXSIZE = 32
-_SEARCH_INDEX_CACHE: OrderedDict[tuple[int, ...], list[dict]] = OrderedDict()
+_SEARCH_INDEX_CACHE: OrderedDict[tuple[Any, ...], list[dict]] = OrderedDict()
 
 
 if TYPE_CHECKING:
@@ -221,33 +221,6 @@ def _sort_children(node: NavNode) -> None:
         _sort_children(child)
 
 
-def _annotate_paths(
-    node: NavNode,
-    app_label: str = "",
-    parent_parts: list[str] | None = None,
-) -> None:
-    """Recursively set ``_app_label`` and ``_path_parts`` on every node."""
-    if parent_parts is None:
-        parent_parts = []
-
-    node._app_label = app_label
-    if node.node_type == NodeType.APP:
-        node._path_parts = []
-        child_app = node.slug
-        child_parts: list[str] = []
-    elif node.node_type == NodeType.VARIANT:
-        node._path_parts = list(parent_parts)
-        child_app = app_label
-        child_parts = node._path_parts
-    else:
-        node._path_parts = parent_parts + [node.slug]
-        child_app = app_label
-        child_parts = node._path_parts
-
-    for child in node.children:
-        _annotate_paths(child, app_label=child_app, parent_parts=child_parts)
-
-
 def resolve_node_url(node: NavNode) -> str:
     """Return the gallery URL for a NavNode.
 
@@ -278,6 +251,37 @@ def resolve_node_base_active_path(node: NavNode) -> str:
     return resolve_node_active_path(node).split("?")[0].rstrip("/")
 
 
+def _annotate_paths(
+    node: NavNode,
+    app_label: str = "",
+    parent_parts: list[str] | None = None,
+) -> None:
+    """Recursively set ``_app_label``, ``_path_parts``, and precomputed URLs on every node."""
+    if parent_parts is None:
+        parent_parts = []
+
+    node._app_label = app_label
+    if node.node_type == NodeType.APP:
+        node._path_parts = []
+        child_app = node.slug
+        child_parts: list[str] = []
+    elif node.node_type == NodeType.VARIANT:
+        node._path_parts = list(parent_parts)
+        child_app = app_label
+        child_parts = node._path_parts
+    else:
+        node._path_parts = parent_parts + [node.slug]
+        child_app = app_label
+        child_parts = node._path_parts
+
+    node.url = resolve_node_url(node)
+    node.active_path = resolve_node_active_path(node)
+    node.base_active_path = resolve_node_base_active_path(node)
+
+    for child in node.children:
+        _annotate_paths(child, app_label=child_app, parent_parts=child_parts)
+
+
 @lru_cache(maxsize=1)
 def _cached_build_navigation() -> list[NavNode]:
     return _build_navigation()
@@ -294,7 +298,7 @@ def clear_navigation_cache() -> None:
     clear_search_index_cache()
 
 
-build_navigation.cache_clear = clear_navigation_cache
+setattr(build_navigation, "cache_clear", clear_navigation_cache)
 
 
 def _build_navigation(
@@ -518,7 +522,7 @@ def clear_search_index_cache() -> None:
     _SEARCH_INDEX_CACHE.clear()
 
 
-build_search_index.cache_clear = clear_search_index_cache
+setattr(build_search_index, "cache_clear", clear_search_index_cache)
 
 
 def build_breadcrumbs(

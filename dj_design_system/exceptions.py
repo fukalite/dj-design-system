@@ -28,7 +28,7 @@ class MultipleComponentsFound(DJDesignSystemError):
     """Raised when a component lookup finds multiple matching components."""
 
 
-class VariantNotFoundError(DJDesignSystemError, ValueError):
+class VariantNotFoundError(DJDesignSystemError):
     """Raised when a requested component variant cannot be found."""
 
 

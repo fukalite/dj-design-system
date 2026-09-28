@@ -104,36 +104,21 @@ class TestGalleryConfig:
         assert cfg.get_variant("danger") == v2
         assert cfg.get_variant("unknown") is None
 
-    def test_variants_initialization_with_dicts(self):
-        cfg = GalleryConfig(
-            variants=[
-                {"name": "basic", "kwargs": {"label": "Click"}},
-                {
-                    "name": "danger",
-                    "label": "Destructive",
-                    "kwargs": {"variant": "danger"},
-                },
-            ]
-        )
-        assert len(cfg.variants) == 2
-        assert isinstance(cfg.variants[0], Variant)
-        assert cfg.variants[0].name == "basic"
-        assert cfg.variants[0].label == "Basic"
-        assert cfg.variants[1].name == "danger"
-        assert cfg.variants[1].label == "Destructive"
-        assert cfg.variants[1].kwargs == {"variant": "danger"}
+    def test_variants_direct_dict_initialization_raises_type_error(self):
+        """GalleryConfig constructor strictly requires Variant instances and rejects dicts."""
+        with pytest.raises(TypeError, match="must contain only Variant instances"):
+            GalleryConfig(
+                variants=[
+                    {"name": "basic", "kwargs": {"label": "Click"}},
+                ]
+            )
 
-    def test_variants_dict_mapping_initialization(self):
-        cfg = GalleryConfig(
-            variants={
-                "basic": {"kwargs": {"label": "Click"}},
-                "danger": {"kwargs": {"variant": "danger"}, "label": "Danger Action"},
-            }
-        )
-        assert len(cfg.variants) == 2
-        assert cfg.variants[0].name == "basic"
-        assert cfg.variants[1].name == "danger"
-        assert cfg.variants[1].label == "Danger Action"
+        with pytest.raises(TypeError, match="must be a list of Variant instances"):
+            GalleryConfig(
+                variants={
+                    "basic": {"kwargs": {"label": "Click"}},
+                }
+            )
 
     def test_duplicate_variant_names_raises_error(self):
         with pytest.raises(ValueError, match="Duplicate variant name"):
@@ -146,7 +131,9 @@ class TestGalleryConfig:
 
     def test_variant_from_dict(self):
         """Variant.from_dict instantiates Variant with mapping and optional name."""
-        v1 = Variant.from_dict({"name": "outline", "label": "Outline Btn", "kwargs": {"outline": True}})
+        v1 = Variant.from_dict(
+            {"name": "outline", "label": "Outline Btn", "kwargs": {"outline": True}}
+        )
         assert v1.name == "outline"
         assert v1.label == "Outline Btn"
         assert v1.kwargs == {"outline": True}

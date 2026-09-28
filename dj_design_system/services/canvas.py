@@ -23,15 +23,15 @@ from dj_design_system.data import (
     ComponentMedia,
     GalleryParameter,
 )
-from dj_design_system.exceptions import VariantNotFoundError
+from dj_design_system.exceptions import (
+    ComponentDoesNotExist,
+    MultipleComponentsFound,
+    VariantNotFoundError,
+)
 from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.parameters.base import DictParam, JSONParam, ListParam
 from dj_design_system.parameters.model import ModelParam
-from dj_design_system.services.registry import (
-    ComponentDoesNotExist,
-    MultipleComponentsFound,
-    component_registry,
-)
+from dj_design_system.services.registry import component_registry
 from dj_design_system.slots import SLOT_PARAM_PREFIX
 
 
@@ -144,7 +144,9 @@ def merge_variant_params(
 
     if positional_args:
         if hasattr(component_class, "map_positional_args"):
-            component_class.map_positional_args(pos_arg_names, positional_args, merged)
+            component_class.map_positional_args(
+                pos_arg_names, tuple(positional_args), merged
+            )
         else:
             for i, val in enumerate(positional_args):
                 if i < len(pos_arg_names):

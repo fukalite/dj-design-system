@@ -3,8 +3,11 @@
 import pytest
 from django.urls import reverse
 
-from dj_design_system.data import NavNode
+from dj_design_system.components import TagComponent
+from dj_design_system.data import ComponentInfo, NavNode
+from dj_design_system.gallery import Variant
 from dj_design_system.services.navigation import (
+    _annotate_paths,
     resolve_node_active_path,
     resolve_node_base_active_path,
     resolve_node_url,
@@ -14,23 +17,6 @@ from dj_design_system.types import NodeType
 
 @pytest.fixture
 def sample_nodes():
-    root = NavNode(
-        label="My App",
-        slug="myapp",
-        node_type=NodeType.APP,
-        _app_label="myapp",
-        _path_parts=[],
-    )
-    folder = NavNode(
-        label="Elements",
-        slug="elements",
-        node_type=NodeType.FOLDER,
-        _app_label="myapp",
-        _path_parts=["elements"],
-    )
-    from dj_design_system.components import TagComponent
-    from dj_design_system.data import ComponentInfo
-
     class DummyComponent(TagComponent):
         pass
 
@@ -40,24 +26,32 @@ def sample_nodes():
         relative_path="elements/button.py",
         component_class=DummyComponent,
     )
-    component = NavNode(
-        label="Button",
-        slug="button",
-        node_type=NodeType.COMPONENT,
-        component=info,
-        _app_label="myapp",
-        _path_parts=["elements", "button"],
-    )
-    from dj_design_system.gallery import Variant
-
     variant = NavNode(
         label="Primary",
         slug="primary",
         node_type=NodeType.VARIANT,
         variant=Variant(name="primary"),
-        _app_label="myapp",
-        _path_parts=["elements", "button"],
     )
+    component = NavNode(
+        label="Button",
+        slug="button",
+        node_type=NodeType.COMPONENT,
+        component=info,
+        children=[variant],
+    )
+    folder = NavNode(
+        label="Elements",
+        slug="elements",
+        node_type=NodeType.FOLDER,
+        children=[component],
+    )
+    root = NavNode(
+        label="My App",
+        slug="myapp",
+        node_type=NodeType.APP,
+        children=[folder],
+    )
+    _annotate_paths(root)
     return root, folder, component, variant
 
 

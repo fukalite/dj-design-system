@@ -31,9 +31,6 @@ class TestExceptionHierarchy:
         assert issubclass(exc_class, DJDesignSystemError)
         assert issubclass(exc_class, Exception)
 
-    def test_variant_not_found_is_value_error(self):
-        assert issubclass(VariantNotFoundError, ValueError)
-
     def test_component_does_not_exist_subclasses_not_found_error(self):
         assert issubclass(ComponentDoesNotExist, ComponentNotFoundError)
 
@@ -53,16 +50,3 @@ class TestExceptionHierarchy:
         err = exc_class("Something went wrong")
         assert err.message == "Something went wrong"
         assert str(err) == "Something went wrong"
-
-    def test_backwards_compatible_imports(self):
-        from dj_design_system.data import InvalidTagType as DataInvalidTagType
-        from dj_design_system.services.registry import (
-            ComponentDoesNotExist as RegistryComponentDoesNotExist,
-        )
-        from dj_design_system.services.registry import (
-            MultipleComponentsFound as RegistryMultipleComponentsFound,
-        )
-
-        assert DataInvalidTagType is InvalidTagType
-        assert RegistryComponentDoesNotExist is ComponentDoesNotExist
-        assert RegistryMultipleComponentsFound is MultipleComponentsFound

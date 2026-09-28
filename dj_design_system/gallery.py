@@ -97,8 +97,8 @@ class GalleryConfig:
             raw template syntax.
         extra_context: Context variables passed to preview templates.
         param_defaults: Mapping of param names to default values or callables.
-        variants: List of named variants. Supports initialization from ``Variant`` instances,
-            lists of dicts, or dictionary mappings.
+        variants: List of named Variant instances. To construct from dictionary mappings,
+            use ``GalleryConfig.from_dict(...)``.
     """
 
     hidden: bool = False
@@ -117,25 +117,17 @@ class GalleryConfig:
     ) -> list[Variant]:
         """Normalize variant instances, dict mappings, or dict lists into a list of Variants."""
         if isinstance(variants, Mapping):
-            raw = [
+            return [
                 v if isinstance(v, Variant) else Variant.from_dict(v, name=k)
                 for k, v in variants.items()
             ]
-        else:
-            raw = [
-                v if isinstance(v, Variant) else Variant.from_dict(v)
-                for v in (variants or [])
+        elif isinstance(variants, (list, tuple)):
+            return [
+                v if isinstance(v, Variant) else Variant.from_dict(v) for v in variants
             ]
-
-        seen_names: set[str] = set()
-        for v in raw:
-            if v.name in seen_names:
-                raise ValueError(
-                    f"Duplicate variant name: '{v.name}' in GalleryConfig."
-                )
-            seen_names.add(v.name)
-
-        return raw
+        raise TypeError(
+            f"variants must be a list, tuple, or mapping, got {type(variants).__name__}"
+        )
 
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> GalleryConfig:
@@ -151,7 +143,27 @@ class GalleryConfig:
     def __post_init__(self) -> None:
         self.extra_context = dict(self.extra_context or {})
         self.param_defaults = dict(self.param_defaults or {})
-        self.variants = self._normalize_variants(self.variants)
+        if not isinstance(self.variants, list):
+            if isinstance(self.variants, (tuple, set)):
+                self.variants = list(self.variants)
+            else:
+                raise TypeError(
+                    f"GalleryConfig.variants must be a list of Variant instances, got {type(self.variants).__name__}. "
+                    "Use GalleryConfig.from_dict(...) if initializing from a mapping or dictionary."
+                )
+
+        seen_names: set[str] = set()
+        for v in self.variants:
+            if not isinstance(v, Variant):
+                raise TypeError(
+                    f"GalleryConfig.variants must contain only Variant instances, got {type(v).__name__}. "
+                    "Use GalleryConfig.from_dict(...) to parse dictionary configurations."
+                )
+            if v.name in seen_names:
+                raise ValueError(
+                    f"Duplicate variant name: '{v.name}' in GalleryConfig."
+                )
+            seen_names.add(v.name)
 
     def get_variant(self, name: str) -> Variant | None:
         """Return the variant matching *name*, or None."""

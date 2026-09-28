@@ -19,6 +19,9 @@ from dj_design_system.services.component import (
 from dj_design_system.types import FlattenStrategy, TagType
 
 
+__all__ = ["ComponentRegistry", "component_registry"]
+
+
 class ComponentRegistry:
     """
     A central registry for design-system components.

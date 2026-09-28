@@ -8,13 +8,14 @@ from dj_design_system.components import (
     BlockComponent,
     TagComponent,
 )
-from dj_design_system.data import ComponentInfo, InvalidTagType
-from dj_design_system.parameters import StrParam
-from dj_design_system.services.component import derive_name
-from dj_design_system.services.registry import (
+from dj_design_system.data import ComponentInfo
+from dj_design_system.exceptions import (
     ComponentDoesNotExist,
+    InvalidTagType,
     MultipleComponentsFound,
 )
+from dj_design_system.parameters import StrParam
+from dj_design_system.services.component import derive_name
 from dj_design_system.types import TagType
 from example_project.demo_components.components.alert import AlertComponent
 from example_project.demo_components.components.badge import BadgeComponent

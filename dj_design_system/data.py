@@ -291,6 +291,9 @@ class NavNode:
     index_doc_path: Path | None = None
     icon: str | None = None
     order: int = 0
+    url: str = ""
+    active_path: str = ""
+    base_active_path: str = ""
     _app_label: str = ""
     _path_parts: list[str] = field(default_factory=list)
 
@@ -350,24 +353,3 @@ class NavNode:
     @property
     def has_index_doc(self) -> bool:
         return self.index_doc_path is not None
-
-    @property
-    def url(self) -> str:
-        """Return the gallery URL for this node."""
-        from dj_design_system.services.navigation import resolve_node_url
-
-        return resolve_node_url(self)
-
-    @property
-    def active_path(self) -> str:
-        """Return a slash-joined path for active-state matching in the nav tree."""
-        from dj_design_system.services.navigation import resolve_node_active_path
-
-        return resolve_node_active_path(self)
-
-    @property
-    def base_active_path(self) -> str:
-        """Return the active path without query parameters."""
-        from dj_design_system.services.navigation import resolve_node_base_active_path
-
-        return resolve_node_base_active_path(self)

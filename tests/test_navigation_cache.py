@@ -66,7 +66,7 @@ class TestNavigationCaching:
         request = rf.get("/gallery/", HTTP_HX_REQUEST="true")
 
         with patch(
-            "dj_design_system.views.build_search_index",
+            "dj_design_system.views.gallery.build_search_index",
         ) as mock_search_index:
             context = get_base_context(request)
             assert mock_search_index.call_count == 0
