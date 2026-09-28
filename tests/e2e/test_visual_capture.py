@@ -154,3 +154,12 @@ class TestFitViewportToContent:
         )
         recorder.check(short_page, "index", fit=False)
         assert short_page.viewport_size["height"] == 400
+
+    def test_ignores_off_screen_containers(self, page, live_server):
+        """On mobile the sidebar is translated off-screen until opened."""
+        block_external_requests(page, live_server.url)
+        page.set_viewport_size({"width": 390, "height": 300})
+        page.goto(f"{live_server.url}/dds/")
+        stabilise(page)
+        clipped = find_clipped_containers(page)
+        assert not any(item["name"] == "nav.gallery-nav" for item in clipped)

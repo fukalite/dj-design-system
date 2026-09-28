@@ -67,13 +67,34 @@ def pytest_sessionfinish(session, exitstatus):
             print(f"\nRemoved orphaned baseline: {path.relative_to(SUITE_DIR)}")
 
 
+VIEWPORTS = {
+    "desktop": {"width": 1280, "height": 800},
+    # >= 1800px shows the documentation and sandbox panes side by side.
+    "wide": {"width": 1920, "height": 1080},
+    # <= 768px collapses the sidebar behind the hamburger menu.
+    "mobile": {"width": 390, "height": 844},
+}
+
+GALLERY_THEMES = ("light", "dark")
+
+
 @pytest.fixture
 def gallery(page, live_server):
-    """Return a function that opens a gallery path ready for a stable screenshot."""
+    """Return a function that opens a gallery path ready for a stable screenshot.
+
+    ``theme`` switches the gallery chrome between the ``gallery-theme-light``
+    and ``gallery-theme-dark`` classes on ``<html>``, the hook projects use to
+    theme the gallery.
+    """
     block_external_requests(page, live_server.url)
 
-    def open_path(path: str = ""):
+    def open_path(path: str = "", *, viewport: str = "desktop", theme: str = "light"):
+        page.set_viewport_size(VIEWPORTS[viewport])
         page.goto(f"{live_server.url}/dds/{path}")
+        page.evaluate(
+            "theme => { document.documentElement.className = `gallery-theme-${theme}`; }",
+            theme,
+        )
         stabilise(page)
         return page
 

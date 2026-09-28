@@ -43,11 +43,14 @@ async () => {
 """
 
 
-# Visible elements whose content is taller than their (scrolling) box.
+# On-screen elements whose content is taller than their (scrolling) box.
+# Off-screen ones (e.g. the closed mobile sidebar) are ignored.
 _CLIPPED_JS = """
 () => [...document.querySelectorAll("*")]
     .filter(el => {
         if (!el.getClientRects().length) return false;
+        const rect = el.getBoundingClientRect();
+        if (rect.right <= 0 || rect.left >= window.innerWidth) return false;
         const overflowY = getComputedStyle(el).overflowY;
         if (!["auto", "scroll", "hidden"].includes(overflowY)) return false;
         return el.scrollHeight - el.clientHeight > 1;
