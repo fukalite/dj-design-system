@@ -18,9 +18,7 @@ def test_top_level_exports():
         "DJDesignSystemError",
     ]
     for name in expected_exports:
-        assert hasattr(
-            dj_design_system, name
-        ), f"dj_design_system should expose {name}"
-        assert (
-            name in dj_design_system.__all__
-        ), f"{name} should be in dj_design_system.__all__"
+        assert hasattr(dj_design_system, name), f"dj_design_system should expose {name}"
+        assert name in dj_design_system.__all__, (
+            f"{name} should be in dj_design_system.__all__"
+        )
