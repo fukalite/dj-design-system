@@ -1,0 +1,10 @@
+Task: Update build_canvas_url to avoid param shadowing and properly handle resolution failures
+
+Summary:
+- Defined RESERVED_CANVAS_PARAMS in canvas.py to prevent component keyword or positional parameters from shadowing core canvas query arguments (component, variant, mode, theme) or extra_query.
+- Broadened exception handling in build_canvas_url to catch any resolution exception gracefully, logging debug information without raising unhandled errors.
+- Added comprehensive unit tests in tests/test_canvas_service.py asserting parameter shadowing prevention and registry failure resiliency.
+
+Modified Files:
+- dj_design_system/services/canvas.py
+- tests/test_canvas_service.py
