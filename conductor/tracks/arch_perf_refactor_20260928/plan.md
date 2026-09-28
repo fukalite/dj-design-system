@@ -4,7 +4,7 @@
 - [x] Task: Add caching to `build_navigation()` and `build_search_index()`, and skip for HTMX requests [b157511]
 - [x] Task: Clean up `__init__.py` to expose all necessary public API (e.g. `GalleryParameter`, base components) [8a1a158]
 - [x] Task: Refactor `Variant.__eq__` to remove string comparison [0674c57]
-- [ ] Task: Consolidate scattered exception hierarchy
+- [x] Task: Consolidate scattered exception hierarchy [313440f]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: View & Service Decomposition
