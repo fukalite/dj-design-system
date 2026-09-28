@@ -10,7 +10,7 @@
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [a3c8a55]
 
 ## Phase 2: UI & Frontend Polish
-- [ ] Task: Add missing CSS design tokens to `:root` and dark theme
+- [x] Task: Add missing CSS design tokens to `:root` and dark theme [1be5be1]
 - [ ] Task: Extract icon rendering logic in `navtree.html` to a reusable partial
 - [ ] Task: Replace hardcoded CSS depth indentation with custom properties
 - [ ] Task: Vendor HTMX locally to remove `unpkg.com` dependency
