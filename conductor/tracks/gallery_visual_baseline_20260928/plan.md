@@ -30,10 +30,10 @@ Captures a deterministic Playwright screenshot baseline of the current gallery i
 ## Phase 3: Screenshot Coverage
 - [x] Task: Capture Scrolling Regions [45ccfcb]
   - [x] The gallery shell scrolls inside the sidebar and main panes, so `full_page` screenshots stop at the viewport height (found in Phase 1 verification: nav items below the fold are cut off). Use a viewport tall enough to show all content, or capture each scroll container's full height separately; add a test that fails if content is clipped.
-- [~] Task: Static States
-  - [ ] Index, folder, documentation and component pages.
-  - [ ] Light and dark gallery themes; wide and narrow viewports.
-- [ ] Task: Interactive States
+- [x] Task: Static States [d6519d6]
+  - [x] Index, folder, documentation and component pages.
+  - [x] Light and dark gallery themes; wide and narrow viewports.
+- [~] Task: Interactive States
   - [ ] Mobile sidebar open; breadcrumb flyout open.
   - [ ] Each sandbox toolbar popout open; outline and RTL toggles active.
   - [ ] Search results with a query entered.
