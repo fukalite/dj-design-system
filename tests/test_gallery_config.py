@@ -46,6 +46,17 @@ class TestVariant:
         v = Variant(name="test", positional_args=["arg1", "arg2"])
         assert v.positional_args == ("arg1", "arg2")
 
+    def test_equality_with_string_returns_false(self):
+        v = Variant(name="primary")
+        assert (v == "primary") is False
+        assert (v != "primary") is True
+
+    def test_equality_with_variant(self):
+        v1 = Variant(name="primary", label="Primary")
+        v2 = Variant(name="primary", label="Primary")
+        assert v1 == v2
+        assert (v1 == Variant(name="secondary")) is False
+
 
 class TestGalleryConfig:
     def test_default_values(self):
