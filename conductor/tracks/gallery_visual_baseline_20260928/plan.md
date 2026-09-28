@@ -10,8 +10,9 @@ Captures a deterministic Playwright screenshot baseline of the current gallery i
   - [x] Extract or add a shared `pixelmatch` comparison helper (reusing `VisualRegressionPlugin` logic). [5f29cf1]
   - [x] Add the `visual` marker. [29bc1fe]
   - [x] Add capture helpers: wait for iframes and `document.fonts.ready`, disable animations, mask dynamic regions, block external network. [29bc1fe]
-- [ ] Task: Refactor and Verify Coverage
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Refactor and Verify Coverage [9dee0fe]
+  - [x] Enable greenlet coverage tracing (Playwright); visual.py 92%, capture.py 100%.
+- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
 
