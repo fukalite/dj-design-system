@@ -1,7 +1,7 @@
 # Implementation Plan
 
 ## Phase 1: WCAG Accessibility Fixes
-- [ ] Task: Fix nested interactive controls (`<a>` inside `<summary>`) in `navtree.html`
+- [x] Task: Fix nested interactive controls (`<a>` inside `<summary>`) in `navtree.html` [9c8776d]
 - [ ] Task: Add `aria-current="page"` to active nav items
 - [ ] Task: Fix inaccessible tab switcher radio inputs in `component.html`
 - [ ] Task: Fix auto-submit on variant selector (or event loop) for keyboard users
