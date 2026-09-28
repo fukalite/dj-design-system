@@ -203,7 +203,9 @@ def render_component(
                 }
 
             template_str = canvas_template
-            if "{% load design_components %}" not in template_str:
+            if not re.search(
+                r"{%\n?\s*load\s+[^%]*\bdesign_components\b[^%]*%}", template_str
+            ):
                 template_str = f"{{% load design_components %}}\n{template_str}"
 
             template = _compile_canvas_template(template_str)

@@ -91,6 +91,19 @@ class TestCanvasSmartHybridTemplate:
         # In raw mode without {{ component }}, the default component tag is not automatically rendered
         assert '<button class="btn' not in output
 
+    def test_existing_load_design_components_with_flexible_whitespace(self):
+        config = GalleryConfig(
+            canvas_template='{%  load   design_components   %}<div class="custom">{{ component }}</div>',
+        )
+        reg = create_test_registry(config)
+        spec = CanvasSpec(
+            component_name="dummy_button",
+            params={"label": "Hi"},
+        )
+        output = render_component(spec, reg)
+        assert '<div class="custom">' in output
+        assert '<button class="btn primary">Hi</button>' in output
+
     def test_variant_canvas_template_overrides_config_template(self):
         config = GalleryConfig(
             canvas_template='<div class="config-wrap">{{ component }}</div>',
