@@ -1,0 +1,8 @@
+Task: Extract variant parameter merging logic into a single shared helper
+Status: Completed
+Commit: 06cd392
+Verification:
+- Implemented merge_variant_params in dj_design_system/services/canvas.py with callable resolution support.
+- Refactored render_component, _get_form_and_sandbox_spec, and _render_component to use the shared helper.
+- Added comprehensive unit tests in tests/test_variant_params.py covering precedence, positional arg mapping, and callable evaluation.
+- All 814 tests passed.
