@@ -7,6 +7,7 @@ from functools import lru_cache
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import TYPE_CHECKING
+from urllib.parse import urlencode
 
 import markdown as markdown_lib
 from django.apps import apps
@@ -245,6 +246,36 @@ def _annotate_paths(
 
     for child in node.children:
         _annotate_paths(child, app_label=child_app, parent_parts=child_parts)
+
+
+def resolve_node_url(node: NavNode) -> str:
+    """Return the gallery URL for a NavNode.
+
+    Requires ``_app_label`` and ``_path_parts`` to be set via ``_annotate_paths``.
+    """
+    app = node._app_label or node.slug
+    path = "/".join(node._path_parts)
+
+    if not path:
+        base_url = reverse("gallery-node-root", kwargs={"app_label": app})
+    else:
+        base_url = reverse("gallery-node", kwargs={"app_label": app, "path": path})
+
+    if node.node_type == NodeType.VARIANT:
+        sep = "&" if "?" in base_url else "?"
+        return f"{base_url}{sep}{urlencode({'variant': node.slug})}"
+    return base_url
+
+
+def resolve_node_active_path(node: NavNode) -> str:
+    """Return a slash-joined path for active-state matching in the nav tree."""
+    gallery_root = reverse("gallery")
+    return resolve_node_url(node).removeprefix(gallery_root).rstrip("/")
+
+
+def resolve_node_base_active_path(node: NavNode) -> str:
+    """Return the active path without query parameters."""
+    return resolve_node_active_path(node).split("?")[0].rstrip("/")
 
 
 @lru_cache(maxsize=1)

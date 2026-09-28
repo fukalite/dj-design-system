@@ -6,7 +6,6 @@ from dataclasses import dataclass, field
 from functools import cached_property
 from pathlib import Path
 from typing import Any, Type
-from urllib.parse import urlencode
 
 from dj_design_system.exceptions import InvalidTagType
 from dj_design_system.gallery import GalleryConfig, Variant, load_gallery_config
@@ -354,40 +353,21 @@ class NavNode:
 
     @property
     def url(self) -> str:
-        """Return the gallery URL for this node.
+        """Return the gallery URL for this node."""
+        from dj_design_system.services.navigation import resolve_node_url
 
-        Requires ``_app_label`` and ``_path_parts`` to be set via
-        ``_annotate_paths``.
-        """
-        from django.urls import reverse
-
-        app = self._app_label or self.slug
-        path = "/".join(self._path_parts)
-
-        if not path:
-            base_url = reverse("gallery-node-root", kwargs={"app_label": app})
-        else:
-            base_url = reverse("gallery-node", kwargs={"app_label": app, "path": path})
-
-        if self.node_type == NodeType.VARIANT:
-            sep = "&" if "?" in base_url else "?"
-            return f"{base_url}{sep}{urlencode({'variant': self.slug})}"
-        return base_url
+        return resolve_node_url(self)
 
     @property
     def active_path(self) -> str:
-        """Return a slash-joined path for active-state matching in the nav tree.
+        """Return a slash-joined path for active-state matching in the nav tree."""
+        from dj_design_system.services.navigation import resolve_node_active_path
 
-        Derived from :attr:`url` via the Django URL resolver, stripping the
-        gallery root prefix and trailing slash so that the result is a bare
-        path like ``myapp/elements/icon``.
-        """
-        from django.urls import reverse
-
-        gallery_root = reverse("gallery")
-        return self.url.removeprefix(gallery_root).rstrip("/")
+        return resolve_node_active_path(self)
 
     @property
     def base_active_path(self) -> str:
         """Return the active path without query parameters."""
-        return self.active_path.split("?")[0].rstrip("/")
+        from dj_design_system.services.navigation import resolve_node_base_active_path
+
+        return resolve_node_base_active_path(self)
