@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from functools import cached_property
 from pathlib import Path
 from typing import Any, Type
+from urllib.parse import urlencode
 
 from dj_design_system.gallery import GalleryConfig, Variant, load_gallery_config
 from dj_design_system.types import FlattenStrategy, NodeType, TagType
@@ -372,7 +373,8 @@ class NavNode:
             base_url = reverse("gallery-node", kwargs={"app_label": app, "path": path})
 
         if self.node_type == NodeType.VARIANT:
-            return f"{base_url}?variant={self.slug}"
+            sep = "&" if "?" in base_url else "?"
+            return f"{base_url}{sep}{urlencode({'variant': self.slug})}"
         return base_url
 
     @property
