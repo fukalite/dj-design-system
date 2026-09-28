@@ -9,6 +9,7 @@ from functools import lru_cache
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlencode
 
+import nh3
 from django.core.exceptions import ValidationError
 from django.db.models import Model
 from django.template import Context, Template
@@ -80,9 +81,9 @@ def resolve_from_get_params(
         if info.component_class.has_slots():
             for key, value in raw_params.items():
                 if key.startswith(SLOT_PARAM_PREFIX):
-                    params[key] = mark_safe(value)
+                    params[key] = mark_safe(nh3.clean(value))
         elif "content" in raw_params:
-            params["content"] = mark_safe(raw_params["content"])
+            params["content"] = mark_safe(nh3.clean(raw_params["content"]))
 
     return CanvasSpec(
         component_name=component_name,
