@@ -3,12 +3,12 @@
 Captures a deterministic Playwright screenshot baseline of the current gallery in a pinned container, and adds a blocking CI job that compares fresh screenshots against it on every pull request.
 
 ## Phase 1: Harness & Comparison
-- [ ] Task: Write Failing Tests (`Red Phase`)
-  - [ ] The comparison helper passes identical images, fails on differences beyond tolerance, fails on size mismatch, and writes `expected` / `actual` / `diff` files.
-  - [ ] A missing baseline fails normally and is created in update mode.
-- [ ] Task: Implement to Pass Tests (`Green Phase`)
-  - [ ] Extract or add a shared `pixelmatch` comparison helper (reusing `VisualRegressionPlugin` logic).
-  - [ ] Add the `visual` marker; add `pixelmatch` and `Pillow` to the `dev` extra.
+- [x] Task: Write Failing Tests (`Red Phase`) [5f29cf1]
+  - [x] The comparison helper passes identical images, fails on differences beyond tolerance, fails on size mismatch, and writes `expected` / `actual` / `diff` files.
+  - [x] A missing baseline fails normally and is created in update mode.
+- [~] Task: Implement to Pass Tests (`Green Phase`)
+  - [x] Extract or add a shared `pixelmatch` comparison helper (reusing `VisualRegressionPlugin` logic). [5f29cf1]
+  - [ ] Add the `visual` marker.
   - [ ] Add capture helpers: wait for iframes and `document.fonts.ready`, disable animations, mask dynamic regions, block external network.
 - [ ] Task: Refactor and Verify Coverage
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
@@ -16,8 +16,11 @@ Captures a deterministic Playwright screenshot baseline of the current gallery i
 ---
 
 ## Phase 2: Pinned Rendering Environment & Recipes
-- [ ] Task: Pin the Playwright Docker image tag to match the project's Playwright version.
-- [ ] Task: Add `just visual` and `just update-visual-baselines`, both running inside the pinned container.
+- [ ] Task: Pin the Playwright version in the `justfile`; add a unit test that the CI container tag matches it.
+- [ ] Task: Add `just visual-run` (direct), and `just visual` / `just update-visual-baselines` (in the pinned `linux/amd64` container, installing `playwright==<version>`).
+- [ ] Task: `just update-visual-baselines` regenerates **all** gallery screenshots in one command
+  - [ ] Write failing tests: update mode rewrites only changed baselines, and deletes orphaned baselines (files no screenshot test produced) after a full run.
+  - [ ] Implement pruning in the suite's session teardown, only when the whole suite ran in update mode (never on a filtered `-k` run).
 - [ ] Task: Change `just e2e` to exclude the `visual` marker.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
