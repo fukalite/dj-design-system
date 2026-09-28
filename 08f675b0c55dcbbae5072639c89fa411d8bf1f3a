@@ -7,3 +7,16 @@ Files: tests/e2e/visual/capture.py, tests/e2e/visual/conftest.py, tests/test_vis
 Why: A single command must be able to regenerate all baselines at any later date without leaving stale PNGs, and without ever deleting baselines on partial runs.
 
 Verification: unit tests red then green; in the pinned container, a file-targeted update run kept an injected orphan.png, a full just update-visual-baselines removed it and left index.png's mtime unchanged; just test (727 passed), just check, just typecheck clean.
+
+PHASE VERIFICATION REPORT — Track 0, Phase 2: Pinned Rendering Environment & Recipes
+
+Automated tests:
+- Command: just test && just e2e && just visual
+- Result: 727 passed (unit); 28 passed, 1 skipped, 1 deselected (e2e, visual suite excluded); 1 passed (visual, pinned container).
+
+Manual verification (user):
+1. just visual -> 1 passed.
+2. Temporarily changed --gallery-sidebar-bg to #ff0000 -> just visual failed with pixel diff and wrote expected/actual/diff under tests/e2e/visual/output/failures/index/; reverted.
+3. just update-visual-baselines -> 1 passed, no baseline changes in git status.
+
+User confirmation: 'Looks great!' (2026-09-28).
