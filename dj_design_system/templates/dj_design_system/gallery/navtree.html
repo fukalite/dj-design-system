@@ -5,7 +5,9 @@ Expects: node (NavNode), depth (int), active_path (str) from parent context.{% e
 {% if node.node_type.value == "app" %}
     {# ── App root node ───────────────────────────────────────────── #}
     <div class="gallery-nav__group">
-        <a class="gallery-nav__group-label" href="{{ node.url }}">{{ node.label }}</a>
+        <a class="gallery-nav__group-label{% if active_path == node.active_path %} gallery-nav__link--active{% endif %}"
+           href="{{ node.url }}"
+           {% if active_path == node.active_path %}aria-current="page"{% endif %}>{{ node.label }}</a>
         {% for child in node.children %}
             {% include "dj_design_system/gallery/navtree.html" with node=child depth=1 active_path=active_path active_variant=active_variant %}
         {% endfor %}
@@ -14,6 +16,7 @@ Expects: node (NavNode), depth (int), active_path (str) from parent context.{% e
     {# ── Folder / expandable node ── #}
     <details class="gallery-nav__folder" {% if active_path %}{% if node.active_path in active_path or node.base_active_path in active_path %}open{% endif %}{% endif %}>
         <summary class="gallery-nav__link gallery-nav__link--folder{% if active_path == node.active_path and not active_variant %} gallery-nav__link--active{% endif %}"
+                 {% if active_path == node.active_path and not active_variant %}aria-current="page"{% endif %}
                  data-depth="{{ depth }}">
             {% if node.icon %}
                 {% if "<svg" in node.icon %}
@@ -45,6 +48,7 @@ Expects: node (NavNode), depth (int), active_path (str) from parent context.{% e
     {# ── Leaf node (component, variant, or document) ─────────────── #}
     <a class="gallery-nav__link{% if node.is_variant %} gallery-nav__link--variant{% endif %}{% if node.is_variant and active_path == node.base_active_path and active_variant == node.slug or not node.is_variant and active_path == node.active_path and not active_variant %} gallery-nav__link--active{% endif %}"
        href="{{ node.url }}"
+       {% if node.is_variant and active_path == node.base_active_path and active_variant == node.slug or not node.is_variant and active_path == node.active_path and not active_variant %}aria-current="page"{% endif %}
        data-depth="{{ depth }}">
         {% if node.icon %}
             {% if "<svg" in node.icon %}
