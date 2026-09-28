@@ -1,0 +1,10 @@
+Task: Refactor Variant.__eq__ to remove string comparison
+
+Summary:
+- Removed isinstance(other, str) comparison branch from Variant.__eq__ in dj_design_system/gallery.py.
+- Variant objects now only compare equal to other Variant instances with matching properties.
+- Added unit tests in tests/test_gallery_config.py asserting that Variant equality with string returns False and Variant-to-Variant comparison behaves correctly.
+
+Modified Files:
+- dj_design_system/gallery.py
+- tests/test_gallery_config.py
