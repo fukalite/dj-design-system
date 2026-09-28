@@ -15,17 +15,9 @@ class DJDesignSystemError(Exception):
 class ComponentValidationError(DJDesignSystemError):
     """Raised when a component render request payload is invalid."""
 
-    def __init__(self, message: str) -> None:
-        self.message = message
-        super().__init__(message)
-
 
 class ComponentNotFoundError(DJDesignSystemError):
     """Raised when a requested component cannot be found."""
-
-    def __init__(self, message: str) -> None:
-        self.message = message
-        super().__init__(message)
 
 
 class ComponentDoesNotExist(ComponentNotFoundError):
@@ -38,10 +30,6 @@ class MultipleComponentsFound(DJDesignSystemError):
 
 class VariantNotFoundError(DJDesignSystemError, ValueError):
     """Raised when a requested component variant cannot be found."""
-
-    def __init__(self, message: str) -> None:
-        self.message = message
-        super().__init__(message)
 
 
 class InvalidTagType(DJDesignSystemError):

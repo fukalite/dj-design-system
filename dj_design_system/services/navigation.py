@@ -471,7 +471,7 @@ def _collect_search_entries(
     entries.append(
         {
             "label": node.label,
-            "url": node.url,
+            "url": resolve_node_url(node),
             "type": node.node_type.value,
             "breadcrumb": breadcrumb,
             "content": " ".join(content_parts),
