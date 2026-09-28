@@ -24,7 +24,7 @@
   *Link: [tracks/deprecate_legacy_gallery_kwargs_20260927/index.md](tracks/deprecate_legacy_gallery_kwargs_20260927/index.md)*
 
 
-- [~] **Track: Security & Canvas Hardening**
+- [x] **Track: Security & Canvas Hardening**
   *Link: [conductor/tracks/security_canvas_hardening_20260928/index.md](conductor/tracks/security_canvas_hardening_20260928/index.md)*
 
 - [ ] **Track: Accessibility & UI Polish**
