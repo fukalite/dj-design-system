@@ -1,0 +1,13 @@
+Task: Sanitize GET parameters in canvas.py:resolve_from_get_params using an HTML sanitizer before mark_safe
+
+Summary:
+- Integrated nh3 HTML sanitizer into runtime dependencies.
+- Sanitized raw query parameters for block component slots and content using nh3.clean() prior to calling mark_safe() in resolve_from_get_params().
+- Documented nh3 in tech-stack.md.
+- Added comprehensive unit tests asserting malicious script removal for content and slot params in tests/test_canvas_service.py.
+
+Modified Files:
+- dj_design_system/services/canvas.py
+- pyproject.toml
+- conductor/tech-stack.md
+- tests/test_canvas_service.py
