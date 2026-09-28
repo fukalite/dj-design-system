@@ -143,3 +143,54 @@ class TestGalleryConfig:
                     Variant(name="danger"),
                 ]
             )
+
+    def test_variant_from_dict(self):
+        """Variant.from_dict instantiates Variant with mapping and optional name."""
+        v1 = Variant.from_dict({"name": "outline", "label": "Outline Btn", "kwargs": {"outline": True}})
+        assert v1.name == "outline"
+        assert v1.label == "Outline Btn"
+        assert v1.kwargs == {"outline": True}
+
+        v2 = Variant.from_dict({"kwargs": {"size": "sm"}}, name="small")
+        assert v2.name == "small"
+        assert v2.kwargs == {"size": "sm"}
+
+    def test_gallery_config_from_dict(self):
+        """GalleryConfig.from_dict unpacks dict with nested variant mappings and fields."""
+        data = {
+            "hidden": True,
+            "order": 10,
+            "icon": "mdi:palette",
+            "theme": "dark",
+            "param_defaults": {"size": "md"},
+            "extra_context": {"doc_url": "https://example.com"},
+            "variants": {
+                "primary": {"kwargs": {"color": "blue"}},
+                "secondary": {"kwargs": {"color": "gray"}, "label": "Secondary Option"},
+            },
+        }
+        cfg = GalleryConfig.from_dict(data)
+        assert cfg.hidden is True
+        assert cfg.order == 10
+        assert cfg.icon == "mdi:palette"
+        assert cfg.theme == "dark"
+        assert cfg.param_defaults == {"size": "md"}
+        assert cfg.extra_context == {"doc_url": "https://example.com"}
+        assert len(cfg.variants) == 2
+        assert cfg.variants[0].name == "primary"
+        assert cfg.variants[0].kwargs == {"color": "blue"}
+        assert cfg.variants[1].name == "secondary"
+        assert cfg.variants[1].label == "Secondary Option"
+
+    def test_gallery_config_from_dict_list_variants(self):
+        """GalleryConfig.from_dict handles variants as list of dicts."""
+        data = {
+            "variants": [
+                {"name": "v1", "kwargs": {"a": 1}},
+                Variant(name="v2", kwargs={"b": 2}),
+            ]
+        }
+        cfg = GalleryConfig.from_dict(data)
+        assert len(cfg.variants) == 2
+        assert cfg.variants[0].name == "v1"
+        assert cfg.variants[1].name == "v2"

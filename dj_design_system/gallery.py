@@ -54,6 +54,14 @@ class Variant:
         self.kwargs = dict(self.kwargs or {})
         self.extra_context = dict(self.extra_context or {})
 
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any], name: str | None = None) -> Variant:
+        """Create a Variant from a dictionary or mapping."""
+        payload = dict(data)
+        if name is not None and "name" not in payload:
+            payload["name"] = name
+        return cls(**payload)
+
     def __str__(self) -> str:
         return self.name
 
@@ -103,19 +111,20 @@ class GalleryConfig:
     param_defaults: dict[str, Any] = field(default_factory=dict)
     variants: list[Variant] = field(default_factory=list)
 
-    def __post_init__(self) -> None:
-        self.extra_context = dict(self.extra_context or {})
-        self.param_defaults = dict(self.param_defaults or {})
-
-        if isinstance(self.variants, Mapping):
+    @classmethod
+    def _normalize_variants(
+        cls, variants: list[Variant] | Mapping[str, Any] | list[dict[str, Any]]
+    ) -> list[Variant]:
+        """Normalize variant instances, dict mappings, or dict lists into a list of Variants."""
+        if isinstance(variants, Mapping):
             raw = [
-                v if isinstance(v, Variant) else Variant(name=k, **v)
-                for k, v in self.variants.items()
+                v if isinstance(v, Variant) else Variant.from_dict(v, name=k)
+                for k, v in variants.items()
             ]
         else:
             raw = [
-                v if isinstance(v, Variant) else Variant(**v)
-                for v in (self.variants or [])
+                v if isinstance(v, Variant) else Variant.from_dict(v)
+                for v in (variants or [])
             ]
 
         seen_names: set[str] = set()
@@ -126,7 +135,23 @@ class GalleryConfig:
                 )
             seen_names.add(v.name)
 
-        self.variants = raw
+        return raw
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> GalleryConfig:
+        """Create a GalleryConfig from a dictionary or mapping.
+
+        Converts nested variant dictionaries or mappings into Variant instances.
+        """
+        payload = dict(data)
+        if "variants" in payload:
+            payload["variants"] = cls._normalize_variants(payload["variants"])
+        return cls(**payload)
+
+    def __post_init__(self) -> None:
+        self.extra_context = dict(self.extra_context or {})
+        self.param_defaults = dict(self.param_defaults or {})
+        self.variants = self._normalize_variants(self.variants)
 
     def get_variant(self, name: str) -> Variant | None:
         """Return the variant matching *name*, or None."""
@@ -171,10 +196,14 @@ def load_gallery_config(source_dir: Path, component_name: str) -> GalleryConfig:
     cfg = getattr(mod, "config", None)
     if isinstance(cfg, GalleryConfig):
         return cfg
+    if isinstance(cfg, Mapping):
+        return GalleryConfig.from_dict(cfg)
 
     named_cfg = getattr(mod, f"{component_name}_config", None)
     if isinstance(named_cfg, GalleryConfig):
         return named_cfg
+    if isinstance(named_cfg, Mapping):
+        return GalleryConfig.from_dict(named_cfg)
 
     # Legacy fallback for basic_kwargs / maximal_kwargs
     basic_kwargs = getattr(mod, "basic_kwargs", None)
