@@ -16,7 +16,7 @@ from django.template import Context, Template
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
-from dj_design_system.components import BlockComponent
+from dj_design_system.components import BaseComponent, BlockComponent
 from dj_design_system.data import (
     BLOCK_CONTENT_PLACEHOLDER,
     CanvasSpec,
@@ -38,6 +38,7 @@ from dj_design_system.slots import SLOT_PARAM_PREFIX
 __all__ = [
     "resolve_from_get_params",
     "render_component",
+    "merge_variant_params",
     "get_component_media",
     "build_canvas_url",
     "resolve_component",
@@ -104,6 +105,57 @@ def _resolve_param_value(val: Any) -> Any:
     return val
 
 
+def merge_variant_params(
+    component_class: type[BaseComponent],
+    config: GalleryConfig | None = None,
+    variant: Variant | None = None,
+    overrides: dict[str, Any] | None = None,
+    positional_args: tuple[Any, ...] | list[Any] | None = None,
+    resolve_values: bool = False,
+) -> dict[str, Any]:
+    """Merge component parameters from GalleryConfig defaults, Variant, and explicit overrides.
+
+    Precedence (lowest to highest):
+    1. config.param_defaults
+    2. variant.kwargs & variant.positional_args
+    3. overrides (e.g. spec.params) & positional_args (e.g. spec.positional_args)
+    """
+    merged: dict[str, Any] = dict(config.param_defaults if config else {})
+    pos_arg_names = (
+        component_class.get_positional_args()
+        if hasattr(component_class, "get_positional_args")
+        else []
+    )
+
+    if variant:
+        merged.update(variant.kwargs)
+        if variant.positional_args:
+            if hasattr(component_class, "map_positional_args"):
+                component_class.map_positional_args(
+                    pos_arg_names, variant.positional_args, merged
+                )
+            else:
+                for i, val in enumerate(variant.positional_args):
+                    if i < len(pos_arg_names):
+                        merged[pos_arg_names[i]] = val
+
+    if overrides:
+        merged.update(overrides)
+
+    if positional_args:
+        if hasattr(component_class, "map_positional_args"):
+            component_class.map_positional_args(pos_arg_names, positional_args, merged)
+        else:
+            for i, val in enumerate(positional_args):
+                if i < len(pos_arg_names):
+                    merged[pos_arg_names[i]] = val
+
+    if resolve_values:
+        return {k: _resolve_param_value(v) for k, v in merged.items()}
+
+    return merged
+
+
 def _render_component_class(component_class: type, kwargs: dict[str, Any]) -> str:
     """Instantiate and render a component class with given keyword arguments."""
     kw = dict(kwargs)
@@ -167,22 +219,14 @@ def render_component(
             k: _resolve_param_value(v) for k, v in merged_extra_context.items()
         }
 
-        positional_arg_names = component_class.get_positional_args()
-        merged_params: dict[str, Any] = dict(config.param_defaults)
-        if variant_obj:
-            merged_params.update(variant_obj.kwargs)
-        merged_params.update(spec.params)
-
-        positional_args = (
-            spec.positional_args
-            if spec.positional_args
-            else (variant_obj.positional_args if variant_obj else ())
+        resolved_kwargs = merge_variant_params(
+            component_class,
+            config=config,
+            variant=variant_obj,
+            overrides=spec.params,
+            positional_args=spec.positional_args,
+            resolve_values=True,
         )
-        component_class.map_positional_args(
-            positional_arg_names, positional_args, merged_params
-        )
-
-        resolved_kwargs = {k: _resolve_param_value(v) for k, v in merged_params.items()}
 
         if canvas_template:
             has_component_placeholder = bool(

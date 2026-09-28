@@ -16,8 +16,8 @@ from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.parameters.base import _get_type_name
 from dj_design_system.parameters.model import ModelParam
 from dj_design_system.services.canvas import (
-    _resolve_param_value,
     build_canvas_url,
+    merge_variant_params,
     render_component,
 )
 from dj_design_system.services.navigation import (
@@ -53,12 +53,12 @@ def _get_form_and_sandbox_spec(
     pos_args = component_class.get_positional_args()
 
     if active_variant:
-        merged_init: dict[str, Any] = dict(config.param_defaults if config else {})
-        merged_init.update(active_variant.kwargs)
-        for i, val in enumerate(active_variant.positional_args):
-            if i < len(pos_args):
-                merged_init[pos_args[i]] = val
-        initial_data = {k: _resolve_param_value(v) for k, v in merged_init.items()}
+        initial_data = merge_variant_params(
+            component_class,
+            config=config,
+            variant=active_variant,
+            resolve_values=True,
+        )
     else:
         for i, val in enumerate(tag_signature.maximal_spec.positional_args):
             if i < len(pos_args):
@@ -297,12 +297,11 @@ def _render_component(request, context, node, app_label, path_parts):
         )
         context["variant_preview_url"] = variant_preview_url
 
-        pos_args = component_class.get_positional_args()
-        variant_sig_kwargs: dict[str, Any] = dict(config.param_defaults)
-        variant_sig_kwargs.update(active_variant.kwargs)
-        for i, val in enumerate(active_variant.positional_args):
-            if i < len(pos_args):
-                variant_sig_kwargs[pos_args[i]] = val
+        variant_sig_kwargs = merge_variant_params(
+            component_class,
+            config=config,
+            variant=active_variant,
+        )
         context["variant_signature"] = generate_current_tag_signature(
             component_class,
             variant_sig_kwargs,
