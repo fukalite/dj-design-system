@@ -43,6 +43,57 @@ async () => {
 """
 
 
+# Visible elements whose content is taller than their (scrolling) box.
+_CLIPPED_JS = """
+() => [...document.querySelectorAll("*")]
+    .filter(el => {
+        if (!el.getClientRects().length) return false;
+        const overflowY = getComputedStyle(el).overflowY;
+        if (!["auto", "scroll", "hidden"].includes(overflowY)) return false;
+        return el.scrollHeight - el.clientHeight > 1;
+    })
+    .map(el => ({
+        name: el.tagName.toLowerCase() + (el.className && typeof el.className === "string"
+            ? "." + el.className.trim().split(/\\s+/).join(".") : ""),
+        overflow: el.scrollHeight - el.clientHeight,
+    }))
+"""
+
+
+def find_clipped_containers(page: Any) -> list[dict]:
+    """Return visible elements whose content overflows their height.
+
+    Each entry has ``name`` (tag and classes) and ``overflow`` (hidden
+    pixels). The gallery shell is ``100vh`` tall with internally scrolling
+    panes, so a full-page screenshot only captures what fits the viewport.
+    """
+    return page.evaluate(_CLIPPED_JS)
+
+
+def fit_viewport_to_content(page: Any, *, max_height: int = 12000) -> None:
+    """Grow the viewport height until no scrolling container is clipped.
+
+    The width is kept, so responsive layouts are unchanged. Raises
+    ``AssertionError`` if content is still clipped at ``max_height``.
+    """
+    for _ in range(20):
+        clipped = find_clipped_containers(page)
+        if not clipped:
+            return
+        size = page.viewport_size
+        needed = size["height"] + max(item["overflow"] for item in clipped)
+        if needed > max_height:
+            break
+        page.set_viewport_size({"width": size["width"], "height": needed})
+        page.evaluate(_SETTLE_JS)
+    clipped = find_clipped_containers(page)
+    if clipped:
+        names = ", ".join(item["name"] for item in clipped)
+        raise AssertionError(
+            f"Content still clipped at a {max_height}px viewport: {names}"
+        )
+
+
 def block_external_requests(page: Any, allowed_origin: str) -> None:
     """Abort every request that is not to ``allowed_origin`` (or inline data).
 
@@ -101,12 +152,17 @@ class ScreenshotRecorder:
         *,
         mask: Sequence[str] = (),
         full_page: bool = True,
+        fit: bool = True,
     ) -> None:
         """Screenshot ``page`` as ``<name>.png`` and compare it to the baseline.
 
         ``mask`` is a list of CSS selectors whose regions are painted over
         before capture, for content that legitimately varies between runs.
+        With ``fit`` (the default) the viewport is first grown so that no
+        internally scrolling pane hides content.
         """
+        if fit:
+            fit_viewport_to_content(page)
         filename = f"{name}.png"
         actual = self.output_dir / "actual" / filename
         actual.parent.mkdir(parents=True, exist_ok=True)

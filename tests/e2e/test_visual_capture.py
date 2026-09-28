@@ -6,6 +6,8 @@ from dj_design_system.testing.visual import ScreenshotMismatch
 from tests.e2e.visual.capture import (
     ScreenshotRecorder,
     block_external_requests,
+    find_clipped_containers,
+    fit_viewport_to_content,
     stabilise,
 )
 
@@ -99,3 +101,56 @@ class TestScreenshotRecorder:
 
         page.evaluate("() => { document.querySelector('h1').textContent = 'Changed'; }")
         recorder_factory(update=False).check(page, "index", mask=["h1"])
+
+
+class TestFitViewportToContent:
+    """The gallery shell is 100vh with internally scrolling panes."""
+
+    @pytest.fixture
+    def short_page(self, page, live_server):
+        block_external_requests(page, live_server.url)
+        page.set_viewport_size({"width": 1280, "height": 400})
+        page.goto(f"{live_server.url}/dds/")
+        stabilise(page)
+        return page
+
+    def test_detects_clipped_nav_tree(self, short_page):
+        """The nav tree scrolls inside the sidebar."""
+        clipped = find_clipped_containers(short_page)
+        assert any(item["name"] == "nav.gallery-nav" for item in clipped)
+
+    def test_grows_viewport_until_nothing_is_clipped(self, short_page):
+        fit_viewport_to_content(short_page)
+        assert find_clipped_containers(short_page) == []
+        assert short_page.viewport_size["height"] > 400
+        assert short_page.viewport_size["width"] == 1280
+
+    def test_is_a_no_op_when_nothing_is_clipped(self, page, live_server):
+        block_external_requests(page, live_server.url)
+        page.set_viewport_size({"width": 1280, "height": 4000})
+        page.goto(f"{live_server.url}/dds/")
+        stabilise(page)
+        fit_viewport_to_content(page)
+        assert page.viewport_size["height"] == 4000
+
+    def test_fails_loudly_beyond_max_height(self, short_page):
+        with pytest.raises(AssertionError, match="still clipped"):
+            fit_viewport_to_content(short_page, max_height=500)
+
+    def test_check_fits_before_capturing(self, short_page, tmp_path):
+        recorder = ScreenshotRecorder(
+            baseline_dir=tmp_path / "baselines",
+            output_dir=tmp_path / "output",
+            update=True,
+        )
+        recorder.check(short_page, "index")
+        assert find_clipped_containers(short_page) == []
+
+    def test_check_can_skip_fitting(self, short_page, tmp_path):
+        recorder = ScreenshotRecorder(
+            baseline_dir=tmp_path / "baselines",
+            output_dir=tmp_path / "output",
+            update=True,
+        )
+        recorder.check(short_page, "index", fit=False)
+        assert short_page.viewport_size["height"] == 400
