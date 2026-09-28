@@ -1,0 +1,9 @@
+Task: Move URL resolution logic out of NavNode into navigation service
+Status: Completed
+Commit: 74a4c95
+Verification:
+- Implemented resolve_node_url, resolve_node_active_path, and resolve_node_base_active_path in dj_design_system/services/navigation.py.
+- NavNode in dj_design_system/data.py delegates url, active_path, and base_active_path properties to the navigation service functions.
+- Removed urllib.parse and reverse dependencies from data.py.
+- Added unit tests in tests/test_navigation_url_resolution.py.
+- Verified test suite passes: 826 passed, 0 failures.
