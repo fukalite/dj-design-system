@@ -1,0 +1,8 @@
+Task: Phase 3 — Static States
+
+Summary: tests/e2e/visual/test_gallery_pages.py now screenshots 5 page types (index; folder demo_nav/generic; document demo_nav/design_guidelines; component demo_components/alert; component-docs demo_nav/elements/icon) x 3 viewports (desktop 1280x800; wide 1920x1080 where docs and sandbox are side by side; mobile 390x844 with the sidebar collapsed) x 2 gallery themes (light/dark via the <html> gallery-theme-* class, since nothing in the gallery sets dark itself), plus component--desktop--light--theme-selector with two GALLERY_THEMES so the toolbar selector renders. conftest gallery() gained viewport/theme options. find_clipped_containers() now ignores off-screen elements (closed mobile sidebar). 31 baselines generated in the pinned container; the index smoke baseline was pruned automatically.
+
+Files: tests/e2e/visual/{capture.py,conftest.py,test_gallery_pages.py}, tests/e2e/test_visual_capture.py, tests/e2e/visual/baselines/*.png (31)
+
+Verification: just visual failed before baselines existed (red), update generated 31 (~95s), then just visual passed twice consecutively (deterministic); reviewed component desktop/wide-dark/mobile screenshots and the theme-selector crop; just test (727 passed), just e2e (35 passed, 1 skipped), just check, just typecheck clean.
+Observation: in the dark gallery theme the pane headers stay light (#eef0f4 hard-coded in gallery.css) — existing behaviour, captured as-is.
