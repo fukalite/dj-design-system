@@ -20,7 +20,8 @@ Each track ships as its own PR.
 Screenshots are only comparable when taken in the same environment. Fonts, anti-aliasing and browser builds differ between macOS, Windows and Linux, and between Playwright/Chromium versions. Baselines captured on a developer laptop would fail in CI on every run.
 
 Therefore:
-- **Baselines are always generated in the CI rendering environment:** the official Playwright Docker image (`mcr.microsoft.com/playwright/python`), pinned to an exact tag matching the project's Playwright version.
+- **Baselines are always generated in the CI rendering environment:** the official Playwright Docker image (`mcr.microsoft.com/playwright/python`), pinned to an exact tag. Inside the container, the Python `playwright` package is installed at exactly the image's version (the `dev` extra leaves it unpinned, and a mismatch means Playwright cannot find its browser).
+- **Architecture is pinned too:** GitHub-hosted runners are `linux/amd64`, while Apple Silicon Macs default to `linux/arm64` images. Chromium can rasterise differently per architecture, so local runs force `--platform linux/amd64` (emulated; slower, but faithful to CI).
 - The CI job runs inside that same pinned container.
 - Developers generate and check baselines locally by running the suite **inside the same container** via `just` recipes (requires Docker), never on the host. CI never generates baselines.
 - Upgrading Playwright or the image tag is a deliberate change that regenerates all baselines in the same PR.
@@ -28,7 +29,7 @@ Therefore:
 ## Functional Requirements
 
 ### 1. Screenshot Coverage
-A Playwright screenshot suite under `tests/e2e/visual/`, marked `visual` (a new pytest marker), against the example project, capturing:
+A Playwright screenshot suite under `tests/e2e/visual/`, marked `visual` (a new pytest marker), capturing the gallery as served by the existing e2e setup (`tests/settings.py` with the `live_server` fixtures in `tests/e2e/conftest.py`, gallery mounted at `/dds/`). This deliberately uses the test settings rather than `example_project/settings.py`: the test settings never enable `GALLERY_SHOW_BUILTIN_COMPONENTS`, so the nav tree stays stable while later tracks add built-in components. It captures:
 - **Pages:** gallery index, a folder page, a documentation page, a component page (documentation + sandbox).
 - **Themes:** light and dark gallery themes.
 - **Viewports:** wide (side-by-side panes) and narrow (stacked panes with tabs).
@@ -41,7 +42,7 @@ A Playwright screenshot suite under `tests/e2e/visual/`, marked `visual` (a new 
   - documentation / sandbox tab switched on a narrow viewport.
 
 ### 2. Stability
-- Mask or pin regions whose content legitimately changes during the rebuild series, most notably the registered component count on the index page and the nav tree, which grow once built-in components appear in the example project (track 2 onwards).
+- Mask or pin any region whose content legitimately changes during the rebuild series. Because the suite uses the test settings (built-ins hidden), the nav tree and component count should stay stable; masking is a fallback, not the default.
 - Wait for canvas iframes to finish loading and resizing, and for web fonts (`document.fonts.ready`), before capturing.
 - Disable CSS transitions, animations and caret blinking during capture.
 - Load no external network resources during capture. HTMX is served from a local copy, or the route is fulfilled from a vendored file in tests, so a CDN outage cannot fail the job.
@@ -67,6 +68,7 @@ A new `visual-regression` job in `.github/workflows/ci.yml`:
 ### 5. Updating Baselines
 Baselines are generated **locally only**, never by CI. CI only compares.
 - When a visual change is intended, the developer runs `just update-visual-baselines`. It runs the suite in update mode inside the pinned container and writes new baselines into the working tree. The developer commits and pushes them as normal.
+- `just update-visual-baselines` is the single command for regenerating **all** baselines at any later date. It rewrites only baselines whose pixels changed, and deletes orphaned baselines that no screenshot test produces any more. Pruning only happens on a full, unfiltered update run.
 - A PR that changes baselines must explain why in its description. Reviewers inspect the changed PNGs in the PR diff and the `actual` screenshots uploaded by CI.
 
 ### 6. Local Developer Recipes
@@ -76,10 +78,10 @@ Baselines are generated **locally only**, never by CI. CI only compares.
 | `just update-visual-baselines` | Regenerate baselines in the pinned container. |
 | `just e2e` | Existing recipe, changed to exclude the `visual` marker, so it stays fast and host-runnable. |
 
-The container tag lives in one place (e.g. a variable at the top of the `justfile`), which both the recipes and the CI workflow read or duplicate, with a test or comment keeping them in sync.
+The Playwright version lives in one place in the `justfile` (`playwright_version`). The CI workflow necessarily repeats the container tag; a unit test asserts the two agree. A `just visual-run` recipe runs the suite directly (used inside the container by both the Docker recipes and CI); `just visual` and `just update-visual-baselines` wrap it in `docker run`.
 
 ### 7. Dependencies
-- Add `pixelmatch` and `Pillow` to the `dev` extra (they are currently only in `testing-visual`).
+- `pixelmatch` and `Pillow` already reach the `dev` extra via `dj-design-system[testing-all]`; no change needed.
 - Register the `visual` marker in `pyproject.toml`.
 
 ## Non-Functional Requirements
