@@ -1,0 +1,14 @@
+Task: Add caching to build_navigation() and build_search_index(), and skip for HTMX requests
+
+Summary:
+- Cached build_navigation() using @lru_cache(maxsize=1) and added clear_navigation_cache() / build_navigation.cache_clear.
+- Cached build_search_index() entries by navigation tree id with clear_search_index_cache() / build_search_index.cache_clear.
+- Updated get_base_context in views.py to detect HX-Request and skip build_search_index execution entirely for partial HTMX fragment requests.
+- Added autouse cache-clearing fixture in tests/conftest.py to prevent test leakage.
+- Added dedicated unit tests in tests/test_navigation_cache.py validating cache retention, cache invalidation, and HTMX skipping.
+
+Modified Files:
+- dj_design_system/services/navigation.py
+- dj_design_system/views.py
+- tests/test_navigation_cache.py
+- tests/conftest.py
