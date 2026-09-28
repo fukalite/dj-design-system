@@ -24,6 +24,31 @@ body {
   min-height: 100%;
 }
 
+/* Shown when a component's render() returns a plain str (escaped output) */
+.gallery-canvas-warning {
+  max-width: 100%;
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #7a4d00;
+  background: #fff8e6;
+  border: 1px solid #f0c36d;
+  border-radius: 6px;
+  padding: 12px 16px;
+}
+
+.gallery-canvas-warning__message {
+  margin: 0 0 8px;
+}
+
+.gallery-canvas-warning__output {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 12px;
+  color: #333;
+}
+
 /* Mode variants */
 .canvas-wrapper--extended {
   padding: 120px;

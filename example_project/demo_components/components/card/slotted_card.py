@@ -1,3 +1,5 @@
+from django.utils.html import format_html
+
 from dj_design_system.components import BlockComponent
 from dj_design_system.parameters import StrParam
 from dj_design_system.slots import Slot
@@ -57,27 +59,34 @@ class SlottedCardComponent(BlockComponent):
         positional_args = ["title"]
 
     def render(self) -> str:
-        classes = self.get_classes_string()
-
+        # format_html escapes param values (e.g. title) and passes through the
+        # slots, which are already safe. Returning a plain str instead would
+        # render as escaped text in the gallery canvas.
         header = (
-            f"<div class='slotted-card__header'>{self.slots['header']}</div>"
+            format_html(
+                "<div class='slotted-card__header'>{}</div>", self.slots["header"]
+            )
             if self.slots.get("header")
             else ""
         )
         title = (
-            f"<h3 class='slotted-card__title'>{self.title}</h3>" if self.title else ""
+            format_html("<h3 class='slotted-card__title'>{}</h3>", self.title)
+            if self.title
+            else ""
         )
         footer = (
-            f"<div class='slotted-card__footer'>{self.slots['footer']}</div>"
+            format_html(
+                "<div class='slotted-card__footer'>{}</div>", self.slots["footer"]
+            )
             if self.slots.get("footer")
             else ""
         )
 
-        return (
-            f"<div class='slotted-card {classes}'>"
-            f"{header}"
-            f"{title}"
-            f"<div class='slotted-card__body'>{self.slots['body']}</div>"
-            f"{footer}"
-            f"</div>"
+        return format_html(
+            "<div class='slotted-card {}'>{}{}<div class='slotted-card__body'>{}</div>{}</div>",
+            self.get_classes_string(),
+            header,
+            title,
+            self.slots["body"],
+            footer,
         )
