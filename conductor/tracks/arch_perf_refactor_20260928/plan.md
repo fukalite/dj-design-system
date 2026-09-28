@@ -1,7 +1,7 @@
 # Implementation Plan
 
 ## Phase 1: Core Performance & API Cleanup
-- [ ] Task: Add caching to `build_navigation()` and `build_search_index()`, and skip for HTMX requests
+- [x] Task: Add caching to `build_navigation()` and `build_search_index()`, and skip for HTMX requests [b157511]
 - [ ] Task: Clean up `__init__.py` to expose all necessary public API (e.g. `GalleryParameter`, base components)
 - [ ] Task: Refactor `Variant.__eq__` to remove string comparison
 - [ ] Task: Consolidate scattered exception hierarchy
