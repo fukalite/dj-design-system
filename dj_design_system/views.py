@@ -283,16 +283,14 @@ def _build_preview_urls(
     sandbox_spec: CanvasSpec, tag_signature: Any, active_theme: str
 ) -> tuple[str, str, str]:
     canvas_base_url = reverse("gallery-canvas-iframe")
-    canvas_iframe_url = (
-        build_canvas_url(sandbox_spec, canvas_base_url) + f"&theme={active_theme}"
+    canvas_iframe_url = build_canvas_url(
+        sandbox_spec, canvas_base_url, theme=active_theme
     )
-    minimal_preview_url = (
-        build_canvas_url(tag_signature.minimal_spec, canvas_base_url)
-        + f"&mode=basic&theme={active_theme}"
+    minimal_preview_url = build_canvas_url(
+        tag_signature.minimal_spec, canvas_base_url, mode="basic", theme=active_theme
     )
-    maximal_preview_url = (
-        build_canvas_url(tag_signature.maximal_spec, canvas_base_url)
-        + f"&mode=basic&theme={active_theme}"
+    maximal_preview_url = build_canvas_url(
+        tag_signature.maximal_spec, canvas_base_url, mode="basic", theme=active_theme
     )
     return canvas_iframe_url, minimal_preview_url, maximal_preview_url
 
@@ -419,9 +417,8 @@ def _render_component(request, context, node, app_label, path_parts):
             component_name=info.qualified_name,
             variant=active_variant.name,
         )
-        variant_preview_url = (
-            build_canvas_url(variant_spec, canvas_base_url)
-            + f"&mode=basic&theme={active_theme}"
+        variant_preview_url = build_canvas_url(
+            variant_spec, canvas_base_url, mode="basic", theme=active_theme
         )
         context["variant_preview_url"] = variant_preview_url
 

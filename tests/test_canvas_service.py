@@ -187,6 +187,27 @@ class TestBuildCanvasUrl:
             "nested": True
         }
 
+    def test_with_mode_and_theme(self):
+        spec = CanvasSpec(component_name="button", variant="danger")
+        url = build_canvas_url(spec, "/base/", mode="basic", theme="dark")
+        assert "component=button" in url
+        assert "variant=danger" in url
+        assert "mode=basic" in url
+        assert "theme=dark" in url
+
+    def test_with_existing_query_params_uses_ampersand(self):
+        spec = CanvasSpec(component_name="button")
+        url = build_canvas_url(spec, "/base/?token=xyz", theme="light")
+        assert url.startswith("/base/?token=xyz&")
+        assert "component=button" in url
+        assert "theme=light" in url
+
+    def test_with_extra_query_params(self):
+        spec = CanvasSpec(component_name="button")
+        url = build_canvas_url(spec, "/base/", preview="true", custom_id="123")
+        assert "preview=true" in url
+        assert "custom_id=123" in url
+
 
 # ---------------------------------------------------------------------------
 # _coerce_single

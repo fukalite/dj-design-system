@@ -2,12 +2,14 @@
 
 import pytest
 from django.http import QueryDict
+from django.template import TemplateSyntaxError
 
 from dj_design_system.components import TagComponent
 from dj_design_system.data import CanvasSpec, ComponentInfo, GalleryParameter
 from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.parameters.base import StrParam
 from dj_design_system.services.canvas import (
+    _compile_canvas_template,
     build_canvas_url,
     render_component,
     resolve_from_get_params,
@@ -229,11 +231,28 @@ class TestCanvasCallableResolution:
         reg = create_test_registry(config)
         spec = CanvasSpec(component_name="dummy_button", params={})
 
-        with pytest.raises(Exception):
+        with pytest.raises(TemplateSyntaxError):
             render_component(spec, reg, raise_errors=True)
 
         error_html = render_component(spec, reg, raise_errors=False)
         assert 'class="gallery-canvas-error"' in error_html
+
+    def test_canvas_template_compilation_cached(self):
+        config = GalleryConfig(
+            canvas_template='<div class="cached-shell">{{ component }}</div>',
+        )
+        reg = create_test_registry(config)
+        spec = CanvasSpec(component_name="dummy_button", params={"label": "A"})
+
+        _compile_canvas_template.cache_clear()
+        initial_hits = _compile_canvas_template.cache_info().hits
+
+        # First render: cache miss
+        render_component(spec, reg)
+        # Second render: cache hit
+        render_component(spec, reg)
+
+        assert _compile_canvas_template.cache_info().hits > initial_hits
 
 
 class TestCanvasVariantIntegration:

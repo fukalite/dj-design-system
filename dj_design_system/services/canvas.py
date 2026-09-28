@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+from functools import lru_cache
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlencode
 
@@ -121,6 +122,15 @@ def _render_component_class(component_class: type, kwargs: dict[str, Any]) -> st
     return str(component_class(**kw))
 
 
+@lru_cache(maxsize=128)
+def _compile_canvas_template(template_str: str) -> Template:
+    """Compile and cache a template string for canvas rendering.
+
+    Raises TemplateSyntaxError if the template string has invalid syntax.
+    """
+    return Template(template_str)
+
+
 def render_component(
     spec: CanvasSpec,
     registry: ComponentRegistry,
@@ -196,7 +206,7 @@ def render_component(
             if "{% load design_components %}" not in template_str:
                 template_str = f"{{% load design_components %}}\n{template_str}"
 
-            template = Template(template_str)
+            template = _compile_canvas_template(template_str)
             return template.render(Context(context_dict))
 
         return _render_component_class(component_class, resolved_kwargs)
@@ -224,11 +234,21 @@ def build_canvas_url(
     spec: CanvasSpec,
     base_url: str,
     registry: ComponentRegistry | None = None,
+    mode: str | None = None,
+    theme: str | None = None,
+    **extra_query: Any,
 ) -> str:
     """Build a URL for the canvas iframe view from a ``CanvasSpec``."""
-    query = {"component": spec.component_name}
+    query: dict[str, Any] = {"component": spec.component_name}
     if spec.variant:
         query["variant"] = spec.variant
+    if mode:
+        query["mode"] = mode
+    if theme:
+        query["theme"] = theme
+    for k, v in extra_query.items():
+        if v is not None:
+            query[k] = v
 
     positional_arg_names: list[str] = []
     try:
@@ -246,7 +266,9 @@ def build_canvas_url(
     for key, value in spec.params.items():
         query[key] = _serialise_value(value)
 
-    return f"{base_url}?{urlencode(query)}"
+    query_str = urlencode(query)
+    sep = "&" if "?" in base_url else "?"
+    return f"{base_url}{sep}{query_str}"
 
 
 def resolve_component(name: str, registry: ComponentRegistry):
