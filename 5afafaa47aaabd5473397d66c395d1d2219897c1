@@ -1,0 +1,12 @@
+Task: Fix gallery-tabs.js so it doesn't snap to Documentation tab when variant is changed
+
+Summary:
+- Updated preset form in toolbar.html to submit with #pane-sandbox action target.
+- Added delegated change handler in gallery-tabs.js to record sandbox variant selections in sessionStorage and maintain form action target.
+- Updated syncFromHash() in gallery-tabs.js to detect sandbox variant selection and preserve the sandbox pane instead of defaulting to documentation.
+- Added unit test in tests/test_variant_views.py verifying the form action in toolbar targets #pane-sandbox.
+
+Modified Files:
+- dj_design_system/static/dj_design_system/gallery-tabs.js
+- dj_design_system/templates/dj_design_system/gallery/toolbar.html
+- tests/test_variant_views.py
