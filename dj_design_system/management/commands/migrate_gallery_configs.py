@@ -5,11 +5,10 @@ from __future__ import annotations
 import ast
 import shutil
 import subprocess
-import sys
 from pathlib import Path
 
 from django.apps import apps
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
 
 def migrate_source(source: str, keep_legacy: bool = False) -> tuple[str, bool]:
@@ -219,7 +218,9 @@ class Command(BaseCommand):
                 )
                 for f in unmigrated_files:
                     self.stderr.write(f"  - {f}")
-                sys.exit(1)
+                raise CommandError(
+                    f"Found {len(unmigrated_files)} unmigrated gallery file(s)."
+                )
             else:
                 self.stdout.write(
                     self.style.SUCCESS("All gallery files are up to date.")

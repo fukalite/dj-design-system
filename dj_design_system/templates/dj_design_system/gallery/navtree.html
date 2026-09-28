@@ -7,7 +7,7 @@ Expects: node (NavNode), depth (int), active_path (str) from parent context.{% e
     <div class="gallery-nav__group">
         <a class="gallery-nav__group-label" href="{{ node.url }}">{{ node.label }}</a>
         {% for child in node.children %}
-            {% include "dj_design_system/gallery/navtree.html" with node=child depth=1 %}
+            {% include "dj_design_system/gallery/navtree.html" with node=child depth=1 active_path=active_path active_variant=active_variant %}
         {% endfor %}
     </div>
 {% elif node.has_children %}
@@ -41,7 +41,7 @@ Expects: node (NavNode), depth (int), active_path (str) from parent context.{% e
             </a>
         </summary>
         {% for child in node.children %}
-            {% include "dj_design_system/gallery/navtree.html" with node=child depth=depth|add:"1" %}
+            {% include "dj_design_system/gallery/navtree.html" with node=child depth=depth|add:"1" active_path=active_path active_variant=active_variant %}
         {% endfor %}
     </details>
 {% else %}

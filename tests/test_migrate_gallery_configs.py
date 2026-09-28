@@ -4,7 +4,7 @@ from io import StringIO
 from pathlib import Path
 
 import pytest
-from django.core.management import call_command
+from django.core.management import CommandError, call_command
 
 from dj_design_system.management.commands.migrate_gallery_configs import (
     migrate_source,
@@ -127,11 +127,10 @@ class TestMigrateGalleryConfigsCommand:
         test_file.write_text('basic_kwargs = {"msg": "Warning"}', encoding="utf-8")
 
         err = StringIO()
-        with pytest.raises(SystemExit) as exc_info:
+        with pytest.raises(CommandError, match="Found 1 unmigrated gallery file"):
             call_command(
                 "migrate_gallery_configs", str(tmp_path), check=True, stderr=err
             )
-        assert exc_info.value.code == 1
         assert "Found 1 unmigrated gallery file" in err.getvalue()
 
     def test_command_check_succeeds_when_clean(self, tmp_path: Path):

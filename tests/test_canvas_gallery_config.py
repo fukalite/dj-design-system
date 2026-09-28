@@ -74,6 +74,20 @@ class TestCanvasSmartHybridTemplate:
         assert "<header>Section Title</header>" in output
         assert '<button class="btn primary">Go</button>' in output
 
+    def test_wrapper_mode_with_filter_placeholder(self):
+        config = GalleryConfig(
+            canvas_template='<div class="shell">{{ component|safe }}</div>',
+        )
+        reg = create_test_registry(config)
+        spec = CanvasSpec(
+            component_name="dummy_button",
+            params={"label": "Filtered"},
+        )
+
+        output = render_component(spec, reg)
+        assert '<div class="shell">' in output
+        assert '<button class="btn primary">Filtered</button>' in output
+
     def test_raw_template_mode_when_placeholder_absent(self):
         config = GalleryConfig(
             canvas_template='<div class="banner"><span>Static Banner: {{ label }}</span></div>',

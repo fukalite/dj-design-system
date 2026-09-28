@@ -185,7 +185,7 @@ def render_component(
 
         if canvas_template:
             has_component_placeholder = bool(
-                re.search(r"\{\{\s*component\s*\}\}", canvas_template)
+                re.search(r"\{\{\s*component\b[^}]*\}\}", canvas_template)
             )
             template_kwargs = dict(resolved_kwargs)
 

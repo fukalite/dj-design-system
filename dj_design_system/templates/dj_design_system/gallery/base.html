@@ -51,7 +51,7 @@
                      hidden></div>
                 <nav class="gallery-nav" id="gallery-nav">
                     {% for app_node in nav_tree %}
-                        {% include "dj_design_system/gallery/navtree.html" with node=app_node depth=0 %}
+                        {% include "dj_design_system/gallery/navtree.html" with node=app_node depth=0 active_path=active_path active_variant=active_variant %}
                     {% endfor %}
                 </nav>
             </aside>
