@@ -1,0 +1,8 @@
+Task: Phase 1 — Refactor and Verify Coverage
+
+Summary: Measured coverage of the Phase 1 modules. capture.py initially reported 82% because Playwright's sync API runs on greenlets and coverage did not trace them (lines after page.evaluate/page.screenshot looked uncovered). Added concurrency = ["greenlet", "thread"] to [tool.coverage.run]. No refactor needed.
+
+Files: pyproject.toml
+
+Coverage: dj_design_system/testing/visual.py 92%; tests/e2e/visual/capture.py 100%.
+Verification: CI-style 'pytest tests/ -m "not e2e" --cov' (710 passed), just check, just typecheck clean.
