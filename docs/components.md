@@ -429,6 +429,31 @@ Note that `template_format_str` does **not** support Django template tags (`{% i
 
 Mixing `template_format_str` with an HTML-based source (`template_name` or co-located file) raises `ImproperlyConfigured` at startup.
 
+### Custom `render()`
+
+If none of the template options fit, override `render()` and build the HTML yourself. It **must return safe HTML**: use `format_html` (which escapes parameter values) or `mark_safe`, never a plain `str` built with f-strings or concatenation.
+
+```python
+from django.utils.html import format_html
+
+
+class CardComponent(BlockComponent):
+    title = StrParam("The card title.")
+
+    class Meta:
+        slots = {"body": Slot(required=True)}
+
+    def render(self):
+        return format_html(
+            "<div class='card {}'><h3>{}</h3>{}</div>",
+            self.get_classes_string(),
+            self.title,  # escaped
+            self.slots["body"],  # slots are already safe, so passed through
+        )
+```
+
+A plain `str` appears to work inside templates, because Django doesn't escape a template tag's output. The gallery canvas does escape it, so the component shows as literal HTML in its preview, with a warning explaining why. Avoid wrapping an f-string in `mark_safe` if it interpolates parameter values: the gallery sandbox sets parameters from the URL, so unescaped values there are a reflected XSS risk.
+
 ### `get_classes_string()`
 
 Override to customise the CSS class string generation.

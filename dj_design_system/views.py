@@ -13,6 +13,7 @@ from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.html import format_html, format_html_join
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils.safestring import SafeData
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from dj_design_system.components import BlockComponent
@@ -517,7 +518,24 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
     )
 
     media = get_component_media(spec, component_registry)
-    context["rendered_html"] = render_component(spec, component_registry)
+    rendered_html = render_component(spec, component_registry)
+    if not isinstance(rendered_html, SafeData):
+        # Show the escaped output alongside an explanation rather than trusting
+        # it: params come from the query string, so marking it safe would allow
+        # reflected XSS through components that don't escape their params.
+        rendered_html = format_html(
+            '<div class="gallery-canvas-warning">'
+            '<p class="gallery-canvas-warning__message">'
+            "<code>{}.render()</code> returned a plain <code>str</code>, so its "
+            "HTML is shown escaped. Return <code>format_html(...)</code> or "
+            "<code>mark_safe(...)</code> from <code>render()</code> to render it."
+            "</p>"
+            '<pre class="gallery-canvas-warning__output">{}</pre>'
+            "</div>",
+            component_class.__qualname__,
+            rendered_html,
+        )
+    context["rendered_html"] = rendered_html
 
     all_css_urls = list(
         dict.fromkeys(
