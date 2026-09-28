@@ -1,0 +1,9 @@
+Task: Clean up __init__.py to expose all necessary public API (e.g. GalleryParameter, base components)
+
+Summary:
+- Updated dj_design_system/__init__.py to export BaseComponent, TagComponent, BlockComponent, Slot, GalleryConfig, Variant, GalleryParameter, ComponentRegistry, and component_registry in __all__.
+- Added unit test in tests/test_public_api.py validating all public surface exports.
+
+Modified Files:
+- dj_design_system/__init__.py
+- tests/test_public_api.py
