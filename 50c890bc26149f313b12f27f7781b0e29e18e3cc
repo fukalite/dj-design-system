@@ -1,0 +1,9 @@
+Task: Refactor GalleryConfig to use a factory method for dict/mapping unpacking
+Status: Completed
+Commit: 50c890b
+Verification:
+- Added Variant.from_dict and GalleryConfig.from_dict factory methods in dj_design_system/gallery.py.
+- Normalized variant creation through _normalize_variants and Variant.from_dict.
+- Updated load_gallery_config to deserialize dictionary configs via GalleryConfig.from_dict.
+- Added comprehensive unit tests in tests/test_gallery_config.py and tests/test_discovery_gallery.py.
+- All 830 tests passed.
