@@ -228,6 +228,48 @@ class TestBuildCanvasUrl:
         assert "preview=true" in url
         assert "custom_id=123" in url
 
+    def test_param_shadowing_prevented(self):
+        """Component params cannot shadow reserved canvas control parameters."""
+        spec = CanvasSpec(
+            component_name="button",
+            params={
+                "component": "malicious",
+                "mode": "standalone",
+                "variant": "injected",
+                "theme": "dark",
+                "label": "Click me",
+            },
+        )
+        url = build_canvas_url(spec, "/base/")
+        assert "component=button" in url
+        assert "component=malicious" not in url
+        assert "mode=standalone" not in url
+        assert "variant=injected" not in url
+        assert "theme=dark" not in url
+        assert "label=Click+me" in url
+
+    def test_extra_query_shadowing_prevented(self):
+        """Component params cannot shadow explicit extra_query parameters."""
+        spec = CanvasSpec(
+            component_name="button",
+            params={"bg": "light", "label": "Click me"},
+        )
+        url = build_canvas_url(spec, "/base/", bg="dark")
+        assert "bg=dark" in url
+        assert "bg=light" not in url
+
+    def test_component_resolution_failure_handled_gracefully(self):
+        """Unexpected errors during component resolution do not crash build_canvas_url."""
+        class BuggyRegistry:
+            def list_all(self):
+                raise RuntimeError("Registry database unreachable")
+
+        spec = CanvasSpec(component_name="button", params={"label": "Hi"})
+        # Should not raise RuntimeError
+        url = build_canvas_url(spec, "/base/", registry=BuggyRegistry())
+        assert "component=button" in url
+        assert "label=Hi" in url
+
 
 # ---------------------------------------------------------------------------
 # _coerce_single
