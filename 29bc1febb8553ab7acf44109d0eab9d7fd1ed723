@@ -1,0 +1,13 @@
+Task: Phase 1 — capture helpers and visual marker (remainder of Green)
+
+Summary: Added tests/e2e/visual/capture.py: block_external_requests() aborts all non-live-server requests (only HTMX from unpkg is affected; gallery JS only listens to htmx events, so rendering is unchanged); stabilise() injects animation/transition/caret freeze CSS into the page and each iframe, switches lazy iframes to eager, and waits for iframe loads, document.fonts.ready and stable iframe/body heights; ScreenshotRecorder.check() takes full-page screenshots with optional CSS-selector masks, records produced filenames (for orphan pruning in Phase 2) and delegates to assert_matches_baseline(). Registered the 'visual' marker in pyproject.toml.
+
+Files:
+- tests/e2e/visual/__init__.py, tests/e2e/visual/capture.py (new)
+- tests/e2e/test_visual_capture.py (new, 7 e2e tests)
+- pyproject.toml (visual marker)
+
+Why: Deterministic, network-independent gallery screenshots for the track 0 baseline and CI job.
+
+Verification: just e2e (28 passed, 1 skipped), just test (710 passed), just check, just typecheck clean.
+Note: back-to-back local e2e runs can hit 'Address already in use' on fixed port 8003 (Django live server disables SO_REUSEADDR); pre-existing; port pin retained at the user's request.
