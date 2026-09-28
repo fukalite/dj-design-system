@@ -1,0 +1,13 @@
+Task: Phase 3 — Interactive States (plus deterministic canvas capture)
+
+Summary: tests/e2e/visual/test_gallery_interactions.py captures 9 states in the light theme: index--mobile--sidebar-open, component-docs--mobile--breadcrumb-flyout, component--mobile--sandbox-tab, index--desktop--search-results (query 'button'), component--wide--{bg,viewport,zoom}-popout, component--wide--{outline,rtl}-on. Baselines rendered in the pinned container.
+
+Stabilisation fixes found while proving determinism (full-suite flake ~1 in 5-8 runs, a component preview captured 92px too tall):
+1. Basic-mode canvas iframes resize via a canvas-resize postMessage loop that shrinks them 2px per frame (~770ms for short previews) — documented in issue #111. A time-based stillness check could stop mid-shrink under emulation; stillness now requires 500ms unchanged.
+2. The first report can be lost if posted before gallery-tabs.js attaches its listener (reproduced by delaying gallery-tabs.js 1s: previews stuck at 152px) — added as a comment on #111. record_canvas_reports() installs an init script recording the latest report per canvas window; stabilise() replays them (no-op if already handled or no listener) and waits until each visible basic canvas has reported and converged (style.height == documentElement.scrollHeight, or the page never applies heights), failing after 15s.
+3. find_clipped_containers() ignores form controls (the sandbox textarea's own scrollback made fitting impossible).
+New capture tests (red first): pauses in resizing, delayed first report, report lost before listener, form controls — 18 capture tests pass.
+
+Files: tests/e2e/visual/{capture.py,conftest.py,test_gallery_interactions.py}, tests/e2e/test_visual_capture.py, 9 baselines.
+
+Verification: just visual passed on 2 consecutive full runs (40 passed each) after the final fix; just test (727), just e2e (39 passed, 1 skipped), just check, just typecheck clean.
