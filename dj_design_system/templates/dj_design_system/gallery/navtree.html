@@ -18,26 +18,7 @@ Expects: node (NavNode), depth (int), active_path (str) from parent context.{% e
         <summary class="gallery-nav__link gallery-nav__link--folder{% if active_path == node.active_path and not active_variant %} gallery-nav__link--active{% endif %}"
                  {% if active_path == node.active_path and not active_variant %}aria-current="page"{% endif %}
                  data-depth="{{ depth }}">
-            {% if node.icon %}
-                {% if "<svg" in node.icon %}
-                    <span class="gallery-nav__icon gallery-nav__icon--custom"
-                          aria-hidden="true">{{ node.icon|safe }}</span>
-                {% elif "/" in node.icon or ".svg" in node.icon or "data:" in node.icon %}
-                    <span class="gallery-nav__icon gallery-nav__icon--custom"
-                          style="-webkit-mask-image: url('{{ node.icon }}');
-                                 mask-image: url('{{ node.icon }}')"
-                          aria-hidden="true"></span>
-                {% else %}
-                    <span class="gallery-nav__icon gallery-nav__icon--custom {{ node.icon }}"
-                          aria-hidden="true"></span>
-                {% endif %}
-            {% elif node.is_component %}
-                <span class="gallery-nav__icon gallery-nav__icon--component-variants"
-                      aria-hidden="true"></span>
-            {% else %}
-                <span class="gallery-nav__icon gallery-nav__icon--folder"
-                      aria-hidden="true"></span>
-            {% endif %}
+            {% include "dj_design_system/gallery/nav_icon.html" with node=node %}
             <span class="gallery-nav__label">{{ node.label }}</span>
         </summary>
         {% for child in node.children %}
@@ -50,28 +31,7 @@ Expects: node (NavNode), depth (int), active_path (str) from parent context.{% e
        href="{{ node.url }}"
        {% if node.is_variant and active_path == node.base_active_path and active_variant == node.slug or not node.is_variant and active_path == node.active_path and not active_variant %}aria-current="page"{% endif %}
        data-depth="{{ depth }}">
-        {% if node.icon %}
-            {% if "<svg" in node.icon %}
-                <span class="gallery-nav__icon gallery-nav__icon--custom"
-                      aria-hidden="true">{{ node.icon|safe }}</span>
-            {% elif "/" in node.icon or ".svg" in node.icon or "data:" in node.icon %}
-                <span class="gallery-nav__icon gallery-nav__icon--custom"
-                      style="-webkit-mask-image: url('{{ node.icon }}');
-                             mask-image: url('{{ node.icon }}')"
-                      aria-hidden="true"></span>
-            {% else %}
-                <span class="gallery-nav__icon gallery-nav__icon--custom {{ node.icon }}"
-                      aria-hidden="true"></span>
-            {% endif %}
-        {% elif node.is_component %}
-            <span class="gallery-nav__icon gallery-nav__icon--component"
-                  aria-hidden="true"></span>
-        {% elif node.is_document %}
-            <span class="gallery-nav__icon gallery-nav__icon--doc" aria-hidden="true"></span>
-        {% elif node.is_variant %}
-            <span class="gallery-nav__icon gallery-nav__icon--variant"
-                  aria-hidden="true"></span>
-        {% endif %}
+        {% include "dj_design_system/gallery/nav_icon.html" with node=node %}
         {{ node.label }}
     </a>
 {% endif %}

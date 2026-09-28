@@ -182,3 +182,40 @@ class TestNavtreeAccessibility:
         assert "--gallery-sidebar-hover:" in dark_css
         assert "--gallery-sidebar-active:" in dark_css
         assert "--gallery-danger:" in dark_css or "--gallery-error:" in dark_css
+
+    def test_nav_icon_partial_rendering(self):
+        """nav_icon.html partial renders correctly for various node types."""
+        # Custom SVG icon
+        node_svg = NavNode(
+            label="SVG Node",
+            slug="svg-node",
+            node_type=NodeType.FOLDER,
+            url="/gallery/app/svg/",
+            active_path="app/svg",
+            base_active_path="app/svg",
+            icon="<svg viewBox='0 0 10 10'><circle cx='5' cy='5' r='5'/></svg>",
+        )
+        html_svg = render_to_string("dj_design_system/gallery/nav_icon.html", {"node": node_svg})
+        assert "gallery-nav__icon--custom" in html_svg
+        assert "<svg" in html_svg
+
+        # Mask icon
+        node_mask = NavNode(
+            label="Mask Node",
+            slug="mask-node",
+            node_type=NodeType.FOLDER,
+            url="/gallery/app/mask/",
+            active_path="app/mask",
+            base_active_path="app/mask",
+            icon="/static/icon.svg",
+        )
+        html_mask = render_to_string("dj_design_system/gallery/nav_icon.html", {"node": node_mask})
+        assert "gallery-nav__icon--custom" in html_mask
+        assert "mask-image: url('/static/icon.svg')" in html_mask
+
+        # Navtree includes the partial
+        navtree_content = render_to_string(
+            "dj_design_system/gallery/navtree.html",
+            {"node": node_svg, "depth": 0, "active_path": "", "active_variant": ""},
+        )
+        assert "<svg viewBox='0 0 10 10'>" in navtree_content
