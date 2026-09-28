@@ -40,7 +40,7 @@ Changelog = "https://github.com/fukalite/dj-design-system/blob/main/CHANGELOG.md
 [project.optional-dependencies]
 dev = [
   "dj-design-system[testing-all]",
-  "djlint",
+  "djlint>=1.46.2",
   "mypy",
   "ruff",
   "types-Markdown",
