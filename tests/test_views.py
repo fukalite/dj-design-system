@@ -1,5 +1,7 @@
 """Tests for the gallery views."""
 
+from urllib.parse import parse_qs, urlsplit
+
 import pytest
 from django.contrib.auth.models import Permission
 from django.test import override_settings
@@ -630,6 +632,30 @@ class TestGalleryAccessRequired:
         response = client.get(reverse("gallery"))
         assert response.status_code == 302
         assert "/accounts/login/" in response["Location"]
+
+    @override_settings(DJ_DESIGN_SYSTEM={"GALLERY_IS_PUBLIC": False})
+    def test_unauthenticated_redirect_encodes_next(self, client):
+        """Characters decoded from the path must not break the login query string."""
+        gallery = reverse("gallery")
+        response = client.get(f"{gallery}demo%26next%3Dhttps%3A%2F%2Fevil.example/")
+        assert response.status_code == 302
+        query = parse_qs(urlsplit(response["Location"]).query)
+        assert query["next"] == [f"{gallery}demo&next%3Dhttps://evil.example/"]
+
+    @override_settings(DJ_DESIGN_SYSTEM={"GALLERY_IS_PUBLIC": False})
+    def test_unauthenticated_redirect_preserves_query_string(self, client):
+        response = client.get(reverse("gallery") + "?theme=dark")
+        assert response.status_code == 302
+        assert f"next={reverse('gallery')}%3Ftheme%3Ddark" in response["Location"]
+
+    @override_settings(
+        DJ_DESIGN_SYSTEM={"GALLERY_IS_PUBLIC": False},
+        LOGIN_URL="https://sso.example.com/login/",
+    )
+    def test_unauthenticated_redirect_supports_absolute_login_url(self, client):
+        response = client.get(reverse("gallery"))
+        assert response.status_code == 302
+        assert response["Location"].startswith("https://sso.example.com/login/?next=")
 
     @override_settings(DJ_DESIGN_SYSTEM={"GALLERY_IS_PUBLIC": False})
     def test_authenticated_without_permission_is_forbidden(

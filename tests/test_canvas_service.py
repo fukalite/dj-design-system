@@ -1,10 +1,17 @@
 """Tests for the canvas rendering service."""
 
+import logging
+from types import SimpleNamespace
+
 import pytest
 from django.http import QueryDict
+from django.utils.safestring import SafeData, mark_safe
 
+from dj_design_system.components import TagComponent
 from dj_design_system.data import CanvasSpec, ComponentMedia
+from dj_design_system.parameters import StrParam
 from dj_design_system.parameters.base import DictParam, JSONParam, ListParam
+from dj_design_system.services import canvas as canvas_service
 from dj_design_system.services.canvas import (
     build_canvas_url,
     coerce_single,
@@ -128,6 +135,66 @@ class TestRenderComponent:
         spec = CanvasSpec(component_name="nonexistent", params={})
         with pytest.raises(ValueError, match="not found in registry"):
             render_component(spec, registry_with_demo_components, raise_errors=True)
+
+
+class PlainStrRenderComponent(TagComponent):
+    """Overrides render() to return a plain str instead of safe HTML."""
+
+    label = StrParam("Label text.")
+
+    def render(self) -> str:
+        return f"<b>{self.label}</b>"
+
+
+class TestRenderSafeOutput:
+    """Canvas output must be safe HTML, or it is escaped in the iframe."""
+
+    def test_slotted_card_renders_safe_html(self, registry_with_demo_components):
+        spec = CanvasSpec(
+            component_name="slotted_card",
+            params={"title": "Welcome", "slot__body": mark_safe("<p>Body</p>")},
+        )
+        html = render_component(spec, registry_with_demo_components)
+        assert isinstance(html, SafeData)
+        assert "<h3 class='slotted-card__title'>Welcome</h3>" in html
+        assert "<div class='slotted-card__body'><p>Body</p></div>" in html
+
+    def test_slotted_card_escapes_title(self, registry_with_demo_components):
+        spec = CanvasSpec(
+            component_name="slotted_card",
+            params={"title": "<script>alert(1)</script>"},
+        )
+        html = render_component(spec, registry_with_demo_components)
+        assert "<script>" not in html
+        assert "&lt;script&gt;alert(1)&lt;/script&gt;" in html
+
+    def test_plain_str_render_warns_once(self, mocker, monkeypatch, caplog):
+        mocker.patch.object(
+            canvas_service,
+            "resolve_component",
+            return_value=SimpleNamespace(component_class=PlainStrRenderComponent),
+        )
+        monkeypatch.setattr(canvas_service, "_warned_unsafe_render", set())
+        spec = CanvasSpec(component_name="plain", params={"label": "Hi"})
+
+        with caplog.at_level(logging.WARNING, logger=canvas_service.__name__):
+            first = render_component(spec, registry=None)
+            render_component(spec, registry=None)
+
+        assert first == "<b>Hi</b>"
+        assert not isinstance(first, SafeData)
+        warnings = [r for r in caplog.records if "returned a plain str" in r.message]
+        assert len(warnings) == 1
+        assert "PlainStrRenderComponent" in warnings[0].message
+
+    def test_safe_render_does_not_warn(
+        self, registry_with_demo_components, monkeypatch, caplog
+    ):
+        monkeypatch.setattr(canvas_service, "_warned_unsafe_render", set())
+        spec = CanvasSpec(component_name="button", params={"label": "OK"})
+        with caplog.at_level(logging.WARNING, logger=canvas_service.__name__):
+            render_component(spec, registry_with_demo_components)
+        assert not [r for r in caplog.records if "returned a plain str" in r.message]
 
 
 # ---------------------------------------------------------------------------

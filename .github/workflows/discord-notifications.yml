@@ -8,6 +8,9 @@ on:
   release:
     types: [published]
 
+# Only reads the event payload and webhook secrets; needs no GITHUB_TOKEN access.
+permissions: {}
+
 jobs:
   notify:
     name: Send Notification
