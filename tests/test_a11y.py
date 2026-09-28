@@ -219,3 +219,32 @@ class TestNavtreeAccessibility:
             {"node": node_svg, "depth": 0, "active_path": "", "active_variant": ""},
         )
         assert "<svg viewBox='0 0 10 10'>" in navtree_content
+
+    def test_depth_indentation_uses_custom_properties(self):
+        """Depth indentation should use CSS custom properties instead of hardcoded pixel values."""
+        from pathlib import Path
+        css_path = Path("dj_design_system/static/dj_design_system/gallery.css")
+        content = css_path.read_text(encoding="utf-8")
+
+        # Custom properties used for depth calculation
+        assert "--gallery-nav-depth" in content
+        assert "--gallery-nav-indent" in content
+        assert "calc(var(--gallery-nav-depth, 0) * var(--gallery-nav-indent" in content
+        # Ensure hardcoded pixel values are gone from depth selectors
+        assert '.gallery-nav__link[data-depth="10"] { padding-left: 160px; }' not in content
+
+        # Template sets data-depth which maps to the custom property in CSS (no inline styles for CSP)
+        node = NavNode(
+            label="Deep Node",
+            slug="deep",
+            node_type=NodeType.FOLDER,
+            url="/gallery/app/deep/",
+            active_path="app/deep",
+            base_active_path="app/deep",
+        )
+        html = render_to_string(
+            "dj_design_system/gallery/navtree.html",
+            {"node": node, "depth": 3, "active_path": "", "active_variant": ""},
+        )
+        assert 'data-depth="3"' in html
+        assert 'style="' not in html
