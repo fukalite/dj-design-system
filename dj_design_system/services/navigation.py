@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import OrderedDict
 from functools import lru_cache
 from html.parser import HTMLParser
 from pathlib import Path
@@ -17,7 +18,8 @@ from dj_design_system.settings import dds_settings
 from dj_design_system.types import NodeType
 
 
-_SEARCH_INDEX_CACHE: dict[int, list[dict]] = {}
+_SEARCH_INDEX_CACHE_MAXSIZE = 32
+_SEARCH_INDEX_CACHE: OrderedDict[tuple[int, ...], list[dict]] = OrderedDict()
 
 
 if TYPE_CHECKING:
@@ -450,21 +452,38 @@ def _collect_search_entries(
         _collect_search_entries(child, child_ancestors, entries)
 
 
-def build_search_index(nav_tree: list[NavNode]) -> list[dict]:
+@lru_cache(maxsize=1)
+def _cached_global_search_index() -> list[dict]:
+    entries: list[dict] = []
+    for app_node in _cached_build_navigation():
+        _collect_search_entries(app_node, [], entries)
+    return entries
+
+
+def build_search_index(nav_tree: list[NavNode] | None = None) -> list[dict]:
     """Build a flat list of search index entries from the navigation tree (cached)."""
-    tree_id = id(nav_tree)
-    if tree_id in _SEARCH_INDEX_CACHE:
-        return _SEARCH_INDEX_CACHE[tree_id]
+    if nav_tree is None or nav_tree is _cached_build_navigation():
+        return _cached_global_search_index()
+
+    tree_key = (id(nav_tree), len(nav_tree), tuple(id(n) for n in nav_tree))
+    if tree_key in _SEARCH_INDEX_CACHE:
+        _SEARCH_INDEX_CACHE.move_to_end(tree_key)
+        return _SEARCH_INDEX_CACHE[tree_key]
 
     entries: list[dict] = []
     for app_node in nav_tree:
         _collect_search_entries(app_node, [], entries)
-    _SEARCH_INDEX_CACHE[tree_id] = entries
+
+    _SEARCH_INDEX_CACHE[tree_key] = entries
+    if len(_SEARCH_INDEX_CACHE) > _SEARCH_INDEX_CACHE_MAXSIZE:
+        _SEARCH_INDEX_CACHE.popitem(last=False)
+
     return entries
 
 
 def clear_search_index_cache() -> None:
     """Clear cached search index."""
+    _cached_global_search_index.cache_clear()
     _SEARCH_INDEX_CACHE.clear()
 
 

@@ -59,7 +59,7 @@ class Variant:
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Variant):
-            return False
+            return NotImplemented
         return (
             self.name == other.name
             and self.label == other.label

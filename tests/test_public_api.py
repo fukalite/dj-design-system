@@ -15,6 +15,7 @@ def test_top_level_exports():
         "GalleryParameter",
         "ComponentRegistry",
         "component_registry",
+        "DJDesignSystemError",
     ]
     for name in expected_exports:
         assert hasattr(

@@ -50,6 +50,8 @@ class TestVariant:
         v = Variant(name="primary")
         assert (v == "primary") is False
         assert (v != "primary") is True
+        assert v.__eq__("primary") is NotImplemented
+        assert v.__eq__(123) is NotImplemented
 
     def test_equality_with_variant(self):
         v1 = Variant(name="primary", label="Primary")

@@ -4,6 +4,7 @@ from dj_design_system.components import (
     TagComponent,
 )
 from dj_design_system.data import GalleryParameter
+from dj_design_system.exceptions import DJDesignSystemError
 from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.services.registry import (
     ComponentRegistry,
@@ -16,6 +17,7 @@ __all__ = [
     "BaseComponent",
     "BlockComponent",
     "ComponentRegistry",
+    "DJDesignSystemError",
     "GalleryConfig",
     "GalleryParameter",
     "Slot",

@@ -90,7 +90,7 @@ def get_base_context(
     active_path: str = "",
 ) -> dict:
     """Return context shared by all gallery views."""
-    is_htmx = bool(request and request.headers.get("HX-Request"))
+    is_htmx = bool(request and getattr(request, "headers", {}).get("HX-Request"))
     nav_tree = build_navigation()
     active_theme = get_default_theme().value
     active_variant = None

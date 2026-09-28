@@ -4,6 +4,13 @@
 class DJDesignSystemError(Exception):
     """Base exception for all errors raised by dj-design-system."""
 
+    def __init__(self, message: str = "", *args: object) -> None:
+        self.message = str(message) if message else ""
+        if message or args:
+            super().__init__(message, *args)
+        else:
+            super().__init__()
+
 
 class ComponentValidationError(DJDesignSystemError):
     """Raised when a component render request payload is invalid."""
