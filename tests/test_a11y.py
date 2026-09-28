@@ -125,3 +125,14 @@ class TestNavtreeAccessibility:
         tabs_end = html.find("</div>", tabs_start)
         tabs_html = html[tabs_start:tabs_end]
         assert 'aria-hidden="true"' not in tabs_html
+
+    def test_variant_select_keyboard_navigation_guard(self):
+        """gallery-toolbar.js must guard against premature auto-submit during keyboard navigation."""
+        from pathlib import Path
+        js_path = Path("dj_design_system/static/dj_design_system/gallery-toolbar.js")
+        content = js_path.read_text(encoding="utf-8")
+
+        # Must listen to keydown or blur to prevent premature change submission
+        assert "isKeyNav" in content or "isKeyboard" in content
+        assert "ArrowDown" in content
+        assert "Enter" in content

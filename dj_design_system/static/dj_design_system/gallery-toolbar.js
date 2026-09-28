@@ -317,10 +317,55 @@
 
     var variantSelect = document.querySelector("[data-gallery-variant-select]");
     if (variantSelect && variantSelect.form) {
+      var isKeyNav = false;
+      var lastValue = variantSelect.value;
+
+      variantSelect.addEventListener(
+        "keydown",
+        function (e) {
+          if (
+            e.key === "ArrowDown" ||
+            e.key === "ArrowUp" ||
+            e.key === "ArrowLeft" ||
+            e.key === "ArrowRight" ||
+            e.key === "PageUp" ||
+            e.key === "PageDown" ||
+            e.key === "Home" ||
+            e.key === "End"
+          ) {
+            isKeyNav = true;
+          } else if (e.key === "Enter") {
+            isKeyNav = false;
+            if (variantSelect.value !== lastValue) {
+              lastValue = variantSelect.value;
+              variantSelect.form.submit();
+            }
+          }
+        },
+        { signal: signal },
+      );
+
       variantSelect.addEventListener(
         "change",
         function () {
-          variantSelect.form.submit();
+          if (!isKeyNav) {
+            lastValue = variantSelect.value;
+            variantSelect.form.submit();
+          }
+        },
+        { signal: signal },
+      );
+
+      variantSelect.addEventListener(
+        "blur",
+        function () {
+          if (isKeyNav) {
+            isKeyNav = false;
+            if (variantSelect.value !== lastValue) {
+              lastValue = variantSelect.value;
+              variantSelect.form.submit();
+            }
+          }
         },
         { signal: signal },
       );
