@@ -1,8 +1,10 @@
 import pytest
 from django.template.loader import render_to_string
+from django.test import RequestFactory
 
 from dj_design_system.data import NavNode
 from dj_design_system.types import NodeType
+from dj_design_system.views.gallery import get_base_context
 
 
 @pytest.mark.django_db
@@ -96,3 +98,30 @@ class TestNavtreeAccessibility:
 
         assert 'aria-current="page"' not in html
         assert "gallery-nav__link--active" not in html
+
+    def test_component_tab_switcher_accessibility(self):
+        """Tab switcher radio buttons must not have aria-hidden='true' and must have radiogroup role."""
+        rf = RequestFactory()
+        request = rf.get("/gallery/test_app/button/")
+        context = get_base_context(request)
+        context.update({
+            "component_info": type("Info", (), {"name": "button"})(),
+            "design_system_name": "Test DS",
+            "active_variant": None,
+            "params": {},
+        })
+
+        html = render_to_string("dj_design_system/gallery/component.html", context, request=request)
+
+        assert 'class="gallery-tabs"' in html
+        assert 'role="radiogroup"' in html
+        # Both radio inputs must NOT be aria-hidden="true"
+        assert 'id="gallery-tab-docs"' in html
+        assert 'id="gallery-tab-sandbox"' in html
+        assert 'id="gallery-tab-docs"\n               class="gallery-tabs__input"\n               checked\n               aria-hidden="true"' not in html
+        assert 'aria-hidden="true"\n        <label for="gallery-tab-docs"' not in html
+        # Ensure no input inside gallery-tabs has aria-hidden
+        tabs_start = html.find('class="gallery-tabs"')
+        tabs_end = html.find("</div>", tabs_start)
+        tabs_html = html[tabs_start:tabs_end]
+        assert 'aria-hidden="true"' not in tabs_html

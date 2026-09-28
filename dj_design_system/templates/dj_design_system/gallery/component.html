@@ -14,19 +14,19 @@
 
 {% block toolbar_actions %}
     {# Tab switcher — visible only on narrow viewports #}
-    <div class="gallery-tabs">
+    <div class="gallery-tabs"
+         role="radiogroup"
+         aria-label="Documentation and Sandbox view switcher">
         <input type="radio"
                name="gallery-tab"
                id="gallery-tab-docs"
                class="gallery-tabs__input"
-               checked
-               aria-hidden="true">
+               checked>
         <label for="gallery-tab-docs" class="gallery-tabs__label">Documentation</label>
         <input type="radio"
                name="gallery-tab"
                id="gallery-tab-sandbox"
-               class="gallery-tabs__input"
-               aria-hidden="true">
+               class="gallery-tabs__input">
         <label for="gallery-tab-sandbox" class="gallery-tabs__label">Sandbox</label>
     </div>
 {% endblock %}

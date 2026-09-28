@@ -653,6 +653,13 @@ h3.gallery-docs__section-heading:first-child {
   font-weight: 600;
 }
 
+.gallery-tabs__input:focus-visible + .gallery-tabs__label {
+  outline: 2px solid var(--gallery-accent);
+  outline-offset: 2px;
+  position: relative;
+  z-index: 1;
+}
+
 /* Tab-driven pane visibility (default: stacked, tabs active) */
 .gallery-split--show-sandbox .gallery-documentation {
   display: none;
