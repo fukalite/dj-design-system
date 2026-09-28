@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from dj_design_system.testing.engine import AssessmentPlugin
+from dj_design_system.testing.visual import ScreenshotMismatch, compare_images
 
 
 try:
@@ -18,7 +19,7 @@ except ImportError:
 
 class PlaywrightAssessmentPlugin(AssessmentPlugin):
     """Base class for Playwright-based assessment plugins."""
-    
+
     def __init__(self, page: Any, base_url: str):
         self.page = page
         self.base_url = base_url.rstrip("/")
@@ -33,7 +34,7 @@ class PlaywrightAssessmentPlugin(AssessmentPlugin):
     def _navigate_to_component(self, component: Any, variant: str, theme: str) -> Any:
         kwargs = self._resolve_kwargs(component, variant)
         params: dict[str, str] = {"component": component.qualified_name, "theme": theme}
-        
+
         for key, value in kwargs.items():
             if hasattr(value, "value"):
                 value = value.value
@@ -44,7 +45,7 @@ class PlaywrightAssessmentPlugin(AssessmentPlugin):
                     params[key] = json.dumps(value)
                 else:
                     params[key] = str(value)
-                    
+
         url = f"{self.base_url}/_canvas/?{urllib.parse.urlencode(params, doseq=True)}"
         return self.page.goto(url)
 
@@ -108,25 +109,19 @@ class VisualRegressionPlugin(PlaywrightAssessmentPlugin):
             else:
                 raise AssertionError(f"Missing baseline snapshot for {filename}")
 
-        img_actual = Image.open(actual_path).convert("RGBA")
-        img_baseline = Image.open(baseline_path).convert("RGBA")
-
-        if img_actual.size != img_baseline.size:
-            raise AssertionError(
-                f"Snapshot sizes differ for {filename}: expected {img_baseline.size}, got {img_actual.size}"
+        try:
+            result = compare_images(
+                actual_path, baseline_path, threshold=self.threshold
             )
+        except ScreenshotMismatch as exc:
+            raise AssertionError(f"Snapshot sizes differ for {filename}: {exc}")
 
-        diff_img = Image.new("RGBA", img_actual.size)
-        mismatched_pixels = pixelmatch(
-            img_actual, img_baseline, diff_img, includeAA=True, threshold=self.threshold
-        )
-
-        if mismatched_pixels > 0:
+        if result.mismatched_pixels > 0:
             diff_path = self.diff_dir / filename
             diff_path.parent.mkdir(parents=True, exist_ok=True)
-            diff_img.save(diff_path)
+            result.diff.save(diff_path)
             raise AssertionError(
-                f"Visual regression detected for {filename}: {mismatched_pixels} pixels differ. Diff saved to {diff_path}"
+                f"Visual regression detected for {filename}: {result.mismatched_pixels} pixels differ. Diff saved to {diff_path}"
             )
 
 
@@ -182,8 +177,20 @@ class StrictHTMLParser(HTMLParser):
         self.stack: list[str] = []
         self.errors: list[str] = []
         self.void_elements = {
-            "area", "base", "br", "col", "embed", "hr", "img", 
-            "input", "link", "meta", "param", "source", "track", "wbr",
+            "area",
+            "base",
+            "br",
+            "col",
+            "embed",
+            "hr",
+            "img",
+            "input",
+            "link",
+            "meta",
+            "param",
+            "source",
+            "track",
+            "wbr",
         }
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
@@ -212,9 +219,7 @@ class StrictHTMLParser(HTMLParser):
     def close(self) -> None:
         super().close()
         if self.stack:
-            self.errors.append(
-                f"Unclosed tags remaining: {', '.join(self.stack)}"
-            )
+            self.errors.append(f"Unclosed tags remaining: {', '.join(self.stack)}")
 
 
 class HTMLValidationPlugin(PlaywrightAssessmentPlugin):

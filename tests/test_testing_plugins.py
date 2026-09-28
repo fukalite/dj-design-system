@@ -86,7 +86,10 @@ def test_playwright_assessment_plugin_navigates_with_json_params(mocker):
 
     plugin.run_assessment(mock_comp, "basic", "light")
     url = mock_page.goto.call_args[0][0]
-    assert "links=%5B%7B%22id%22%3A+%22intro%22%2C+%22text%22%3A+%22Introduction%22%7D%5D" in url
+    assert (
+        "links=%5B%7B%22id%22%3A+%22intro%22%2C+%22text%22%3A+%22Introduction%22%7D%5D"
+        in url
+    )
     assert "metadata=%7B%22tags%22%3A+%5B%22ui%22%2C+%22button%22%5D%7D" in url
 
 
@@ -158,15 +161,15 @@ def test_visual_regression_update_snapshot(mocker, tmp_path):
 
 def test_visual_regression_diff_mismatch(mocker, tmp_path):
     from dj_design_system.testing.plugins import VisualRegressionPlugin
+    from dj_design_system.testing.visual import ImageComparison
 
-    # Mock Image and pixelmatch
-    mock_image = mocker.patch("dj_design_system.testing.plugins.Image")
-    mock_img_obj = mocker.Mock()
-    mock_img_obj.size = (100, 100)
-    mock_image.open.return_value.convert.return_value = mock_img_obj
-
-    mock_pixelmatch = mocker.patch("dj_design_system.testing.plugins.pixelmatch")
-    mock_pixelmatch.return_value = 50  # 50 pixels differ
+    mock_diff = mocker.Mock()
+    mock_compare = mocker.patch(
+        "dj_design_system.testing.plugins.compare_images",
+        return_value=ImageComparison(
+            mismatched_pixels=50, total_pixels=10_000, diff=mock_diff
+        ),
+    )
 
     mock_page = mocker.Mock()
 
@@ -188,7 +191,10 @@ def test_visual_regression_diff_mismatch(mocker, tmp_path):
     with pytest.raises(AssertionError, match="Visual regression detected"):
         plugin.run_assessment(mock_comp, "basic", "light")
 
-    mock_pixelmatch.assert_called_once()
+    mock_compare.assert_called_once()
+    mock_diff.save.assert_called_once_with(
+        tmp_path / "diff" / "test_comp_basic_light.png"
+    )
 
 
 def test_accessibility_plugin_passes(mocker):
@@ -266,7 +272,9 @@ def test_strict_html_parser_xhtml_self_closing_void_elements():
     from dj_design_system.testing.plugins import StrictHTMLParser
 
     parser = StrictHTMLParser()
-    parser.feed('<div><input type="range" /><br /><img src="foo.png" /><source srcset="test.webp" /></div>')
+    parser.feed(
+        '<div><input type="range" /><br /><img src="foo.png" /><source srcset="test.webp" /></div>'
+    )
     parser.close()
     assert parser.errors == []
 
@@ -296,6 +304,3 @@ def test_strict_html_parser_flags_explicit_closing_void_elements():
     parser.feed('<div><input type="text"></input></div>')
     parser.close()
     assert any("</input>" in err for err in parser.errors)
-
-
-
