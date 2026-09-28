@@ -5,6 +5,7 @@
 # rendered in mcr.microsoft.com/playwright/python:v<version>-noble, and CI's
 # visual-regression job must use the same tag (tests/test_visual_config.py).
 playwright_version := "1.63.0"
+visual_pytest := "pytest tests/e2e/visual/ -m visual"
 
 # Show available recipes
 default:
@@ -37,6 +38,31 @@ test-one pattern:
 # Run end-to-end Playwright tests (the visual suite runs separately via `just visual`)
 e2e:
     uv run --no-sync pytest tests/e2e/ -m "e2e and not visual"
+
+# Run the gallery visual regression suite directly (used by CI inside the pinned container)
+visual-run *args:
+    uv run --no-sync {{visual_pytest}} {{args}}
+
+# Compare gallery screenshots to the baselines in the pinned Playwright container (requires Docker)
+visual *args:
+    @just _visual-docker 0 {{args}}
+
+# Regenerate all gallery screenshot baselines in the pinned Playwright container (requires Docker)
+update-visual-baselines:
+    @just _visual-docker 1
+
+# Run the visual suite inside mcr.microsoft.com/playwright/python on linux/amd64,
+# matching GitHub's runners, with a throwaway venv so the host .venv is untouched.
+_visual-docker update *args:
+    docker run --rm --init --ipc=host --platform linux/amd64 \
+        -v "{{justfile_directory()}}":/work -w /work \
+        -v dds-visual-uv-cache:/root/.cache/uv \
+        -e UPDATE_VISUAL_BASELINES={{update}} \
+        mcr.microsoft.com/playwright/python:v{{playwright_version}}-noble \
+        bash -euc 'pip install -q --root-user-action=ignore uv \
+            && uv venv -q /tmp/venv \
+            && VIRTUAL_ENV=/tmp/venv uv pip install -q -e ".[dev]" "playwright=={{playwright_version}}" \
+            && /tmp/venv/bin/{{visual_pytest}} {{args}}'
 
 # Run the example project's component assessment tests
 test-demo:

@@ -39,3 +39,37 @@ def test_e2e_recipe_excludes_visual_suite():
     recipe = re.search(r"^e2e:\n((?:[ \t]+.*\n)+)", JUSTFILE.read_text(), re.MULTILINE)
     assert recipe, "justfile must define an e2e recipe"
     assert "not visual" in recipe.group(1)
+
+
+def _recipe_body(name: str) -> str:
+    match = re.search(
+        rf"^{re.escape(name)}(?:\s[^:\n]*)?:[^\n]*\n((?:[ \t]+.*\n|\n(?=[ \t]))+)",
+        JUSTFILE.read_text(),
+        re.MULTILINE,
+    )
+    assert match, f"justfile must define a '{name}' recipe"
+    return match.group(1)
+
+
+def test_visual_recipes_exist():
+    for name in ("visual-run", "visual", "update-visual-baselines"):
+        assert _recipe_body(name)
+
+
+def test_docker_recipes_use_pinned_image_platform_and_playwright():
+    """Local runs must render exactly as CI does."""
+    text = JUSTFILE.read_text()
+    assert "--platform linux/amd64" in text
+    assert "mcr.microsoft.com/playwright/python:v{{playwright_version}}-noble" in text
+    assert '"playwright=={{playwright_version}}"' in text
+
+
+def test_update_recipe_enables_update_mode():
+    assert "_visual-docker 1" in _recipe_body("update-visual-baselines")
+    assert "_visual-docker 0" in _recipe_body("visual")
+    assert "UPDATE_VISUAL_BASELINES={{update}}" in _recipe_body("_visual-docker")
+
+
+def test_visual_output_is_gitignored():
+    ignored = (ROOT / ".gitignore").read_text().splitlines()
+    assert "tests/e2e/visual/output/" in ignored
