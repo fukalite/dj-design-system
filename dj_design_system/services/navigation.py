@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from functools import lru_cache
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -14,6 +15,9 @@ from dj_design_system.data import NavNode
 from dj_design_system.services.registry import component_registry
 from dj_design_system.settings import dds_settings
 from dj_design_system.types import NodeType
+
+
+_SEARCH_INDEX_CACHE: dict[int, list[dict]] = {}
 
 
 if TYPE_CHECKING:
@@ -241,9 +245,23 @@ def _annotate_paths(
         _annotate_paths(child, app_label=child_app, parent_parts=child_parts)
 
 
-def build_navigation() -> list[NavNode]:
-    """Build the full gallery navigation tree from the component registry and markdown files."""
+@lru_cache(maxsize=1)
+def _cached_build_navigation() -> list[NavNode]:
     return _build_navigation()
+
+
+def build_navigation() -> list[NavNode]:
+    """Build the full gallery navigation tree from the component registry and markdown files (cached)."""
+    return _cached_build_navigation()
+
+
+def clear_navigation_cache() -> None:
+    """Clear cached navigation tree and search index."""
+    _cached_build_navigation.cache_clear()
+    clear_search_index_cache()
+
+
+build_navigation.cache_clear = clear_navigation_cache
 
 
 def _build_navigation(
@@ -433,11 +451,24 @@ def _collect_search_entries(
 
 
 def build_search_index(nav_tree: list[NavNode]) -> list[dict]:
-    """Build a flat list of search index entries from the navigation tree."""
+    """Build a flat list of search index entries from the navigation tree (cached)."""
+    tree_id = id(nav_tree)
+    if tree_id in _SEARCH_INDEX_CACHE:
+        return _SEARCH_INDEX_CACHE[tree_id]
+
     entries: list[dict] = []
     for app_node in nav_tree:
         _collect_search_entries(app_node, [], entries)
+    _SEARCH_INDEX_CACHE[tree_id] = entries
     return entries
+
+
+def clear_search_index_cache() -> None:
+    """Clear cached search index."""
+    _SEARCH_INDEX_CACHE.clear()
+
+
+build_search_index.cache_clear = clear_search_index_cache
 
 
 def build_breadcrumbs(

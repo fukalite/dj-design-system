@@ -90,6 +90,7 @@ def get_base_context(
     active_path: str = "",
 ) -> dict:
     """Return context shared by all gallery views."""
+    is_htmx = bool(request and request.headers.get("HX-Request"))
     nav_tree = build_navigation()
     active_theme = get_default_theme().value
     active_variant = None
@@ -100,7 +101,7 @@ def get_base_context(
         active_variant = request.GET.get("variant", "").strip() or None
     return {
         "nav_tree": nav_tree,
-        "search_index": build_search_index(nav_tree),
+        "search_index": [] if is_htmx else build_search_index(nav_tree),
         "design_system_name": dds_settings.DESIGN_SYSTEM_NAME,
         "active_app": active_app,
         "active_path": active_path,
