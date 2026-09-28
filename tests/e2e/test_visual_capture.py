@@ -8,6 +8,7 @@ from tests.e2e.visual.capture import (
     block_external_requests,
     find_clipped_containers,
     fit_viewport_to_content,
+    record_canvas_reports,
     stabilise,
 )
 
@@ -64,6 +65,85 @@ class TestStabilise:
         assert state["fonts"] == "loaded"
         assert state["iframes"]
         assert all(ready == "complete" for ready in state["iframes"])
+
+    def test_waits_through_pauses_in_iframe_resizing(self, page, gallery_url):
+        """Preview iframes shrink ~2px per frame; slow runners can stall mid-way."""
+        page.goto(gallery_url)
+        page.evaluate(
+            """() => {
+                const f = document.createElement("iframe");
+                f.id = "shrinking";
+                f.srcdoc = "<p>hi</p>";
+                f.style.height = "150px";
+                document.querySelector(".gallery-content-area").append(f);
+                let h = 150;
+                const step = () => {
+                    h -= 2;
+                    f.style.height = h + "px";
+                    if (h <= 60) return;
+                    // Stall for 200ms half-way, as a throttled frame would.
+                    if (h === 106) setTimeout(() => requestAnimationFrame(step), 200);
+                    else requestAnimationFrame(step);
+                };
+                f.addEventListener("load", () => requestAnimationFrame(step), { once: true });
+            }"""
+        )
+        stabilise(page)
+        assert (
+            page.evaluate("document.getElementById('shrinking').style.height") == "60px"
+        )
+
+    def test_waits_for_delayed_canvas_resize_to_converge(self, page, live_server):
+        """Under CPU contention the first resize report can arrive late."""
+        page.goto(f"{live_server.url}/dds/demo_components/alert/")
+        stabilise(page)  # let the page's own previews finish first
+        page.evaluate(
+            """() => {
+                const srcdoc = `<!DOCTYPE html><html><head><style>
+                    html, body { margin: 0; height: 100%; }
+                    .canvas-wrapper { min-height: 100%; box-sizing: border-box; padding: 16px; }
+                </style></head><body>
+                <div class="canvas-wrapper canvas-wrapper--basic">hi</div>
+                <script>
+                    setTimeout(() => new ResizeObserver(() => parent.postMessage({
+                        type: "canvas-resize", id: "delayed",
+                        height: document.documentElement.scrollHeight,
+                    }, "*")).observe(document.querySelector(".canvas-wrapper")), 800);
+                </scr` + `ipt></body></html>`;
+                const f = document.createElement("iframe");
+                f.className = "gallery-canvas gallery-doc-preview__iframe";
+                f.dataset.canvasId = "delayed";
+                f.srcdoc = srcdoc;
+                document.querySelector(".gallery-doc-preview").append(f);
+            }"""
+        )
+        stabilise(page)
+        state = page.evaluate(
+            """() => {
+                const f = document.querySelector("iframe[data-canvas-id='delayed']");
+                return [f.style.height, f.contentDocument.documentElement.scrollHeight];
+            }"""
+        )
+        assert state[0] == f"{state[1]}px"
+
+    def test_recovers_resize_report_sent_before_listener(self, page, live_server):
+        """If a preview reports its size before gallery-tabs.js is listening,
+        the report is lost and the preview never resizes (issue #111)."""
+        import time
+
+        def delay_listener(route):
+            time.sleep(1)
+            route.continue_()
+
+        page.route("**/gallery-tabs.js", delay_listener)
+        record_canvas_reports(page)
+        page.goto(f"{live_server.url}/dds/demo_components/alert/")
+        stabilise(page)
+        heights = page.evaluate(
+            """() => [...document.querySelectorAll("iframe.gallery-doc-preview__iframe")]
+                .map(f => [f.style.height, f.contentDocument.documentElement.scrollHeight])"""
+        )
+        assert heights == [["58px", 58], ["58px", 58]]
 
 
 class TestScreenshotRecorder:
@@ -163,3 +243,18 @@ class TestFitViewportToContent:
         stabilise(page)
         clipped = find_clipped_containers(page)
         assert not any(item["name"] == "nav.gallery-nav" for item in clipped)
+
+    def test_ignores_form_controls(self, page, live_server):
+        """A textarea's own scrollback is not layout clipping."""
+        block_external_requests(page, live_server.url)
+        page.goto(f"{live_server.url}/dds/")
+        page.evaluate(
+            """() => {
+                const t = document.createElement("textarea");
+                t.rows = 1;
+                t.value = "line\\n".repeat(20);
+                document.querySelector(".gallery-content-area").append(t);
+            }"""
+        )
+        clipped = find_clipped_containers(page)
+        assert not any(item["name"].startswith("textarea") for item in clipped)

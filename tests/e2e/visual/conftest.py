@@ -15,6 +15,7 @@ from tests.e2e.visual.capture import (
     ScreenshotRecorder,
     block_external_requests,
     prune_orphaned_baselines,
+    record_canvas_reports,
     should_prune,
     stabilise,
 )
@@ -87,6 +88,7 @@ def gallery(page, live_server):
     theme the gallery.
     """
     block_external_requests(page, live_server.url)
+    record_canvas_reports(page)
 
     def open_path(path: str = "", *, viewport: str = "desktop", theme: str = "light"):
         page.set_viewport_size(VIEWPORTS[viewport])
