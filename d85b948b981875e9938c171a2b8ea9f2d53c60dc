@@ -1,0 +1,7 @@
+Task: Phase 2 — just visual-run / visual / update-visual-baselines
+
+Summary: justfile gains visual_pytest (single definition of the suite command), visual-run (direct; for CI inside the pinned container), visual and update-visual-baselines (wrap _visual-docker, which runs mcr.microsoft.com/playwright/python:v{{playwright_version}}-noble with --platform linux/amd64 --ipc=host --init, mounts the repo at /work, caches uv in the dds-visual-uv-cache volume, installs .[dev] plus playwright==pinned into /tmp/venv so the host .venv is untouched, and sets UPDATE_VISUAL_BASELINES). Added tests/e2e/visual/conftest.py (session ScreenshotRecorder that clears output/, gallery fixture that blocks external requests and stabilises), a smoke test_index screenshot and its container-rendered baseline. tests/e2e/visual/output/ is gitignored. Recipe guard tests added to tests/test_visual_config.py.
+
+Files: justfile, .gitignore, tests/test_visual_config.py, tests/e2e/visual/conftest.py, tests/e2e/visual/test_gallery_pages.py, tests/e2e/visual/baselines/index.png
+
+Verification: just update-visual-baselines generated index.png (~65s cold, incl. image pull); just visual passed twice consecutively; just test (717 passed), just check, just typecheck clean. Visual tests are excluded from just test and just e2e.
