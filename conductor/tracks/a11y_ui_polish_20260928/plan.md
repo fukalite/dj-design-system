@@ -6,7 +6,7 @@
 - [x] Task: Fix inaccessible tab switcher radio inputs in `component.html` [0ab3ad5]
 - [x] Task: Fix auto-submit on variant selector (or event loop) for keyboard users [55e73ae]
 - [x] Task: Add Escape key handlers to toolbar popouts [2602036]
-- [ ] Task: Make drawer resizer accessible to keyboard users
+- [x] Task: Make drawer resizer accessible to keyboard users [122bcd7]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: UI & Frontend Polish
