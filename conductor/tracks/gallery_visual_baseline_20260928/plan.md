@@ -2,7 +2,7 @@
 
 Captures a deterministic Playwright screenshot baseline of the current gallery in a pinned container, and adds a blocking CI job that compares fresh screenshots against it on every pull request.
 
-## Phase 1: Harness & Comparison
+## Phase 1: Harness & Comparison [checkpoint: 9dee0fe]
 - [x] Task: Write Failing Tests (`Red Phase`) [5f29cf1]
   - [x] The comparison helper passes identical images, fails on differences beyond tolerance, fails on size mismatch, and writes `expected` / `actual` / `diff` files.
   - [x] A missing baseline fails normally and is created in update mode.
@@ -12,7 +12,7 @@ Captures a deterministic Playwright screenshot baseline of the current gallery i
   - [x] Add capture helpers: wait for iframes and `document.fonts.ready`, disable animations, mask dynamic regions, block external network. [29bc1fe]
 - [x] Task: Refactor and Verify Coverage [9dee0fe]
   - [x] Enable greenlet coverage tracing (Playwright); visual.py 92%, capture.py 100%.
-- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
 
