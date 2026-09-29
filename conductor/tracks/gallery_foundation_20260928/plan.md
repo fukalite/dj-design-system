@@ -60,5 +60,5 @@ This plan adds registry support for internal (package-owned) components and the 
   - [x] Add the single visibility helper and use it in navigation, views and API.
   - [x] Set `GALLERY_SHOW_BUILTIN_COMPONENTS = True` in `example_project/settings.py`.
 - [x] Task: Refactor and Verify Coverage [14b57f2]
-- [ ] Task: Confirm the track 0 visual baseline still passes.
+- [x] Task: Confirm the track 0 visual baseline still passes. [14b57f2] (CI run 36560122324)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
