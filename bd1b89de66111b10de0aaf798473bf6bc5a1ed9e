@@ -11,3 +11,16 @@ New capture tests (red first): pauses in resizing, delayed first report, report 
 Files: tests/e2e/visual/{capture.py,conftest.py,test_gallery_interactions.py}, tests/e2e/test_visual_capture.py, 9 baselines.
 
 Verification: just visual passed on 2 consecutive full runs (40 passed each) after the final fix; just test (727), just e2e (39 passed, 1 skipped), just check, just typecheck clean.
+
+PHASE VERIFICATION REPORT — Track 0, Phase 3: Screenshot Coverage
+
+Automated tests (on bd1b89d, no code changes since):
+- just test: 727 passed
+- just e2e: 39 passed, 1 skipped
+- just visual: 40 passed on two consecutive full runs in the pinned container
+
+Manual verification (user): just visual (40 passed); reviewed the 40 baselines; ran the lost-report recovery test (-k before_listener).
+
+Related: issue #111 documents the canvas-resize shrink loop and the lost-first-report race found during this phase.
+
+User confirmation: 'All looking good! continue!' (2026-09-29).
