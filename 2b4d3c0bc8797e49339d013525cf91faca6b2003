@@ -1,0 +1,7 @@
+Track 2 Phase 2: Icon, Button, IconButton
+
+- components/primitives/{icon,button,icon_button}.py + templates in templates/dj_design_system/ui/primitives + CSS in static/dj_design_system/ui/primitives + *_gallery.py side-cars.
+- CSS moved: gallery-toolbar.css .gallery-sandbox-toolbar__btn{,:hover,--active} and __popout-option{,:hover,--active} -> button.css (toolbar token fallbacks added); gallery.css .gallery-doc-preview__sandbox-link block (+hover, @media) -> icon_button.css with position/opacity scoped to .gallery-doc-preview. icon.css is new (mask icon rules for gallery-icon--*; legacy nav/folder mask rules stay with their owners until tracks 3/5).
+- Design decisions: Button/IconButton variant names map to legacy BEM classes (toolbar/option/overlay); Icon uses extra_classes (not a block param) so gallery auto-filled examples stay valid; side-cars don't pass block content (gallery treats 'content' as a kwarg).
+- tests/test_primitives_icon_button.py (47) parse HTML (djlint reformats templates) + moved-not-copied checks. Four earlier tests narrowed to fixture components now real built-ins exist.
+- just check, typecheck, test (845) pass; coverage primitives 100%; just visual 40/40 locally; built-ins verified rendering in example project pages/sandboxes via screenshots.
