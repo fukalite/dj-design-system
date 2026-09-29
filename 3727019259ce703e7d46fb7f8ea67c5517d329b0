@@ -1,0 +1,3 @@
+Task: Document visual tests in CONTRIBUTING.md
+
+Adds a 'Visual regression tests' section: Docker prerequisite and why (pinned linux/amd64 Playwright container, same as CI), just visual / just update-visual-baselines, where failure artefacts go locally and in CI, local-only baseline updates, pruning, and the rule to explain every baseline change in the PR. Adds just visual to the commands table and the PR checklist.
