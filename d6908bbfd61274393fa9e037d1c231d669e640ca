@@ -1,0 +1,7 @@
+Task: Phase 4 — Add the visual-regression job to ci.yml
+
+Summary: New blocking job visual-regression in .github/workflows/ci.yml: runs on ubuntu-latest in container mcr.microsoft.com/playwright/python:v1.63.0-noble (options --ipc=host --init), bash shell; checkout, setup-just, setup-uv (3.13); installs .[dev] plus playwright==$(just --evaluate playwright_version); runs just visual-run piped to visual.log with pipefail. Uploads tests/e2e/visual/output/actual as visual-regression-actual always; on failure uploads output/failures as visual-regression-diffs and writes a job summary listing each mismatch with a link to the diffs artifact and update instructions. ci-complete needs visual-regression. assert_matches_baseline() size mismatches now prefix the screenshot name. tests/test_visual_config.py gained 4 workflow tests (pinned image/runner, command and uploads, failure summary, ci-complete needs).
+
+Files: .github/workflows/ci.yml, tests/test_visual_config.py, dj_design_system/testing/visual.py, tests/test_testing_visual.py
+
+Verification: config tests red then green; summary script dry-run against a sample log; just test (731), just check, just typecheck clean. First CI run (36549328837) on d6908bb: all jobs green including Visual Regression — CI renders identically to the locally generated baselines.
