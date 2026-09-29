@@ -1,0 +1,6 @@
+Phase 1: components package
+
+- git mv components.py -> components/base.py (history kept); __init__ re-exports BaseComponent/TagComponent/BlockComponent.
+- tests/test_builtin_components.py: public imports, package-ness, base module identity, discovery of a temp subpackage appended to __path__ (app dj_design_system, relative_path fixture_nav), base classes never registered.
+- API docs point mkdocstrings at components.base so the classes still render.
+- just check, typecheck, test (736) pass.
