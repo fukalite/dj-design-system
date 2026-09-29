@@ -1,0 +1,46 @@
+/* SplitPane — dds__layout__split_pane. Moved from gallery.css. */
+
+.gallery-split {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.gallery-split__pane + .gallery-split__pane {
+  border-top: 2px solid var(--gallery-pane-border);
+}
+
+/* Tab-driven pane visibility (default: stacked, tabs active) */
+.gallery-split--show-sandbox .gallery-documentation {
+  display: none;
+}
+
+.gallery-split:not(.gallery-split--show-sandbox) .gallery-sandbox {
+  display: none;
+}
+
+@media (min-width: 1800px) {
+  .gallery-split {
+    flex-direction: row;
+  }
+
+  .gallery-split__pane + .gallery-split__pane {
+    border-top: none;
+    border-left: 2px solid var(--gallery-pane-border);
+  }
+
+  .gallery-documentation {
+    flex: 1;
+  }
+
+  .gallery-sandbox {
+    flex: 0 0 45%;
+    max-width: 45%;
+  }
+
+  /* Override tab hiding — both panes visible */
+  .gallery-split--show-sandbox .gallery-documentation,
+  .gallery-split:not(.gallery-split--show-sandbox) .gallery-sandbox {
+    display: flex;
+  }
+}

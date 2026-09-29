@@ -168,7 +168,7 @@ class TestCssMovedNotCopied:
         [
             (".gallery-docs__divider {", "divider.css"),
             (
-                ":is(h1, h2, h3, h4, h5, h6).gallery-docs__section-heading {",
+                ":where(h1, h2, h3, h4, h5, h6).gallery-docs__section-heading {",
                 "section_heading.css",
             ),
             (".gallery-usage__heading {", "section_heading.css"),

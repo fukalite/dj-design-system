@@ -1,0 +1,50 @@
+/* Toolbar — dds__layout__toolbar. Moved from gallery.css. */
+
+.gallery-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  border-bottom: 2px solid var(--gallery-border);
+  background: var(--gallery-content-bg);
+  min-height: 48px;
+  position: relative;
+  z-index: 10;
+}
+
+.gallery-toolbar__breadcrumb {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--gallery-text-muted);
+  min-width: 0;
+  position: relative;
+}
+
+.gallery-toolbar__breadcrumb a {
+  color: var(--gallery-accent);
+  text-decoration: none;
+}
+
+.gallery-toolbar__breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.gallery-toolbar__actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .gallery-toolbar {
+    padding-left: 48px;
+    /* room for hamburger */
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .gallery-toolbar {
+    padding: 8px 12px 8px 44px;
+  }
+}

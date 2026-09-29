@@ -23,7 +23,9 @@ class Table(BlockComponent):
     class Meta:
         slots = {
             "head": Slot(description="Header rows (<tr> with <th> cells)."),
-            "body": Slot(required=True, description="Data rows (<tr> with <td> cells)."),
+            "body": Slot(
+                required=True, description="Data rows (<tr> with <td> cells)."
+            ),
         }
 
     class Media:
