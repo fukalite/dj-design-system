@@ -1,0 +1,1 @@
+Review fixes for PR #113 (Gemini Code Review): is_internal cached_property (+ test_is_internal_is_cached); get_by_name docstring corrected. just check/typecheck/test (789) pass.
