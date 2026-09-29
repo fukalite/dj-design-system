@@ -47,7 +47,7 @@ This plan adds registry support for internal (package-owned) components and the 
 
 ---
 
-## Phase 4: Gallery Visibility Settings
+## Phase 4: Gallery Visibility Settings [checkpoint: 14b57f2]
 - [x] Task: Write Failing Tests (`Red Phase`) [14b57f2]
   - [x] Defaults: `GALLERY_EXCLUDE_APPS == []`, `GALLERY_SHOW_BUILTIN_COMPONENTS is False`.
   - [x] With the flag `False`, `dj_design_system` is excluded even if `GALLERY_EXCLUDE_APPS` is overridden without it.
@@ -61,4 +61,4 @@ This plan adds registry support for internal (package-owned) components and the 
   - [x] Set `GALLERY_SHOW_BUILTIN_COMPONENTS = True` in `example_project/settings.py`.
 - [x] Task: Refactor and Verify Coverage [14b57f2]
 - [x] Task: Confirm the track 0 visual baseline still passes. [14b57f2] (CI run 36560122324)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [14b57f2]
