@@ -57,5 +57,5 @@ Captures a deterministic Playwright screenshot baseline of the current gallery i
 ---
 
 ## Phase 5: Documentation
-- [ ] Task: Document running visual tests and updating baselines locally via Docker in `CONTRIBUTING.md`, including the Docker prerequisite and the "explain baseline changes in the PR" rule.
+- [x] Task: Document running visual tests and updating baselines locally via Docker in `CONTRIBUTING.md`, including the Docker prerequisite and the "explain baseline changes in the PR" rule. [3727019]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
