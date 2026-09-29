@@ -1,0 +1,7 @@
+Phase 2: internal components
+
+- services/component.py: BUILTIN_APP_LABEL, BUILTIN_PREFIX, is_internal(cls, app_label) (own Meta only, not inherited).
+- data.ComponentInfo.is_internal.
+- registry: fixed dds prefix for built-ins in _resolve_namespace_prefix; no short tag names for internal; get_by_name(no app_label) skips internal (resolve_component inherits this); get_merged_media excludes internal; new get_internal_media.
+- tests/conftest.py builtin_modules factory (temp modules under dj_design_system.components); tests/test_internal_components.py 23 tests incl. both INSTALLED_APPS orders and markdown canvas media.
+- just check, typecheck, test (760) pass; coverage component 100%, registry 98%, data 95% (uncovered lines pre-existing).
