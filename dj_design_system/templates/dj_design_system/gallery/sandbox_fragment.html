@@ -39,7 +39,7 @@
                         <div class="gallery-params-form__field">
                             {{ row.field }}
                             {% if row.field.errors %}
-                                <ul class="gallery-params__errors">
+                                <ul class="gallery-params-form__errors gallery-params__errors">
                                     {% for error in row.field.errors %}<li>{{ error }}</li>{% endfor %}
                                 </ul>
                             {% endif %}

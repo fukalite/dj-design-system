@@ -1405,7 +1405,8 @@ h3.gallery-docs__section-heading:first-child {
   border-bottom: 1px solid var(--gallery-sidebar-border);
 }
 
-.gallery-search-input {
+.gallery-search-input,
+.gallery-sidebar__search-input {
   width: 100%;
   box-sizing: border-box;
   background: rgba(255, 255, 255, 0.07);
@@ -1421,24 +1422,28 @@ h3.gallery-docs__section-heading:first-child {
     background var(--gallery-transition);
 }
 
-.gallery-search-input::placeholder {
+.gallery-search-input::placeholder,
+.gallery-sidebar__search-input::placeholder {
   color: rgba(255, 255, 255, 0.35);
 }
 
-.gallery-search-input:focus {
+.gallery-search-input:focus,
+.gallery-sidebar__search-input:focus {
   border-color: rgba(255, 255, 255, 0.35);
   background: rgba(255, 255, 255, 0.11);
 }
 
 /* Remove the native search-cancel button in WebKit/Blink */
-.gallery-search-input::-webkit-search-cancel-button {
+.gallery-search-input::-webkit-search-cancel-button,
+.gallery-sidebar__search-input::-webkit-search-cancel-button {
   -webkit-appearance: none;
 }
 
 /* ------------------------------------------------------------------ */
 /* Search results panel                                                 */
 /* ------------------------------------------------------------------ */
-.gallery-search-results {
+.gallery-search-results,
+.gallery-sidebar__search-results {
   overflow-y: auto;
   flex: 1;
   padding: 4px 0;
@@ -1592,12 +1597,13 @@ h3.gallery-docs__section-heading:first-child {
 }
 
 /* Error list beneath a field */
+.gallery-params-form__errors,
 .gallery-params__errors {
   margin: 0;
   padding: 0;
   list-style: none;
   font-size: 11px;
-  color: #e03131;
+  color: var(--gallery-danger, #e03131);
 }
 
 /* Current usage code block in sandbox */

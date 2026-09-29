@@ -263,3 +263,40 @@ class TestNavtreeAccessibility:
         assert "unpkg.com/htmx" not in component_template
         assert "{% static 'dj_design_system/htmx.min.js' %}" in component_template
 
+    def test_bem_naming_consistency(self):
+        """BEM naming conventions should be followed consistently across templates and CSS."""
+        from pathlib import Path
+
+        # 1. Base template search input and results include BEM classes
+        base_html = Path(
+            "dj_design_system/templates/dj_design_system/gallery/base.html"
+        ).read_text(encoding="utf-8")
+        assert "gallery-sidebar__search-input" in base_html
+        assert "gallery-sidebar__search-results" in base_html
+
+        # 2. Toolbar background chips include BEM modifier classes
+        toolbar_html = Path(
+            "dj_design_system/templates/dj_design_system/gallery/toolbar.html"
+        ).read_text(encoding="utf-8")
+        assert "gallery-sandbox-toolbar__bg-chip--" in toolbar_html
+
+        # 3. Sandbox fragment error list includes BEM element class
+        sandbox_html = Path(
+            "dj_design_system/templates/dj_design_system/gallery/sandbox_fragment.html"
+        ).read_text(encoding="utf-8")
+        assert "gallery-params-form__errors" in sandbox_html
+
+        # 4. CSS contains corresponding BEM selectors
+        gallery_css = Path(
+            "dj_design_system/static/dj_design_system/gallery.css"
+        ).read_text(encoding="utf-8")
+        assert ".gallery-sidebar__search-input" in gallery_css
+        assert ".gallery-sidebar__search-results" in gallery_css
+        assert ".gallery-params-form__errors" in gallery_css
+
+        toolbar_css = Path(
+            "dj_design_system/static/dj_design_system/gallery-toolbar.css"
+        ).read_text(encoding="utf-8")
+        assert ".gallery-sandbox-toolbar__bg-chip--white" in toolbar_css
+
+
