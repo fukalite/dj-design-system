@@ -8,3 +8,8 @@ Track 2 Phase 1: foundation stylesheet & internal media loading
 - just check, typecheck, test (797) pass; just visual 40/40 locally in Docker.
 
 Visual baseline: local just visual 40/40; CI run 36562515878 on 324e6b7 all green incl. Visual Regression.
+
+Phase 1 checkpoint (Foundation Stylesheet & Internal Media Loading)
+
+Automated: just check, typecheck clean; just test 797 passed; just visual 40/40; CI run 36562515878 green.
+Manual verification: user confirmed.
