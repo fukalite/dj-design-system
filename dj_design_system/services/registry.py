@@ -7,6 +7,8 @@ from typing import Any, Type
 from dj_design_system import settings
 from dj_design_system.data import ComponentInfo, ComponentMedia
 from dj_design_system.services.component import (
+    BUILTIN_APP_LABEL,
+    BUILTIN_PREFIX,
     derive_name,
     derive_relative_path,
     get_meta_name,
@@ -188,7 +190,14 @@ class ComponentRegistry:
 
         Finds the longest matching path key in the namespaces configuration,
         checking the full path and progressively removing rightmost components.
+
+        Built-in components always use the ``dds`` prefix with their full
+        relative path; ``COMPONENT_DIRECTORIES`` cannot change it.
         """
+        if app_label == BUILTIN_APP_LABEL:
+            builtin_parts = tuple(relative_path.split(".")) if relative_path else ()
+            return (BUILTIN_PREFIX, builtin_parts, FlattenStrategy.NONE)
+
         directories = (settings.dds_settings.COMPONENT_DIRECTORIES or {}).get(app_label)
         if directories is None:
             # Fallback to legacy COMPONENT_NAMESPACES
@@ -308,9 +317,21 @@ class ComponentRegistry:
         return list(self._components)
 
     def get_merged_media(self) -> ComponentMedia:
-        """Return a single ``ComponentMedia`` merging all registered components."""
+        """Return a single ``ComponentMedia`` merging all public components.
+
+        Internal components are left out, so their CSS and JS never reach
+        consumer pages or canvases. Use :meth:`get_internal_media` for those.
+        """
+        return self._merge_media(i for i in self._components if not i.is_internal)
+
+    def get_internal_media(self) -> ComponentMedia:
+        """Return a single ``ComponentMedia`` merging all internal components."""
+        return self._merge_media(i for i in self._components if i.is_internal)
+
+    @staticmethod
+    def _merge_media(infos) -> ComponentMedia:
         result = ComponentMedia()
-        for info in self._components:
+        for info in infos:
             result = result.merge(info.media)
         return result
 
@@ -323,12 +344,15 @@ class ComponentRegistry:
         Look up a component by its name.
 
         If ``app_label`` is provided, the search is scoped to that app.
+        Without it, internal components are ignored: they can only be found
+        by their app label or qualified name.
         Raises ``ComponentDoesNotExist`` if no match is found, and
         ``MultipleComponentsFound`` if the name is ambiguous.
         """
-        candidates = self._components
         if app_label is not None:
             candidates = self.list_by_app(app_label)
+        else:
+            candidates = [c for c in self._components if not c.is_internal]
 
         matches = [c for c in candidates if c.name == name]
 
@@ -381,7 +405,8 @@ class ComponentRegistry:
           share the same short name, the **last one discovered wins** — i.e.
           the one from the app that appears latest in ``INSTALLED_APPS``.
           This allows apps to intentionally override components from earlier
-          apps.
+          apps. Internal components never get a short name, so they can
+          neither shadow nor be shadowed by another app's tags.
 
         Args:
             library: A ``django.template.Library`` instance to register on.
@@ -398,7 +423,8 @@ class ComponentRegistry:
             self._register_tag(library, info.qualified_name, info)
 
             # Register short names — last discovered wins
-            short_names[info.name] = info
+            if not info.is_internal:
+                short_names[info.name] = info
 
         for name, info in short_names.items():
             self._register_tag(library, name, info)

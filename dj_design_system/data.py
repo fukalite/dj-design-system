@@ -130,6 +130,18 @@ class ComponentInfo:
         return {}, {}
 
     @property
+    def is_internal(self) -> bool:
+        """Return True if this is an internal component.
+
+        Internal components are registered only under their qualified tag
+        name, are skipped by short-name lookups, and are left out of
+        :meth:`~dj_design_system.services.registry.ComponentRegistry.get_merged_media`.
+        """
+        from dj_design_system.services.component import is_internal
+
+        return is_internal(self.component_class, self.app_label)
+
+    @property
     def qualified_name(self) -> str:
         """Return a fully qualified tag name: ``app_label__path__name``.
 
