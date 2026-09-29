@@ -6,3 +6,5 @@ Phase 4: gallery visibility settings
 - example_project/settings.py: GALLERY_SHOW_BUILTIN_COMPONENTS True.
 - tests/test_gallery_visibility.py: 20 tests; mutation-checked (reverting nav/index/API filtering fails 5/1/2 tests).
 - just check, typecheck, test (788) pass; visibility.py 100% coverage.
+
+Visual baseline: CI run 36560122324 on b8def3c green (Visual Regression: 40 screenshots match track 0 baselines; CI Complete success).
