@@ -5,3 +5,8 @@ Track 2 Phase 2: Icon, Button, IconButton
 - Design decisions: Button/IconButton variant names map to legacy BEM classes (toolbar/option/overlay); Icon uses extra_classes (not a block param) so gallery auto-filled examples stay valid; side-cars don't pass block content (gallery treats 'content' as a kwarg).
 - tests/test_primitives_icon_button.py (47) parse HTML (djlint reformats templates) + moved-not-copied checks. Four earlier tests narrowed to fixture components now real built-ins exist.
 - just check, typecheck, test (845) pass; coverage primitives 100%; just visual 40/40 locally; built-ins verified rendering in example project pages/sandboxes via screenshots.
+
+Phase 2 checkpoint (Icon, Button, IconButton)
+
+Automated: just check, typecheck clean; just test 845, just e2e 40 passed; just visual 40/40; CI run 36569267174 green (after e2e fix 01cd6ec).
+Manual verification: user confirmed.
