@@ -644,42 +644,6 @@ h3.gallery-docs__section-heading:first-child {
   min-height: 60px;
 }
 
-/* Shared pill-style icon button for bottom-right overlays */
-.gallery-doc-preview__sandbox-link {
-  position: absolute;
-  bottom: 6px;
-  right: 6px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 13px;
-  background: rgba(255, 255, 255, 0.85);
-  color: var(--gallery-text-muted);
-  text-decoration: none;
-  opacity: 0;
-  transition: opacity 0.15s ease;
-  border: 1px solid var(--gallery-border);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-
-.gallery-doc-preview:hover .gallery-doc-preview__sandbox-link {
-  opacity: 1;
-}
-
-.gallery-doc-preview__sandbox-link:hover {
-  background: rgba(255, 255, 255, 1);
-  color: var(--gallery-text);
-}
-
-/* Hide sandbox links on wide viewports (sandbox already visible) */
-@media (min-width: 1800px) {
-  .gallery-doc-preview__sandbox-link {
-    display: none;
-  }
-}
-
 /* ------------------------------------------------------------------ */
 /* Component info / docs pane                                          */
 /* ------------------------------------------------------------------ */

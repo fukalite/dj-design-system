@@ -181,7 +181,9 @@ class TestViews:
             fewer = client.get(reverse("gallery")).context["total_components"]
 
         assert shown == len(component_registry.list_all())
-        assert default == shown - 1
+        assert default == shown - len(
+            component_registry.list_by_app("dj_design_system")
+        )
         assert fewer == default - len(component_registry.list_by_app("demo_single"))
 
     def test_index_search_index_excludes_hidden_apps(self, client, global_builtins):

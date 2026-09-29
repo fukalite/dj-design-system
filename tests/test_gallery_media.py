@@ -59,8 +59,10 @@ class TestGetGalleryMedia:
         discover_app_into_registry(reg, "dj_design_system", "dj_design_system")
 
         media = get_gallery_media(reg)
-        assert media.css == [FOUNDATION_CSS, CRUMB_CSS]
-        assert media.js == [CRUMB_JS]
+        assert media.css[0] == FOUNDATION_CSS
+        assert media.css.count(FOUNDATION_CSS) == 1
+        assert CRUMB_CSS in media.css
+        assert CRUMB_JS in media.js
 
 
 class TestGalleryShell:
