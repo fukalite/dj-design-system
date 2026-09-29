@@ -45,11 +45,11 @@ Captures a deterministic Playwright screenshot baseline of the current gallery i
 ---
 
 ## Phase 4: CI Job
-- [ ] Task: Add the `visual-regression` job to `ci.yml`
-  - [ ] Run in the pinned container; install with `uv`; run `just visual`.
-  - [ ] Upload `actual` screenshots always; upload `expected` / `actual` / `diff` and write a job summary on failure.
-  - [ ] Add the job to `ci-complete`'s `needs`.
-- [ ] Task: Verify
+- [x] Task: Add the `visual-regression` job to `ci.yml` [d6908bb]
+  - [x] Run in the pinned container; install with `uv`; run `just visual-run` (the container is already the pinned environment).
+  - [x] Upload `actual` screenshots always; upload `expected` / `actual` / `diff` and write a job summary on failure.
+  - [x] Add the job to `ci-complete`'s `needs`.
+- [~] Task: Verify
   - [ ] Re-run the job several times on the same commit; confirm it passes every time.
   - [ ] On a scratch branch, change a gallery colour; confirm the job fails with a useful diff artifact and summary; revert.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
