@@ -48,17 +48,17 @@ This plan adds registry support for internal (package-owned) components and the 
 ---
 
 ## Phase 4: Gallery Visibility Settings
-- [ ] Task: Write Failing Tests (`Red Phase`)
-  - [ ] Defaults: `GALLERY_EXCLUDE_APPS == []`, `GALLERY_SHOW_BUILTIN_COMPONENTS is False`.
-  - [ ] With the flag `False`, `dj_design_system` is excluded even if `GALLERY_EXCLUDE_APPS` is overridden without it.
-  - [ ] With the flag `True`, `dj_design_system` is shown unless listed in `GALLERY_EXCLUDE_APPS`.
-  - [ ] Consumer apps in `GALLERY_EXCLUDE_APPS` are hidden.
-  - [ ] Hidden apps are absent from the nav tree, search index and `total_components`; their node URLs return 404; they are absent from the REST API listing.
-  - [ ] Hidden components still render as template tags.
-- [ ] Task: Implement to Pass Tests (`Green Phase`)
-  - [ ] Add both settings to `DEFAULTS` and `DjangoDesignSystemSettings`.
-  - [ ] Add the single visibility helper and use it in navigation, views and API.
-  - [ ] Set `GALLERY_SHOW_BUILTIN_COMPONENTS = True` in `example_project/settings.py`.
-- [ ] Task: Refactor and Verify Coverage
+- [x] Task: Write Failing Tests (`Red Phase`) [14b57f2]
+  - [x] Defaults: `GALLERY_EXCLUDE_APPS == []`, `GALLERY_SHOW_BUILTIN_COMPONENTS is False`.
+  - [x] With the flag `False`, `dj_design_system` is excluded even if `GALLERY_EXCLUDE_APPS` is overridden without it.
+  - [x] With the flag `True`, `dj_design_system` is shown unless listed in `GALLERY_EXCLUDE_APPS`.
+  - [x] Consumer apps in `GALLERY_EXCLUDE_APPS` are hidden.
+  - [x] Hidden apps are absent from the nav tree, search index and `total_components`; their node URLs return 404; they are absent from the REST API listing.
+  - [x] Hidden components still render as template tags.
+- [x] Task: Implement to Pass Tests (`Green Phase`) [14b57f2]
+  - [x] Add both settings to `DEFAULTS` and `DjangoDesignSystemSettings`.
+  - [x] Add the single visibility helper and use it in navigation, views and API.
+  - [x] Set `GALLERY_SHOW_BUILTIN_COMPONENTS = True` in `example_project/settings.py`.
+- [x] Task: Refactor and Verify Coverage [14b57f2]
 - [ ] Task: Confirm the track 0 visual baseline still passes.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
