@@ -1,0 +1,8 @@
+Phase 4: gallery visibility settings
+
+- settings: GALLERY_EXCLUDE_APPS [], GALLERY_SHOW_BUILTIN_COMPONENTS False (+ type annotations).
+- services/visibility.py: get_hidden_apps(), is_app_visible(), get_gallery_components(registry).
+- navigation._build_navigation filters components and docs-only app paths by get_hidden_apps() (search index + node URLs follow); views.gallery_index count and api ComponentRegistryView use get_gallery_components.
+- example_project/settings.py: GALLERY_SHOW_BUILTIN_COMPONENTS True.
+- tests/test_gallery_visibility.py: 20 tests; mutation-checked (reverting nav/index/API filtering fails 5/1/2 tests).
+- just check, typecheck, test (788) pass; visibility.py 100% coverage.
