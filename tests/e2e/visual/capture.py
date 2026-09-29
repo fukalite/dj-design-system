@@ -51,6 +51,10 @@ async () => {
         if (reports) {
             if (!reports.has(f.contentWindow)) return false;  // first report not sent yet
             if (!f.style.height) return true;  // this page never applies heights
+        } else if (!f.style.height) {
+            // Without record_canvas_reports a lost first report can't be
+            // replayed, so the height may never be applied: don't wait for it.
+            return true;
         }
         return f.style.height === doc.documentElement.scrollHeight + "px";
     };
