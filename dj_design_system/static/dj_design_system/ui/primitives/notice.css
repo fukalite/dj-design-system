@@ -1,0 +1,43 @@
+/* Notice — dds__primitives__notice. Moved from gallery.css. */
+
+.gallery-debug-hint {
+  margin-top: 24px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--gallery-text-muted);
+  border: 1px dashed var(--gallery-border);
+  border-radius: var(--gallery-radius);
+  opacity: 0.6;
+}
+
+/* Doubled class: this rule used to follow .gallery-docs code in
+ * gallery.css and win on source order. It now loads first, so it needs
+ * the extra specificity to keep winning. */
+.gallery-debug-hint.gallery-debug-hint code {
+  font-family: var(--gallery-font-mono);
+  font-size: 12px;
+  background: var(--gallery-code-bg);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.gallery-static-snapshot-notice {
+  padding: 1rem;
+  margin-top: 1.5rem;
+  background: #fff8c5;
+  border: 1px solid #d4a72c;
+  border-left: 4px solid #d4a72c;
+  border-radius: 0 4px 4px 0;
+}
+
+/* Doubled class: see .gallery-debug-hint code above (.gallery-docs p). */
+.gallery-static-snapshot-notice.gallery-static-snapshot-notice p {
+  margin: 0.5rem 0 0;
+}
+
+
+/* The snapshot notice stays hidden until notice.js reveals it away from
+ * localhost. */
+#static-snapshot-notice {
+  display: none;
+}

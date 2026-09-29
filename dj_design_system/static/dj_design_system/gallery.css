@@ -453,25 +453,6 @@ body {
   padding: 24px;
 }
 
-/* Section sub-headings inside pane body */
-h3.gallery-docs__section-heading {
-  font-size: 13px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--gallery-text);
-  margin: 20px 0 10px;
-}
-
-h3.gallery-docs__section-heading:first-child {
-  margin-top: 0;
-}
-
-.gallery-docs__divider {
-  border-top: 1px solid var(--gallery-pane-border);
-  margin: 20px 0 20px;
-}
-
 /* ------------------------------------------------------------------ */
 /* Tab switcher (toolbar)                                              */
 /* ------------------------------------------------------------------ */
@@ -850,40 +831,6 @@ h3.gallery-docs__section-heading:first-child {
 }
 
 /* ------------------------------------------------------------------ */
-/* Parameters table                                                    */
-/* ------------------------------------------------------------------ */
-.gallery-params {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-  margin-bottom: 16px;
-}
-
-.gallery-params th,
-.gallery-params td {
-  text-align: left;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--gallery-pane-border);
-}
-
-.gallery-params th {
-  font-weight: 500;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--gallery-text-muted);
-  background: var(--gallery-code-bg);
-}
-
-.gallery-params td code {
-  font-family: var(--gallery-font-mono);
-  font-size: 12px;
-  background: var(--gallery-code-bg);
-  padding: 1px 4px;
-  border-radius: 3px;
-}
-
-/* ------------------------------------------------------------------ */
 /* Usage examples (minimal and bigger tag signatures)                  */
 /* ------------------------------------------------------------------ */
 .gallery-usage {
@@ -897,49 +844,6 @@ h3.gallery-docs__section-heading:first-child {
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-
-.gallery-usage__heading {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--gallery-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  margin: 0;
-}
-
-.gallery-usage__pre {
-  margin: 0;
-  padding: 0;
-  border-radius: var(--gallery-radius);
-  overflow: hidden;
-  background: var(--gallery-dark-code-bg);
-  border: 1px solid var(--gallery-dark-code-border);
-  width: 100%;
-}
-
-:is(.gallery-docs, .gallery-sandbox) .gallery-usage__pre {
-  background: var(--gallery-dark-code-bg) !important;
-  border: 1px solid var(--gallery-dark-code-border) !important;
-}
-
-.gallery-usage__code {
-  display: block;
-  font-family: var(--gallery-font-mono);
-  font-size: 12px;
-  line-height: 1.6;
-  color: var(--gallery-dark-code-text);
-  padding: 16px;
-  margin: 0;
-  white-space: pre;
-  word-break: normal;
-  overflow-x: auto;
-  background: var(--gallery-dark-code-bg);
-}
-
-:is(.gallery-docs, .gallery-sandbox) .gallery-usage__code {
-  background: var(--gallery-dark-code-bg) !important;
-  color: var(--gallery-dark-code-text) !important;
 }
 
 /* Responsive: maintain full width on all viewports */
@@ -1012,25 +916,6 @@ h3.gallery-docs__section-heading:first-child {
   inset: 0;
   z-index: 999;
   background: rgba(0, 0, 0, 0.4);
-}
-
-/* Debug hint for developers */
-.gallery-debug-hint {
-  margin-top: 24px;
-  padding: 10px 14px;
-  font-size: 12px;
-  color: var(--gallery-text-muted);
-  border: 1px dashed var(--gallery-border);
-  border-radius: var(--gallery-radius);
-  opacity: 0.6;
-}
-
-.gallery-debug-hint code {
-  font-family: var(--gallery-font-mono);
-  font-size: 12px;
-  background: var(--gallery-code-bg);
-  padding: 1px 4px;
-  border-radius: 3px;
 }
 
 .gallery-sidebar-toggle:checked ~ .gallery-overlay {
@@ -1158,11 +1043,6 @@ h3.gallery-docs__section-heading:first-child {
 
   .gallery-preview {
     padding: 20px;
-  }
-
-  .gallery-params {
-    display: block;
-    overflow-x: auto;
   }
 }
 
@@ -1412,21 +1292,6 @@ h3.gallery-docs__section-heading:first-child {
 .gallery-nav__link[data-depth="8"] { padding-left: 128px; }
 .gallery-nav__link[data-depth="9"] { padding-left: 144px; }
 .gallery-nav__link[data-depth="10"] { padding-left: 160px; }
-
-/* Static snapshot notice banner */
-.gallery-static-snapshot-notice {
-  display: none;
-  padding: 1rem;
-  margin-top: 1.5rem;
-  background: #fff8c5;
-  border: 1px solid #d4a72c;
-  border-left: 4px solid #d4a72c;
-  border-radius: 0 4px 4px 0;
-}
-
-.gallery-static-snapshot-notice p {
-  margin: 0.5rem 0 0;
-}
 
 /* Canvas Error styling */
 .gallery-canvas-error {

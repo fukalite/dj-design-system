@@ -1,0 +1,6 @@
+/* Divider — dds__primitives__divider. Moved from gallery.css. */
+
+.gallery-docs__divider {
+  border-top: 1px solid var(--gallery-pane-border);
+  margin: 20px 0 20px;
+}

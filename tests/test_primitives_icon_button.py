@@ -1,17 +1,12 @@
 """Tests for the Icon, Button and IconButton built-in primitives."""
 
-from html.parser import HTMLParser
-from pathlib import Path
-
 import pytest
-from django.template import Context, Template
 
-import dj_design_system
 from dj_design_system.services.media import FOUNDATION_CSS
 from dj_design_system.services.registry import component_registry
+from tests.html_utils import css_homes, render, root, tags
 
 
-STATIC = Path(dj_design_system.__file__).parent / "static" / "dj_design_system"
 SVG_ICONS = [
     "external-link",
     "eye",
@@ -23,31 +18,6 @@ SVG_ICONS = [
     "rtl",
 ]
 MASK_ICONS = ["component", "doc", "folder", "folder-open"]
-
-
-def render(source: str, **context) -> str:
-    html = Template("{% load design_components %}" + source).render(Context(context))
-    return html.strip()
-
-
-class _Tags(HTMLParser):
-    def __init__(self):
-        super().__init__()
-        self.tags: list[tuple[str, dict[str, str | None]]] = []
-
-    def handle_starttag(self, tag, attrs):
-        self.tags.append((tag, dict(attrs)))
-
-
-def tags(html: str) -> list[tuple[str, dict[str, str | None]]]:
-    """Return ``(tag, attrs)`` for every start tag, in document order."""
-    parser = _Tags()
-    parser.feed(html)
-    return parser.tags
-
-
-def root(html: str) -> tuple[str, dict[str, str | None]]:
-    return tags(html)[0]
 
 
 def _info(name: str):
@@ -269,9 +239,4 @@ class TestCssMovedNotCopied:
         ],
     )
     def test_rule_lives_only_in_owner(self, selector, owner):
-        homes = [
-            str(path.relative_to(STATIC))
-            for path in sorted(STATIC.rglob("*.css"))
-            if any(line.startswith(selector) for line in path.read_text().splitlines())
-        ]
-        assert homes == [owner]
+        assert css_homes(selector) == [owner]
