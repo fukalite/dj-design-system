@@ -1,0 +1,6 @@
+Phase 3: built-in asset convention
+
+- tests/test_builtin_conventions.py: explicit template renders with APP_DIRS-only TEMPLATES; Media resolves with default finders into static/dj_design_system/ui/; convention_violations() checker tested for conforming, format-string, stray media and co-located asset cases, ignores consumer apps; real registry has no violations.
+- No production code needed: Django already resolves explicit paths. Tests were green on first run, as the plan anticipated (guard for tracks 2-4).
+- ui/ directories are not committed as empty placeholders (git can't track empty dirs; a static .gitkeep would be collected by collectstatic). Track 2 creates them with the first component; the test fixture creates/removes them as needed.
+- just check, test (768) pass.
