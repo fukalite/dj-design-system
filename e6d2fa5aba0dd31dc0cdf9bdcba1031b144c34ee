@@ -1,0 +1,8 @@
+Track 3 Phase 1: layout components
+
+- components/layout/{gallery_shell,mobile_menu_toggle,sidebar,toolbar,split_pane,pane,page,prose}.py + templates + CSS + side-cars.
+- CSS moved with a span-cutting script (rules by exact selector, incl. @media inner rules); verified semantically that every original rule exists exactly once across gallery.css + ui/layout/*.css (only intentional split: pane-body/page responsive padding).
+- Wide (1800px) pane widths placed in split_pane.css; Prose/SplitPane Media list page.css/pane.css first.
+- Tie flips handled with :where(): section heading (vs .gallery-docs h3), .gallery-folder-contents h2 (vs .gallery-docs h2; caught by visual suite on folder pages).
+- Spec correction: gallery-markdown.css (md canvas widget) and gallery-highlight.css (shared Pygments) not moved under Prose.
+- tests/test_layout_components.py 36 tests; coverage 100%. just check/typecheck/test (923) pass; just visual 105/105.
