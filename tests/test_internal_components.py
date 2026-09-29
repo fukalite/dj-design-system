@@ -106,6 +106,11 @@ class TestIsInternal:
     def test_regular_consumer_component_is_not_internal(self, registry):
         assert not _info(registry, "consumer_app", "button").is_internal
 
+    def test_is_internal_is_cached(self, registry):
+        info = _info(registry, "dj_design_system", "crumb")
+        assert info.is_internal
+        assert "is_internal" in info.__dict__
+
     def test_meta_internal_is_not_inherited(self, registry):
         secret = _info(registry, "consumer_app", "secret").component_class
 
