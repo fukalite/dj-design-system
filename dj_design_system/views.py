@@ -330,7 +330,9 @@ def _render_component(request, context, node, app_label, path_parts):
     params = component_class.get_params()
 
     tag_signature = generate_tag_signature(
-        component_class, canvas_component_name=info.qualified_name, tag_name=info.name
+        component_class,
+        canvas_component_name=info.qualified_name,
+        tag_name=info.tag_name,
     )
     tag_signature_long = generate_tag_signature(
         component_class,
@@ -348,7 +350,7 @@ def _render_component(request, context, node, app_label, path_parts):
 
     param_rows = _build_param_rows(form, params, component_class)
     current_signature = _generate_signature_usage(
-        form, form_kwargs, params, component_class, info, tag_name=info.name
+        form, form_kwargs, params, component_class, info, tag_name=info.tag_name
     )
     current_signature_long = _generate_signature_usage(
         form, form_kwargs, params, component_class, info, tag_name=info.qualified_name

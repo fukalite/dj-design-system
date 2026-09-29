@@ -142,6 +142,15 @@ class ComponentInfo:
         return is_internal(self.component_class, self.app_label)
 
     @property
+    def tag_name(self) -> str:
+        """Return the tag name to show in usage examples.
+
+        The short ``name``, or the ``qualified_name`` for internal components,
+        which have no short tag.
+        """
+        return self.qualified_name if self.is_internal else self.name
+
+    @property
     def qualified_name(self) -> str:
         """Return a fully qualified tag name: ``app_label__path__name``.
 
