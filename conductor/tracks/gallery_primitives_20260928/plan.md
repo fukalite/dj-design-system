@@ -15,7 +15,7 @@ Builds the foundation stylesheet and primitive built-in components, moving their
 
 ---
 
-## Phase 2: `Icon`, `Button`, `IconButton`
+## Phase 2: `Icon`, `Button`, `IconButton` [checkpoint: 2b4d3c0]
 - [x] Task: Write Failing Tests (`Red Phase`) [2b4d3c0]
   - [x] `Icon` renders each named SVG/mask icon, with `aria-hidden` and size.
   - [x] `Button` renders variants and `aria-pressed` / `aria-expanded` / `aria-controls` correctly.
@@ -25,7 +25,7 @@ Builds the foundation stylesheet and primitive built-in components, moving their
   - [x] Move the related CSS rules (including responsive rules) out of the legacy stylesheets.
 - [x] Task: Refactor and Verify Coverage [2b4d3c0]
 - [x] Task: Confirm the track 0 visual baseline passes. [2b4d3c0]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [2b4d3c0]
 
 ---
 
