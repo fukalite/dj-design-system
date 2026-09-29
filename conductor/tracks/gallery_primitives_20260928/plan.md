@@ -16,15 +16,15 @@ Builds the foundation stylesheet and primitive built-in components, moving their
 ---
 
 ## Phase 2: `Icon`, `Button`, `IconButton`
-- [ ] Task: Write Failing Tests (`Red Phase`)
-  - [ ] `Icon` renders each named SVG/mask icon, with `aria-hidden` and size.
-  - [ ] `Button` renders variants and `aria-pressed` / `aria-expanded` / `aria-controls` correctly.
-  - [ ] `IconButton` renders `<a>` with `href` and `<button>` otherwise; requires a label.
-- [ ] Task: Implement to Pass Tests (`Green Phase`)
-  - [ ] Implement components, templates and gallery side-cars.
-  - [ ] Move the related CSS rules (including responsive rules) out of the legacy stylesheets.
-- [ ] Task: Refactor and Verify Coverage
-- [ ] Task: Confirm the track 0 visual baseline passes.
+- [x] Task: Write Failing Tests (`Red Phase`) [2b4d3c0]
+  - [x] `Icon` renders each named SVG/mask icon, with `aria-hidden` and size.
+  - [x] `Button` renders variants and `aria-pressed` / `aria-expanded` / `aria-controls` correctly.
+  - [x] `IconButton` renders `<a>` with `href` and `<button>` otherwise; requires a label.
+- [x] Task: Implement to Pass Tests (`Green Phase`) [2b4d3c0]
+  - [x] Implement components, templates and gallery side-cars.
+  - [x] Move the related CSS rules (including responsive rules) out of the legacy stylesheets.
+- [x] Task: Refactor and Verify Coverage [2b4d3c0]
+- [x] Task: Confirm the track 0 visual baseline passes. [2b4d3c0]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
