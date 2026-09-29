@@ -1,0 +1,1 @@
+CI fix for run 36565760847 (E2E failure: AttributeError 'Button' has no attribute 'qualified_name'). Reproduced locally; fixed test (ComponentInfo, /dds base URL, disabled_rules for page-level axe rules, dropped VisualRegressionPlugin). just e2e 40 passed locally. Plan: Phase 3 gains a task to screenshot built-in canvases in the pinned visual suite. User chose this approach.
