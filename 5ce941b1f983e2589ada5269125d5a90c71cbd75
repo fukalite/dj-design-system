@@ -6,3 +6,5 @@ Track 2 Phase 1: foundation stylesheet & internal media loading
 - ComponentInfo.tag_name (qualified for internal); views use it for short usage snippets.
 - tests/test_gallery_media.py (9). Canvas-own-media and consumer-exclusion tests passed before changes (behaviour already correct from track 1); now guarded.
 - just check, typecheck, test (797) pass; just visual 40/40 locally in Docker.
+
+Visual baseline: local just visual 40/40; CI run 36562515878 on 324e6b7 all green incl. Visual Regression.
