@@ -4,3 +4,8 @@ Phase 1: components package
 - tests/test_builtin_components.py: public imports, package-ness, base module identity, discovery of a temp subpackage appended to __path__ (app dj_design_system, relative_path fixture_nav), base classes never registered.
 - API docs point mkdocstrings at components.base so the classes still render.
 - just check, typecheck, test (736) pass.
+
+Phase 1 checkpoint (components package)
+
+Automated: just check, typecheck clean; just test 736 passed; coverage components/__init__ 100%, base 95%.
+Manual verification: user confirmed.
