@@ -3,14 +3,14 @@
 Builds the gallery's structural components, moving their CSS/JS out of the legacy assets without visual or behavioural change.
 
 ## Phase 1: Layout Components
-- [~] Task: Write Failing Tests (`Red Phase`)
-  - [ ] `GalleryShell`, `Sidebar`, `Toolbar`, `SplitPane`, `Pane`, `Page`, `Prose` render their slots with the legacy markup, classes and IDs.
-  - [ ] `MobileMenuToggle` renders the checkbox, label and overlay with the legacy IDs and ARIA.
-- [ ] Task: Implement to Pass Tests (`Green Phase`)
-  - [ ] Implement components, templates and gallery side-cars.
-  - [ ] Move shell, sidebar, toolbar, split-pane, page, hamburger and responsive CSS, and the `.gallery-markdown` rules under `Prose`. (Spec correction: `gallery-markdown.css` is the markdown canvas widget's CSS, so it moves with that widget in track 4; `gallery-highlight.css` is the shared Pygments theme used by `CodeBlock`, docs `<pre>` and the canvas widget, so it moves once those are all components.)
-- [ ] Task: Refactor and Verify Coverage
-- [ ] Task: Confirm the track 0 visual baseline passes.
+- [x] Task: Write Failing Tests (`Red Phase`) [e6d2fa5]
+  - [x] `GalleryShell`, `Sidebar`, `Toolbar`, `SplitPane`, `Pane`, `Page`, `Prose` render their slots with the legacy markup, classes and IDs.
+  - [x] `MobileMenuToggle` renders the checkbox, label and overlay with the legacy IDs and ARIA.
+- [x] Task: Implement to Pass Tests (`Green Phase`) [e6d2fa5]
+  - [x] Implement components, templates and gallery side-cars.
+  - [x] Move shell, sidebar, toolbar, split-pane, page, hamburger and responsive CSS, and the `.gallery-markdown` rules under `Prose`. (Spec correction: `gallery-markdown.css` is the markdown canvas widget's CSS, so it moves with that widget in track 4; `gallery-highlight.css` is the shared Pygments theme used by `CodeBlock`, docs `<pre>` and the canvas widget, so it moves once those are all components.)
+- [x] Task: Refactor and Verify Coverage [e6d2fa5]
+- [x] Task: Confirm the track 0 visual baseline passes. [07a8d4c]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
