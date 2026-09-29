@@ -14,5 +14,5 @@
 - [x] Task: Extract icon rendering logic in `navtree.html` to a reusable partial [f68e6d3]
 - [x] Task: Replace hardcoded CSS depth indentation with custom properties [cb8da7c]
 - [x] Task: Vendor HTMX locally to remove `unpkg.com` dependency [705c8a2]
-- [ ] Task: Fix BEM naming inconsistencies
+- [x] Task: Fix BEM naming inconsistencies [47121fa]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
