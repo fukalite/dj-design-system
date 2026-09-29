@@ -2,7 +2,7 @@
 
 Builds the foundation stylesheet and primitive built-in components, moving their CSS out of the legacy stylesheets without visual change.
 
-## Phase 1: Foundation Stylesheet & Internal Media Loading
+## Phase 1: Foundation Stylesheet & Internal Media Loading [checkpoint: 5ce941b]
 - [x] Task: Write Failing Tests (`Red Phase`) [5ce941b]
   - [x] `gallery/base.html` renders internal component `<link>`/`<script>` tags before the legacy stylesheets.
   - [x] `canvas_iframe_view` includes an internal component's own media when previewing it.
@@ -11,7 +11,7 @@ Builds the foundation stylesheet and primitive built-in components, moving their
   - [x] Move tokens, icon masks, typography variables and reset into `ui/foundation.css`.
   - [x] Load internal media in `base.html`; load previewed-component media in the canvas iframe view.
 - [x] Task: Confirm the track 0 visual baseline passes. [5ce941b] (CI run 36562515878)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [5ce941b]
 
 ---
 
