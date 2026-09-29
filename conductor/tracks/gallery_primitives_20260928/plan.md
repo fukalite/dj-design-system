@@ -30,15 +30,15 @@ Builds the foundation stylesheet and primitive built-in components, moving their
 ---
 
 ## Phase 3: `Divider`, `SectionHeading`, `CodeBlock`, `Notice`, `Table`
-- [ ] Task: Write Failing Tests (`Red Phase`)
-  - [ ] Each renders the legacy markup and classes; `SectionHeading` honours `level`.
-  - [ ] `CodeBlock` escapes plain input and passes through pre-highlighted HTML safely.
-  - [ ] `Notice` renders `warning` and `hint` variants; the snapshot variant includes its script with CSP nonce support.
-  - [ ] `Table` renders `head` and `body` slots.
-- [ ] Task: Implement to Pass Tests (`Green Phase`)
-  - [ ] Implement components, templates and gallery side-cars.
-  - [ ] Move related CSS rules and `gallery-snapshot-notice.js` into the component assets.
-- [ ] Task: Refactor and Verify Coverage
-- [ ] Task: Capture built-in component canvases in the pinned visual suite (`tests/e2e/visual/`): each built-in's basic and maximal examples in both gallery themes. Replaces the screenshot plugin dropped from `tests/e2e/test_package_components.py`, which had no deterministic rendering environment.
-- [ ] Task: Confirm the track 0 visual baseline passes.
+- [x] Task: Write Failing Tests (`Red Phase`) [88449d5]
+  - [x] Each renders the legacy markup and classes; `SectionHeading` honours `level`.
+  - [x] `CodeBlock` escapes plain input and passes through pre-highlighted HTML safely.
+  - [x] `Notice` renders `warning` and `hint` variants; the snapshot variant includes its script with CSP nonce support.
+  - [x] `Table` renders `head` and `body` slots.
+- [x] Task: Implement to Pass Tests (`Green Phase`) [88449d5]
+  - [x] Implement components, templates and gallery side-cars.
+  - [x] Move related CSS rules and `gallery-snapshot-notice.js` into the component assets.
+- [x] Task: Refactor and Verify Coverage [88449d5]
+- [x] Task: Capture built-in component canvases in the pinned visual suite (`tests/e2e/visual/`): each built-in's basic and maximal examples in both gallery themes. Replaces the screenshot plugin dropped from `tests/e2e/test_package_components.py`, which had no deterministic rendering environment. [8671bc3]
+- [x] Task: Confirm the track 0 visual baseline passes. [8671bc3]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
