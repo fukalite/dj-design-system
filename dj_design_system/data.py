@@ -129,7 +129,7 @@ class ComponentInfo:
 
         return {}, {}
 
-    @property
+    @cached_property
     def is_internal(self) -> bool:
         """Return True if this is an internal component.
 
