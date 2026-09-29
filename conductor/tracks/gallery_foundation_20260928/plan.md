@@ -34,7 +34,7 @@ This plan adds registry support for internal (package-owned) components and the 
 
 ---
 
-## Phase 3: Built-in Asset Convention
+## Phase 3: Built-in Asset Convention [checkpoint: 809eb48]
 - [x] Task: Write Failing Tests (`Red Phase`) [809eb48]
   - [x] Using a test-only built-in component fixture, verify its explicit `template_name` renders with `APP_DIRS: True` and without `ComponentsTemplateLoader`.
   - [x] Verify its `Media` paths resolve with only the default static finders.
@@ -43,7 +43,7 @@ This plan adds registry support for internal (package-owned) components and the 
   - [x] Create `templates/dj_design_system/ui/` and `static/dj_design_system/ui/` directories. (Not committed empty: git can't track empty directories and a static placeholder would be collected. Track 2 adds them with the first component.)
   - [x] Implement the convention test so it passes vacuously now and guards later tracks.
 - [x] Task: Refactor and Verify Coverage [809eb48]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [809eb48]
 
 ---
 
