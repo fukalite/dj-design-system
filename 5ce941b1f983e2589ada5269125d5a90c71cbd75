@@ -1,0 +1,8 @@
+Track 2 Phase 1: foundation stylesheet & internal media loading
+
+- ui/foundation.css: gallery.css lines 7-91 moved verbatim (gallery.css 1554 -> 1469 lines).
+- services/media.py: FOUNDATION_CSS, get_gallery_media() = foundation + internal media (deduped).
+- dj_design_system_gallery tags gallery_stylesheets / gallery_scripts (CSP nonce); base.html loads them before legacy CSS and before extra_js/legacy scripts.
+- ComponentInfo.tag_name (qualified for internal); views use it for short usage snippets.
+- tests/test_gallery_media.py (9). Canvas-own-media and consumer-exclusion tests passed before changes (behaviour already correct from track 1); now guarded.
+- just check, typecheck, test (797) pass; just visual 40/40 locally in Docker.
