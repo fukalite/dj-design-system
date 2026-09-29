@@ -3,3 +3,8 @@ Task: Verify visual-regression CI job
 - Stability: run 36549328837 on d6908bb green on attempts 1 and 2.
 - Sensitivity: b60fa2e (temporary red light-theme sidebar) failed in run 36549929875: exactly the 25 light-theme screenshots mismatched, the 15 dark passed; visual-regression-diffs artifact and job summary produced; ci-complete blocked.
 - Reverted in 0f76464 (net diff zero); run 36550723600 green.
+
+Phase 4 checkpoint (CI Job)
+
+Automated: just test 731 passed; CI run 36550723600 green (Visual Regression, CI Complete).
+Manual verification: user reviewed the failed run 36549929875 (summary + diffs artifact) and the green run on the revert, and confirmed.
