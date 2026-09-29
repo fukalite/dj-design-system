@@ -29,7 +29,7 @@ Builds the foundation stylesheet and primitive built-in components, moving their
 
 ---
 
-## Phase 3: `Divider`, `SectionHeading`, `CodeBlock`, `Notice`, `Table`
+## Phase 3: `Divider`, `SectionHeading`, `CodeBlock`, `Notice`, `Table` [checkpoint: 8671bc3]
 - [x] Task: Write Failing Tests (`Red Phase`) [88449d5]
   - [x] Each renders the legacy markup and classes; `SectionHeading` honours `level`.
   - [x] `CodeBlock` escapes plain input and passes through pre-highlighted HTML safely.
@@ -41,4 +41,4 @@ Builds the foundation stylesheet and primitive built-in components, moving their
 - [x] Task: Refactor and Verify Coverage [88449d5]
 - [x] Task: Capture built-in component canvases in the pinned visual suite (`tests/e2e/visual/`): each built-in's basic and maximal examples in both gallery themes. Replaces the screenshot plugin dropped from `tests/e2e/test_package_components.py`, which had no deterministic rendering environment. [8671bc3]
 - [x] Task: Confirm the track 0 visual baseline passes. [8671bc3]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [8671bc3]

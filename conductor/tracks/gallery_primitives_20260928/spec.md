@@ -43,11 +43,11 @@ Part of the gallery rebuild series (see `gallery_visual_baseline_20260928` for t
 - **Testing:** Unit tests assert rendered HTML (classes, ARIA, escaping); TDD per `workflow.md`; >80% coverage.
 
 ## Acceptance Criteria
-- [ ] `foundation.css` exists and is loaded first via internal media; legacy token definitions removed from `gallery.css`.
-- [ ] All eight components exist with templates, CSS, docstrings and gallery side-cars.
-- [ ] Their CSS rules have been moved (not copied) out of the legacy stylesheets.
-- [ ] Built-ins render in their own sandbox in the example project with correct styles.
-- [ ] track 0 visual baseline passes; `just check` and `just test` pass.
+- [x] `foundation.css` exists and is loaded first via internal media; legacy token definitions removed from `gallery.css`.
+- [x] All eight components exist with templates, CSS, docstrings and gallery side-cars.
+- [x] Their CSS rules have been moved (not copied) out of the legacy stylesheets.
+- [x] Built-ins render in their own sandbox in the example project with correct styles.
+- [x] track 0 visual baseline passes; `just check` and `just test` pass.
 
 ## Out of Scope
 - Using these components in the gallery templates (track 5).
