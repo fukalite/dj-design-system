@@ -21,6 +21,7 @@ from dj_design_system.services.canvas import (
 )
 from dj_design_system.services.media import get_bundle_urls
 from dj_design_system.services.registry import component_registry
+from dj_design_system.services.visibility import get_gallery_components
 from dj_design_system.settings import dds_settings
 
 
@@ -38,7 +39,7 @@ class ComponentRegistryView(View):
         return self.serializer_class(*args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        components = self.registry.list_all()
+        components = get_gallery_components(self.registry)
         serializer = self.get_serializer(components)
         return JsonResponse(serializer.data, safe=False)
 

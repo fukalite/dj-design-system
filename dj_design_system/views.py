@@ -43,6 +43,7 @@ from dj_design_system.services.tag_signature import (
     generate_tag_signature,
     highlight_html,
 )
+from dj_design_system.services.visibility import get_gallery_components
 from dj_design_system.settings import (
     dds_settings,
     get_app_html_attrs,
@@ -649,7 +650,7 @@ def _canvas_html_attrs(
 def gallery_index(request: HttpRequest) -> HttpResponse:
     """Gallery home — lists all registered components in the sidebar."""
     context = get_base_context(request)
-    context["total_components"] = len(component_registry.list_all())
+    context["total_components"] = len(get_gallery_components())
     return render(request, "dj_design_system/gallery/index.html", context)
 
 
