@@ -15,7 +15,7 @@ This plan adds registry support for internal (package-owned) components and the 
 
 ---
 
-## Phase 2: Internal Components
+## Phase 2: Internal Components [checkpoint: ba6b5e0]
 - [x] Task: Write Failing Tests (`Red Phase`) [ba6b5e0]
   - [x] `ComponentInfo.is_internal` is true for `dj_design_system` components and for `Meta.internal = True`.
   - [x] Internal components register only their qualified tag name; short names are not registered.
@@ -30,7 +30,7 @@ This plan adds registry support for internal (package-owned) components and the 
   - [x] Add the built-in `dds` prefix resolution.
   - [x] Add the internal-media accessor.
 - [x] Task: Refactor and Verify Coverage [ba6b5e0]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [ba6b5e0]
 
 ---
 
