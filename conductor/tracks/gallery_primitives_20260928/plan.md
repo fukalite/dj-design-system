@@ -39,5 +39,6 @@ Builds the foundation stylesheet and primitive built-in components, moving their
   - [ ] Implement components, templates and gallery side-cars.
   - [ ] Move related CSS rules and `gallery-snapshot-notice.js` into the component assets.
 - [ ] Task: Refactor and Verify Coverage
+- [ ] Task: Capture built-in component canvases in the pinned visual suite (`tests/e2e/visual/`): each built-in's basic and maximal examples in both gallery themes. Replaces the screenshot plugin dropped from `tests/e2e/test_package_components.py`, which had no deterministic rendering environment.
 - [ ] Task: Confirm the track 0 visual baseline passes.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
