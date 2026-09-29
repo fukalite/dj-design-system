@@ -4,3 +4,8 @@ Phase 3: built-in asset convention
 - No production code needed: Django already resolves explicit paths. Tests were green on first run, as the plan anticipated (guard for tracks 2-4).
 - ui/ directories are not committed as empty placeholders (git can't track empty dirs; a static .gitkeep would be collected by collectstatic). Track 2 creates them with the first component; the test fixture creates/removes them as needed.
 - just check, test (768) pass.
+
+Phase 3 checkpoint (Built-in Asset Convention)
+
+Automated: just check clean; just test 768 passed.
+Manual verification: user confirmed.
