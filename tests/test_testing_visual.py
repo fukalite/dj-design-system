@@ -111,7 +111,7 @@ class TestAssertMatchesBaseline:
         actual = _save(tmp_path / "actual" / "index.png", size=(10, 20))
         _save(baseline_dir / "index.png")
 
-        with pytest.raises(ScreenshotMismatch, match="size"):
+        with pytest.raises(ScreenshotMismatch, match=r"^index\.png: .*size"):
             assert_matches_baseline(
                 actual, baseline_dir / "index.png", failure_dir=failure_dir
             )
