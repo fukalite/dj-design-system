@@ -8,3 +8,8 @@ Phase 4: gallery visibility settings
 - just check, typecheck, test (788) pass; visibility.py 100% coverage.
 
 Visual baseline: CI run 36560122324 on b8def3c green (Visual Regression: 40 screenshots match track 0 baselines; CI Complete success).
+
+Phase 4 checkpoint (Gallery Visibility Settings)
+
+Automated: just check, typecheck clean; just test 788 passed; CI run 36560122324 green incl. Visual Regression.
+Manual verification: user confirmed (after clarifying GALLERY_EXCLUDE_APPS is defined in package defaults).
