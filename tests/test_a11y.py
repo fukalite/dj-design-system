@@ -248,3 +248,18 @@ class TestNavtreeAccessibility:
         )
         assert 'data-depth="3"' in html
         assert 'style="' not in html
+
+    def test_htmx_vendored_locally(self):
+        """HTMX should be vendored locally and not loaded from an external CDN."""
+        from pathlib import Path
+
+        htmx_path = Path("dj_design_system/static/dj_design_system/htmx.min.js")
+        assert htmx_path.exists()
+        assert htmx_path.stat().st_size > 10000
+
+        component_template = Path("dj_design_system/templates/dj_design_system/gallery/component.html").read_text(
+            encoding="utf-8"
+        )
+        assert "unpkg.com/htmx" not in component_template
+        assert "{% static 'dj_design_system/htmx.min.js' %}" in component_template
+
