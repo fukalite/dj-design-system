@@ -1,0 +1,8 @@
+Track 2 Phase 3: Divider, SectionHeading, CodeBlock, Notice, Table
+
+- Components, templates, CSS, side-cars under primitives/.
+- CSS moved from gallery.css: section heading (+:first-child) and usage heading, divider, usage pre/code (+ :is() !important overrides), params table (+ @media 768 rule), debug hint (+code), snapshot notice (+p; display:none now keyed on #static-snapshot-notice).
+- Specificity bumps where a moved rule previously won a tie by source order: .gallery-debug-hint.gallery-debug-hint code (vs .gallery-docs code), .gallery-static-snapshot-notice.gallery-static-snapshot-notice p (vs .gallery-docs p). Verified computed styles in browser: notice p margins 8px/0, hint code 12px / 1px 4px; notice hidden on localhost, shown on 0.0.0.0.
+- gallery-snapshot-notice.js git mv -> ui/primitives/notice.js; index.html script tag removed (gallery_scripts loads it with nonce).
+- Side-cars use slot__ prefix (note: demo quote_oneup_gallery.py uses slot_author, which the gallery ignores - pre-existing).
+- tests/test_primitives_content.py 42 tests; coverage 100%. just check/typecheck/test (887) pass.
