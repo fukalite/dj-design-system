@@ -27,7 +27,7 @@ Captures a deterministic Playwright screenshot baseline of the current gallery i
 
 ---
 
-## Phase 3: Screenshot Coverage
+## Phase 3: Screenshot Coverage [checkpoint: bd1b89d]
 - [x] Task: Capture Scrolling Regions [45ccfcb]
   - [x] The gallery shell scrolls inside the sidebar and main panes, so `full_page` screenshots stop at the viewport height (found in Phase 1 verification: nav items below the fold are cut off). Use a viewport tall enough to show all content, or capture each scroll container's full height separately; add a test that fails if content is clipped.
 - [x] Task: Static States [d6519d6]
@@ -40,7 +40,7 @@ Captures a deterministic Playwright screenshot baseline of the current gallery i
   - [x] Documentation / sandbox tab switch on a narrow viewport.
   - [x] Make canvas iframe capture deterministic: wait for the canvas-resize loop to converge and replay reports lost before the gallery listener attaches (issue #111).
 - [x] Task: Generate baselines with `just update-visual-baselines` against the current `main` gallery and commit them. [d6519d6, bd1b89d] (40 baselines)
-- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
 
