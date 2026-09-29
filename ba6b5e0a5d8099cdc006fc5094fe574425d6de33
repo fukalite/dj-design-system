@@ -5,3 +5,8 @@ Phase 2: internal components
 - registry: fixed dds prefix for built-ins in _resolve_namespace_prefix; no short tag names for internal; get_by_name(no app_label) skips internal (resolve_component inherits this); get_merged_media excludes internal; new get_internal_media.
 - tests/conftest.py builtin_modules factory (temp modules under dj_design_system.components); tests/test_internal_components.py 23 tests incl. both INSTALLED_APPS orders and markdown canvas media.
 - just check, typecheck, test (760) pass; coverage component 100%, registry 98%, data 95% (uncovered lines pre-existing).
+
+Phase 2 checkpoint (Internal Components)
+
+Automated: just check, typecheck clean; just test 760 passed; CI run 36559169510 green.
+Manual verification: user confirmed.
