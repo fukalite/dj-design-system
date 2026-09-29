@@ -112,3 +112,13 @@ def test_ci_visual_regression_job_writes_summary_on_failure():
 
 def test_ci_complete_requires_visual_regression():
     assert "visual-regression" in _ci_jobs()["ci-complete"]["needs"]
+
+
+def test_ci_runs_on_pull_requests_to_any_branch():
+    """Stacked PRs (based on another PR's branch) must get CI too."""
+    import yaml
+
+    workflow = yaml.safe_load((WORKFLOWS / "ci.yml").read_text())
+    triggers = workflow.get("on", workflow.get(True))  # PyYAML parses `on` as True
+    assert "pull_request" in triggers
+    assert not (triggers["pull_request"] or {}).get("branches")
