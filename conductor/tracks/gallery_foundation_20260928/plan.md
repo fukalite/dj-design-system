@@ -35,14 +35,14 @@ This plan adds registry support for internal (package-owned) components and the 
 ---
 
 ## Phase 3: Built-in Asset Convention
-- [ ] Task: Write Failing Tests (`Red Phase`)
-  - [ ] Using a test-only built-in component fixture, verify its explicit `template_name` renders with `APP_DIRS: True` and without `ComponentsTemplateLoader`.
-  - [ ] Verify its `Media` paths resolve with only the default static finders.
-  - [ ] Convention test: every built-in component declares `template_name` under `dj_design_system/ui/` and has no co-located `.html`/`.css`/`.js`.
-- [ ] Task: Implement to Pass Tests (`Green Phase`)
-  - [ ] Create `templates/dj_design_system/ui/` and `static/dj_design_system/ui/` directories.
-  - [ ] Implement the convention test so it passes vacuously now and guards later tracks.
-- [ ] Task: Refactor and Verify Coverage
+- [x] Task: Write Failing Tests (`Red Phase`) [809eb48]
+  - [x] Using a test-only built-in component fixture, verify its explicit `template_name` renders with `APP_DIRS: True` and without `ComponentsTemplateLoader`.
+  - [x] Verify its `Media` paths resolve with only the default static finders.
+  - [x] Convention test: every built-in component declares `template_name` under `dj_design_system/ui/` and has no co-located `.html`/`.css`/`.js`.
+- [x] Task: Implement to Pass Tests (`Green Phase`) [809eb48]
+  - [x] Create `templates/dj_design_system/ui/` and `static/dj_design_system/ui/` directories. (Not committed empty: git can't track empty directories and a static placeholder would be collected. Track 2 adds them with the first component.)
+  - [x] Implement the convention test so it passes vacuously now and guards later tracks.
+- [x] Task: Refactor and Verify Coverage [809eb48]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
