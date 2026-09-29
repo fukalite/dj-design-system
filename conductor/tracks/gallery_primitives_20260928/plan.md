@@ -10,7 +10,7 @@ Builds the foundation stylesheet and primitive built-in components, moving their
 - [x] Task: Implement to Pass Tests (`Green Phase`) [5ce941b]
   - [x] Move tokens, icon masks, typography variables and reset into `ui/foundation.css`.
   - [x] Load internal media in `base.html`; load previewed-component media in the canvas iframe view.
-- [ ] Task: Confirm the track 0 visual baseline passes.
+- [x] Task: Confirm the track 0 visual baseline passes. [5ce941b] (CI run 36562515878)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
@@ -24,7 +24,7 @@ Builds the foundation stylesheet and primitive built-in components, moving their
   - [ ] Implement components, templates and gallery side-cars.
   - [ ] Move the related CSS rules (including responsive rules) out of the legacy stylesheets.
 - [ ] Task: Refactor and Verify Coverage
-- [ ] Task: Confirm the track 0 visual baseline passes.
+- [x] Task: Confirm the track 0 visual baseline passes. [5ce941b] (CI run 36562515878)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
@@ -39,5 +39,5 @@ Builds the foundation stylesheet and primitive built-in components, moving their
   - [ ] Implement components, templates and gallery side-cars.
   - [ ] Move related CSS rules and `gallery-snapshot-notice.js` into the component assets.
 - [ ] Task: Refactor and Verify Coverage
-- [ ] Task: Confirm the track 0 visual baseline passes.
+- [x] Task: Confirm the track 0 visual baseline passes. [5ce941b] (CI run 36562515878)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
