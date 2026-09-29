@@ -1,0 +1,1 @@
+Widen pull_request trigger to all base branches so stacked PRs (#113 onward) get CI. Test: test_ci_runs_on_pull_requests_to_any_branch. just check/test pass (732).
