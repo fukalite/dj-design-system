@@ -13,6 +13,6 @@
 - [x] Task: Add missing CSS design tokens to `:root` and dark theme [1be5be1]
 - [x] Task: Extract icon rendering logic in `navtree.html` to a reusable partial [f68e6d3]
 - [x] Task: Replace hardcoded CSS depth indentation with custom properties [cb8da7c]
-- [ ] Task: Vendor HTMX locally to remove `unpkg.com` dependency
+- [x] Task: Vendor HTMX locally to remove `unpkg.com` dependency [705c8a2]
 - [ ] Task: Fix BEM naming inconsistencies
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
