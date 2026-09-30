@@ -26,12 +26,38 @@
         /* Sync from hash on load and hashchange */
         function syncFromHash() {
             var isSandbox = window.location.hash === "#pane-sandbox";
-            // If there's no hash but we have query params, default to sandbox
-            // so deeplinks work smoothly on mobile.
-            if (!window.location.hash && window.location.search && window.location.search !== "?") {
-                isSandbox = true;
+            if (!isSandbox) {
+                try {
+                    if (sessionStorage.getItem("gallery-variant-from-sandbox") === "true") {
+                        sessionStorage.removeItem("gallery-variant-from-sandbox");
+                        isSandbox = true;
+                    }
+                } catch (e) {
+                    // Fallback to docs
+                }
+            }
+            // If there's no hash and query params are present, only default to sandbox
+            // for parameter deeplinks, NOT for variant views. Variant views should always
+            // default to the documentation pane.
+            if (!isSandbox && !window.location.hash && window.location.search && window.location.search !== "?") {
+                try {
+                    var searchParams = new URLSearchParams(window.location.search);
+                    if (!searchParams.has("variant")) {
+                        var nonThemeKeys = Array.from(searchParams.keys()).filter(function (k) {
+                            return k !== "theme";
+                        });
+                        if (nonThemeKeys.length > 0) {
+                            isSandbox = true;
+                        }
+                    }
+                } catch (e) {
+                    // Fallback to docs
+                }
             }
             showPane(isSandbox, false);
+            if (isSandbox && window.location.hash !== "#pane-sandbox") {
+                history.replaceState(null, "", window.location.pathname + window.location.search + "#pane-sandbox");
+            }
         }
         syncFromHash();
         window.addEventListener("hashchange", syncFromHash);
@@ -41,6 +67,18 @@
             var isSandbox = sandbox.checked;
             if (isSandbox && window.location.hash !== "#pane-sandbox") {
                 history.replaceState(null, "", window.location.pathname + window.location.search + "#pane-sandbox");
+            }
+        });
+
+        /* Track variant preset changes initiated from sandbox toolbar */
+        document.addEventListener("change", function (e) {
+            if (e.target && e.target.matches("[data-gallery-variant-select]")) {
+                try {
+                    sessionStorage.setItem("gallery-variant-from-sandbox", "true");
+                } catch (err) {}
+                if (e.target.form && e.target.form.action && !e.target.form.action.includes("#pane-sandbox")) {
+                    e.target.form.action = e.target.form.action.split("#")[0] + "#pane-sandbox";
+                }
             }
         });
     }

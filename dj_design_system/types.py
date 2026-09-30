@@ -12,6 +12,7 @@ class NodeType(enum.Enum):
     FOLDER = "folder"
     COMPONENT = "component"
     DOCUMENT = "document"
+    VARIANT = "variant"
 
 
 class TagType(enum.Enum):

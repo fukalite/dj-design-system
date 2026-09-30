@@ -86,7 +86,10 @@ def test_playwright_assessment_plugin_navigates_with_json_params(mocker):
 
     plugin.run_assessment(mock_comp, "basic", "light")
     url = mock_page.goto.call_args[0][0]
-    assert "links=%5B%7B%22id%22%3A+%22intro%22%2C+%22text%22%3A+%22Introduction%22%7D%5D" in url
+    assert (
+        "links=%5B%7B%22id%22%3A+%22intro%22%2C+%22text%22%3A+%22Introduction%22%7D%5D"
+        in url
+    )
     assert "metadata=%7B%22tags%22%3A+%5B%22ui%22%2C+%22button%22%5D%7D" in url
 
 
@@ -266,7 +269,9 @@ def test_strict_html_parser_xhtml_self_closing_void_elements():
     from dj_design_system.testing.plugins import StrictHTMLParser
 
     parser = StrictHTMLParser()
-    parser.feed('<div><input type="range" /><br /><img src="foo.png" /><source srcset="test.webp" /></div>')
+    parser.feed(
+        '<div><input type="range" /><br /><img src="foo.png" /><source srcset="test.webp" /></div>'
+    )
     parser.close()
     assert parser.errors == []
 
@@ -296,6 +301,3 @@ def test_strict_html_parser_flags_explicit_closing_void_elements():
     parser.feed('<div><input type="text"></input></div>')
     parser.close()
     assert any("</input>" in err for err in parser.errors)
-
-
-

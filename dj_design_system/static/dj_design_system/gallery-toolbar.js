@@ -90,6 +90,18 @@
       },
       { signal: signal },
     );
+
+    document.addEventListener(
+      "keydown",
+      function (e) {
+        if (e.key === "Escape" && !panel.hidden) {
+          panel.hidden = true;
+          toggle.setAttribute("aria-expanded", "false");
+          toggle.focus();
+        }
+      },
+      { signal: signal },
+    );
   }
 
   /**
@@ -312,6 +324,64 @@
     }
     currentAbortController = new AbortController();
     var signal = currentAbortController.signal;
+
+    /* -- Variant preset selector -- */
+
+    var variantSelect = document.querySelector("[data-gallery-variant-select]");
+    if (variantSelect && variantSelect.form) {
+      var isKeyNav = false;
+      var lastValue = variantSelect.value;
+
+      variantSelect.addEventListener(
+        "keydown",
+        function (e) {
+          if (
+            e.key === "ArrowDown" ||
+            e.key === "ArrowUp" ||
+            e.key === "ArrowLeft" ||
+            e.key === "ArrowRight" ||
+            e.key === "PageUp" ||
+            e.key === "PageDown" ||
+            e.key === "Home" ||
+            e.key === "End"
+          ) {
+            isKeyNav = true;
+          } else if (e.key === "Enter") {
+            isKeyNav = false;
+            if (variantSelect.value !== lastValue) {
+              lastValue = variantSelect.value;
+              variantSelect.form.submit();
+            }
+          }
+        },
+        { signal: signal },
+      );
+
+      variantSelect.addEventListener(
+        "change",
+        function () {
+          if (!isKeyNav) {
+            lastValue = variantSelect.value;
+            variantSelect.form.submit();
+          }
+        },
+        { signal: signal },
+      );
+
+      variantSelect.addEventListener(
+        "blur",
+        function () {
+          if (isKeyNav) {
+            isKeyNav = false;
+            if (variantSelect.value !== lastValue) {
+              lastValue = variantSelect.value;
+              variantSelect.form.submit();
+            }
+          }
+        },
+        { signal: signal },
+      );
+    }
 
     /* -- Background colour -- */
 
@@ -654,6 +724,44 @@
         resizer.addEventListener("pointerup", onPointerUp);
         document.body.style.cursor = "ns-resize";
       }, { signal: signal });
+
+      resizer.addEventListener(
+        "keydown",
+        function (e) {
+          var step = 20;
+          var minHeight = 48;
+          var containerMax = container.offsetHeight - 50;
+          var thirtyVh = window.innerHeight * 0.3;
+          var maxAllowedByContent = Math.max(thirtyVh, drawer.scrollHeight);
+          var maxHeight = Math.min(containerMax, maxAllowedByContent);
+          var currentHeight = drawer.offsetHeight;
+
+          if (e.key === "ArrowUp") {
+            e.preventDefault();
+            var newHeight = Math.min(currentHeight + step, maxHeight);
+            drawer.style.height = newHeight + "px";
+            drawer.style.maxHeight = "none";
+            resizer.setAttribute("aria-valuenow", newHeight);
+          } else if (e.key === "ArrowDown") {
+            e.preventDefault();
+            var newHeight = Math.max(currentHeight - step, minHeight);
+            drawer.style.height = newHeight + "px";
+            drawer.style.maxHeight = "none";
+            resizer.setAttribute("aria-valuenow", newHeight);
+          } else if (e.key === "Home") {
+            e.preventDefault();
+            drawer.style.height = minHeight + "px";
+            drawer.style.maxHeight = "none";
+            resizer.setAttribute("aria-valuenow", minHeight);
+          } else if (e.key === "End") {
+            e.preventDefault();
+            drawer.style.height = maxHeight + "px";
+            drawer.style.maxHeight = "none";
+            resizer.setAttribute("aria-valuenow", maxHeight);
+          }
+        },
+        { signal: signal },
+      );
     }
   }
 

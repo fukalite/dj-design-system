@@ -145,4 +145,3 @@ class TestComponentRenderView:
                 "Failed to render component. Please check your parameters and template syntax."
                 in data["error"]
             )
-

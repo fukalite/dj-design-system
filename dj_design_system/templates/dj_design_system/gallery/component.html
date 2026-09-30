@@ -14,19 +14,19 @@
 
 {% block toolbar_actions %}
     {# Tab switcher — visible only on narrow viewports #}
-    <div class="gallery-tabs">
+    <div class="gallery-tabs"
+         role="radiogroup"
+         aria-label="Documentation and Sandbox view switcher">
         <input type="radio"
                name="gallery-tab"
                id="gallery-tab-docs"
                class="gallery-tabs__input"
-               checked
-               aria-hidden="true">
+               checked>
         <label for="gallery-tab-docs" class="gallery-tabs__label">Documentation</label>
         <input type="radio"
                name="gallery-tab"
                id="gallery-tab-sandbox"
-               class="gallery-tabs__input"
-               aria-hidden="true">
+               class="gallery-tabs__input">
         <label for="gallery-tab-sandbox" class="gallery-tabs__label">Sandbox</label>
     </div>
 {% endblock %}
@@ -40,26 +40,26 @@
             <div class="gallery-split__pane-header">Documentation</div>
             <div class="gallery-docs gallery-split__pane-body">
 
-                {# 1. Component docstring (class-level description) #}
-                {% if component_description %}
-                    <h3 class="gallery-docs__section-heading">Description</h3>
-                    <div class="gallery-markdown">{{ component_description|safe }}</div>
-                {% endif %}
+                {% if active_variant %}
+                    {# ── Focused Variant View ── #}
+                    <div class="gallery-variant-view">
+                        <div class="gallery-variant-view__header">
+                            <span class="gallery-variant-view__badge">Variant</span>
+                            <h2 class="gallery-variant-view__title">{{ active_variant.label }}</h2>
+                        </div>
+                        {% if variant_description %}
+                            <div class="gallery-markdown gallery-variant-view__description">{{ variant_description|safe }}</div>
+                        {% endif %}
 
-                {# 2. Tag usage examples with live previews #}
-                {% if tag_signature %}
-                    <hr class="gallery-docs__divider">
-                    <h3 class="gallery-docs__section-heading">Usage</h3>
-                    <div class="gallery-usage">
                         <div class="gallery-usage__block">
-                            <h4 class="gallery-usage__heading">Minimal example</h4>
-                            {% if minimal_preview_url %}
+                            <h4 class="gallery-usage__heading">Preview</h4>
+                            {% if variant_preview_url %}
                                 <div class="gallery-doc-preview">
                                     <iframe class="gallery-canvas gallery-doc-preview__iframe"
-                                            src="{{ minimal_preview_url }}"
-                                            name="minimal"
-                                            data-canvas-id="minimal"
-                                            title="Minimal example preview"></iframe>
+                                            src="{{ variant_preview_url }}"
+                                            name="variant"
+                                            data-canvas-id="variant"
+                                            title="{{ active_variant.label }} preview"></iframe>
                                     <a class="gallery-doc-preview__sandbox-link"
                                        href="#pane-sandbox"
                                        title="Open in sandbox">
@@ -77,41 +77,83 @@
                                     </a>
                                 </div>
                             {% endif %}
-                            <pre class="gallery-usage__pre"><code class="gallery-usage__code">{% if tag_signature.minimal_html %}{{ tag_signature.minimal_html|safe }}{% else %}{{ tag_signature.minimal }}{% endif %}</code></pre>
-                        </div>
-                        <div class="gallery-usage__block">
-                            <h4 class="gallery-usage__heading">Bigger example</h4>
-                            {% if maximal_preview_url %}
-                                <div class="gallery-doc-preview">
-                                    <iframe class="gallery-canvas gallery-doc-preview__iframe"
-                                            src="{{ maximal_preview_url }}"
-                                            name="maximal"
-                                            data-canvas-id="maximal"
-                                            title="Bigger example preview"></iframe>
-                                    <a class="gallery-doc-preview__sandbox-link"
-                                       href="#pane-sandbox"
-                                       title="Open in sandbox">
-                                        <svg width="14"
-                                             height="14"
-                                             viewBox="0 0 24 24"
-                                             fill="none"
-                                             stroke="currentColor"
-                                             stroke-width="2"
-                                             stroke-linecap="round"
-                                             stroke-linejoin="round">
-                                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                                            <polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
-                                        </svg>
-                                    </a>
-                                </div>
-                            {% endif %}
-                            <pre class="gallery-usage__pre"><code class="gallery-usage__code">{% if tag_signature.maximal_html %}{{ tag_signature.maximal_html|safe }}{% else %}{{ tag_signature.maximal }}{% endif %}</code></pre>
-                        </div>
-                        <div class="gallery-usage__block">
-                            <h4 class="gallery-usage__heading">Qualified tag usage</h4>
-                            <pre class="gallery-usage__pre"><code class="gallery-usage__code">{% if tag_signature_long.minimal_html %}{{ tag_signature_long.minimal_html|safe }}{% else %}{{ tag_signature_long.minimal }}{% endif %}</code></pre>
+                            <pre class="gallery-usage__pre"><code class="gallery-usage__code">{% if variant_signature.minimal_html %}{{ variant_signature.minimal_html|safe }}{% else %}{{ variant_signature.minimal }}{% endif %}</code></pre>
                         </div>
                     </div>
+                {% else %}
+                    {# 1. Component docstring (class-level description) #}
+                    {% if component_description %}
+                        <h3 class="gallery-docs__section-heading">Description</h3>
+                        <div class="gallery-markdown">{{ component_description|safe }}</div>
+                    {% endif %}
+
+                    {# 2. Tag usage examples with live previews #}
+                    {% if tag_signature %}
+                        <hr class="gallery-docs__divider">
+                        <h3 class="gallery-docs__section-heading">Usage</h3>
+                        <div class="gallery-usage">
+                            <div class="gallery-usage__block">
+                                <h4 class="gallery-usage__heading">Minimal example</h4>
+                                {% if minimal_preview_url %}
+                                    <div class="gallery-doc-preview">
+                                        <iframe class="gallery-canvas gallery-doc-preview__iframe"
+                                                src="{{ minimal_preview_url }}"
+                                                name="minimal"
+                                                data-canvas-id="minimal"
+                                                title="Minimal example preview"></iframe>
+                                        <a class="gallery-doc-preview__sandbox-link"
+                                           href="#pane-sandbox"
+                                           title="Open in sandbox">
+                                            <svg width="14"
+                                                 height="14"
+                                                 viewBox="0 0 24 24"
+                                                 fill="none"
+                                                 stroke="currentColor"
+                                                 stroke-width="2"
+                                                 stroke-linecap="round"
+                                                 stroke-linejoin="round">
+                                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                                                <polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
+                                            </svg>
+                                        </a>
+                                    </div>
+                                {% endif %}
+                                <pre class="gallery-usage__pre"><code class="gallery-usage__code">{% if tag_signature.minimal_html %}{{ tag_signature.minimal_html|safe }}{% else %}{{ tag_signature.minimal }}{% endif %}</code></pre>
+                            </div>
+                            <div class="gallery-usage__block">
+                                <h4 class="gallery-usage__heading">Bigger example</h4>
+                                {% if maximal_preview_url %}
+                                    <div class="gallery-doc-preview">
+                                        <iframe class="gallery-canvas gallery-doc-preview__iframe"
+                                                src="{{ maximal_preview_url }}"
+                                                name="maximal"
+                                                data-canvas-id="maximal"
+                                                title="Bigger example preview"></iframe>
+                                        <a class="gallery-doc-preview__sandbox-link"
+                                           href="#pane-sandbox"
+                                           title="Open in sandbox">
+                                            <svg width="14"
+                                                 height="14"
+                                                 viewBox="0 0 24 24"
+                                                 fill="none"
+                                                 stroke="currentColor"
+                                                 stroke-width="2"
+                                                 stroke-linecap="round"
+                                                 stroke-linejoin="round">
+                                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                                                <polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
+                                            </svg>
+                                        </a>
+                                    </div>
+                                {% endif %}
+                                <pre class="gallery-usage__pre"><code class="gallery-usage__code">{% if tag_signature.maximal_html %}{{ tag_signature.maximal_html|safe }}{% else %}{{ tag_signature.maximal }}{% endif %}</code></pre>
+                            </div>
+                            <div class="gallery-usage__block">
+                                <h4 class="gallery-usage__heading">Qualified tag usage</h4>
+                                <pre class="gallery-usage__pre"><code class="gallery-usage__code">{% if tag_signature_long.minimal_html %}{{ tag_signature_long.minimal_html|safe }}{% else %}{{ tag_signature_long.minimal }}{% endif %}</code></pre>
+                            </div>
+                        </div>
+                    {% endif %}
                 {% endif %}
 
                 {# 3. Parameters table (read-only — interactive form is in the Sandbox) #}
@@ -190,6 +232,6 @@
             {% if request.csp_nonce %}nonce="{{ request.csp_nonce }}"{% endif %}></script>
     <script src="{% static 'dj_design_system/gallery-toolbar.js' %}"
             {% if request.csp_nonce %}nonce="{{ request.csp_nonce }}"{% endif %}></script>
-    <script src="https://unpkg.com/htmx.org@2.0.10/dist/htmx.min.js"
+    <script src="{% static 'dj_design_system/htmx.min.js' %}"
             {% if request.csp_nonce %}nonce="{{ request.csp_nonce }}"{% endif %}></script>
 {% endblock %}

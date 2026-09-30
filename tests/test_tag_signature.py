@@ -345,7 +345,6 @@ class TestTagSignatureEdgeCases:
         assert sig.minimal_spec.params.get("label") == "foo"
         assert sig.maximal_spec.params.get("label") == "foo"
 
-
     def test_bool_css_no_default_generates_true(self):
         """BoolCSSClassParam with no default returns True as example value."""
         sig = generate_tag_signature(BoolCSSNoDefaultComponent)
@@ -519,4 +518,3 @@ class TestRequiredKeywordParam:
         assert sig.maximal_spec.params.get("title") == "foo"
         assert 'subtitle="Default Subtitle"' in sig.maximal
         assert sig.maximal_spec.params.get("subtitle") == "Default Subtitle"
-

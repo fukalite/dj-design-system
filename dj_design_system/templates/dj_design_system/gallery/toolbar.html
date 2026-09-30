@@ -2,6 +2,33 @@
 {% load static %}
 <div class="gallery-sandbox-toolbar"
      data-measure-script="{% static 'dj_design_system/gallery-measure.js' %}">
+    {# ── Variant Presets ── #}
+    {% if gallery_variants %}
+        <form method="get"
+              action="{{ component_base_url }}#pane-sandbox"
+              class="gallery-sandbox-toolbar__group gallery-sandbox-toolbar__presets">
+            {% if active_theme %}<input type="hidden" name="theme" value="{{ active_theme }}">{% endif %}
+            <label for="gallery-variant-select" class="gallery-visually-hidden">Preset:</label>
+            <select id="gallery-variant-select"
+                    name="variant"
+                    class="gallery-sandbox-toolbar__select"
+                    data-gallery-variant-select
+                    aria-label="Select variant preset"
+                    title="Select variant preset">
+                <option value=""{% if not active_variant %} selected{% endif %}>Default</option>
+                {% for v in gallery_variants %}
+                    <option value="{{ v.name }}"
+                            {% if active_variant and active_variant.name == v.name %}selected{% endif %}>
+                        {{ v.label }}
+                    </option>
+                {% endfor %}
+            </select>
+            <noscript>
+                <button type="submit" class="gallery-sandbox-toolbar__btn">Apply</button>
+            </noscript>
+        </form>
+    {% endif %}
+
     {# ── Background colour ── #}
     <div class="gallery-sandbox-toolbar__group gallery-sandbox-toolbar__bg">
         <button class="gallery-sandbox-toolbar__btn gallery-sandbox-toolbar__bg-toggle"
@@ -21,7 +48,7 @@
                         type="button"
                         data-bg="{{ bg.value }}"
                         title="{{ bg.label }}">
-                    <span class="gallery-sandbox-toolbar__bg-chip gallery-bg-chip-{{ bg.value }}"></span>
+                    <span class="gallery-sandbox-toolbar__bg-chip gallery-sandbox-toolbar__bg-chip--{{ bg.value }} gallery-bg-chip-{{ bg.value }}"></span>
                     <span class="gallery-sandbox-toolbar__bg-option-label">{{ bg.label }}</span>
                 </button>
             {% endfor %}

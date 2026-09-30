@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+from collections import OrderedDict
+from functools import lru_cache
 from html.parser import HTMLParser
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+from urllib.parse import urlencode
 
 import markdown as markdown_lib
 from django.apps import apps
@@ -14,6 +17,10 @@ from dj_design_system.data import NavNode
 from dj_design_system.services.registry import component_registry
 from dj_design_system.settings import dds_settings
 from dj_design_system.types import NodeType
+
+
+_SEARCH_INDEX_CACHE_MAXSIZE = 32
+_SEARCH_INDEX_CACHE: OrderedDict[tuple[Any, ...], list[dict]] = OrderedDict()
 
 
 if TYPE_CHECKING:
@@ -72,18 +79,25 @@ class _AppTreeBuilder:
         self.root = app_node
         self._nodes_by_path: dict[str, NavNode] = {}
 
-    def get_or_create_folder(self, path_parts: list[str]) -> NavNode:
+    def get_or_create_folder(
+        self, path_parts: list[str], labels_by_depth: dict[int, str] | None = None
+    ) -> NavNode:
         """Return the node at *path_parts*, creating intermediate folders as needed."""
         current = self.root
         for depth in range(len(path_parts)):
             path_key = "/".join(path_parts[: depth + 1])
             if path_key not in self._nodes_by_path:
-                node = NavNode(
-                    label=to_display_label(
+                label = (
+                    labels_by_depth[depth]
+                    if labels_by_depth and depth in labels_by_depth
+                    else to_display_label(
                         path_parts[depth],
                         app_label=self.root.slug,
                         path=".".join(path_parts[: depth + 1]),
-                    ),
+                    )
+                )
+                node = NavNode(
+                    label=label,
                     slug=path_parts[depth],
                     node_type=NodeType.FOLDER,
                 )
@@ -92,21 +106,53 @@ class _AppTreeBuilder:
             current = self._nodes_by_path[path_key]
         return current
 
+    def _attach_variants(self, node: NavNode, info: ComponentInfo) -> None:
+        """Attach visible variants as child nodes under a component node."""
+        for i, variant in enumerate(info.gallery_config.variants):
+            if variant.show_in_nav:
+                variant_node = NavNode(
+                    label=variant.label or to_display_label(variant.name),
+                    slug=variant.name,
+                    node_type=NodeType.VARIANT,
+                    variant=variant,
+                    icon=variant.icon,
+                    order=i,
+                )
+                node.children.append(variant_node)
+
     def add_component(self, info: ComponentInfo) -> None:
         """Add a component to the tree, applying the leaf-folder collapsing rule."""
+        if info.gallery_config.hidden:
+            return
+
         collapsed_parts = _effective_path_parts(info)
         raw_parts = info.relative_path.split(".") if info.relative_path else []
         is_collapsed = len(raw_parts) > len(collapsed_parts)
 
-        parent = self.get_or_create_folder(collapsed_parts)
+        labels_by_depth: dict[int, str] = {}
+        target_parts = list(collapsed_parts)
 
-        if is_collapsed:
+        if info.gallery_config.group:
+            group_segments = [
+                s.strip() for s in info.gallery_config.group.split("/") if s.strip()
+            ]
+            for seg in group_segments:
+                depth = len(target_parts)
+                labels_by_depth[depth] = seg
+                target_parts.append(seg.lower().replace(" ", "_"))
+
+        parent = self.get_or_create_folder(
+            target_parts, labels_by_depth=labels_by_depth
+        )
+
+        if is_collapsed and not info.gallery_config.group:
             raw_path = "/".join(raw_parts)
             if raw_path in self._nodes_by_path:
                 existing = self._nodes_by_path[raw_path]
                 existing.upgrade_to_component(
                     info, to_display_label(info.name, component=info)
                 )
+                self._attach_variants(existing, info)
                 return
 
         node = NavNode(
@@ -114,10 +160,13 @@ class _AppTreeBuilder:
             slug=info.name,
             node_type=NodeType.COMPONENT,
             component=info,
+            icon=info.gallery_config.icon,
+            order=info.gallery_config.order,
         )
+        self._attach_variants(node, info)
         parent.children.append(node)
 
-        if is_collapsed:
+        if is_collapsed and not info.gallery_config.group:
             self._nodes_by_path["/".join(raw_parts)] = node
 
     def add_markdown(self, dir_parts: list[str], md_path: Path) -> None:
@@ -153,19 +202,53 @@ def _discover_markdown_files(components_root: Path) -> list[tuple[list[str], Pat
 
 
 def _sort_children(node: NavNode) -> None:
-    """Recursively sort children by the configured type order, then alphabetically."""
+    """Recursively sort children by the configured type order, then order, then alphabetically."""
     nav_order = dds_settings.GALLERY_NAV_ORDER
 
-    def _sort_key(child: NavNode) -> tuple[int, str]:
+    def _sort_key(child: NavNode) -> tuple[int, int, str]:
         if not isinstance(nav_order, list):
-            return (0, child.label.lower())
+            return (0, child.order, child.label.lower())
 
         rank = {nt: i for i, nt in enumerate(nav_order)}
-        return (rank.get(child.node_type, len(nav_order)), child.label.lower())
+        return (
+            rank.get(child.node_type, len(nav_order)),
+            child.order,
+            child.label.lower(),
+        )
 
     node.children.sort(key=_sort_key)
     for child in node.children:
         _sort_children(child)
+
+
+def resolve_node_url(node: NavNode) -> str:
+    """Return the gallery URL for a NavNode.
+
+    Requires ``_app_label`` and ``_path_parts`` to be set via ``_annotate_paths``.
+    """
+    app = node._app_label or node.slug
+    path = "/".join(node._path_parts)
+
+    if not path:
+        base_url = reverse("gallery-node-root", kwargs={"app_label": app})
+    else:
+        base_url = reverse("gallery-node", kwargs={"app_label": app, "path": path})
+
+    if node.node_type == NodeType.VARIANT:
+        sep = "&" if "?" in base_url else "?"
+        return f"{base_url}{sep}{urlencode({'variant': node.slug})}"
+    return base_url
+
+
+def resolve_node_active_path(node: NavNode) -> str:
+    """Return a slash-joined path for active-state matching in the nav tree."""
+    gallery_root = reverse("gallery")
+    return resolve_node_url(node).removeprefix(gallery_root).rstrip("/")
+
+
+def resolve_node_base_active_path(node: NavNode) -> str:
+    """Return the active path without query parameters."""
+    return resolve_node_active_path(node).split("?")[0].rstrip("/")
 
 
 def _annotate_paths(
@@ -173,7 +256,7 @@ def _annotate_paths(
     app_label: str = "",
     parent_parts: list[str] | None = None,
 ) -> None:
-    """Recursively set ``_app_label`` and ``_path_parts`` on every node."""
+    """Recursively set ``_app_label``, ``_path_parts``, and precomputed URLs on every node."""
     if parent_parts is None:
         parent_parts = []
 
@@ -182,18 +265,40 @@ def _annotate_paths(
         node._path_parts = []
         child_app = node.slug
         child_parts: list[str] = []
+    elif node.node_type == NodeType.VARIANT:
+        node._path_parts = list(parent_parts)
+        child_app = app_label
+        child_parts = node._path_parts
     else:
         node._path_parts = parent_parts + [node.slug]
         child_app = app_label
         child_parts = node._path_parts
 
+    node.url = resolve_node_url(node)
+    node.active_path = resolve_node_active_path(node)
+    node.base_active_path = resolve_node_base_active_path(node)
+
     for child in node.children:
         _annotate_paths(child, app_label=child_app, parent_parts=child_parts)
 
 
-def build_navigation() -> list[NavNode]:
-    """Build the full gallery navigation tree from the component registry and markdown files."""
+@lru_cache(maxsize=1)
+def _cached_build_navigation() -> list[NavNode]:
     return _build_navigation()
+
+
+def build_navigation() -> list[NavNode]:
+    """Build the full gallery navigation tree from the component registry and markdown files (cached)."""
+    return _cached_build_navigation()
+
+
+def clear_navigation_cache() -> None:
+    """Clear cached navigation tree and search index."""
+    _cached_build_navigation.cache_clear()
+    clear_search_index_cache()
+
+
+setattr(build_navigation, "cache_clear", clear_navigation_cache)
 
 
 def _build_navigation(
@@ -351,6 +456,9 @@ def _collect_search_entries(
         doc = (node.component.component_class.__doc__ or "").strip()
         if doc:
             content_parts.append(strip_markdown(doc))
+    elif node.is_variant and node.variant is not None:
+        if node.variant.description:
+            content_parts.append(strip_markdown(node.variant.description))
     if node.has_index_doc and node.index_doc_path is not None:
         try:
             raw = node.index_doc_path.read_text(encoding="utf-8")
@@ -367,7 +475,7 @@ def _collect_search_entries(
     entries.append(
         {
             "label": node.label,
-            "url": node.url,
+            "url": resolve_node_url(node),
             "type": node.node_type.value,
             "breadcrumb": breadcrumb,
             "content": " ".join(content_parts),
@@ -379,12 +487,42 @@ def _collect_search_entries(
         _collect_search_entries(child, child_ancestors, entries)
 
 
-def build_search_index(nav_tree: list[NavNode]) -> list[dict]:
-    """Build a flat list of search index entries from the navigation tree."""
+@lru_cache(maxsize=1)
+def _cached_global_search_index() -> list[dict]:
+    entries: list[dict] = []
+    for app_node in _cached_build_navigation():
+        _collect_search_entries(app_node, [], entries)
+    return entries
+
+
+def build_search_index(nav_tree: list[NavNode] | None = None) -> list[dict]:
+    """Build a flat list of search index entries from the navigation tree (cached)."""
+    if nav_tree is None or nav_tree is _cached_build_navigation():
+        return _cached_global_search_index()
+
+    tree_key = (id(nav_tree), len(nav_tree), tuple(id(n) for n in nav_tree))
+    if tree_key in _SEARCH_INDEX_CACHE:
+        _SEARCH_INDEX_CACHE.move_to_end(tree_key)
+        return _SEARCH_INDEX_CACHE[tree_key]
+
     entries: list[dict] = []
     for app_node in nav_tree:
         _collect_search_entries(app_node, [], entries)
+
+    _SEARCH_INDEX_CACHE[tree_key] = entries
+    if len(_SEARCH_INDEX_CACHE) > _SEARCH_INDEX_CACHE_MAXSIZE:
+        _SEARCH_INDEX_CACHE.popitem(last=False)
+
     return entries
+
+
+def clear_search_index_cache() -> None:
+    """Clear cached search index."""
+    _cached_global_search_index.cache_clear()
+    _SEARCH_INDEX_CACHE.clear()
+
+
+setattr(build_search_index, "cache_clear", clear_search_index_cache)
 
 
 def build_breadcrumbs(
