@@ -1,7 +1,8 @@
-/**
- * Gallery toolbar – background colour popout + zoom popout.
+/* SandboxToolbar — dds__sandbox__sandbox_toolbar. Moved from gallery-toolbar.js.
  *
- * Communicates with the sandbox iframe via contentDocument (same-origin).
+ * Applies the toolbar's background, viewport and zoom choices (the popouts
+ * named bg, viewport and zoom by data-gallery-panel) to the sandbox iframe.
+ * Communicates with the iframe via contentDocument (same-origin).
  *
  * initToolbar() is called on first load and again after every HTMX swap of
  * #gallery-sandbox-body, so the toolbar stays functional when component
@@ -24,14 +25,6 @@
   var currentZoom = null; // integer percent, e.g. 100
   var currentViewportWidth = null; // px integer, null = responsive
 
-  // On/off toggle states – objects so initToggle can mutate .active and .cleanup in place.
-  var outlineState = { active: false, cleanup: null };
-  var rtlState = { active: false, cleanup: null };
-  var measureState = { active: false, cleanup: null };
-
-  // Resolved once and kept in scope so applyIframeEffects can access it.
-  var measureScriptSrc = null;
-
   /* ---- Helpers --------------------------------------------------- */
 
   function getSandboxIframe() {
@@ -44,104 +37,6 @@
     } catch (e) {
       return null;
     }
-  }
-
-  function getIframeDocument() {
-    var iframe = getSandboxIframe();
-    if (!iframe) return null;
-    try {
-      return iframe.contentDocument;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  /**
-   * Wire up a toggle button + popout panel pair.
-   * Handles open/close, outside-click dismissal, and closing sibling popouts.
-   *
-   * @param {Element} toggle
-   * @param {Element} panel
-   * @param {AbortSignal} signal  Used to remove the document click listener on re-init.
-   */
-  function initPopout(toggle, panel, signal) {
-    if (!toggle || !panel) return;
-
-    toggle.addEventListener("click", function () {
-      var opening = panel.hidden;
-      closeAllPopouts();
-      if (opening) {
-        panel.hidden = false;
-        toggle.setAttribute("aria-expanded", "true");
-      }
-    });
-
-    document.addEventListener(
-      "click",
-      function (e) {
-        if (
-          !panel.hidden &&
-          !toggle.contains(e.target) &&
-          !panel.contains(e.target)
-        ) {
-          panel.hidden = true;
-          toggle.setAttribute("aria-expanded", "false");
-        }
-      },
-      { signal: signal },
-    );
-  }
-
-  /**
-   * Wire up a simple on/off toggle button with aria-pressed.
-   *
-   * @param {string} selector  CSS selector for the toggle button.
-   * @param {function} onActivate  Called with (iframeDoc) when toggling on. Should return a cleanup function.
-   * @param {{ active: boolean, cleanup: ?function }} state  Shared state object persisted across
-   *   re-inits. .active tracks on/off; .cleanup holds the teardown function for the current effect.
-   */
-  function initToggle(selector, onActivate, state) {
-    var btn = document.querySelector(selector);
-    if (!btn) return;
-
-    // Restore button visual state after a re-init.
-    // iframe effects are re-applied by reapplyToggleEffects() on the iframe load event.
-    if (state.active) {
-      btn.setAttribute("aria-pressed", "true");
-      btn.classList.add("gallery-sandbox-toolbar__btn--active");
-    }
-
-    btn.addEventListener("click", function () {
-      var doc = getIframeDocument();
-      if (!doc) return;
-
-      if (state.active) {
-        if (state.cleanup) {
-          state.cleanup(doc);
-          state.cleanup = null;
-        }
-        state.active = false;
-        btn.setAttribute("aria-pressed", "false");
-        btn.classList.remove("gallery-sandbox-toolbar__btn--active");
-      } else {
-        state.cleanup = onActivate(doc);
-        state.active = true;
-        btn.setAttribute("aria-pressed", "true");
-        btn.classList.add("gallery-sandbox-toolbar__btn--active");
-      }
-    });
-  }
-
-  /** Close every popout on the toolbar. */
-  function closeAllPopouts() {
-    document
-      .querySelectorAll(".gallery-sandbox-toolbar__popout")
-      .forEach(function (p) {
-        p.hidden = true;
-      });
-    document.querySelectorAll("[aria-expanded]").forEach(function (btn) {
-      btn.setAttribute("aria-expanded", "false");
-    });
   }
 
   /**
@@ -185,36 +80,13 @@
     }
   }
 
-  /* ---- Constants ------------------------------------------------- */
-
-  var OUTLINE_STYLE_ID = "gallery-box-model-outline";
-  var outlineCSS =
-    ".canvas-wrapper > * { outline: 2px solid rgba(255, 140, 0, 0.5) !important; " +
-    "background-color: rgba(65, 105, 225, 0.2) !important; }" +
-    ".canvas-wrapper > * * { outline: 2px solid rgba(255, 140, 0, 0.5) !important; " +
-    "box-shadow: inset 0 0 0 1000px rgba(50, 205, 50, 0.12) !important; }";
-
-  var MEASURE_STYLE_ID = "gallery-measure-style";
-  var measureCSS = [
-    ".gallery-measure-overlay { position: absolute; pointer-events: none; z-index: 99999; }",
-    ".gallery-measure-margin { background: rgba(255, 165, 0, 0.3); }",
-    ".gallery-measure-padding { background: rgba(50, 205, 50, 0.25); }",
-    ".gallery-measure-content { background: rgba(65, 105, 225, 0.15); }",
-    ".gallery-measure-label {",
-    "  position: absolute; pointer-events: none; z-index: 100000;",
-    "  background: rgba(35, 35, 50, 0.88); color: #fff;",
-    "  font: 600 10px/1 monospace; padding: 2px 4px; border-radius: 2px;",
-    "  white-space: nowrap;",
-    "}",
-  ].join("\n");
-
   /* ---- applyIframeEffects ---------------------------------------- */
 
   /**
    * Re-apply bg and zoom state to the sandbox iframe's contentDocument.
    *
-   * Called each time the iframe finishes loading. Toggle effects (outline, RTL,
-   * measure) are handled by reapplyToggleEffects() which is also called on load.
+   * Called each time the iframe finishes loading. ToggleButton's script
+   * re-applies its own effects (outline, RTL, measure) on the same event.
    */
   function applyIframeEffects() {
     var iframe = getSandboxIframe();
@@ -236,63 +108,6 @@
       if (currentZoom !== null) {
         wrapper.style.zoom = currentZoom / 100;
       }
-    }
-  }
-
-  /**
-   * Re-apply active on/off toggle effects to the newly-loaded iframe document
-   * and refresh each state's cleanup reference.
-   *
-   * Must be called from the iframe 'load' event (not { once: true }) so it
-   * fires on every navigation of the iframe, not just the first blank-document
-   * load that occurs when the element is inserted into the DOM.
-   */
-  function reapplyToggleEffects() {
-    var doc = getIframeDocument();
-    if (!doc || !doc.body) return;
-
-    if (outlineState.active) {
-      if (!doc.getElementById(OUTLINE_STYLE_ID)) {
-        var outlineStyle = doc.createElement("style");
-        outlineStyle.id = OUTLINE_STYLE_ID;
-        outlineStyle.textContent = outlineCSS;
-        doc.head.appendChild(outlineStyle);
-      }
-      outlineState.cleanup = function (d) {
-        var el = d.getElementById(OUTLINE_STYLE_ID);
-        if (el) el.remove();
-      };
-    }
-
-    if (rtlState.active) {
-      doc.documentElement.setAttribute("dir", "rtl");
-      rtlState.cleanup = function (d) {
-        d.documentElement.removeAttribute("dir");
-      };
-    }
-
-    if (measureState.active && !doc.getElementById(MEASURE_STYLE_ID)) {
-      var measureStyle = doc.createElement("style");
-      measureStyle.id = MEASURE_STYLE_ID;
-      measureStyle.textContent = measureCSS;
-      doc.head.appendChild(measureStyle);
-
-      var measureScript = doc.createElement("script");
-      if (measureScriptSrc) {
-        measureScript.src = measureScriptSrc;
-      }
-      doc.body.appendChild(measureScript);
-
-      measureState.cleanup = function (d) {
-        var wrapper = d.querySelector(".canvas-wrapper");
-        if (wrapper && wrapper._galleryMeasureCleanup) {
-          wrapper._galleryMeasureCleanup();
-        }
-        var el = d.getElementById(MEASURE_STYLE_ID);
-        if (el) el.remove();
-        var container = d.getElementById("gallery-measure-container");
-        if (container) container.remove();
-      };
     }
   }
 
@@ -319,8 +134,6 @@
       ".gallery-sandbox-toolbar__bg-toggle",
     );
     var bgPanel = document.querySelector('[data-gallery-panel="bg"]');
-
-    initPopout(bgToggle, bgPanel, signal);
 
     if (bgPanel) {
       // Restore active selection in the newly-created panel
@@ -383,8 +196,6 @@
               opt === btn,
             );
           });
-
-        closeAllPopouts();
       });
     }
 
@@ -399,15 +210,10 @@
 
     /* -- Zoom -- */
 
-    var zoomToggle = document.querySelector(
-      ".gallery-sandbox-toolbar__zoom-toggle",
-    );
     var zoomPanel = document.querySelector('[data-gallery-panel="zoom"]');
     var zoomValueEl = document.querySelector(
       ".gallery-sandbox-toolbar__zoom-value",
     );
-
-    initPopout(zoomToggle, zoomPanel, signal);
 
     if (zoomPanel) {
       // Restore zoom label and active state
@@ -451,24 +257,17 @@
               b === btn,
             );
           });
-
-        closeAllPopouts();
       });
     }
 
     /* -- Viewport -- */
 
-    var viewportToggle = document.querySelector(
-      ".gallery-sandbox-toolbar__viewport-toggle",
-    );
     var viewportPanel = document.querySelector(
       '[data-gallery-panel="viewport"]',
     );
     var viewportValueEl = document.querySelector(
       ".gallery-sandbox-toolbar__viewport-value",
     );
-
-    initPopout(viewportToggle, viewportPanel, signal);
 
     // Restore viewport label and active state in the newly-created toolbar
     if (viewportValueEl) {
@@ -493,11 +292,10 @@
     if (sandboxIframe) {
       var canvasContainer = sandboxIframe.closest(".gallery-sandbox__canvas");
 
-      // Re-apply all tool effects after every iframe load
+      // Re-apply bg, zoom and viewport after every iframe load
       sandboxIframe.addEventListener("load", function () {
         applyViewportScale();
         applyIframeEffects();
-        reapplyToggleEffects();
       });
 
       if (canvasContainer && typeof ResizeObserver !== "undefined") {
@@ -538,73 +336,8 @@
           });
 
         applyViewportScale();
-        closeAllPopouts();
       });
     }
-
-    /* -- Box model outline -- */
-
-    initToggle(
-      ".gallery-sandbox-toolbar__outline-toggle",
-      function (doc) {
-        var style = doc.createElement("style");
-        style.id = OUTLINE_STYLE_ID;
-        style.textContent = outlineCSS;
-        doc.head.appendChild(style);
-        return function (doc) {
-          var el = doc.getElementById(OUTLINE_STYLE_ID);
-          if (el) el.remove();
-        };
-      },
-      outlineState,
-    );
-
-    /* -- RTL direction -- */
-
-    initToggle(
-      ".gallery-sandbox-toolbar__rtl-toggle",
-      function (doc) {
-        doc.documentElement.setAttribute("dir", "rtl");
-        return function (doc) {
-          doc.documentElement.removeAttribute("dir");
-        };
-      },
-      rtlState,
-    );
-
-    /* -- Measure -- */
-
-    var toolbar = document.querySelector(".gallery-sandbox-toolbar");
-    measureScriptSrc = toolbar ? toolbar.dataset.measureScript : null;
-
-    initToggle(
-      ".gallery-sandbox-toolbar__measure-toggle",
-      function (doc) {
-        var style = doc.createElement("style");
-        style.id = MEASURE_STYLE_ID;
-        style.textContent = measureCSS;
-        doc.head.appendChild(style);
-
-        var script = doc.createElement("script");
-        if (measureScriptSrc) {
-          script.src = measureScriptSrc;
-        }
-        doc.body.appendChild(script);
-
-        return function (doc) {
-          // Call the cleanup function registered by the measure script
-          var wrapper = doc.querySelector(".canvas-wrapper");
-          if (wrapper && wrapper._galleryMeasureCleanup) {
-            wrapper._galleryMeasureCleanup();
-          }
-          var el = doc.getElementById(MEASURE_STYLE_ID);
-          if (el) el.remove();
-          var container = doc.getElementById("gallery-measure-container");
-          if (container) container.remove();
-        };
-      },
-      measureState,
-    );
   }
 
   /* ---- Bootstrap ------------------------------------------------- */

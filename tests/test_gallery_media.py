@@ -84,7 +84,7 @@ class TestGalleryShell:
         page = reverse("gallery") + "demo_components/button/"
         html = client.get(page).content.decode()
         crumb = _position(html, f"/static/{CRUMB_JS}")
-        assert crumb < _position(html, "/static/dj_design_system/gallery-toolbar.js")
+        assert crumb < _position(html, "https://unpkg.com/htmx.org")
 
     def test_internal_js_carries_csp_nonce(self, client, global_builtins):
         from django.test import RequestFactory

@@ -185,7 +185,12 @@ class TestParamsForm:
         script = (STATIC / "ui/sandbox/params_form.js").read_text()
         assert "data-gallery-resizer" in script
         assert "htmx:afterSwap" in script
-        assert "data-gallery-resizer" not in (STATIC / "gallery-toolbar.js").read_text()
+        owners = [
+            p.name
+            for p in STATIC.rglob("*.js")
+            if "data-gallery-resizer" in p.read_text()
+        ]
+        assert owners == ["params_form.js"]
 
 
 # ---------------------------------------------------------------------------

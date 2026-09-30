@@ -3,11 +3,6 @@
 
 {% block title %}{{ component_info.name }} — {{ design_system_name }}{% endblock %}
 
-{% block extra_css %}
-    <link rel="stylesheet"
-          href="{% static 'dj_design_system/gallery-toolbar.css' %}">
-{% endblock %}
-
 {% block breadcrumb %}
     {% include "dj_design_system/gallery/breadcrumb.html" %}
 {% endblock %}
@@ -186,8 +181,6 @@
 {% endblock %}
 
 {% block extra_js %}
-    <script src="{% static 'dj_design_system/gallery-toolbar.js' %}"
-            {% if request.csp_nonce %}nonce="{{ request.csp_nonce }}"{% endif %}></script>
     <script src="https://unpkg.com/htmx.org@2.0.10/dist/htmx.min.js"
             {% if request.csp_nonce %}nonce="{{ request.csp_nonce }}"{% endif %}></script>
 {% endblock %}

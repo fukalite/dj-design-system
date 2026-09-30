@@ -1,6 +1,5 @@
-/* ------------------------------------------------------------------ */
-/* Gallery toolbar: background colour + zoom controls                  */
-/* ------------------------------------------------------------------ */
+/* SandboxToolbar — dds__sandbox__sandbox_toolbar. Moved from
+ * gallery-toolbar.css. */
 
 /* Toolbar-specific tokens — inherit from the gallery theme */
 .gallery-sandbox-toolbar {
@@ -36,17 +35,6 @@
   position: relative;
 }
 
-/* Outline/RTL/Measure toggle: use accent border ring instead of colour inversion */
-.gallery-sandbox-toolbar__outline-toggle.gallery-sandbox-toolbar__btn--active,
-.gallery-sandbox-toolbar__rtl-toggle.gallery-sandbox-toolbar__btn--active,
-.gallery-sandbox-toolbar__measure-toggle.gallery-sandbox-toolbar__btn--active {
-  background: var(--gallery-content-bg);
-  color: var(--gallery-text);
-  border-color: var(--toolbar-btn-active-bg);
-  box-shadow: 0 0 0 2px var(--toolbar-btn-active-bg);
-  font-weight: normal;
-}
-
 /* ------------------------------------------------------------------ */
 /* Background colour popout                                            */
 /* ------------------------------------------------------------------ */
@@ -62,26 +50,6 @@
   border: 1px solid var(--gallery-border);
   border-radius: 2px;
   background: var(--gallery-content-bg);
-}
-
-.gallery-sandbox-toolbar__popout {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 6px;
-  background: var(--gallery-content-bg);
-  border: 1px solid var(--gallery-border);
-  border-radius: var(--gallery-radius);
-  box-shadow: 0 4px 12px var(--toolbar-popout-shadow);
-  min-width: 140px;
-}
-
-.gallery-sandbox-toolbar__popout[hidden] {
-  display: none;
 }
 
 /* Colour chips — preset classes or dynamic style */
