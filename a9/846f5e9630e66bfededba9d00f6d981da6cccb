@@ -1,0 +1,4 @@
+Phase 2 checkpoint (CanvasWidget, UsageExample, ParamsTable)
+
+Automated: just check clean; just test 1042; just e2e 64 (drawer drag tests fixed for CI); just visual 141/141 (12 new, 0 changed); CI run 36747528144 green.
+Manual verification: user confirmed (dark-mode built-in canvases are the known track 6 theming item).
