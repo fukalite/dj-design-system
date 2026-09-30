@@ -30,13 +30,13 @@ Builds the gallery's structural components, moving their CSS/JS out of the legac
 ---
 
 ## Phase 3: `SearchBox`, `ThemeSelect`, `Tabs`
-- [ ] Task: Write Failing Tests (`Red Phase`)
-  - [ ] Each renders the legacy markup and IDs, and includes its script with CSP nonce support.
-  - [ ] `ThemeSelect` renders nothing with fewer than two themes and marks the active theme as selected.
-  - [ ] `Tabs` renders the given tabs with the correct one checked.
-- [ ] Task: Implement to Pass Tests (`Green Phase`)
-  - [ ] Implement components, templates and gallery side-cars.
-  - [ ] Move `gallery-search.js`, `gallery-theme.js` and `gallery-tabs.js` into component assets, plus their CSS.
-- [ ] Task: Refactor and Verify Coverage
-- [ ] Task: Confirm the track 0 visual baseline passes and the e2e search, tabs and theme tests pass.
+- [x] Task: Write Failing Tests (`Red Phase`) [c685a7f]
+  - [x] Each renders the legacy markup and IDs, and includes its script with CSP nonce support.
+  - [x] `ThemeSelect` renders nothing with fewer than two themes and marks the active theme as selected.
+  - [x] `Tabs` renders the given tabs with the correct one checked.
+- [x] Task: Implement to Pass Tests (`Green Phase`) [c685a7f]
+  - [x] Implement components, templates and gallery side-cars.
+  - [x] Move `gallery-search.js`, `gallery-theme.js` and `gallery-tabs.js` into component assets, plus their CSS. (Spec correction: `gallery-tabs.js` also held the preview auto-height listener, which isn't tab behaviour and ran only on component pages. Built-in scripts load on every gallery page, so it moved to `gallery-preview-resize.js`, still loaded only on component pages, for the track 4 canvas components to take.)
+- [x] Task: Refactor and Verify Coverage [c685a7f]
+- [x] Task: Confirm the track 0 visual baseline passes and the e2e search, tabs and theme tests pass. [b1d2fb5]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
