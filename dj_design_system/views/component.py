@@ -358,7 +358,7 @@ def _render_component(request, context, node, app_label, path_parts):
     context["tag_signature_long"] = tag_signature_long
     context["current_signature"] = current_signature
     context["current_signature_long"] = current_signature_long
-    context["params"] = params
+    context["params"] = list(params.items())
     context["param_rows"] = param_rows
     context["form"] = form
     context["canvas_iframe_url"] = canvas_iframe_url
