@@ -185,10 +185,11 @@ class Command(BaseCommand):
         candidate_files = self._find_candidate_files(options.get("paths", []))
         migrated_count = 0
         unmigrated_files: list[Path] = []
+        internal_gallery_path = Path(__file__).resolve().parents[2] / "gallery.py"
 
         for file_path in candidate_files:
             # Skip dj_design_system's own internal gallery.py
-            if file_path.name == "gallery.py" and "dj_design_system" in str(file_path):
+            if file_path.resolve() == internal_gallery_path.resolve():
                 continue
 
             try:
