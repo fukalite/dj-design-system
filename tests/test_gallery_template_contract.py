@@ -201,7 +201,7 @@ class TestElementIds:
 
 
 class TestLegacyPartials:
-    @pytest.mark.parametrize("count", [1, 2, 5])
+    @pytest.mark.parametrize("count", [1, 2, 3, 5])
     def test_breadcrumb(self, count):
         crumbs = CRUMBS[: count - 1] + [CRUMBS[-1]]
         markup = render_to_string(

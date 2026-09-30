@@ -1,5 +1,8 @@
 from typing import Any
 
+from django.template.loader import render_to_string
+from django.utils.safestring import SafeString
+
 from dj_design_system.components import TagComponent
 from dj_design_system.components.navigation.nodes import normalise
 from dj_design_system.components.primitives.icon import Icon
@@ -72,3 +75,14 @@ class NavTree(TagComponent):
             self._prepare(normalise(node), depth=0) for node in self.nodes or []
         ]
         return context
+
+    def render_node(self, node: Any, depth: int = 0) -> SafeString:
+        """Render one node and its descendants, without the ``<nav>`` around them.
+
+        For the legacy ``gallery/navtree.html`` partial, which renders a single
+        node inside a ``<nav>`` of the caller's own.
+        """
+        return render_to_string(
+            "dj_design_system/ui/navigation/nav_node.html",
+            {"node": self._prepare(normalise(node), depth=depth)},
+        )

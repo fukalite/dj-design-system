@@ -36,6 +36,15 @@ def gallery_scripts(context: template.Context) -> str:
     return build_script_tags(get_gallery_media().js, nonce=nonce)
 
 
+@register.simple_tag(takes_context=True)
+def gallery_nav_node(context: template.Context, node, depth: int = 0) -> str:
+    """Render one navigation node with ``NavTree``, for ``gallery/navtree.html``."""
+    from dj_design_system.components.navigation.nav_tree import NavTree
+
+    tree = NavTree(nodes=[node], active_path=context.get("active_path") or "")
+    return tree.render_node(node, depth=int(depth))
+
+
 @register.filter
 def add_indent(depth: int) -> int:
     """Convert a tree depth to a left-padding value in pixels."""
