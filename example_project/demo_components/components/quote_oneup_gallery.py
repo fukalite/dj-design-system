@@ -10,7 +10,7 @@ config = GalleryConfig(
             label="Simple Quote",
             kwargs={
                 "quote": "To be or not to be",
-                "slot_author": "William Shakespeare",
+                "slot__author": "William Shakespeare",
             },
         ),
         Variant(
@@ -18,11 +18,11 @@ config = GalleryConfig(
             label="Attributed Literature Quote",
             kwargs={
                 "quote": "To be or not to be, that is the question.",
-                "slot_author": GalleryParameter(
+                "slot__author": GalleryParameter(
                     value="<strong>William Shakespeare</strong>",
                     code='"<strong>William Shakespeare</strong>"',
                 ),
-                "slot_source": GalleryParameter(
+                "slot__source": GalleryParameter(
                     value="<cite>Hamlet</cite>", code='"<cite>Hamlet</cite>"'
                 ),
             },
@@ -33,8 +33,8 @@ config = GalleryConfig(
             description="Editorial quote formatted within an artistic framed container block.",
             kwargs={
                 "quote": "Design is not just what it looks like and feels like. Design is how it works.",
-                "slot_author": "Steve Jobs",
-                "slot_source": "The New York Times",
+                "slot__author": "Steve Jobs",
+                "slot__source": "The New York Times",
             },
             canvas_template="""
 <div style="max-width: 650px; margin: 2rem auto; padding: 2.5rem; background: #fafaf9; border-left: 6px solid #e11d48; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); font-family: Georgia, serif;">

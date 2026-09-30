@@ -1,3 +1,5 @@
+from django.utils.safestring import mark_safe
+
 from dj_design_system.gallery import GalleryConfig, Variant
 
 
@@ -9,7 +11,7 @@ config = GalleryConfig(
             label="Simple Card",
             kwargs={
                 "title": "Welcome Card",
-                "slot_body": "This is a basic card body with clean layout.",
+                "slot__body": "This is a basic card body with clean layout.",
             },
         ),
         Variant(
@@ -19,9 +21,15 @@ config = GalleryConfig(
             kwargs={
                 "title": "Professional Plan",
                 "variant": "elevated",
-                "slot_header": "<div style='height: 100px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); display:flex; align-items:center; justify-content:center; color:white; font-size:18px; font-weight:700;'>$29 / mo</div>",
-                "slot_body": "<p style='margin:0; color:#475569;'>Includes all enterprise components, full variant previews, and visual regression testing.</p>",
-                "slot_footer": "<button type='button' style='width: 100%; padding: 8px; background: #4f46e5; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;'>Subscribe Now</button>",
+                "slot__header": mark_safe(
+                    "<div style='height: 100px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); display:flex; align-items:center; justify-content:center; color:white; font-size:18px; font-weight:700;'>$29 / mo</div>"
+                ),
+                "slot__body": mark_safe(
+                    "<p style='margin:0; color:#475569;'>Includes all enterprise components, full variant previews, and visual regression testing.</p>"
+                ),
+                "slot__footer": mark_safe(
+                    "<button type='button' style='width: 100%; padding: 8px; background: #4f46e5; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;'>Subscribe Now</button>"
+                ),
             },
             show_in_nav=True,
         ),
