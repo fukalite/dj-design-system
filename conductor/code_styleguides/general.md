@@ -8,6 +8,7 @@ trigger: always_on
 - **Outcome-Oriented**: Name variables, attributes, and functions based on their **outcome** or **intent**, not their internal representation.
 - **Verb-Noun Pattern**: Prefer the `verb_noun` pattern for functions/methods (e.g., `get_user_profile`, `save_configuration`, `validate_email`).
 - **Clarity over Brevity**: A descriptive name is always better than a cryptic one. Avoid abbreviations unless they are industry standard (e.g., `id`, `url`).
+- **Backwards compatibility**: We deprecate features on the semver major track. When refactoring internal APIs do not include import shims for backwards-compatibility; update the import paths everywhere in the codebase.
 
 ## Pattern Reuse & Consistency
 - **Idiomatic Usage**: Always use the most idiomatic patterns for the project's base frameworks (e.g., React hooks, Pythonic list comprehensions).
