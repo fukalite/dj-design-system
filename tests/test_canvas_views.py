@@ -58,7 +58,7 @@ class TestCanvasIframeView:
 
     def test_plain_str_render_shows_escaped_output_with_warning(self, mocker):
         mocker.patch(
-            "dj_design_system.views.render_component",
+            "dj_design_system.views.canvas.render_component",
             return_value="<b>Hi</b>",
         )
         client = Client()
@@ -171,3 +171,12 @@ class TestCanvasIframeView:
         response = client.get(url, {"component": "rich_button", "label": "Test"})
         # X-Frame-Options should allow same-origin embedding
         assert response["X-Frame-Options"] == "SAMEORIGIN"
+
+    def test_canvas_iframe_csp_nonce(self, rf):
+        from dj_design_system.views import canvas_iframe_view
+
+        request = rf.get("/dds/_canvas/", {"component": "rich_button", "label": "Test"})
+        request.csp_nonce = "sample-canvas-nonce-456"
+        response = canvas_iframe_view(request)
+        content = response.content.decode()
+        assert '<style nonce="sample-canvas-nonce-456">' in content

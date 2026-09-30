@@ -67,9 +67,7 @@ class TestResolveFromGetParams:
         spec = resolve_from_get_params(qd, registry_with_demo_components)
         assert spec.params.get("content") == "Hello world"
 
-    def test_block_component_content_sanitizes_xss(
-        self, registry_with_demo_components
-    ):
+    def test_block_component_content_sanitizes_xss(self, registry_with_demo_components):
         """resolve_from_get_params sanitizes XSS in content before mark_safe."""
         qd = QueryDict("component=alert&content=<script>alert(1)</script><b>Safe</b>")
         spec = resolve_from_get_params(qd, registry_with_demo_components)
@@ -77,11 +75,11 @@ class TestResolveFromGetParams:
         assert "<script>" not in content
         assert "<b>Safe</b>" in content
 
-    def test_block_component_slot_sanitizes_xss(
-        self, registry_with_demo_components
-    ):
+    def test_block_component_slot_sanitizes_xss(self, registry_with_demo_components):
         """resolve_from_get_params sanitizes XSS in slot parameters before mark_safe."""
-        qd = QueryDict("component=slotted_card&slot__header=<script>alert(1)</script>Safe+Title")
+        qd = QueryDict(
+            "component=slotted_card&slot__header=<script>alert(1)</script>Safe+Title"
+        )
         spec = resolve_from_get_params(qd, registry_with_demo_components)
         header = spec.params.get("slot__header")
         assert "<script>" not in header
@@ -327,6 +325,7 @@ class TestBuildCanvasUrl:
 
     def test_component_resolution_failure_handled_gracefully(self):
         """Unexpected errors during component resolution do not crash build_canvas_url."""
+
         class BuggyRegistry:
             def list_all(self):
                 raise RuntimeError("Registry database unreachable")

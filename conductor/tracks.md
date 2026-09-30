@@ -29,7 +29,7 @@
 - [ ] **Track: Accessibility & UI Polish**
   *Link: [conductor/tracks/a11y_ui_polish_20260928/index.md](conductor/tracks/a11y_ui_polish_20260928/index.md)*
 
-- [ ] **Track: Architecture & Performance Refactoring**
+- [x] **Track: Architecture & Performance Refactoring**
   *Link: [conductor/tracks/arch_perf_refactor_20260928/index.md](conductor/tracks/arch_perf_refactor_20260928/index.md)*
 
 - [ ] **Track: Gallery Rebuild 0 — Visual Baseline & CI Visual Regression**

@@ -6,13 +6,13 @@ from django.utils.encoding import force_str
 from django.utils.functional import Promise
 
 from dj_design_system.data import CanvasSpec, ComponentInfo
-from dj_design_system.parameters.base import _get_type_name
-from dj_design_system.services.canvas import coerce_single, resolve_component
-from dj_design_system.services.registry import (
+from dj_design_system.exceptions import (
     ComponentDoesNotExist,
-    ComponentRegistry,
     MultipleComponentsFound,
 )
+from dj_design_system.parameters.base import _get_type_name
+from dj_design_system.services.canvas import coerce_single, resolve_component
+from dj_design_system.services.registry import ComponentRegistry
 
 
 logger = logging.getLogger(__name__)

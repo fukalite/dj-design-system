@@ -54,26 +54,32 @@ class Variant:
         self.kwargs = dict(self.kwargs or {})
         self.extra_context = dict(self.extra_context or {})
 
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any], name: str | None = None) -> Variant:
+        """Create a Variant from a dictionary or mapping."""
+        payload = dict(data)
+        if name is not None and "name" not in payload:
+            payload["name"] = name
+        return cls(**payload)
+
     def __str__(self) -> str:
         return self.name
 
     def __eq__(self, other: object) -> bool:
-        if isinstance(other, str):
-            return self.name == other
-        if isinstance(other, Variant):
-            return (
-                self.name == other.name
-                and self.label == other.label
-                and self.description == other.description
-                and self.kwargs == other.kwargs
-                and self.positional_args == other.positional_args
-                and self.canvas_template == other.canvas_template
-                and self.extra_context == other.extra_context
-                and self.icon == other.icon
-                and self.theme == other.theme
-                and self.show_in_nav == other.show_in_nav
-            )
-        return False
+        if not isinstance(other, Variant):
+            return NotImplemented
+        return (
+            self.name == other.name
+            and self.label == other.label
+            and self.description == other.description
+            and self.kwargs == other.kwargs
+            and self.positional_args == other.positional_args
+            and self.canvas_template == other.canvas_template
+            and self.extra_context == other.extra_context
+            and self.icon == other.icon
+            and self.theme == other.theme
+            and self.show_in_nav == other.show_in_nav
+        )
 
 
 @dataclass
@@ -91,8 +97,8 @@ class GalleryConfig:
             raw template syntax.
         extra_context: Context variables passed to preview templates.
         param_defaults: Mapping of param names to default values or callables.
-        variants: List of named variants. Supports initialization from ``Variant`` instances,
-            lists of dicts, or dictionary mappings.
+        variants: List of named Variant instances. To construct from dictionary mappings,
+            use ``GalleryConfig.from_dict(...)``.
     """
 
     hidden: bool = False
@@ -105,30 +111,59 @@ class GalleryConfig:
     param_defaults: dict[str, Any] = field(default_factory=dict)
     variants: list[Variant] = field(default_factory=list)
 
+    @classmethod
+    def _normalize_variants(
+        cls, variants: list[Variant] | Mapping[str, Any] | list[dict[str, Any]]
+    ) -> list[Variant]:
+        """Normalize variant instances, dict mappings, or dict lists into a list of Variants."""
+        if isinstance(variants, Mapping):
+            return [
+                v if isinstance(v, Variant) else Variant.from_dict(v, name=k)
+                for k, v in variants.items()
+            ]
+        elif isinstance(variants, (list, tuple)):
+            return [
+                v if isinstance(v, Variant) else Variant.from_dict(v) for v in variants
+            ]
+        raise TypeError(
+            f"variants must be a list, tuple, or mapping, got {type(variants).__name__}"
+        )
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> GalleryConfig:
+        """Create a GalleryConfig from a dictionary or mapping.
+
+        Converts nested variant dictionaries or mappings into Variant instances.
+        """
+        payload = dict(data)
+        if "variants" in payload:
+            payload["variants"] = cls._normalize_variants(payload["variants"])
+        return cls(**payload)
+
     def __post_init__(self) -> None:
         self.extra_context = dict(self.extra_context or {})
         self.param_defaults = dict(self.param_defaults or {})
-
-        if isinstance(self.variants, Mapping):
-            raw = [
-                v if isinstance(v, Variant) else Variant(name=k, **v)
-                for k, v in self.variants.items()
-            ]
-        else:
-            raw = [
-                v if isinstance(v, Variant) else Variant(**v)
-                for v in (self.variants or [])
-            ]
+        if not isinstance(self.variants, list):
+            if isinstance(self.variants, (tuple, set)):
+                self.variants = list(self.variants)
+            else:
+                raise TypeError(
+                    f"GalleryConfig.variants must be a list of Variant instances, got {type(self.variants).__name__}. "
+                    "Use GalleryConfig.from_dict(...) if initializing from a mapping or dictionary."
+                )
 
         seen_names: set[str] = set()
-        for v in raw:
+        for v in self.variants:
+            if not isinstance(v, Variant):
+                raise TypeError(
+                    f"GalleryConfig.variants must contain only Variant instances, got {type(v).__name__}. "
+                    "Use GalleryConfig.from_dict(...) to parse dictionary configurations."
+                )
             if v.name in seen_names:
                 raise ValueError(
                     f"Duplicate variant name: '{v.name}' in GalleryConfig."
                 )
             seen_names.add(v.name)
-
-        self.variants = raw
 
     def get_variant(self, name: str) -> Variant | None:
         """Return the variant matching *name*, or None."""
@@ -173,10 +208,14 @@ def load_gallery_config(source_dir: Path, component_name: str) -> GalleryConfig:
     cfg = getattr(mod, "config", None)
     if isinstance(cfg, GalleryConfig):
         return cfg
+    if isinstance(cfg, Mapping):
+        return GalleryConfig.from_dict(cfg)
 
     named_cfg = getattr(mod, f"{component_name}_config", None)
     if isinstance(named_cfg, GalleryConfig):
         return named_cfg
+    if isinstance(named_cfg, Mapping):
+        return GalleryConfig.from_dict(named_cfg)
 
     # Legacy fallback for basic_kwargs / maximal_kwargs
     basic_kwargs = getattr(mod, "basic_kwargs", None)

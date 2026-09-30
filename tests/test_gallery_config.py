@@ -46,6 +46,19 @@ class TestVariant:
         v = Variant(name="test", positional_args=["arg1", "arg2"])
         assert v.positional_args == ("arg1", "arg2")
 
+    def test_equality_with_string_returns_false(self):
+        v = Variant(name="primary")
+        assert (v == "primary") is False
+        assert (v != "primary") is True
+        assert v.__eq__("primary") is NotImplemented
+        assert v.__eq__(123) is NotImplemented
+
+    def test_equality_with_variant(self):
+        v1 = Variant(name="primary", label="Primary")
+        v2 = Variant(name="primary", label="Primary")
+        assert v1 == v2
+        assert (v1 == Variant(name="secondary")) is False
+
 
 class TestGalleryConfig:
     def test_default_values(self):
@@ -91,36 +104,21 @@ class TestGalleryConfig:
         assert cfg.get_variant("danger") == v2
         assert cfg.get_variant("unknown") is None
 
-    def test_variants_initialization_with_dicts(self):
-        cfg = GalleryConfig(
-            variants=[
-                {"name": "basic", "kwargs": {"label": "Click"}},
-                {
-                    "name": "danger",
-                    "label": "Destructive",
-                    "kwargs": {"variant": "danger"},
-                },
-            ]
-        )
-        assert len(cfg.variants) == 2
-        assert isinstance(cfg.variants[0], Variant)
-        assert cfg.variants[0].name == "basic"
-        assert cfg.variants[0].label == "Basic"
-        assert cfg.variants[1].name == "danger"
-        assert cfg.variants[1].label == "Destructive"
-        assert cfg.variants[1].kwargs == {"variant": "danger"}
+    def test_variants_direct_dict_initialization_raises_type_error(self):
+        """GalleryConfig constructor strictly requires Variant instances and rejects dicts."""
+        with pytest.raises(TypeError, match="must contain only Variant instances"):
+            GalleryConfig(
+                variants=[
+                    {"name": "basic", "kwargs": {"label": "Click"}},
+                ]
+            )
 
-    def test_variants_dict_mapping_initialization(self):
-        cfg = GalleryConfig(
-            variants={
-                "basic": {"kwargs": {"label": "Click"}},
-                "danger": {"kwargs": {"variant": "danger"}, "label": "Danger Action"},
-            }
-        )
-        assert len(cfg.variants) == 2
-        assert cfg.variants[0].name == "basic"
-        assert cfg.variants[1].name == "danger"
-        assert cfg.variants[1].label == "Danger Action"
+        with pytest.raises(TypeError, match="must be a list of Variant instances"):
+            GalleryConfig(
+                variants={
+                    "basic": {"kwargs": {"label": "Click"}},
+                }
+            )
 
     def test_duplicate_variant_names_raises_error(self):
         with pytest.raises(ValueError, match="Duplicate variant name"):
@@ -130,3 +128,56 @@ class TestGalleryConfig:
                     Variant(name="danger"),
                 ]
             )
+
+    def test_variant_from_dict(self):
+        """Variant.from_dict instantiates Variant with mapping and optional name."""
+        v1 = Variant.from_dict(
+            {"name": "outline", "label": "Outline Btn", "kwargs": {"outline": True}}
+        )
+        assert v1.name == "outline"
+        assert v1.label == "Outline Btn"
+        assert v1.kwargs == {"outline": True}
+
+        v2 = Variant.from_dict({"kwargs": {"size": "sm"}}, name="small")
+        assert v2.name == "small"
+        assert v2.kwargs == {"size": "sm"}
+
+    def test_gallery_config_from_dict(self):
+        """GalleryConfig.from_dict unpacks dict with nested variant mappings and fields."""
+        data = {
+            "hidden": True,
+            "order": 10,
+            "icon": "mdi:palette",
+            "theme": "dark",
+            "param_defaults": {"size": "md"},
+            "extra_context": {"doc_url": "https://example.com"},
+            "variants": {
+                "primary": {"kwargs": {"color": "blue"}},
+                "secondary": {"kwargs": {"color": "gray"}, "label": "Secondary Option"},
+            },
+        }
+        cfg = GalleryConfig.from_dict(data)
+        assert cfg.hidden is True
+        assert cfg.order == 10
+        assert cfg.icon == "mdi:palette"
+        assert cfg.theme == "dark"
+        assert cfg.param_defaults == {"size": "md"}
+        assert cfg.extra_context == {"doc_url": "https://example.com"}
+        assert len(cfg.variants) == 2
+        assert cfg.variants[0].name == "primary"
+        assert cfg.variants[0].kwargs == {"color": "blue"}
+        assert cfg.variants[1].name == "secondary"
+        assert cfg.variants[1].label == "Secondary Option"
+
+    def test_gallery_config_from_dict_list_variants(self):
+        """GalleryConfig.from_dict handles variants as list of dicts."""
+        data = {
+            "variants": [
+                {"name": "v1", "kwargs": {"a": 1}},
+                Variant(name="v2", kwargs={"b": 2}),
+            ]
+        }
+        cfg = GalleryConfig.from_dict(data)
+        assert len(cfg.variants) == 2
+        assert cfg.variants[0].name == "v1"
+        assert cfg.variants[1].name == "v2"

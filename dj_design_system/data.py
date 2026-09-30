@@ -6,14 +6,10 @@ from dataclasses import dataclass, field
 from functools import cached_property
 from pathlib import Path
 from typing import Any, Type
-from urllib.parse import urlencode
 
+from dj_design_system.exceptions import InvalidTagType
 from dj_design_system.gallery import GalleryConfig, Variant, load_gallery_config
 from dj_design_system.types import FlattenStrategy, NodeType, TagType
-
-
-class InvalidTagType(Exception):
-    """Raised when a component class is not a TagComponent or BlockComponent."""
 
 
 BLOCK_CONTENT_PLACEHOLDER = "Sample content"
@@ -295,6 +291,9 @@ class NavNode:
     index_doc_path: Path | None = None
     icon: str | None = None
     order: int = 0
+    url: str = ""
+    active_path: str = ""
+    base_active_path: str = ""
     _app_label: str = ""
     _path_parts: list[str] = field(default_factory=list)
 
@@ -354,43 +353,3 @@ class NavNode:
     @property
     def has_index_doc(self) -> bool:
         return self.index_doc_path is not None
-
-    @property
-    def url(self) -> str:
-        """Return the gallery URL for this node.
-
-        Requires ``_app_label`` and ``_path_parts`` to be set via
-        ``_annotate_paths``.
-        """
-        from django.urls import reverse
-
-        app = self._app_label or self.slug
-        path = "/".join(self._path_parts)
-
-        if not path:
-            base_url = reverse("gallery-node-root", kwargs={"app_label": app})
-        else:
-            base_url = reverse("gallery-node", kwargs={"app_label": app, "path": path})
-
-        if self.node_type == NodeType.VARIANT:
-            sep = "&" if "?" in base_url else "?"
-            return f"{base_url}{sep}{urlencode({'variant': self.slug})}"
-        return base_url
-
-    @property
-    def active_path(self) -> str:
-        """Return a slash-joined path for active-state matching in the nav tree.
-
-        Derived from :attr:`url` via the Django URL resolver, stripping the
-        gallery root prefix and trailing slash so that the result is a bare
-        path like ``myapp/elements/icon``.
-        """
-        from django.urls import reverse
-
-        gallery_root = reverse("gallery")
-        return self.url.removeprefix(gallery_root).rstrip("/")
-
-    @property
-    def base_active_path(self) -> str:
-        """Return the active path without query parameters."""
-        return self.active_path.split("?")[0].rstrip("/")

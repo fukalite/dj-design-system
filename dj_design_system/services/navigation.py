@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+from collections import OrderedDict
+from functools import lru_cache
 from html.parser import HTMLParser
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+from urllib.parse import urlencode
 
 import markdown as markdown_lib
 from django.apps import apps
@@ -14,6 +17,10 @@ from dj_design_system.data import NavNode
 from dj_design_system.services.registry import component_registry
 from dj_design_system.settings import dds_settings
 from dj_design_system.types import NodeType
+
+
+_SEARCH_INDEX_CACHE_MAXSIZE = 32
+_SEARCH_INDEX_CACHE: OrderedDict[tuple[Any, ...], list[dict]] = OrderedDict()
 
 
 if TYPE_CHECKING:
@@ -214,12 +221,42 @@ def _sort_children(node: NavNode) -> None:
         _sort_children(child)
 
 
+def resolve_node_url(node: NavNode) -> str:
+    """Return the gallery URL for a NavNode.
+
+    Requires ``_app_label`` and ``_path_parts`` to be set via ``_annotate_paths``.
+    """
+    app = node._app_label or node.slug
+    path = "/".join(node._path_parts)
+
+    if not path:
+        base_url = reverse("gallery-node-root", kwargs={"app_label": app})
+    else:
+        base_url = reverse("gallery-node", kwargs={"app_label": app, "path": path})
+
+    if node.node_type == NodeType.VARIANT:
+        sep = "&" if "?" in base_url else "?"
+        return f"{base_url}{sep}{urlencode({'variant': node.slug})}"
+    return base_url
+
+
+def resolve_node_active_path(node: NavNode) -> str:
+    """Return a slash-joined path for active-state matching in the nav tree."""
+    gallery_root = reverse("gallery")
+    return resolve_node_url(node).removeprefix(gallery_root).rstrip("/")
+
+
+def resolve_node_base_active_path(node: NavNode) -> str:
+    """Return the active path without query parameters."""
+    return resolve_node_active_path(node).split("?")[0].rstrip("/")
+
+
 def _annotate_paths(
     node: NavNode,
     app_label: str = "",
     parent_parts: list[str] | None = None,
 ) -> None:
-    """Recursively set ``_app_label`` and ``_path_parts`` on every node."""
+    """Recursively set ``_app_label``, ``_path_parts``, and precomputed URLs on every node."""
     if parent_parts is None:
         parent_parts = []
 
@@ -237,13 +274,31 @@ def _annotate_paths(
         child_app = app_label
         child_parts = node._path_parts
 
+    node.url = resolve_node_url(node)
+    node.active_path = resolve_node_active_path(node)
+    node.base_active_path = resolve_node_base_active_path(node)
+
     for child in node.children:
         _annotate_paths(child, app_label=child_app, parent_parts=child_parts)
 
 
-def build_navigation() -> list[NavNode]:
-    """Build the full gallery navigation tree from the component registry and markdown files."""
+@lru_cache(maxsize=1)
+def _cached_build_navigation() -> list[NavNode]:
     return _build_navigation()
+
+
+def build_navigation() -> list[NavNode]:
+    """Build the full gallery navigation tree from the component registry and markdown files (cached)."""
+    return _cached_build_navigation()
+
+
+def clear_navigation_cache() -> None:
+    """Clear cached navigation tree and search index."""
+    _cached_build_navigation.cache_clear()
+    clear_search_index_cache()
+
+
+setattr(build_navigation, "cache_clear", clear_navigation_cache)
 
 
 def _build_navigation(
@@ -420,7 +475,7 @@ def _collect_search_entries(
     entries.append(
         {
             "label": node.label,
-            "url": node.url,
+            "url": resolve_node_url(node),
             "type": node.node_type.value,
             "breadcrumb": breadcrumb,
             "content": " ".join(content_parts),
@@ -432,12 +487,42 @@ def _collect_search_entries(
         _collect_search_entries(child, child_ancestors, entries)
 
 
-def build_search_index(nav_tree: list[NavNode]) -> list[dict]:
-    """Build a flat list of search index entries from the navigation tree."""
+@lru_cache(maxsize=1)
+def _cached_global_search_index() -> list[dict]:
+    entries: list[dict] = []
+    for app_node in _cached_build_navigation():
+        _collect_search_entries(app_node, [], entries)
+    return entries
+
+
+def build_search_index(nav_tree: list[NavNode] | None = None) -> list[dict]:
+    """Build a flat list of search index entries from the navigation tree (cached)."""
+    if nav_tree is None or nav_tree is _cached_build_navigation():
+        return _cached_global_search_index()
+
+    tree_key = (id(nav_tree), len(nav_tree), tuple(id(n) for n in nav_tree))
+    if tree_key in _SEARCH_INDEX_CACHE:
+        _SEARCH_INDEX_CACHE.move_to_end(tree_key)
+        return _SEARCH_INDEX_CACHE[tree_key]
+
     entries: list[dict] = []
     for app_node in nav_tree:
         _collect_search_entries(app_node, [], entries)
+
+    _SEARCH_INDEX_CACHE[tree_key] = entries
+    if len(_SEARCH_INDEX_CACHE) > _SEARCH_INDEX_CACHE_MAXSIZE:
+        _SEARCH_INDEX_CACHE.popitem(last=False)
+
     return entries
+
+
+def clear_search_index_cache() -> None:
+    """Clear cached search index."""
+    _cached_global_search_index.cache_clear()
+    _SEARCH_INDEX_CACHE.clear()
+
+
+setattr(build_search_index, "cache_clear", clear_search_index_cache)
 
 
 def build_breadcrumbs(

@@ -162,3 +162,37 @@ def test_discovery_no_gallery_file(tmp_path: Path):
     cfg = info.gallery_config
     assert isinstance(cfg, GalleryConfig)
     assert cfg.variants == []
+
+
+def test_discovery_with_dict_config(tmp_path: Path):
+    """Gallery modules defining config as a dict mapping are parsed via GalleryConfig.from_dict."""
+    comp_file = tmp_path / "dict_comp.py"
+    comp_file.write_text("class DictComponent: pass\n")
+
+    gallery_file = tmp_path / "dict_comp_gallery.py"
+    gallery_file.write_text(
+        "config = {\n"
+        "    'theme': 'contrast',\n"
+        "    'hidden': False,\n"
+        "    'variants': {\n"
+        "        'primary': {'kwargs': {'color': 'blue'}},\n"
+        "    },\n"
+        "}\n"
+    )
+
+    class DynamicComponent(TagComponent):
+        __file__ = str(comp_file)
+
+    info = ComponentInfo(
+        component_class=DynamicComponent,
+        name="dict_comp",
+        app_label="test_app",
+        relative_path="",
+    )
+
+    cfg = info.gallery_config
+    assert isinstance(cfg, GalleryConfig)
+    assert cfg.theme == "contrast"
+    assert len(cfg.variants) == 1
+    assert cfg.variants[0].name == "primary"
+    assert cfg.variants[0].kwargs == {"color": "blue"}
