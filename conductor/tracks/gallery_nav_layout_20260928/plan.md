@@ -29,7 +29,7 @@ Builds the gallery's structural components, moving their CSS/JS out of the legac
 
 ---
 
-## Phase 3: `SearchBox`, `ThemeSelect`, `Tabs`
+## Phase 3: `SearchBox`, `ThemeSelect`, `Tabs` [checkpoint: d543a36]
 - [x] Task: Write Failing Tests (`Red Phase`) [c685a7f]
   - [x] Each renders the legacy markup and IDs, and includes its script with CSP nonce support.
   - [x] `ThemeSelect` renders nothing with fewer than two themes and marks the active theme as selected.
@@ -39,4 +39,4 @@ Builds the gallery's structural components, moving their CSS/JS out of the legac
   - [x] Move `gallery-search.js`, `gallery-theme.js` and `gallery-tabs.js` into component assets, plus their CSS. (Spec correction: `gallery-tabs.js` also held the preview auto-height listener, which isn't tab behaviour and ran only on component pages. Built-in scripts load on every gallery page, so it moved to `gallery-preview-resize.js`, still loaded only on component pages, for the track 4 canvas components to take.)
 - [x] Task: Refactor and Verify Coverage [c685a7f]
 - [x] Task: Confirm the track 0 visual baseline passes and the e2e search, tabs and theme tests pass. [b1d2fb5]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [d543a36]

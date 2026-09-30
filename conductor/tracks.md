@@ -35,7 +35,7 @@
 - [x] **Track: Gallery Rebuild 2 — Primitive Components**
   *Link: [tracks/gallery_primitives_20260928/index.md](tracks/gallery_primitives_20260928/index.md)*
 
-- [ ] **Track: Gallery Rebuild 3 — Navigation & Layout Components**
+- [x] **Track: Gallery Rebuild 3 — Navigation & Layout Components**
   *Link: [tracks/gallery_nav_layout_20260928/index.md](tracks/gallery_nav_layout_20260928/index.md)*
 
 - [ ] **Track: Gallery Rebuild 4 — Sandbox & Canvas Components**
