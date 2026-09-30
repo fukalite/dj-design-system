@@ -1,1 +1,6 @@
 32 new layout canvas baselines (0 changed). e2e exemption link-in-text-block for dds__layout__toolbar maximal (legacy breadcrumb, issue #117 raised with screenshots). just e2e 40 passed.
+
+Phase 1 checkpoint (Layout Components)
+
+Automated: just check, typecheck clean; just test 931, just e2e 41; just visual 105/105; CI run 36702005008 green.
+Manual verification: user confirmed.
