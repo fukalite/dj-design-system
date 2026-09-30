@@ -21,6 +21,12 @@ LEGACY_EXEMPTIONS = {
     # Breadcrumb links are told apart from the surrounding text by colour
     # only; see issue #117. The maximal example has text around its link.
     ("dds__layout__toolbar", "maximal"): ["link-in-text-block"],
+    # Folders put a link inside <summary> (nested interactive controls);
+    # fixed by #112. The nav's pale text is designed for the sidebar's dark
+    # background, which a standalone canvas doesn't have, so contrast can
+    # only be judged in the gallery.
+    ("dds__navigation__nav_tree", "basic"): ["nested-interactive", "color-contrast"],
+    ("dds__navigation__nav_tree", "maximal"): ["nested-interactive", "color-contrast"],
 }
 
 
