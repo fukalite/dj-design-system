@@ -1,1 +1,6 @@
 19 contract tests, all passing against the current templates; just check clean; just test 1129 passed. Render baseline: full page ~38 ms median, HTMX fragment ~26 ms (3 runs, M1).
+
+Phase 1 checkpoint (Baseline Measurements)
+
+Automated: just check clean; just test 1129; CI run 36785408921 green.
+Manual verification: user confirmed.
