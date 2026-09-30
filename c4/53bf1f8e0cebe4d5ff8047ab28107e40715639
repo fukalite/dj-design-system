@@ -1,0 +1,4 @@
+Phase 4 checkpoint (SandboxToolbar, Popout, PopoutOption, ToggleButton)
+
+Automated: just check and typecheck clean; just test 1110; coverage 100% for components/sandbox; just e2e 64 (twice); just visual 149/149 existing unchanged, 16 new; CI run 36780582296 green.
+Manual verification: user confirmed (the alert demo's dark canvas under the default theme is its available_themes restriction, same before this phase).
