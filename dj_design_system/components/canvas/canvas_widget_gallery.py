@@ -1,5 +1,6 @@
 _SRCDOC = (
-    "<!DOCTYPE html><html><body style='font-family: sans-serif; margin: 16px'>"
+    "<!DOCTYPE html><html><body style='font-family: sans-serif; margin: 16px;"
+    " background: #fff; color: #1e1e2e'>"
     "<p>Rendered preview</p></body></html>"
 )
 
