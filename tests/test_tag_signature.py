@@ -345,7 +345,6 @@ class TestTagSignatureEdgeCases:
         assert sig.minimal_spec.params.get("label") == "foo"
         assert sig.maximal_spec.params.get("label") == "foo"
 
-
     def test_bool_css_no_default_generates_true(self):
         """BoolCSSClassParam with no default returns True as example value."""
         sig = generate_tag_signature(BoolCSSNoDefaultComponent)
@@ -520,3 +519,56 @@ class TestRequiredKeywordParam:
         assert 'subtitle="Default Subtitle"' in sig.maximal
         assert sig.maximal_spec.params.get("subtitle") == "Default Subtitle"
 
+
+class TestSideCarBlockContent:
+    """A side-car's ``content`` is a block component's body, not a parameter."""
+
+    @pytest.fixture
+    def sidecar(self, monkeypatch):
+        from types import SimpleNamespace
+
+        from dj_design_system.services import tag_signature
+
+        def use(basic, maximal):
+            info = SimpleNamespace(
+                gallery_basic_kwargs=basic, gallery_maximal_kwargs=maximal
+            )
+            monkeypatch.setattr(
+                tag_signature.component_registry, "get_info", lambda cls: info
+            )
+
+        return use
+
+    def test_content_becomes_the_block_body(self, sidecar):
+        sidecar({"content": "total = price"}, {"heading": "H", "content": "x = 1"})
+        sig = generate_tag_signature(BlockMultiKwargComponent)
+
+        assert "content=" not in sig.minimal
+        assert "content=" not in sig.maximal
+        assert "total = price" in sig.minimal
+        assert BLOCK_CONTENT_PLACEHOLDER not in sig.minimal
+        assert "x = 1" in sig.maximal
+        assert 'heading="H"' in sig.maximal
+
+    def test_content_reaches_the_canvas_specs(self, sidecar):
+        sidecar({"content": "total = price"}, {"content": "x = 1"})
+        sig = generate_tag_signature(BlockMultiKwargComponent)
+
+        assert sig.minimal_spec.params["content"] == "total = price"
+        assert sig.maximal_spec.params["content"] == "x = 1"
+
+    def test_gallery_parameter_content_shows_its_code(self, sidecar):
+        from dj_design_system.data import GalleryParameter
+
+        sidecar({"content": GalleryParameter(value="<b>x</b>", code="{{ body }}")}, {})
+        sig = generate_tag_signature(BlockMultiKwargComponent)
+
+        assert "{{ body }}" in sig.minimal
+        assert sig.minimal_spec.params["content"] == "<b>x</b>"
+
+    def test_placeholder_without_content(self, sidecar):
+        sidecar({}, {})
+        sig = generate_tag_signature(BlockMultiKwargComponent)
+
+        assert BLOCK_CONTENT_PLACEHOLDER in sig.minimal
+        assert "content" not in sig.minimal_spec.params

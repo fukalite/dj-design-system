@@ -39,27 +39,40 @@ class TestDivider:
 
 class TestSectionHeading:
     def test_defaults_to_h3_section_heading(self):
-        html = block("section_heading", content="Usage")
+        html = render('{% dds__primitives__section_heading "Usage" %}')
         assert tags(html) == [("h3", {"class": "gallery-docs__section-heading"})]
         assert html.endswith(">Usage</h3>")
 
     @pytest.mark.parametrize("level", [2, 3, 4, 5, 6])
     def test_honours_level(self, level):
-        tag, _ = root(block("section_heading", f"level={level}", "x"))
+        tag, _ = root(
+            render(f'{{% dds__primitives__section_heading "x" level={level} %}}')
+        )
         assert tag == f"h{level}"
 
     def test_sub_variant_is_usage_heading(self):
-        html = block("section_heading", 'variant="sub" level=4', "Minimal example")
+        html = render(
+            '{% dds__primitives__section_heading "Minimal example" variant="sub" level=4 %}'
+        )
         assert tags(html) == [("h4", {"class": "gallery-usage__heading"})]
+        assert ">Minimal example</h4>" in html
 
     def test_rejects_unknown_level(self):
         with pytest.raises(ValueError):
-            block("section_heading", "level=7", "x")
+            render('{% dds__primitives__section_heading "x" level=7 %}')
 
-    def test_escapes_variables_in_content(self):
-        html = block("section_heading", content="{{ text }}", text="<b>x</b>")
+    def test_escapes_text(self):
+        html = render("{% dds__primitives__section_heading text %}", text="<b>x</b>")
         assert "&lt;b&gt;" in html
         assert "<b>" not in html
+
+    def test_is_a_tag(self):
+        from dj_design_system.types import TagType
+
+        info = component_registry.get_by_name(
+            "section_heading", app_label="dj_design_system"
+        )
+        assert info.tag_type is TagType.TAG
 
 
 class TestCodeBlock:
@@ -73,26 +86,45 @@ class TestCodeBlock:
         assert match, html
         return match.group(1)
 
-    def test_plain_code_is_escaped(self):
-        html = block("code_block", "code=src", src='{% button "<b>" %}')
+    def test_body_is_the_code(self):
+        html = block("code_block", content="\ntotal = price * quantity\n")
+        assert self._code(html) == "total = price * quantity"
+
+    def test_plain_text_by_default_and_escaped(self):
+        html = block("code_block", content='<b class="x">&</b>')
+        assert self._code(html) == "&lt;b class=&quot;x&quot;&gt;&amp;&lt;/b&gt;"
+
+    def test_template_variables_are_not_double_escaped(self):
+        html = block("code_block", content="{{ src }}", src='{% button "<b>" %}')
         assert self._code(html) == "{% button &quot;&lt;b&gt;&quot; %}"
 
-    def test_highlighted_html_passes_through(self):
-        highlighted = '<span class="nt">{%</span> button <span class="s">"x"</span>'
-        html = block("code_block", "highlighted=src", src=highlighted)
-        assert self._code(html) == highlighted
+    def test_dedents_and_preserves_inner_whitespace(self):
+        html = block(
+            "code_block",
+            'language="python"',
+            "\n    def f():\n        return 1\n",
+        )
+        text = re.sub(r"<[^>]+>", "", self._code(html))
+        assert text == "def f():\n    return 1"
 
-    def test_highlighted_wins_over_code(self):
-        html = block("code_block", 'code="plain" highlighted=hl', hl="<span>hl</span>")
-        assert self._code(html) == "<span>hl</span>"
+    def test_highlights_the_given_language(self):
+        html = block("code_block", 'language="python"', "def f(): pass")
+        code = self._code(html)
+        assert '<span class="k">def</span>' in code
+        assert '<span class="nf">f</span>' in code
 
-    def test_block_content_is_the_fallback(self):
-        html = block("code_block", content="{{ src }}", src="<p>")
-        assert self._code(html) == "&lt;p&gt;"
+    def test_highlights_django_templates(self):
+        html = block(
+            "code_block", 'language="django"', "{{ src }}", src='{% button "Save" %}'
+        )
+        code = self._code(html)
+        assert "<span" in code
+        assert "button" in code
+        assert "<b>" not in code
 
-    def test_preserves_whitespace(self):
-        html = block("code_block", "code=src", src="a\n  b\n")
-        assert self._code(html) == "a\n  b\n"
+    def test_unknown_language_is_rejected(self):
+        with pytest.raises(ValueError, match="language"):
+            block("code_block", 'language="no-such-language"', "x")
 
 
 class TestNotice:
@@ -198,6 +230,15 @@ class TestCssMovedNotCopied:
         assert ".gallery-params {" not in legacy
         table = (STATIC / "ui/primitives/table.css").read_text()
         assert "@media (max-width: 768px)" in table
+
+    def test_highlight_theme_moved_under_code_block(self):
+        from tests.html_utils import STATIC
+
+        assert not (STATIC / "gallery-highlight.css").exists()
+        info = component_registry.get_by_name(
+            "code_block", app_label="dj_design_system"
+        )
+        assert "dj_design_system/ui/primitives/code_highlight.css" in info.media.css
 
     def test_snapshot_script_moved(self):
         from tests.html_utils import STATIC

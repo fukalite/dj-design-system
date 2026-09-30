@@ -28,8 +28,8 @@ Part of the gallery rebuild series (see `gallery_visual_baseline_20260928` for t
 | `Button` | Block | `.gallery-sandbox-toolbar__btn` and similar plain buttons. Params: `variant`, `pressed` (renders `aria-pressed`), `expanded`/`controls` (renders `aria-expanded`/`aria-controls`), `title`. |
 | `IconButton` | Tag | Pill-style icon overlay buttons/links (`.gallery-doc-preview__sandbox-link`). Composes `Icon`. `href` renders an `<a>`, otherwise a `<button>`. |
 | `Divider` | Tag | `.gallery-docs__divider`. |
-| `SectionHeading` | Block | `.gallery-docs__section-heading` and `.gallery-usage__heading`. `level` param. |
-| `CodeBlock` | Block | `.gallery-usage__pre` / `<pre><code>` blocks; supports pre-highlighted HTML input. |
+| `SectionHeading` | Tag | `.gallery-docs__section-heading` and `.gallery-usage__heading`. Positional `text`; `level` and `variant` params. (Originally a block; changed to a tag since headings are plain text.) |
+| `CodeBlock` | Block | `.gallery-usage__pre` / `<pre><code>` blocks. The block's content is the code, which the component highlights with Pygments; `language` param (default `text`). (Originally took pre-highlighted HTML; changed so callers never pass markup.) |
 | `Notice` | Block | Static snapshot notice and debug hint. `variant` param (`warning`, `hint`). Owns `gallery-snapshot-notice.js` for the snapshot variant. |
 | `Table` | Block (slots: `head`, `body`) | `.gallery-params` table styling (the parameter-specific table is composed in track 4). |
 

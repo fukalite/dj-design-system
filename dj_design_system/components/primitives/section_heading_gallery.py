@@ -1,3 +1,3 @@
-basic_kwargs = {"level": 3}
+basic_kwargs = {"text": "Usage"}
 
-maximal_kwargs = {"level": 4, "variant": "sub"}
+maximal_kwargs = {"text": "Minimal example", "level": 4, "variant": "sub"}
