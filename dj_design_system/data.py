@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import inspect
+import warnings
 from dataclasses import dataclass, field
 from functools import cached_property
 from pathlib import Path
 from typing import Any, Type
+from urllib.parse import urlencode
 
+from dj_design_system.gallery import GalleryConfig, Variant, load_gallery_config
 from dj_design_system.types import FlattenStrategy, NodeType, TagType
 
 
@@ -21,13 +24,14 @@ BLOCK_CONTENT_PLACEHOLDER = "Sample content"
 class CanvasSpec:
     """Specification for rendering a single component inside a canvas.
 
-    Holds the component name, keyword parameters, and any positional arguments
-    needed to instantiate and render the component.
+    Holds the component name, keyword parameters, positional arguments,
+    and optional variant name needed to instantiate and render the component.
     """
 
     component_name: str
     params: dict[str, Any] = field(default_factory=dict)
     positional_args: tuple[Any, ...] = field(default_factory=tuple)
+    variant: str | None = None
 
 
 @dataclass(frozen=True)
@@ -91,43 +95,49 @@ class ComponentInfo:
 
     @property
     def gallery_basic_kwargs(self) -> dict[str, Any]:
+        warnings.warn(
+            f"ComponentInfo.gallery_basic_kwargs for '{self.name}' is deprecated and will be removed "
+            "in a future release. Use ComponentInfo.gallery_config.get_variant('basic').kwargs instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return self._gallery_kwargs[0]
 
     @property
     def gallery_maximal_kwargs(self) -> dict[str, Any]:
+        warnings.warn(
+            f"ComponentInfo.gallery_maximal_kwargs for '{self.name}' is deprecated and will be removed "
+            "in a future release. Use ComponentInfo.gallery_config.get_variant('maximal').kwargs instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return self._gallery_kwargs[1]
 
     @cached_property
     def _gallery_kwargs(self) -> tuple[dict, dict]:
+        cfg = self.gallery_config
+        basic_v = cfg.get_variant("basic")
+        maximal_v = cfg.get_variant("maximal")
+        return (
+            dict(basic_v.kwargs) if basic_v else {},
+            dict(maximal_v.kwargs) if maximal_v else {},
+        )
+
+    @cached_property
+    def gallery_config(self) -> GalleryConfig:
+        source_file = None
         try:
-            source_file = Path(inspect.getfile(self.component_class))
+            if hasattr(self.component_class, "__file__"):
+                source_file = Path(self.component_class.__file__)
+            else:
+                source_file = Path(inspect.getfile(self.component_class))
         except (TypeError, OSError):
-            return {}, {}
+            source_file = None
 
-        source_dir = source_file.parent
+        if not source_file:
+            return GalleryConfig()
 
-        gallery_path = source_dir / f"{self.name}_gallery.py"
-        if not gallery_path.is_file():
-            if source_file.name in ("component.py", "__init__.py"):
-                gallery_path = source_dir / "gallery.py"
-
-        if not gallery_path.is_file():
-            return {}, {}
-
-        import importlib.util
-        import uuid
-
-        mod_name = f"dj_design_system_gallery_{uuid.uuid4().hex}"
-        spec = importlib.util.spec_from_file_location(mod_name, gallery_path)
-        if spec and spec.loader:
-            mod = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(mod)
-            return (
-                getattr(mod, "basic_kwargs", {}),
-                getattr(mod, "maximal_kwargs", {}),
-            )
-
-        return {}, {}
+        return load_gallery_config(source_file.parent, self.name)
 
     @property
     def qualified_name(self) -> str:
@@ -270,9 +280,9 @@ class ComponentInfo:
 class NavNode:
     """A single node in the gallery navigation tree.
 
-    A node can represent an app root, a folder, a component, or a markdown
-    document — or a combination (e.g. a folder that also carries a component
-    when the leaf-folder collapsing rule is applied).
+    A node can represent an app root, a folder, a component, a markdown
+    document, or a component variant — or a combination (e.g. a folder that
+    also carries a component when the leaf-folder collapsing rule is applied).
     """
 
     label: str
@@ -280,8 +290,11 @@ class NavNode:
     node_type: NodeType
     children: list[NavNode] = field(default_factory=list)
     component: ComponentInfo | None = None
+    variant: Variant | None = None
     doc_path: Path | None = None
     index_doc_path: Path | None = None
+    icon: str | None = None
+    order: int = 0
     _app_label: str = ""
     _path_parts: list[str] = field(default_factory=list)
 
@@ -299,6 +312,12 @@ class NavNode:
             raise ValueError(
                 f"{self.node_type.value.upper()} nodes must not carry a doc_path"
             )
+        if self.node_type == NodeType.VARIANT and self.variant is None:
+            raise ValueError("VARIANT nodes must have a Variant")
+        if self.node_type != NodeType.VARIANT and self.variant is not None:
+            raise ValueError(
+                f"{self.node_type.value.upper()} nodes must not carry a Variant"
+            )
 
     # ------------------------------------------------------------------
     # Mutation helpers — keep *node_type* and data fields in sync
@@ -309,6 +328,8 @@ class NavNode:
         self.component = info
         self.node_type = NodeType.COMPONENT
         self.label = label
+        self.icon = info.gallery_config.icon
+        self.order = info.gallery_config.order
 
     # ------------------------------------------------------------------
     # Convenience predicates
@@ -327,6 +348,10 @@ class NavNode:
         return self.node_type == NodeType.DOCUMENT
 
     @property
+    def is_variant(self) -> bool:
+        return self.node_type == NodeType.VARIANT
+
+    @property
     def has_index_doc(self) -> bool:
         return self.index_doc_path is not None
 
@@ -343,9 +368,14 @@ class NavNode:
         path = "/".join(self._path_parts)
 
         if not path:
-            return reverse("gallery-node-root", kwargs={"app_label": app})
+            base_url = reverse("gallery-node-root", kwargs={"app_label": app})
+        else:
+            base_url = reverse("gallery-node", kwargs={"app_label": app, "path": path})
 
-        return reverse("gallery-node", kwargs={"app_label": app, "path": path})
+        if self.node_type == NodeType.VARIANT:
+            sep = "&" if "?" in base_url else "?"
+            return f"{base_url}{sep}{urlencode({'variant': self.slug})}"
+        return base_url
 
     @property
     def active_path(self) -> str:
@@ -359,3 +389,8 @@ class NavNode:
 
         gallery_root = reverse("gallery")
         return self.url.removeprefix(gallery_root).rstrip("/")
+
+    @property
+    def base_active_path(self) -> str:
+        """Return the active path without query parameters."""
+        return self.active_path.split("?")[0].rstrip("/")

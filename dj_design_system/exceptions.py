@@ -12,3 +12,18 @@ class ComponentNotFoundError(Exception):
     def __init__(self, message: str) -> None:
         self.message = message
         super().__init__(message)
+
+
+class VariantNotFoundError(ValueError):
+    """Raised when a requested component variant cannot be found."""
+
+    def __init__(self, message: str) -> None:
+        self.message = message
+        super().__init__(message)
+
+
+__all__ = [
+    "ComponentValidationError",
+    "ComponentNotFoundError",
+    "VariantNotFoundError",
+]

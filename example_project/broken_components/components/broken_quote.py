@@ -5,6 +5,7 @@ from dj_design_system.slots import Slot
 
 class BrokenQuoteComponent(BlockComponent):
     """A quote component with an intentional HTML validation error."""
+
     quote = StrParam("The quote text", required=True)
 
     class Meta:

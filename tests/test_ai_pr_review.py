@@ -142,9 +142,7 @@ def test_call_gemini_falls_back_to_next_model(mock_urlopen, mock_sleep):
 @patch("urllib.request.urlopen")
 def test_call_gemini_handles_markdown_wrapped_json(mock_urlopen, mock_sleep):
     """Test that markdown code fences around JSON are stripped safely."""
-    json_with_fences = (
-        '```json\n{"summary": "Clean code", "comments": []}\n```'
-    )
+    json_with_fences = '```json\n{"summary": "Clean code", "comments": []}\n```'
     success_resp = make_mock_response(
         {"candidates": [{"content": {"parts": [{"text": json_with_fences}]}}]}
     )

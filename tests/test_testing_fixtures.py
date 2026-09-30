@@ -10,5 +10,3 @@ def test_testing_module_importable():
         import dj_design_system.testing  # noqa: F401
     except ImportError:
         pytest.fail("dj_design_system.testing should be importable.")
-
-

@@ -26,10 +26,23 @@
         /* Sync from hash on load and hashchange */
         function syncFromHash() {
             var isSandbox = window.location.hash === "#pane-sandbox";
-            // If there's no hash but we have query params, default to sandbox
-            // so deeplinks work smoothly on mobile.
+            // If there's no hash and query params are present, only default to sandbox
+            // for parameter deeplinks, NOT for variant views. Variant views should always
+            // default to the documentation pane.
             if (!window.location.hash && window.location.search && window.location.search !== "?") {
-                isSandbox = true;
+                try {
+                    var searchParams = new URLSearchParams(window.location.search);
+                    if (!searchParams.has("variant")) {
+                        var nonThemeKeys = Array.from(searchParams.keys()).filter(function (k) {
+                            return k !== "theme";
+                        });
+                        if (nonThemeKeys.length > 0) {
+                            isSandbox = true;
+                        }
+                    }
+                } catch (e) {
+                    // Fallback to docs
+                }
             }
             showPane(isSandbox, false);
         }

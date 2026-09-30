@@ -54,6 +54,7 @@ nav:
   - Integration Testing: testing.md
   - Organisation: organisation.md
   - API Reference:
+      - Gallery Configuration: api/gallery.md
       - Parameters: api/parameters.md
       - Components: api/components.md
       - Settings: api/settings.md

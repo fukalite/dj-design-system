@@ -240,8 +240,12 @@ class TestBuildCanvasUrl:
             },
         )
         url = build_canvas_url(spec, "/base/")
-        assert "items=%5B%7B%22id%22%3A+%22home%22%2C+%22label%22%3A+%22Home%22%7D%5D" in url
+        assert (
+            "items=%5B%7B%22id%22%3A+%22home%22%2C+%22label%22%3A+%22Home%22%7D%5D"
+            in url
+        )
         from urllib.parse import parse_qs, urlparse
+
         query_params = parse_qs(urlparse(url).query)
         assert coerce_single("items", query_params["items"][0], ListParam()) == [
             {"id": "home", "label": "Home"}
@@ -250,6 +254,26 @@ class TestBuildCanvasUrl:
             "nested": True
         }
 
+    def test_with_mode_and_theme(self):
+        spec = CanvasSpec(component_name="button", variant="danger")
+        url = build_canvas_url(spec, "/base/", mode="basic", theme="dark")
+        assert "component=button" in url
+        assert "variant=danger" in url
+        assert "mode=basic" in url
+        assert "theme=dark" in url
+
+    def test_with_existing_query_params_uses_ampersand(self):
+        spec = CanvasSpec(component_name="button")
+        url = build_canvas_url(spec, "/base/?token=xyz", theme="light")
+        assert url.startswith("/base/?token=xyz&")
+        assert "component=button" in url
+        assert "theme=light" in url
+
+    def test_with_extra_query_params(self):
+        spec = CanvasSpec(component_name="button")
+        url = build_canvas_url(spec, "/base/", preview="true", custom_id="123")
+        assert "preview=true" in url
+        assert "custom_id=123" in url
 
 
 # ---------------------------------------------------------------------------

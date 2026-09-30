@@ -313,6 +313,19 @@
     currentAbortController = new AbortController();
     var signal = currentAbortController.signal;
 
+    /* -- Variant preset selector -- */
+
+    var variantSelect = document.querySelector("[data-gallery-variant-select]");
+    if (variantSelect && variantSelect.form) {
+      variantSelect.addEventListener(
+        "change",
+        function () {
+          variantSelect.form.submit();
+        },
+        { signal: signal },
+      );
+    }
+
     /* -- Background colour -- */
 
     var bgToggle = document.querySelector(

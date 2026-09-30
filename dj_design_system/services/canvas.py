@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import json
 import logging
+import re
+from functools import lru_cache
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlencode
 
 from django.core.exceptions import ValidationError
 from django.db.models import Model
+from django.template import Context, Template
 from django.utils.html import format_html
 from django.utils.safestring import SafeData, mark_safe
 
@@ -17,7 +20,10 @@ from dj_design_system.data import (
     BLOCK_CONTENT_PLACEHOLDER,
     CanvasSpec,
     ComponentMedia,
+    GalleryParameter,
 )
+from dj_design_system.exceptions import VariantNotFoundError
+from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.parameters.base import DictParam, JSONParam, ListParam
 from dj_design_system.parameters.model import ModelParam
 from dj_design_system.services.registry import (
@@ -35,6 +41,7 @@ __all__ = [
     "build_canvas_url",
     "resolve_component",
     "coerce_single",
+    "VariantNotFoundError",
 ]
 
 
@@ -64,7 +71,10 @@ def resolve_from_get_params(
     param_specs = info.component_class.get_params()
     positional_arg_names = info.component_class.get_positional_args()
 
-    raw_params = {k: v for k, v in query_dict.items() if k not in ("component", "bg")}
+    variant = query_dict.get("variant", "").strip() or None
+    raw_params = {
+        k: v for k, v in query_dict.items() if k not in ("component", "bg", "variant")
+    }
 
     positional_args, params = _coerce_params(
         raw_params, param_specs, positional_arg_names
@@ -82,7 +92,49 @@ def resolve_from_get_params(
         component_name=component_name,
         params=params,
         positional_args=positional_args,
+        variant=variant,
     )
+
+
+def _resolve_param_value(val: Any) -> Any:
+    """Unwrap GalleryParameter and evaluate callables dynamically."""
+    if isinstance(val, GalleryParameter):
+        val = val.value
+    if callable(val):
+        val = val()
+    if isinstance(val, GalleryParameter):
+        val = val.value
+    return val
+
+
+def _render_component_class(component_class: type, kwargs: dict[str, Any]) -> str:
+    """Instantiate and render a component class with given keyword arguments."""
+    kw = dict(kwargs)
+    if issubclass(component_class, BlockComponent):
+        if component_class.has_slots():
+            slots = {}
+            slot_keys = [k for k in kw if k.startswith(SLOT_PARAM_PREFIX)]
+            for key in slot_keys:
+                slot_name = key[len(SLOT_PARAM_PREFIX) :]
+                slots[slot_name] = kw.pop(key)
+            for name, slot in component_class.get_slots().items():
+                if name not in slots and slot.required:
+                    slots[name] = slot.default or f"Sample {name} content"
+            return _render_instance(component_class(slots=slots, **kw))
+        else:
+            content = kw.pop("content", BLOCK_CONTENT_PLACEHOLDER)
+            return _render_instance(component_class(content=content, **kw))
+
+    return _render_instance(component_class(**kw))
+
+
+@lru_cache(maxsize=128)
+def _compile_canvas_template(template_str: str) -> Template:
+    """Compile and cache a template string for canvas rendering.
+
+    Raises TemplateSyntaxError if the template string has invalid syntax.
+    """
+    return Template(template_str)
 
 
 def render_component(
@@ -94,29 +146,78 @@ def render_component(
     try:
         info = resolve_component(spec.component_name, registry)
         component_class = info.component_class
-        positional_arg_names = component_class.get_positional_args()
+        config: GalleryConfig = getattr(info, "gallery_config", GalleryConfig())
 
-        kwargs = dict(spec.params)
-        component_class.map_positional_args(
-            positional_arg_names, spec.positional_args, kwargs
+        variant_obj: Variant | None = None
+        if spec.variant:
+            variant_obj = config.get_variant(spec.variant)
+            if variant_obj is None:
+                raise VariantNotFoundError(
+                    f"Variant '{spec.variant}' not found for component '{spec.component_name}'."
+                )
+
+        canvas_template = (
+            variant_obj.canvas_template
+            if variant_obj and variant_obj.canvas_template is not None
+            else config.canvas_template
         )
 
-        if issubclass(component_class, BlockComponent):
-            if component_class.has_slots():
-                slots = {}
-                slot_keys = [k for k in kwargs if k.startswith(SLOT_PARAM_PREFIX)]
-                for key in slot_keys:
-                    slot_name = key[len(SLOT_PARAM_PREFIX) :]
-                    slots[slot_name] = kwargs.pop(key)
-                for name, slot in component_class.get_slots().items():
-                    if name not in slots and slot.required:
-                        slots[name] = slot.default or f"Sample {name} content"
-                return _render_instance(component_class(slots=slots, **kwargs))
-            else:
-                content = kwargs.pop("content", BLOCK_CONTENT_PLACEHOLDER)
-                return _render_instance(component_class(content=content, **kwargs))
+        merged_extra_context: dict[str, Any] = dict(config.extra_context)
+        if variant_obj and variant_obj.extra_context:
+            merged_extra_context.update(variant_obj.extra_context)
 
-        return _render_instance(component_class(**kwargs))
+        resolved_extra_context = {
+            k: _resolve_param_value(v) for k, v in merged_extra_context.items()
+        }
+
+        positional_arg_names = component_class.get_positional_args()
+        merged_params: dict[str, Any] = dict(config.param_defaults)
+        if variant_obj:
+            merged_params.update(variant_obj.kwargs)
+        merged_params.update(spec.params)
+
+        positional_args = (
+            spec.positional_args
+            if spec.positional_args
+            else (variant_obj.positional_args if variant_obj else ())
+        )
+        component_class.map_positional_args(
+            positional_arg_names, positional_args, merged_params
+        )
+
+        resolved_kwargs = {k: _resolve_param_value(v) for k, v in merged_params.items()}
+
+        if canvas_template:
+            has_component_placeholder = bool(
+                re.search(r"\{\{\s*component\b[^}]*\}\}", canvas_template)
+            )
+            template_kwargs = dict(resolved_kwargs)
+
+            if has_component_placeholder:
+                component_html = _render_component_class(
+                    component_class, dict(resolved_kwargs)
+                )
+                context_dict = {
+                    **template_kwargs,
+                    **resolved_extra_context,
+                    "component": mark_safe(component_html),
+                }
+            else:
+                context_dict = {
+                    **template_kwargs,
+                    **resolved_extra_context,
+                }
+
+            template_str = canvas_template
+            if not re.search(
+                r"{%\n?\s*load\s+[^%]*\bdesign_components\b[^%]*%}", template_str
+            ):
+                template_str = f"{{% load design_components %}}\n{template_str}"
+
+            template = _compile_canvas_template(template_str)
+            return template.render(Context(context_dict))
+
+        return _render_component_class(component_class, resolved_kwargs)
     except Exception as exc:  # Catch all rendering/template exceptions
         if raise_errors:
             raise
@@ -160,9 +261,21 @@ def build_canvas_url(
     spec: CanvasSpec,
     base_url: str,
     registry: ComponentRegistry | None = None,
+    mode: str | None = None,
+    theme: str | None = None,
+    **extra_query: Any,
 ) -> str:
     """Build a URL for the canvas iframe view from a ``CanvasSpec``."""
-    query = {"component": spec.component_name}
+    query: dict[str, Any] = {"component": spec.component_name}
+    if spec.variant:
+        query["variant"] = spec.variant
+    if mode:
+        query["mode"] = mode
+    if theme:
+        query["theme"] = theme
+    for k, v in extra_query.items():
+        if v is not None:
+            query[k] = v
 
     positional_arg_names: list[str] = []
     try:
@@ -180,7 +293,9 @@ def build_canvas_url(
     for key, value in spec.params.items():
         query[key] = _serialise_value(value)
 
-    return f"{base_url}?{urlencode(query)}"
+    query_str = urlencode(query)
+    sep = "&" if "?" in base_url else "?"
+    return f"{base_url}{sep}{query_str}"
 
 
 def resolve_component(name: str, registry: ComponentRegistry):
@@ -302,4 +417,3 @@ def _serialise_value(value: object) -> str:
     if isinstance(value, (list, dict)):
         return json.dumps(value)
     return str(value)
-

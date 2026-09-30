@@ -18,9 +18,11 @@ from django.views.decorators.clickjacking import xframe_options_sameorigin
 from dj_design_system.components import BlockComponent
 from dj_design_system.data import CanvasSpec
 from dj_design_system.forms import build_component_form
+from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.parameters.base import _get_type_name
 from dj_design_system.parameters.model import ModelParam
 from dj_design_system.services.canvas import (
+    _resolve_param_value,
     build_canvas_url,
     get_component_media,
     render_component,
@@ -89,16 +91,19 @@ def get_base_context(
     """Return context shared by all gallery views."""
     nav_tree = build_navigation()
     active_theme = get_default_theme().value
+    active_variant = None
     if request:
         active_theme = (
             request.GET.get("theme") or request.COOKIES.get("dds_theme") or active_theme
         )
+        active_variant = request.GET.get("variant", "").strip() or None
     return {
         "nav_tree": nav_tree,
         "search_index": build_search_index(nav_tree),
         "design_system_name": dds_settings.DESIGN_SYSTEM_NAME,
         "active_app": active_app,
         "active_path": active_path,
+        "active_variant": active_variant,
         "available_themes": get_themes(),
         "active_theme": active_theme,
     }
@@ -160,22 +165,37 @@ def _render_folder(request, context, node, app_label, path_parts):
 
 
 def _get_form_and_sandbox_spec(
-    request: HttpRequest, component_class: type[BlockComponent], tag_signature: Any
+    request: HttpRequest,
+    component_class: type[BlockComponent],
+    tag_signature: Any,
+    config: GalleryConfig | None = None,
+    active_variant: Variant | None = None,
 ) -> tuple[Any, dict[str, Any], CanvasSpec]:
     form_class = build_component_form(component_class)
     has_param_in_get = any(key in request.GET for key in form_class.base_fields)
     initial_data = {}
     pos_args = component_class.get_positional_args()
-    for i, val in enumerate(tag_signature.maximal_spec.positional_args):
-        if i < len(pos_args):
-            initial_data[pos_args[i]] = val
-    initial_data.update(tag_signature.maximal_spec.params)
+
+    if active_variant:
+        merged_init: dict[str, Any] = dict(config.param_defaults if config else {})
+        merged_init.update(active_variant.kwargs)
+        for i, val in enumerate(active_variant.positional_args):
+            if i < len(pos_args):
+                merged_init[pos_args[i]] = val
+        initial_data = {k: _resolve_param_value(v) for k, v in merged_init.items()}
+    else:
+        for i, val in enumerate(tag_signature.maximal_spec.positional_args):
+            if i < len(pos_args):
+                initial_data[pos_args[i]] = val
+        initial_data.update(tag_signature.maximal_spec.params)
 
     form = (
         form_class(data=request.GET)
         if has_param_in_get
         else form_class(initial=initial_data)
     )
+
+    variant_name = active_variant.name if active_variant else None
 
     if form.is_bound and form.is_valid():
         form_kwargs = {
@@ -190,7 +210,10 @@ def _get_form_and_sandbox_spec(
                 and isinstance(spec, ModelParam)
                 and name not in form_kwargs
             ):
-                if fallback := tag_signature.maximal_spec.params.get(name):
+                if fallback := (
+                    initial_data.get(name)
+                    or tag_signature.maximal_spec.params.get(name)
+                ):
                     form_kwargs[name] = fallback
 
         positional_args = component_class.get_positional_args()
@@ -201,16 +224,32 @@ def _get_form_and_sandbox_spec(
             component_name=tag_signature.maximal_spec.component_name,
             params=form_kwargs,
             positional_args=positional_values,
+            variant=variant_name,
         )
     else:
         form_kwargs = {}
-        sandbox_spec = tag_signature.maximal_spec
+        if active_variant:
+            spec_params = dict(initial_data)
+            positional_values = tuple(
+                spec_params.pop(name) for name in pos_args if name in spec_params
+            )
+            sandbox_spec = CanvasSpec(
+                component_name=tag_signature.maximal_spec.component_name,
+                params=spec_params,
+                positional_args=positional_values,
+                variant=variant_name,
+            )
+        else:
+            sandbox_spec = tag_signature.maximal_spec
 
     return form, form_kwargs, sandbox_spec
 
 
 def _resolve_sandbox_theme(
-    request: HttpRequest, component_class: type[BlockComponent]
+    request: HttpRequest,
+    component_class: type[BlockComponent],
+    config: GalleryConfig | None = None,
+    active_variant: Variant | None = None,
 ) -> tuple[list[Theme], str]:
     available_theme_values = component_class.get_available_themes()
     available_themes = []
@@ -219,12 +258,22 @@ def _resolve_sandbox_theme(
         if theme_dict is not None:
             available_themes.append(theme_dict)
     active_theme = request.GET.get("theme") or request.COOKIES.get("dds_theme") or ""
+    if not active_theme:
+        if active_variant and active_variant.theme:
+            active_theme = active_variant.theme
+        elif config and config.theme:
+            active_theme = config.theme
+
     if active_theme not in available_theme_values:
         default_theme_val = get_default_theme().value
         active_theme = (
             default_theme_val
             if default_theme_val in available_theme_values
-            else available_theme_values[0]
+            else (
+                available_theme_values[0]
+                if available_theme_values
+                else default_theme_val
+            )
         )
     return available_themes, active_theme
 
@@ -233,16 +282,14 @@ def _build_preview_urls(
     sandbox_spec: CanvasSpec, tag_signature: Any, active_theme: str
 ) -> tuple[str, str, str]:
     canvas_base_url = reverse("gallery-canvas-iframe")
-    canvas_iframe_url = (
-        build_canvas_url(sandbox_spec, canvas_base_url) + f"&theme={active_theme}"
+    canvas_iframe_url = build_canvas_url(
+        sandbox_spec, canvas_base_url, theme=active_theme
     )
-    minimal_preview_url = (
-        build_canvas_url(tag_signature.minimal_spec, canvas_base_url)
-        + f"&mode=basic&theme={active_theme}"
+    minimal_preview_url = build_canvas_url(
+        tag_signature.minimal_spec, canvas_base_url, mode="basic", theme=active_theme
     )
-    maximal_preview_url = (
-        build_canvas_url(tag_signature.maximal_spec, canvas_base_url)
-        + f"&mode=basic&theme={active_theme}"
+    maximal_preview_url = build_canvas_url(
+        tag_signature.maximal_spec, canvas_base_url, mode="basic", theme=active_theme
     )
     return canvas_iframe_url, minimal_preview_url, maximal_preview_url
 
@@ -326,6 +373,16 @@ def _render_component(request, context, node, app_label, path_parts):
     info = node.component
     component_class = info.component_class
     params = component_class.get_params()
+    config = info.gallery_config
+
+    variant_param = request.GET.get("variant", "").strip() or None
+    active_variant: Variant | None = None
+    if variant_param:
+        active_variant = config.get_variant(variant_param)
+        if active_variant is None:
+            raise Http404(
+                f"Variant '{variant_param}' not found for component '{info.name}'."
+            )
 
     tag_signature = generate_tag_signature(
         component_class, canvas_component_name=info.qualified_name, tag_name=info.name
@@ -337,12 +394,56 @@ def _render_component(request, context, node, app_label, path_parts):
     )
 
     form, form_kwargs, sandbox_spec = _get_form_and_sandbox_spec(
-        request, component_class, tag_signature
+        request,
+        component_class,
+        tag_signature,
+        config=config,
+        active_variant=active_variant,
     )
-    available_themes, active_theme = _resolve_sandbox_theme(request, component_class)
+    available_themes, active_theme = _resolve_sandbox_theme(
+        request,
+        component_class,
+        config=config,
+        active_variant=active_variant,
+    )
     canvas_iframe_url, minimal_preview_url, maximal_preview_url = _build_preview_urls(
         sandbox_spec, tag_signature, active_theme
     )
+
+    canvas_base_url = reverse("gallery-canvas-iframe")
+    if active_variant:
+        variant_spec = CanvasSpec(
+            component_name=info.qualified_name,
+            variant=active_variant.name,
+        )
+        variant_preview_url = build_canvas_url(
+            variant_spec, canvas_base_url, mode="basic", theme=active_theme
+        )
+        context["variant_preview_url"] = variant_preview_url
+
+        pos_args = component_class.get_positional_args()
+        variant_sig_kwargs: dict[str, Any] = dict(config.param_defaults)
+        variant_sig_kwargs.update(active_variant.kwargs)
+        for i, val in enumerate(active_variant.positional_args):
+            if i < len(pos_args):
+                variant_sig_kwargs[pos_args[i]] = val
+        context["variant_signature"] = generate_current_tag_signature(
+            component_class,
+            variant_sig_kwargs,
+            canvas_component_name=info.qualified_name,
+            tag_name=info.name,
+        )
+        if active_variant.description:
+            context["variant_description"] = markdown_lib.markdown(
+                active_variant.description.strip(),
+                extensions=["fenced_code", "tables"],
+            )
+        else:
+            context["variant_description"] = ""
+
+    context["active_variant"] = active_variant
+    context["gallery_variants"] = config.variants
+    context["component_base_url"] = node.url
 
     param_rows = _build_param_rows(form, params, component_class)
     current_signature = _generate_signature_usage(
@@ -416,11 +517,16 @@ def _render_component(request, context, node, app_label, path_parts):
     # but we override active_theme with the resolved component-specific one for the UI overrides.
     # Note: the global available_themes from base context shouldn't be overwritten.
     context["sandbox_active_theme"] = active_theme
-    context["breadcrumbs"] = build_breadcrumbs(
+    component_label = to_display_label(info.name, component=info)
+    crumbs = build_breadcrumbs(
         app_label,
         path_parts[:-1] if path_parts else [],
-        to_display_label(info.name, component=info),
+        component_label,
     )
+    if active_variant:
+        crumbs[-1]["url"] = node.url
+        crumbs.append({"label": active_variant.label})
+    context["breadcrumbs"] = crumbs
 
     if node.has_index_doc:
         theme_dict = get_theme(context.get("active_theme"))
@@ -486,6 +592,15 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
     component_class = info.component_class
 
     available_theme_values = component_class.get_available_themes()
+
+    if not theme_val:
+        config = getattr(info, "gallery_config", None)
+        if config:
+            variant_obj = config.get_variant(spec.variant) if spec.variant else None
+            if variant_obj and variant_obj.theme:
+                theme_val = variant_obj.theme
+            elif config.theme:
+                theme_val = config.theme
 
     if theme_val not in available_theme_values:
         if available_theme_values:
