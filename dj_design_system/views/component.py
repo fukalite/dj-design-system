@@ -404,10 +404,10 @@ def _render_component(request, context, node, app_label, path_parts):
     context["breadcrumbs"] = crumbs
 
     if node.has_index_doc:
-        from dj_design_system.views.gallery import _render_markdown
+        from dj_design_system.services.markdown import render_markdown_doc
 
         theme_dict = get_theme(context.get("active_theme"))
-        context["doc_html"] = _render_markdown(
+        context["doc_html"] = render_markdown_doc(
             node.index_doc_path, app_label, theme_dict=theme_dict
         )
 

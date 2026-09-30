@@ -240,7 +240,7 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
         theme_dict, app_label
     )
     context["canvas_bg_class"] = _canvas_bg_class(request, theme_dict)
-    context["canvas_bg_styles"] = _canvas_bg_styles(theme_dict)
+    context["canvas_bg_styles"] = _canvas_bg_styles(theme_dict, request=request)
 
     return render(
         request,

@@ -2,13 +2,11 @@
 
 from pathlib import Path
 
-import markdown as markdown_lib
 from django.conf import settings
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import render
 
-from dj_design_system.services.markdown_canvas import CanvasExtension
-from dj_design_system.services.markdown_links import RelativeLinksExtension
+from dj_design_system.services.markdown import render_markdown_doc
 from dj_design_system.services.navigation import (
     build_breadcrumbs,
     build_navigation,
@@ -54,34 +52,8 @@ def get_base_context(
 
 
 def _render_markdown(file_path: Path, app_label: str = "", theme_dict=None) -> str:
-    """Render a markdown file to HTML."""
-    content = file_path.read_text(encoding="utf-8")
-
-    extensions: list = [
-        CanvasExtension(
-            app_label=app_label,
-            debug=settings.DEBUG,
-            theme_dict=theme_dict,
-        ),
-        RelativeLinksExtension(current_file_path=file_path),
-        "fenced_code",
-        "tables",
-        "toc",
-    ]
-    extension_configs: dict = {}
-    style = dds_settings.GALLERY_CODEHILITE_STYLE
-    if style:
-        extensions.append("codehilite")
-        extension_configs["codehilite"] = {
-            "css_class": "gallery-highlight",
-            "noclasses": False,
-            "pygments_style": style,
-        }
-    return markdown_lib.markdown(
-        content,
-        extensions=extensions,
-        extension_configs=extension_configs,
-    )
+    """Render a markdown file to HTML (deprecated internal helper; use services.markdown.render_markdown_doc)."""
+    return render_markdown_doc(file_path, app_label=app_label, theme_dict=theme_dict)
 
 
 def _render_folder(request, context, node, app_label, path_parts):
@@ -93,7 +65,7 @@ def _render_folder(request, context, node, app_label, path_parts):
 
     if node.has_index_doc:
         theme_dict = get_theme(context.get("active_theme"))
-        context["doc_html"] = _render_markdown(
+        context["doc_html"] = render_markdown_doc(
             node.index_doc_path, app_label, theme_dict=theme_dict
         )
         return render(
@@ -111,7 +83,7 @@ def _render_folder(request, context, node, app_label, path_parts):
 def _render_document(request, context, node, app_label, path_parts):
     """Render a standalone markdown document."""
     theme_dict = get_theme(context.get("active_theme"))
-    context["doc_html"] = _render_markdown(
+    context["doc_html"] = render_markdown_doc(
         node.doc_path, app_label, theme_dict=theme_dict
     )
     context["doc_label"] = node.label
