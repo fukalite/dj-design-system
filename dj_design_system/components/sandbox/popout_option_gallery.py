@@ -1,11 +1,10 @@
 basic_kwargs = {"data_name": "zoom", "value": "50", "content": "50%"}
 
 maximal_kwargs = {
-    "data_name": "bg",
-    "value": "dark-grey",
+    "data_name": "viewport",
+    "value": "320",
     "active": True,
-    "title": "Dark grey",
-    "extra_classes": "gallery-sandbox-toolbar__bg-option",
-    "content": '<span class="gallery-sandbox-toolbar__bg-chip gallery-bg-chip-dark-grey">'
-    '</span><span class="gallery-sandbox-toolbar__bg-option-label">Dark grey</span>',
+    "title": "Small mobile (320px)",
+    "extra_classes": "gallery-sandbox-toolbar__viewport-btn",
+    "content": "Small mobile — 320px",
 }
