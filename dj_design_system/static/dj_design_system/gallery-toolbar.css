@@ -127,10 +127,15 @@ form.gallery-sandbox-toolbar__presets {
   border-radius: 3px;
 }
 
+.gallery-sandbox-toolbar__bg-chip--white,
 .gallery-bg-chip-white { background: #ffffff; }
+.gallery-sandbox-toolbar__bg-chip--light-grey,
 .gallery-bg-chip-light-grey { background: #f6f8fa; }
+.gallery-sandbox-toolbar__bg-chip--dark-grey,
 .gallery-bg-chip-dark-grey { background: #24292e; }
+.gallery-sandbox-toolbar__bg-chip--black,
 .gallery-bg-chip-black { background: #000000; }
+.gallery-sandbox-toolbar__bg-chip--transparent,
 .gallery-bg-chip-transparent { background: transparent; }
 
 /* ------------------------------------------------------------------ */

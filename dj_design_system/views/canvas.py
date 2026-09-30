@@ -100,7 +100,9 @@ def _canvas_bg_styles(
     rules = []
     for bg in get_backgrounds():
         rules.append(f".canvas-bg-{bg['value']} {{ background: {bg['color']}; }}")
-        rules.append(f".gallery-bg-chip-{bg['value']} {{ background: {bg['color']}; }}")
+        rules.append(
+            f".gallery-sandbox-toolbar__bg-chip--{bg['value']}, .gallery-bg-chip-{bg['value']} {{ background: {bg['color']}; }}"
+        )
 
     if theme_dict and isinstance(theme_dict.canvas_background, dict):
         bg = theme_dict.canvas_background

@@ -23,6 +23,9 @@
                     </option>
                 {% endfor %}
             </select>
+            <noscript>
+                <button type="submit" class="gallery-sandbox-toolbar__btn">Apply</button>
+            </noscript>
         </form>
     {% endif %}
 
@@ -45,7 +48,7 @@
                         type="button"
                         data-bg="{{ bg.value }}"
                         title="{{ bg.label }}">
-                    <span class="gallery-sandbox-toolbar__bg-chip gallery-bg-chip-{{ bg.value }}"></span>
+                    <span class="gallery-sandbox-toolbar__bg-chip gallery-sandbox-toolbar__bg-chip--{{ bg.value }} gallery-bg-chip-{{ bg.value }}"></span>
                     <span class="gallery-sandbox-toolbar__bg-option-label">{{ bg.label }}</span>
                 </button>
             {% endfor %}
