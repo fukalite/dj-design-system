@@ -1,0 +1,1 @@
+23 characterisation e2e tests, all passing against the legacy gallery-toolbar.js. just e2e 64 passed twice. Drawer tests use a 1400px-tall window: at 1900px wide the sandbox canvas is ~1100px tall, so the drawer is below the fold in shorter windows (same on main).
