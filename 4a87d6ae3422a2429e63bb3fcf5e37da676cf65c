@@ -1,0 +1,1 @@
+12 navigation baselines (0 existing changed). e2e exemptions: nav_tree nested-interactive (#112) + color-contrast (canvas lacks sidebar dark bg). just e2e 41 passed.
