@@ -13,6 +13,7 @@ trigger: always_on
 - **Idiomatic Usage**: Always use the most idiomatic patterns for the project's base frameworks (e.g., React hooks, Pythonic list comprehensions).
 - **Existing Patterns**: Research the codebase before implementing something new. If a pattern for your task already exists, reuse it to maintain consistency.
 - **DRY (Don't Repeat Yourself)**: Extract common logic into reusable functions or components, but avoid over-abstraction.
+- **YAGNI**: Don't over-build features until you know they're needed; a smaller surface area is better.
 
 ## Logic & Flow
 - **Keep cognitive load low.**
