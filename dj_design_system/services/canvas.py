@@ -9,6 +9,7 @@ from functools import lru_cache
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlencode
 
+import nh3
 from django.core.exceptions import ValidationError
 from django.db.models import Model
 from django.template import Context, Template
@@ -84,9 +85,9 @@ def resolve_from_get_params(
         if info.component_class.has_slots():
             for key, value in raw_params.items():
                 if key.startswith(SLOT_PARAM_PREFIX):
-                    params[key] = mark_safe(value)
+                    params[key] = mark_safe(nh3.clean(value))
         elif "content" in raw_params:
-            params["content"] = mark_safe(raw_params["content"])
+            params["content"] = mark_safe(nh3.clean(raw_params["content"]))
 
     return CanvasSpec(
         component_name=component_name,
@@ -257,6 +258,9 @@ def get_component_media(
         return ComponentMedia()
 
 
+RESERVED_CANVAS_PARAMS = frozenset({"component", "variant", "mode", "theme"})
+
+
 def build_canvas_url(
     spec: CanvasSpec,
     base_url: str,
@@ -266,7 +270,33 @@ def build_canvas_url(
     **extra_query: Any,
 ) -> str:
     """Build a URL for the canvas iframe view from a ``CanvasSpec``."""
-    query: dict[str, Any] = {"component": spec.component_name}
+    query: dict[str, Any] = {}
+
+    positional_arg_names: list[str] = []
+    try:
+        target_registry = registry if registry is not None else component_registry
+        info = resolve_component(spec.component_name, target_registry)
+        if hasattr(info.component_class, "get_positional_args"):
+            positional_arg_names = info.component_class.get_positional_args()
+    except Exception as exc:
+        logger.debug(
+            "Could not resolve component '%s' or its positional args: %s",
+            spec.component_name,
+            exc,
+        )
+
+    for i, value in enumerate(spec.positional_args):
+        if i < len(positional_arg_names):
+            name = positional_arg_names[i]
+            if name not in RESERVED_CANVAS_PARAMS and name not in extra_query:
+                query[name] = _serialise_value(value)
+
+    for key, value in spec.params.items():
+        if key not in RESERVED_CANVAS_PARAMS and key not in extra_query:
+            query[key] = _serialise_value(value)
+
+    # Core canvas control parameters take priority to avoid parameter shadowing
+    query["component"] = spec.component_name
     if spec.variant:
         query["variant"] = spec.variant
     if mode:
@@ -276,22 +306,6 @@ def build_canvas_url(
     for k, v in extra_query.items():
         if v is not None:
             query[k] = v
-
-    positional_arg_names: list[str] = []
-    try:
-        if registry is None:
-            registry = component_registry
-        info = resolve_component(spec.component_name, registry)
-        positional_arg_names = info.component_class.get_positional_args()
-    except (ValueError, ImportError):
-        pass
-
-    for i, value in enumerate(spec.positional_args):
-        if i < len(positional_arg_names):
-            query[positional_arg_names[i]] = _serialise_value(value)
-
-    for key, value in spec.params.items():
-        query[key] = _serialise_value(value)
 
     query_str = urlencode(query)
     sep = "&" if "?" in base_url else "?"

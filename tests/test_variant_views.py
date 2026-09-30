@@ -128,6 +128,20 @@ class TestVariantViews:
         )
         assert b"onchange=" not in response.content
 
+    def test_sandbox_toolbar_variant_form_action_targets_sandbox_pane(
+        self, client: Client
+    ):
+        """The variant preset form in the sandbox toolbar targets #pane-sandbox to avoid snapping to docs."""
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "badge"},
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+        # Form action in toolbar should retain #pane-sandbox
+        assert b'action="' in response.content
+        assert f'action="{url}#pane-sandbox"'.encode() in response.content
+
     def test_unknown_variant_returns_404(self, client: Client):
         url = reverse(
             "gallery-node",

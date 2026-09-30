@@ -67,6 +67,26 @@ class TestResolveFromGetParams:
         spec = resolve_from_get_params(qd, registry_with_demo_components)
         assert spec.params.get("content") == "Hello world"
 
+    def test_block_component_content_sanitizes_xss(
+        self, registry_with_demo_components
+    ):
+        """resolve_from_get_params sanitizes XSS in content before mark_safe."""
+        qd = QueryDict("component=alert&content=<script>alert(1)</script><b>Safe</b>")
+        spec = resolve_from_get_params(qd, registry_with_demo_components)
+        content = spec.params.get("content")
+        assert "<script>" not in content
+        assert "<b>Safe</b>" in content
+
+    def test_block_component_slot_sanitizes_xss(
+        self, registry_with_demo_components
+    ):
+        """resolve_from_get_params sanitizes XSS in slot parameters before mark_safe."""
+        qd = QueryDict("component=slotted_card&slot__header=<script>alert(1)</script>Safe+Title")
+        spec = resolve_from_get_params(qd, registry_with_demo_components)
+        header = spec.params.get("slot__header")
+        assert "<script>" not in header
+        assert "Safe Title" in header
+
     def test_unknown_params_ignored(self, registry_with_demo_components):
         qd = QueryDict("component=button&nonsense=foo")
         spec = resolve_from_get_params(qd, registry_with_demo_components)
@@ -274,6 +294,48 @@ class TestBuildCanvasUrl:
         url = build_canvas_url(spec, "/base/", preview="true", custom_id="123")
         assert "preview=true" in url
         assert "custom_id=123" in url
+
+    def test_param_shadowing_prevented(self):
+        """Component params cannot shadow reserved canvas control parameters."""
+        spec = CanvasSpec(
+            component_name="button",
+            params={
+                "component": "malicious",
+                "mode": "standalone",
+                "variant": "injected",
+                "theme": "dark",
+                "label": "Click me",
+            },
+        )
+        url = build_canvas_url(spec, "/base/")
+        assert "component=button" in url
+        assert "component=malicious" not in url
+        assert "mode=standalone" not in url
+        assert "variant=injected" not in url
+        assert "theme=dark" not in url
+        assert "label=Click+me" in url
+
+    def test_extra_query_shadowing_prevented(self):
+        """Component params cannot shadow explicit extra_query parameters."""
+        spec = CanvasSpec(
+            component_name="button",
+            params={"bg": "light", "label": "Click me"},
+        )
+        url = build_canvas_url(spec, "/base/", bg="dark")
+        assert "bg=dark" in url
+        assert "bg=light" not in url
+
+    def test_component_resolution_failure_handled_gracefully(self):
+        """Unexpected errors during component resolution do not crash build_canvas_url."""
+        class BuggyRegistry:
+            def list_all(self):
+                raise RuntimeError("Registry database unreachable")
+
+        spec = CanvasSpec(component_name="button", params={"label": "Hi"})
+        # Should not raise RuntimeError
+        url = build_canvas_url(spec, "/base/", registry=BuggyRegistry())
+        assert "component=button" in url
+        assert "label=Hi" in url
 
 
 # ---------------------------------------------------------------------------
