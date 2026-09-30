@@ -15,7 +15,7 @@ Builds the gallery's structural components, moving their CSS/JS out of the legac
 
 ---
 
-## Phase 2: `Breadcrumb`, `NavTree`, `FolderListing`
+## Phase 2: `Breadcrumb`, `NavTree`, `FolderListing` [checkpoint: 4a87d6a]
 - [x] Task: Write Failing Tests (`Red Phase`) [a2e5cc4]
   - [x] `Breadcrumb` renders full and collapsed paths for 1, 2 and more than 2 crumbs.
   - [x] `NavTree` renders app groups, folders (open when on the active path), leaves, icons and active states; handles a deep tree.
@@ -25,7 +25,7 @@ Builds the gallery's structural components, moving their CSS/JS out of the legac
   - [x] Move breadcrumb, nav tree, depth indentation, nav icon and folder listing CSS.
 - [x] Task: Refactor and Verify Coverage [a2e5cc4]
 - [x] Task: Confirm the track 0 visual baseline passes. [4a87d6a]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [4a87d6a]
 
 ---
 
