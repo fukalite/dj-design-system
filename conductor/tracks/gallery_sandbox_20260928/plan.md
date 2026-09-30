@@ -24,7 +24,7 @@ Builds the canvas, documentation and sandbox components, and redistributes `gall
 
 ---
 
-## Phase 3: `ParamsForm`, `FormRow`
+## Phase 3: `ParamsForm`, `FormRow` [checkpoint: 2517973]
 - [x] Task: Write Failing Tests (`Red Phase`) [42d7cfb]
   - [x] `ParamsForm` renders the HTMX attributes, hidden theme input and drawer wrapper.
   - [x] `FormRow` renders label, hint, field and errors from a `BoundField`. (Also takes an example dict, for gallery examples, which travel as URL parameters.)
@@ -33,7 +33,7 @@ Builds the canvas, documentation and sandbox components, and redistributes `gall
   - [x] Move parameter form and drawer CSS and the drawer resize JS.
 - [x] Task: Refactor and Verify Coverage [42d7cfb]
 - [x] Task: Confirm the track 0 visual baseline and characterisation tests pass. [2517973]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [2517973]
 
 ---
 
