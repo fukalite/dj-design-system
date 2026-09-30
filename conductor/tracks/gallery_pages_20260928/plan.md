@@ -2,10 +2,10 @@
 
 Rewrites the gallery templates as compositions of built-in components and removes the legacy gallery assets.
 
-## Phase 1: Baseline Measurements
+## Phase 1: Baseline Measurements [checkpoint: a7bb97a]
 - [x] Task: Record component page render time on the example project. [a7bb97a] (See `performance.md`.)
 - [x] Task: Add tests pinning template block names, element IDs and legacy include paths (`breadcrumb.html`, `navtree.html`, `toolbar.html`, `canvas_widget.html`). [a7bb97a]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [a7bb97a]
 
 ---
 
