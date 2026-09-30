@@ -38,12 +38,12 @@ Builds the canvas, documentation and sandbox components, and redistributes `gall
 ---
 
 ## Phase 4: `SandboxToolbar`, `Popout`, `PopoutOption`, `ToggleButton`
-- [ ] Task: Write Failing Tests (`Red Phase`)
-  - [ ] Each renders the legacy markup, IDs, ARIA attributes and `data-*` attributes.
-- [ ] Task: Implement to Pass Tests (`Green Phase`)
-  - [ ] Implement components, templates and gallery side-cars.
-  - [ ] Split the remaining `gallery-toolbar.js` into component JS; move `gallery-measure.js`; move `gallery-toolbar.css`.
-  - [ ] Delete `gallery-toolbar.js` and `gallery-toolbar.css` once empty.
-- [ ] Task: Refactor and Verify Coverage
-- [ ] Task: Confirm the track 0 visual baseline and characterisation tests pass.
+- [x] Task: Write Failing Tests (`Red Phase`) [c1c0438]
+  - [x] Each renders the legacy markup, IDs, ARIA attributes and `data-*` attributes. (Composed, they reproduce the legacy toolbar.)
+- [x] Task: Implement to Pass Tests (`Green Phase`) [c1c0438]
+  - [x] Implement components, templates and gallery side-cars.
+  - [x] Split the remaining `gallery-toolbar.js` into component JS; move `gallery-measure.js`; move `gallery-toolbar.css`.
+  - [x] Delete `gallery-toolbar.js` and `gallery-toolbar.css` once empty.
+- [x] Task: Refactor and Verify Coverage [c1c0438]
+- [x] Task: Confirm the track 0 visual baseline and characterisation tests pass. [c453bf1]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
