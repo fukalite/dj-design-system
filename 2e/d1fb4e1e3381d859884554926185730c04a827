@@ -1,0 +1,1 @@
+just check, typecheck clean; just test 1155 passed; just e2e 64 passed twice; just visual 165/165 (no baseline changes); rendered-page diff vs previous templates: 142/142 identical.
