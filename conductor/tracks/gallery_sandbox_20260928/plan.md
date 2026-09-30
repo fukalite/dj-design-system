@@ -2,11 +2,11 @@
 
 Builds the canvas, documentation and sandbox components, and redistributes `gallery-toolbar.js` / `gallery-toolbar.css` into component-owned assets.
 
-## Phase 1: Toolbar Behaviour Characterisation
+## Phase 1: Toolbar Behaviour Characterisation [checkpoint: 2451a49]
 - [x] Task: Write Characterisation Tests [2451a49]
   - [x] Add e2e tests pinning current toolbar behaviour: each popout opens and closes (click, outside click, Escape); background, viewport and zoom apply to the iframe; outline, measure and RTL toggles; drawer resize; state retained across an HTMX parameter change. (Correction: the legacy script has no Escape handling, so Escape isn't pinned. #112 adds it. The tests are in `tests/e2e/test_sandbox_toolbar.py`.)
   - [x] Confirm they pass against the legacy implementation.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [2451a49]
 
 ---
 
