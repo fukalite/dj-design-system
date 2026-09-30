@@ -1,1 +1,1 @@
-16 new baselines (0 existing changed); just visual 149/149 before adding them; just test 1110 passed; just e2e 64 passed twice.
+16 new baselines (0 existing changed; PopoutOption's maximal pair regenerated in c453bf1 after its example changed); just visual 149/149 before adding them; just test 1110 passed; just e2e 64 passed twice.
