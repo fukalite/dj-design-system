@@ -134,3 +134,13 @@ def user_client(client):
 # ---------------------------------------------------------------------------
 # Canvas fixtures
 # ---------------------------------------------------------------------------
+
+
+@pytest.fixture(autouse=True)
+def _clear_nav_cache():
+    """Clear navigation and search index cache before and after every test."""
+    from dj_design_system.services.navigation import clear_navigation_cache
+
+    clear_navigation_cache()
+    yield
+    clear_navigation_cache()

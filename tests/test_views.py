@@ -295,7 +295,7 @@ class TestGalleryComponentFormIntegration:
         from django.test import RequestFactory
 
         from dj_design_system.services.tag_signature import generate_tag_signature
-        from dj_design_system.views import _get_form_and_sandbox_spec
+        from dj_design_system.views.component import _get_form_and_sandbox_spec
 
         nav_tree = _get_nav_tree()
         component = _find_component_with_params(nav_tree)
@@ -331,7 +331,7 @@ class TestGalleryComponentFormIntegration:
         from dj_design_system.parameters import StrParam
         from dj_design_system.parameters.model import ModelParam
         from dj_design_system.services.tag_signature import TagSignature
-        from dj_design_system.views import _get_form_and_sandbox_spec
+        from dj_design_system.views.component import _get_form_and_sandbox_spec
 
         dummy_qs = MagicMock()
         dummy_qs.order_by.return_value = dummy_qs
@@ -409,7 +409,7 @@ class TestGalleryComponentFormIntegration:
         from dj_design_system.components import BlockComponent
         from dj_design_system.forms import build_component_form
         from dj_design_system.parameters.base import JSONParam
-        from dj_design_system.views import _build_param_rows
+        from dj_design_system.views.component import _build_param_rows
 
         class TupleParamComponent(BlockComponent):
             data = JSONParam("JSON data")
@@ -501,6 +501,28 @@ def _collect_all_nodes(nodes):
         if node.children:
             result.extend(_collect_all_nodes(node.children))
     return result
+
+
+class TestParamsTable:
+    """A parameter's name must not shadow the dict method the table loops over."""
+
+    def test_param_named_items(self, client, monkeypatch):
+        from dj_design_system.parameters import StrParam
+        from dj_design_system.services.registry import component_registry
+
+        info = component_registry.get_by_name("badge", app_label="demo_components")
+        original = info.component_class.get_params
+        extra = StrParam("Named like dict.items.", required=False, default="")
+        monkeypatch.setattr(
+            info.component_class,
+            "get_params",
+            classmethod(lambda cls: {**original(), "items": extra}),
+        )
+
+        response = client.get(reverse("gallery") + "demo_components/badge/")
+
+        assert response.status_code == 200
+        assert b"<code>items</code>" in response.content
 
 
 class TestSmokeAllPages:

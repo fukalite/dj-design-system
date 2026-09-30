@@ -13,7 +13,10 @@
 {% if param_rows %}
     <div class="gallery-sandbox__controls-wrapper" data-gallery-drawer>
         <div class="gallery-sandbox__resizer"
-             aria-hidden="true"
+             role="separator"
+             tabindex="0"
+             aria-orientation="horizontal"
+             aria-label="Resize controls drawer"
              data-gallery-resizer></div>
         <div class="gallery-sandbox__controls">
             <form method="get"
@@ -24,6 +27,9 @@
                   hx-swap="innerHTML"
                   hx-trigger="change delay:400ms, keyup delay:400ms from:input, keyup delay:400ms from:textarea">
                 <input type="hidden" name="theme" value="{{ active_theme }}">
+                {% if active_variant %}
+                    <input type="hidden" name="variant" value="{{ active_variant.name }}">
+                {% endif %}
                 {% for row in param_rows %}
                     <div class="gallery-params-form__row">
                         <label class="gallery-params-form__label" for="{{ row.field.id_for_label }}">
@@ -33,7 +39,7 @@
                         <div class="gallery-params-form__field">
                             {{ row.field }}
                             {% if row.field.errors %}
-                                <ul class="gallery-params__errors">
+                                <ul class="gallery-params-form__errors gallery-params__errors">
                                     {% for error in row.field.errors %}<li>{{ error }}</li>{% endfor %}
                                 </ul>
                             {% endif %}

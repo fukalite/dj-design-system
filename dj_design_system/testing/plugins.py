@@ -18,7 +18,7 @@ except ImportError:
 
 class PlaywrightAssessmentPlugin(AssessmentPlugin):
     """Base class for Playwright-based assessment plugins."""
-    
+
     def __init__(self, page: Any, base_url: str):
         self.page = page
         self.base_url = base_url.rstrip("/")
@@ -33,7 +33,7 @@ class PlaywrightAssessmentPlugin(AssessmentPlugin):
     def _navigate_to_component(self, component: Any, variant: str, theme: str) -> Any:
         kwargs = self._resolve_kwargs(component, variant)
         params: dict[str, str] = {"component": component.qualified_name, "theme": theme}
-        
+
         for key, value in kwargs.items():
             if hasattr(value, "value"):
                 value = value.value
@@ -44,7 +44,7 @@ class PlaywrightAssessmentPlugin(AssessmentPlugin):
                     params[key] = json.dumps(value)
                 else:
                     params[key] = str(value)
-                    
+
         url = f"{self.base_url}/_canvas/?{urllib.parse.urlencode(params, doseq=True)}"
         return self.page.goto(url)
 
@@ -182,8 +182,20 @@ class StrictHTMLParser(HTMLParser):
         self.stack: list[str] = []
         self.errors: list[str] = []
         self.void_elements = {
-            "area", "base", "br", "col", "embed", "hr", "img", 
-            "input", "link", "meta", "param", "source", "track", "wbr",
+            "area",
+            "base",
+            "br",
+            "col",
+            "embed",
+            "hr",
+            "img",
+            "input",
+            "link",
+            "meta",
+            "param",
+            "source",
+            "track",
+            "wbr",
         }
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
@@ -212,9 +224,7 @@ class StrictHTMLParser(HTMLParser):
     def close(self) -> None:
         super().close()
         if self.stack:
-            self.errors.append(
-                f"Unclosed tags remaining: {', '.join(self.stack)}"
-            )
+            self.errors.append(f"Unclosed tags remaining: {', '.join(self.stack)}")
 
 
 class HTMLValidationPlugin(PlaywrightAssessmentPlugin):

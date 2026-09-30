@@ -249,7 +249,9 @@ Use the exact line numbers annotated at the start of each line (e.g. ' 42: + cod
                     resp_json = json.loads(resp.read().decode("utf-8"))
                     candidates = resp_json.get("candidates", [])
                     if not candidates:
-                        raise ValueError(f"No response candidates returned: {resp_json}")
+                        raise ValueError(
+                            f"No response candidates returned: {resp_json}"
+                        )
                     parts = candidates[0].get("content", {}).get("parts", [])
                     if not parts or "text" not in parts[0]:
                         finish_reason = candidates[0].get("finishReason", "UNKNOWN")

@@ -28,7 +28,11 @@ classifiers = [
 # Runtime dependencies: pinned only where we actively test the range.
 # Other deps (markdown etc.) are intentionally unpinned so downstream
 # projects can apply security updates without waiting for us.
-dependencies = ["django>=5.2,<8", "markdown"]
+dependencies = [
+    "django>=5.2,<8",
+    "markdown",
+    "nh3",
+]
 
 [project.urls]
 Homepage = "https://fukalite.github.io/dj-design-system/"
