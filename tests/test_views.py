@@ -501,6 +501,28 @@ def _collect_all_nodes(nodes):
     return result
 
 
+class TestParamsTable:
+    """A parameter's name must not shadow the dict method the table loops over."""
+
+    def test_param_named_items(self, client, monkeypatch):
+        from dj_design_system.parameters import StrParam
+        from dj_design_system.services.registry import component_registry
+
+        info = component_registry.get_by_name("badge", app_label="demo_components")
+        original = info.component_class.get_params
+        extra = StrParam("Named like dict.items.", required=False, default="")
+        monkeypatch.setattr(
+            info.component_class,
+            "get_params",
+            classmethod(lambda cls: {**original(), "items": extra}),
+        )
+
+        response = client.get(reverse("gallery") + "demo_components/badge/")
+
+        assert response.status_code == 200
+        assert b"<code>items</code>" in response.content
+
+
 class TestSmokeAllPages:
     """Walk the entire navigation tree and assert every page renders."""
 
