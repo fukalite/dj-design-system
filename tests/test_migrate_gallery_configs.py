@@ -143,3 +143,31 @@ class TestMigrateGalleryConfigsCommand:
         out = StringIO()
         call_command("migrate_gallery_configs", str(tmp_path), check=True, stdout=out)
         assert "All gallery files are up to date" in out.getvalue()
+
+    def test_command_skips_internal_gallery_file(self):
+        internal_gallery_path = (
+            Path(__file__).resolve().parents[1] / "dj_design_system" / "gallery.py"
+        )
+        out = StringIO()
+        call_command(
+            "migrate_gallery_configs",
+            str(internal_gallery_path),
+            check=True,
+            stdout=out,
+        )
+        assert "All gallery files are up to date" in out.getvalue()
+
+    def test_command_does_not_skip_external_gallery_with_dj_design_system_in_path(
+        self, tmp_path: Path
+    ):
+        sub_dir = tmp_path / "dj_design_system"
+        sub_dir.mkdir()
+        test_file = sub_dir / "gallery.py"
+        test_file.write_text('basic_kwargs = {"title": "Test"}', encoding="utf-8")
+
+        out = StringIO()
+        call_command("migrate_gallery_configs", str(test_file), stdout=out)
+        output = out.getvalue()
+        assert "Migrated" in output
+        content = test_file.read_text(encoding="utf-8")
+        assert "config = GalleryConfig(" in content
