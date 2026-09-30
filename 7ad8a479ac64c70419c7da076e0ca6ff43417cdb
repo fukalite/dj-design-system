@@ -1,0 +1,1 @@
+Side-car block content: generate_tag_signature uses side-car 'content' as block body (placeholder otherwise) and passes it to canvas specs. 4 new tests in test_tag_signature. just test pass.
