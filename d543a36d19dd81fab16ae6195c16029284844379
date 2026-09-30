@@ -1,0 +1,4 @@
+Phase 3 checkpoint (SearchBox, ThemeSelect, Tabs)
+
+Automated: just check, typecheck clean; just test 1006, just e2e 41; just visual 129/129 (12 new, 0 changed); CI run 36711117399 green. Includes the params-table items fix (also #120) and a smoke test over every built-in gallery page.
+Manual verification: user confirmed from recorded GIFs/screenshots of search, theme, tabs, previews and the fixed pages.
