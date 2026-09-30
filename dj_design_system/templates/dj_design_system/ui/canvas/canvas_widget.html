@@ -1,0 +1,37 @@
+<div class="gallery-md-canvas {% if extra_classes %}{{ extra_classes }}{% endif %}">
+    <input type="radio"
+           name="mc-toggle-{{ unique_id }}"
+           id="mc-preview-{{ unique_id }}"
+           class="gallery-md-canvas__input gallery-md-canvas__input--preview"
+           checked>
+    <input type="radio"
+           name="mc-toggle-{{ unique_id }}"
+           id="mc-code-{{ unique_id }}"
+           class="gallery-md-canvas__input gallery-md-canvas__input--code">
+    <input type="radio"
+           name="mc-toggle-{{ unique_id }}"
+           id="mc-html-{{ unique_id }}"
+           class="gallery-md-canvas__input gallery-md-canvas__input--html">
+    <div class="gallery-md-canvas__toggles">
+        <label for="mc-preview-{{ unique_id }}"
+               class="gallery-md-canvas__label"
+               title="Preview">{{ preview_icon }}</label>
+        <label for="mc-code-{{ unique_id }}"
+               class="gallery-md-canvas__label"
+               title="Template Source">{{ source_icon }}</label>
+        <label for="mc-html-{{ unique_id }}"
+               class="gallery-md-canvas__label"
+               title="Output HTML">{{ output_icon }}</label>
+    </div>
+    <div class="gallery-md-canvas__preview">
+        <iframe class="gallery-canvas {% if iframe_class %}{{ iframe_class }}{% else %}gallery-md-canvas__iframe{% endif %}"
+                {% if iframe_srcdoc %}srcdoc="{{ iframe_srcdoc }}"{% endif %}
+                {% if iframe_src %}src="{{ iframe_src }}"{% endif %}
+                data-canvas-id="{{ unique_id }}"
+                {% if sandbox_attrs %}sandbox="{{ sandbox_attrs }}"{% endif %}
+                loading="lazy"
+                title="Component preview"></iframe>
+    </div>
+    <div class="gallery-md-canvas__code gallery-highlight">{{ source_code }}</div>
+    <div class="gallery-md-canvas__html gallery-highlight">{{ output_code }}</div>
+</div>

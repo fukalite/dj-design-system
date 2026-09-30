@@ -113,52 +113,6 @@
 }
 
 /* ------------------------------------------------------------------ */
-/* Canvas iframe                                                       */
-/* ------------------------------------------------------------------ */
-.gallery-canvas {
-  width: 100%;
-  min-height: 100px;
-  border: 1px dashed var(--gallery-border);
-  border-radius: var(--gallery-radius);
-  background: var(--gallery-content-bg);
-  display: block;
-}
-
-/* Doc preview iframe (basic-mode canvas in docs pane) */
-.gallery-doc-preview {
-  position: relative;
-  width: 100%;
-  margin-bottom: 8px;
-}
-
-.gallery-doc-preview__iframe {
-  min-height: 60px;
-}
-
-/* ------------------------------------------------------------------ */
-/* Usage examples (minimal and bigger tag signatures)                  */
-/* ------------------------------------------------------------------ */
-.gallery-usage {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  margin-bottom: 16px;
-}
-
-.gallery-usage__block {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* Responsive: maintain full width on all viewports */
-@media (max-width: 1200px) {
-  .gallery-usage {
-    flex-direction: column;
-  }
-}
-
-/* ------------------------------------------------------------------ */
 /* Responsive: tablets (≤ 768px)                                       */
 /* ------------------------------------------------------------------ */
 @media (max-width: 768px) {

@@ -22,7 +22,7 @@ from tests.test_navigation_components import structure
 SEARCH_JS = "dj_design_system/ui/navigation/search_box.js"
 THEME_JS = "dj_design_system/ui/navigation/theme_select.js"
 TABS_JS = "dj_design_system/ui/navigation/tabs.js"
-PREVIEW_RESIZE_JS = "dj_design_system/gallery-preview-resize.js"
+CANVAS_WIDGET_JS = "dj_design_system/ui/canvas/canvas_widget.js"
 
 
 def _staff_request(path: str):
@@ -204,10 +204,10 @@ class TestTabs:
         assert info.media.js == [TABS_JS]
 
     def test_script_only_syncs_tabs(self):
-        # The preview auto-height listener stays out of Tabs: it runs only on
-        # component pages, while built-in scripts load on every gallery page.
+        # The preview auto-height listener isn't tab behaviour; CanvasWidget
+        # owns it.
         assert "canvas-resize" not in (STATIC / "ui/navigation/tabs.js").read_text()
-        assert "canvas-resize" in (STATIC / "gallery-preview-resize.js").read_text()
+        assert "canvas-resize" in (STATIC / "ui/canvas/canvas_widget.js").read_text()
 
 
 # ---------------------------------------------------------------------------
@@ -242,10 +242,10 @@ class TestGalleryScripts:
         assert legacy not in self._index()
         assert legacy not in self._component_page()
 
-    def test_preview_resize_listener_only_on_component_pages(self):
-        assert PREVIEW_RESIZE_JS not in self._index()
-        (tag,) = _scripts(self._component_page(), f"/static/{PREVIEW_RESIZE_JS}")
-        assert 'nonce="n0nce"' in tag
+    def test_preview_resize_listener_loads_once_with_nonce(self):
+        for page in [self._index(), self._component_page()]:
+            (tag,) = _scripts(page, f"/static/{CANVAS_WIDGET_JS}")
+            assert 'nonce="n0nce"' in tag
 
 
 # ---------------------------------------------------------------------------

@@ -36,6 +36,10 @@ LEGACY_EXEMPTIONS = {
     # The tab radios are aria-hidden but focusable; fixed by #112.
     ("dds__navigation__tabs", "basic"): ["aria-hidden-focus"],
     ("dds__navigation__tabs", "maximal"): ["aria-hidden-focus"],
+    # The preview/source/output switch radios are labelled only by an icon;
+    # see issue #122.
+    ("dds__canvas__canvas_widget", "basic"): ["label"],
+    ("dds__canvas__canvas_widget", "maximal"): ["label"],
 }
 
 

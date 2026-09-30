@@ -1,0 +1,29 @@
+{% for row in rows %}
+    <tr>
+        <td>
+            <code>{{ row.name }}</code>
+        </td>
+        <td>
+            <code>{{ row.type_name }}</code>
+        </td>
+        <td>{{ row.required|yesno:"Yes,No" }}</td>
+        <td>
+            {% if row.default is not None %}
+                <code>{{ row.default }}</code>
+            {% else %}
+                —
+            {% endif %}
+        </td>
+        <td>
+            {% if row.choices %}
+                {% for choice in row.choices %}
+                    <code>{{ choice }}</code>
+                    {% if not forloop.last %},{% endif %}
+                {% endfor %}
+            {% else %}
+                —
+            {% endif %}
+        </td>
+        <td>{{ row.description|default:"—" }}</td>
+    </tr>
+{% endfor %}
