@@ -1,1 +1,6 @@
 8 new baselines (0 existing changed); just visual 149/149; just test 1069 passed.
+
+Phase 3 checkpoint (ParamsForm, FormRow)
+
+Automated: just check and typecheck clean; just test 1069; coverage 100% for components/sandbox; just e2e 64 (twice); just visual 149/149 (8 new, 0 changed); CI run 36769720105 green.
+Manual verification: user confirmed (dark-theme sandbox inputs and the ParamsForm maximal preview clipped by the drawer's 30vh are existing behaviour, noted for track 6).
