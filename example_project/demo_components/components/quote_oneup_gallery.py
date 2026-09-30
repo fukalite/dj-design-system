@@ -22,7 +22,7 @@ config = GalleryConfig(
                     value="<strong>William Shakespeare</strong>",
                     code='"<strong>William Shakespeare</strong>"',
                 ),
-                "slot_source": GalleryParameter(
+                "slot__source": GalleryParameter(
                     value="<cite>Hamlet</cite>", code='"<cite>Hamlet</cite>"'
                 ),
             },
