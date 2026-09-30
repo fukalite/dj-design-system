@@ -382,7 +382,9 @@ def _render_component(request, context, node, app_label, path_parts):
     context["tag_signature_long"] = tag_signature_long
     context["current_signature"] = current_signature
     context["current_signature_long"] = current_signature_long
-    context["params"] = params
+    # (name, spec) pairs: with a dict, a parameter named "items" would shadow
+    # the dict.items the template loops over, and the page would crash.
+    context["params"] = list(params.items())
     context["param_rows"] = param_rows
     context["form"] = form
     context["canvas_iframe_url"] = canvas_iframe_url
