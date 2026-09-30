@@ -6,16 +6,8 @@ description: When editing python code
 # Python & Django Coding Rules
 
 ## Architecture & Structure
-- **Service Layers**: Use service layers for all logic.
-    - **Data Services**: IO layer over models. Should follow a mental model/needs-based approach, not model structure.
-    - **Logic Services**: Handle all mutations and side effects.
-- **Django Models**: 
-    - Keep models "thin". Logic belongs in services.
-    - **Factories**: Every model MUST have a corresponding `factory_boy` factory. 
-        - Factories must provide options (traits or sub-factories) to generate a good spread of all possible model states and configurations.
-- **Imports**: 
-    - Prefer global imports over local ones (except to avoid specific circular dependencies).
-    - Never import models except in data services or tests.
+- **Service Layers**: Use service layers for all logic, to handle all mutations and side effects.
+- **Imports**: Prefer global imports over local ones (except to avoid specific circular dependencies).
 - **Decoupling**: Minimize dependencies and coupling. Wrap side-effect libraries in service layers to limit blast area.
 - **Module Scope**: Only use `_` prefix for functions scoped to the current module. Never import `_` functions from elsewhere.
 
