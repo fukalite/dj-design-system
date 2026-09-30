@@ -9,7 +9,7 @@ Rewrites the gallery templates as compositions of built-in components and remove
 
 ---
 
-## Phase 2: Shell & Simple Pages
+## Phase 2: Shell & Simple Pages [checkpoint: 2ed1fb4]
 - [x] Task: Write Failing Tests (`Red Phase`) [2ed1fb4]
   - [x] `base.html`, `index.html`, `folder.html` and `documentation.html` render via `dds__*` components (assert component output markers).
   - [x] Legacy partials render their component equivalents.
@@ -18,7 +18,7 @@ Rewrites the gallery templates as compositions of built-in components and remove
   - [x] Load gallery assets solely via internal component media. (Except `gallery.css`, until phase 4, and the second `code_highlight.css` link, which keeps it after `layout/page.css` in the cascade.)
 - [x] Task: Refactor and Verify Coverage [2ed1fb4]
 - [x] Task: Confirm the track 0 visual baseline passes. [2ed1fb4]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [2ed1fb4]
 
 ---
 
