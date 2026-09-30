@@ -1,9 +1,7 @@
-from typing import Any
-
-
-basic_kwargs: dict[str, Any] = {}
+basic_kwargs = {"content": "Responsive"}
 
 maximal_kwargs = {
+    "content": "Toggle outline",
     "variant": "toolbar",
     "active": True,
     "pressed": True,
