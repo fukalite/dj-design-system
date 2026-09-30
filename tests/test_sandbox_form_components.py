@@ -170,6 +170,13 @@ class TestParamsForm:
         assert form["hx-get"] == '/x/"><b>'
         assert "<b>" not in markup.replace(ROWS, "")
 
+    def test_styles_its_rows(self):
+        # Its content is FormRows, so previews of it need their CSS too.
+        css = component_registry.get_by_name(
+            "params_form", app_label="dj_design_system"
+        ).media.css
+        assert "dj_design_system/ui/sandbox/form_row.css" in css
+
     def test_owns_the_drawer_script(self):
         info = component_registry.get_by_name(
             "params_form", app_label="dj_design_system"

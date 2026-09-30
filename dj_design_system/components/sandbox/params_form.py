@@ -27,5 +27,10 @@ class ParamsForm(BlockComponent):
     )
 
     class Media:
-        css = [FOUNDATION_CSS, "dj_design_system/ui/sandbox/params_form.css"]
+        # form_row.css: the content is FormRows.
+        css = [
+            FOUNDATION_CSS,
+            "dj_design_system/ui/sandbox/form_row.css",
+            "dj_design_system/ui/sandbox/params_form.css",
+        ]
         js = "dj_design_system/ui/sandbox/params_form.js"
