@@ -1,0 +1,1 @@
+Track 3 Phase 2: Breadcrumb, NavTree, FolderListing. Parity tests vs legacy templates (breadcrumb 1/2/3/5 crumbs; navtree 3 active paths on demo_nav; folder listing). Deep tree (30 levels) test. CSS moved via cssmove.py, semantic check exact (0 missing/extra). just check/typecheck/test (962) pass; coverage 100%; just visual 117/117.
