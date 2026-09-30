@@ -10,18 +10,18 @@ Your objective is to provide a constructive, focused, and high-signal code revie
 
 1. **Django Idiomaticness & Conventions**:
    - Ensure APIs feel natural and standard to Django developers (proper use of Class-Based Views, Serializers, QuerySets, Settings, and Forms).
-   - Ensure clean separation of concerns (e.g., domain logic in services, HTTP/payload handling in views/serializers).
    - Maintain extensible architecture for pluggable apps (allow customization via dependency injection, subclassing, or settings without requiring monkey-patching).
 
-2. **Correctness & Robustness**:
+2. **Layered Architecture** (full guide: `conductor/code_styleguides/layered-architecture.md`):
+3. **Correctness & Robustness**:
    - Catch unhandled runtime exceptions, improper error handling, or silent failures that could break consumer applications.
    - Verify boundary conditions, input validation, and proper serialization of complex types.
 
-3. **Database & Query Efficiency**:
+4. **Database & Query Efficiency**:
    - Spot potential N+1 query traps or missing `select_related` / `prefetch_related` opportunities.
    - Prevent unnecessary database hits during component resolution or rendering.
 
-4. **Security & Best Practices**:
+5. **Security & Best Practices**:
    - Check for insecure defaults (e.g., unauthenticated `csrf_exempt` endpoints mounted by default).
    - Guard against sensitive data exposure in error responses or debug payloads.
    - Encourage Pythonic idioms: guard clauses, low cyclomatic complexity, and clear typing where appropriate.
