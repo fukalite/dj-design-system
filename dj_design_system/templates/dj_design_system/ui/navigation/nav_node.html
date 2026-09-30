@@ -1,0 +1,30 @@
+{% comment %}One NavTree node, rendered recursively. Expects ``node``, prepared by NavTree.{% endcomment %}
+{% if node.is_app %}
+    <div class="gallery-nav__group">
+        <a class="gallery-nav__group-label" href="{{ node.url }}">{{ node.label }}</a>
+        {% for child in node.children %}
+            {% include "dj_design_system/ui/navigation/nav_node.html" with node=child %}
+        {% endfor %}
+    </div>
+{% elif node.has_children %}
+    <details class="gallery-nav__folder" {% if node.is_open %}open{% endif %}>
+        <summary class="gallery-nav__link gallery-nav__link--folder"
+                 data-depth="{{ node.depth }}">
+            <a href="{{ node.url }}"
+               class="gallery-nav__folder-link{% if node.is_active %} gallery-nav__link--active{% endif %}">
+                {{ node.icon }}
+                {{ node.label }}
+            </a>
+        </summary>
+        {% for child in node.children %}
+            {% include "dj_design_system/ui/navigation/nav_node.html" with node=child %}
+        {% endfor %}
+    </details>
+{% else %}
+    <a class="gallery-nav__link{% if node.is_active %} gallery-nav__link--active{% endif %}"
+       href="{{ node.url }}"
+       data-depth="{{ node.depth }}">
+        {% if node.icon %}{{ node.icon }}{% endif %}
+        {{ node.label }}
+    </a>
+{% endif %}

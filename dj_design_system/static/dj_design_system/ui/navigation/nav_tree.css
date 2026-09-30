@@ -1,0 +1,168 @@
+/* NavTree — dds__navigation__nav_tree. Moved from gallery.css. */
+
+/* Navigation groups */
+.gallery-nav {
+  flex: 1;
+  min-height: 0;
+  /* essential for flex child scrolling */
+  padding: 8px 0;
+  overflow-y: auto;
+}
+
+.gallery-nav__group {
+  margin-bottom: 4px;
+}
+
+.gallery-nav__group-label {
+  display: block;
+  padding: 8px 16px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gallery-text-muted);
+  text-decoration: none;
+}
+
+.gallery-nav__group-label:hover {
+  color: var(--gallery-sidebar-heading);
+}
+
+/* Tree: folder nodes using <details> */
+.gallery-nav__folder {
+  margin: 0;
+}
+
+.gallery-nav__folder > summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.gallery-nav__folder > summary::-webkit-details-marker {
+  display: none;
+}
+
+.gallery-nav__folder-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--gallery-sidebar-text);
+  text-decoration: none;
+  font-size: 13px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gallery-nav__folder-link:hover {
+  color: var(--gallery-sidebar-heading);
+}
+
+.gallery-nav__link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px 6px 24px;
+  color: var(--gallery-sidebar-text);
+  text-decoration: none;
+  font-size: 13px;
+  border-radius: 4px;
+  margin: 1px 8px;
+  transition: background var(--gallery-transition);
+}
+
+.gallery-nav__link:hover {
+  background: var(--gallery-sidebar-hover);
+}
+
+.gallery-nav__link--active,
+.gallery-nav__link--folder:has(.gallery-nav__link--active) {
+  background: var(--gallery-sidebar-active);
+  font-weight: 500;
+  color: var(--gallery-sidebar-heading);
+}
+
+.gallery-nav__folder-link.gallery-nav__link--active {
+  background: transparent;
+  font-weight: 500;
+  color: var(--gallery-sidebar-heading);
+}
+
+.gallery-nav__link--folder {
+  padding: 6px 8px;
+  margin: 1px 8px;
+  border-radius: 4px;
+}
+
+.gallery-nav__link--folder:hover {
+  background: var(--gallery-sidebar-hover);
+}
+
+/* Nav node type icons — custom SVGs via CSS mask-image (license-free) */
+.gallery-nav__icon {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  background: currentColor;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+/* Component: 3D box / package */
+.gallery-nav__icon--component {
+  opacity: 0.6;
+  -webkit-mask-image: var(--gallery-icon-component);
+  mask-image: var(--gallery-icon-component);
+}
+
+/* Document: page with lines */
+.gallery-nav__icon--doc {
+  opacity: 0.5;
+  -webkit-mask-image: var(--gallery-icon-doc);
+  mask-image: var(--gallery-icon-doc);
+}
+
+/* Folder: closed folder */
+.gallery-nav__icon--folder {
+  opacity: 0.5;
+  -webkit-mask-image: var(--gallery-icon-folder);
+  mask-image: var(--gallery-icon-folder);
+}
+
+/* Folder: open folder (when <details> is expanded) */
+.gallery-nav__folder[open] > summary .gallery-nav__icon--folder {
+  -webkit-mask-image: var(--gallery-icon-folder-open);
+  mask-image: var(--gallery-icon-folder-open);
+}
+
+/* Tree depth indentation */
+.gallery-nav__link[data-depth="0"] { padding-left: 0px; }
+
+.gallery-nav__link[data-depth="1"] { padding-left: 16px; }
+
+.gallery-nav__link[data-depth="2"] { padding-left: 32px; }
+
+.gallery-nav__link[data-depth="3"] { padding-left: 48px; }
+
+.gallery-nav__link[data-depth="4"] { padding-left: 64px; }
+
+.gallery-nav__link[data-depth="5"] { padding-left: 80px; }
+
+.gallery-nav__link[data-depth="6"] { padding-left: 96px; }
+
+.gallery-nav__link[data-depth="7"] { padding-left: 112px; }
+
+.gallery-nav__link[data-depth="8"] { padding-left: 128px; }
+
+.gallery-nav__link[data-depth="9"] { padding-left: 144px; }
+
+.gallery-nav__link[data-depth="10"] { padding-left: 160px; }

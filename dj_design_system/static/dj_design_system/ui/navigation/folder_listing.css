@@ -1,0 +1,74 @@
+/* FolderListing — dds__navigation__folder_listing. Moved from gallery.css. */
+
+/* Reuse icons in folder listing (content area) */
+.gallery-folder-list__icon {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  background: var(--gallery-text-muted);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+.gallery-folder-list__icon--component {
+  -webkit-mask-image: var(--gallery-icon-component);
+  mask-image: var(--gallery-icon-component);
+}
+
+.gallery-folder-list__icon--doc {
+  -webkit-mask-image: var(--gallery-icon-doc);
+  mask-image: var(--gallery-icon-doc);
+}
+
+.gallery-folder-list__icon--folder {
+  -webkit-mask-image: var(--gallery-icon-folder);
+  mask-image: var(--gallery-icon-folder);
+}
+
+.gallery-folder-contents {
+  margin-top: 16px;
+}
+
+/* :where() keeps this below .gallery-docs h2 (ui/layout/page.css), which it
+ * used to lose to on source order and now loads before it. */
+:where(.gallery-folder-contents) h2 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gallery-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 12px;
+}
+
+.gallery-folder-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.gallery-folder-list__item {
+  margin-bottom: 2px;
+}
+
+.gallery-folder-list__link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  color: var(--gallery-text);
+  text-decoration: none;
+  border-radius: var(--gallery-radius);
+  transition: background var(--gallery-transition);
+  font-size: 14px;
+}
+
+.gallery-folder-list__link:hover {
+  background: var(--gallery-bg);
+}
