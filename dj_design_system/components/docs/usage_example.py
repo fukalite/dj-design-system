@@ -39,10 +39,16 @@ class UsageExample(TagComponent):
     )
 
     class Media:
-        # canvas_widget.css first: the preview's min-height overrides the
-        # canvas iframe's.
+        # The heading, sandbox link and code block's CSS, then
+        # canvas_widget.css: the preview's min-height overrides the canvas
+        # iframe's.
         css = [
             FOUNDATION_CSS,
+            "dj_design_system/ui/primitives/section_heading.css",
+            "dj_design_system/ui/primitives/icon.css",
+            "dj_design_system/ui/primitives/icon_button.css",
+            "dj_design_system/ui/primitives/code_block.css",
+            "dj_design_system/ui/primitives/code_highlight.css",
             "dj_design_system/ui/canvas/canvas_widget.css",
             "dj_design_system/ui/docs/usage_example.css",
         ]

@@ -408,3 +408,23 @@ class TestRegistrationAndAssets:
         spec = StrParam("Fresh from get_params.")
         assert not hasattr(spec, "type_name")
         assert "<code>str</code>" in params_table([("label", spec)])
+
+
+class TestComposedMedia:
+    """A canvas loads only the component's own Media, so a component that
+    renders others must list their stylesheets too."""
+
+    @pytest.mark.parametrize(
+        ("name", "children"),
+        [
+            ("canvas_widget", ["icon", "code_block"]),
+            ("usage_example", ["section_heading", "icon_button", "code_block"]),
+            ("params_table", ["table"]),
+        ],
+    )
+    def test_includes_its_childrens_css(self, name, children):
+        own = component_registry.get_by_name(name, app_label="dj_design_system")
+        for child in children:
+            info = component_registry.get_by_name(child, app_label="dj_design_system")
+            missing = [c for c in info.media.css if c not in own.media.css]
+            assert missing == [], f"{name} is missing {child}'s {missing}"
