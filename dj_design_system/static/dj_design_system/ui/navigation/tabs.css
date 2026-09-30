@@ -1,0 +1,48 @@
+/* Tabs — dds__navigation__tabs. Moved from gallery.css. */
+
+.gallery-tabs {
+  display: flex;
+}
+
+.gallery-tabs__input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.gallery-tabs__label {
+  display: inline-block;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-family: var(--gallery-font);
+  border: 1px solid var(--gallery-border);
+  background: var(--gallery-content-bg);
+  color: var(--gallery-text-muted);
+  cursor: pointer;
+  transition: background var(--gallery-transition);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.gallery-tabs__label:first-of-type {
+  border-radius: var(--gallery-radius) 0 0 var(--gallery-radius);
+}
+
+.gallery-tabs__label:last-of-type {
+  border-radius: 0 var(--gallery-radius) var(--gallery-radius) 0;
+  border-left: none;
+}
+
+.gallery-tabs__input:checked + .gallery-tabs__label {
+  background: #2d2d42;
+  color: #ffffff;
+  border-color: #2d2d42;
+  font-weight: 600;
+}
+
+/* Wide viewports: Documentation + Sandbox side-by-side, hide tabs */
+@media (min-width: 1800px) {
+  .gallery-tabs {
+    display: none;
+  }
+}

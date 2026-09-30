@@ -1,0 +1,11 @@
+<div class="gallery-tabs">
+    {% for tab in tabs %}
+        <input type="radio"
+               name="gallery-tab"
+               id="{{ tab.id }}"
+               class="gallery-tabs__input"
+               {% if tab.checked %}checked{% endif %}
+               aria-hidden="true">
+        <label for="{{ tab.id }}" class="gallery-tabs__label">{{ tab.label }}</label>
+    {% endfor %}
+</div>

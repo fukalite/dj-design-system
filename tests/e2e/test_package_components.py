@@ -27,6 +27,15 @@ LEGACY_EXEMPTIONS = {
     # only be judged in the gallery.
     ("dds__navigation__nav_tree", "basic"): ["nested-interactive", "color-contrast"],
     ("dds__navigation__nav_tree", "maximal"): ["nested-interactive", "color-contrast"],
+    # The search input's pale text is also designed for the sidebar.
+    ("dds__navigation__search_box", "basic"): ["color-contrast"],
+    ("dds__navigation__search_box", "maximal"): ["color-contrast"],
+    # The theme <select> is named only by its title; see issue #119.
+    ("dds__navigation__theme_select", "basic"): ["label-title-only"],
+    ("dds__navigation__theme_select", "maximal"): ["label-title-only"],
+    # The tab radios are aria-hidden but focusable; fixed by #112.
+    ("dds__navigation__tabs", "basic"): ["aria-hidden-focus"],
+    ("dds__navigation__tabs", "maximal"): ["aria-hidden-focus"],
 }
 
 

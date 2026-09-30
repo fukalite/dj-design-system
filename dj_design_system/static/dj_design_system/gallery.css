@@ -7,44 +7,6 @@
  */
 
 /* ------------------------------------------------------------------ */
-/* Toolbar actions                                                     */
-/* ------------------------------------------------------------------ */
-/* Global Theme Switcher (Header) */
-.gallery-header-theme {
-  position: relative;
-}
-
-.gallery-header-theme__select {
-  padding: 3px 24px 3px 8px;
-  font-size: 11px;
-  font-family: var(--gallery-font);
-  border: 1px solid var(--gallery-border);
-  border-radius: var(--gallery-radius);
-  background-color: var(--gallery-content-bg);
-  color: var(--gallery-text);
-  cursor: pointer;
-  height: 24px;
-  outline: none;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 6px center;
-  background-size: 12px;
-}
-
-.gallery-header-theme__select:hover {
-  background-color: var(--gallery-bg);
-  border-color: var(--gallery-text-muted);
-}
-
-.gallery-header-theme__select:focus {
-  border-color: var(--gallery-accent);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-}
-
-/* ------------------------------------------------------------------ */
 /* Sandbox pane                                                        */
 /* ------------------------------------------------------------------ */
 .gallery-sandbox .gallery-split__pane-body {
@@ -137,56 +99,6 @@
 }
 
 /* ------------------------------------------------------------------ */
-/* Tab switcher (toolbar)                                              */
-/* ------------------------------------------------------------------ */
-.gallery-tabs {
-  display: flex;
-}
-
-.gallery-tabs__input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.gallery-tabs__label {
-  display: inline-block;
-  padding: 3px 10px;
-  font-size: 11px;
-  font-family: var(--gallery-font);
-  border: 1px solid var(--gallery-border);
-  background: var(--gallery-content-bg);
-  color: var(--gallery-text-muted);
-  cursor: pointer;
-  transition: background var(--gallery-transition);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.gallery-tabs__label:first-of-type {
-  border-radius: var(--gallery-radius) 0 0 var(--gallery-radius);
-}
-
-.gallery-tabs__label:last-of-type {
-  border-radius: 0 var(--gallery-radius) var(--gallery-radius) 0;
-  border-left: none;
-}
-
-.gallery-tabs__input:checked + .gallery-tabs__label {
-  background: #2d2d42;
-  color: #ffffff;
-  border-color: #2d2d42;
-  font-weight: 600;
-}
-
-/* Wide viewports: Documentation + Sandbox side-by-side, hide tabs */
-@media (min-width: 1800px) {
-  .gallery-tabs {
-    display: none;
-  }
-}
-
-/* ------------------------------------------------------------------ */
 /* Component preview area                                              */
 /* ------------------------------------------------------------------ */
 .gallery-preview {
@@ -253,105 +165,6 @@
   .gallery-preview {
     padding: 20px;
   }
-}
-
-/* ------------------------------------------------------------------ */
-/* Sidebar search                                                       */
-/* ------------------------------------------------------------------ */
-.gallery-sidebar__search {
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--gallery-sidebar-border);
-}
-
-.gallery-search-input {
-  width: 100%;
-  box-sizing: border-box;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: var(--gallery-radius);
-  color: var(--gallery-sidebar-text);
-  font-family: var(--gallery-font);
-  font-size: 13px;
-  padding: 6px 10px;
-  outline: none;
-  transition:
-    border-color var(--gallery-transition),
-    background var(--gallery-transition);
-}
-
-.gallery-search-input::placeholder {
-  color: rgba(255, 255, 255, 0.35);
-}
-
-.gallery-search-input:focus {
-  border-color: rgba(255, 255, 255, 0.35);
-  background: rgba(255, 255, 255, 0.11);
-}
-
-/* Remove the native search-cancel button in WebKit/Blink */
-.gallery-search-input::-webkit-search-cancel-button {
-  -webkit-appearance: none;
-}
-
-/* ------------------------------------------------------------------ */
-/* Search results panel                                                 */
-/* ------------------------------------------------------------------ */
-.gallery-search-results {
-  overflow-y: auto;
-  flex: 1;
-  padding: 4px 0;
-}
-
-.gallery-search-result {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: 8px 14px;
-  color: var(--gallery-sidebar-text);
-  text-decoration: none;
-  font-size: 13px;
-  border-bottom: 1px solid var(--gallery-sidebar-border);
-  transition: background var(--gallery-transition);
-}
-
-.gallery-search-result:hover,
-.gallery-search-result:focus {
-  background: var(--gallery-sidebar-hover);
-  outline: none;
-}
-
-.gallery-search-result__header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.gallery-search-result__label {
-  font-weight: 500;
-  color: var(--gallery-sidebar-text);
-  line-height: 1.3;
-}
-
-.gallery-search-result__label mark {
-  background: transparent;
-  color: var(--gallery-accent);
-  font-weight: 700;
-}
-
-.gallery-search-result__breadcrumb {
-  font-size: 11px;
-  color: var(--gallery-sidebar-text);
-  opacity: 0.6;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.gallery-search-empty {
-  padding: 12px 14px;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.4);
-  margin: 0;
 }
 
 /* ------------------------------------------------------------------ */
