@@ -10,7 +10,7 @@ Builds the canvas, documentation and sandbox components, and redistributes `gall
 
 ---
 
-## Phase 2: `CanvasWidget`, `UsageExample`, `ParamsTable`
+## Phase 2: `CanvasWidget`, `UsageExample`, `ParamsTable` [checkpoint: a9846f5]
 - [x] Task: Write Failing Tests (`Red Phase`) [e40021e]
   - [x] `CanvasWidget` renders the three toggles, the iframe (`src` or `srcdoc`, `sandbox`) and both code panes, handling pre-highlighted input. (Correction: it takes raw code and highlights it through `CodeBlock`'s new `bare` variant, a plain `<pre><code>`, so the panes keep their exact markup. Nothing produces pre-highlighted input with a `highlight` wrapper, so that branch was dead.)
   - [x] `UsageExample` renders with and without a preview URL.
@@ -20,7 +20,7 @@ Builds the canvas, documentation and sandbox components, and redistributes `gall
   - [x] Move canvas widget, usage, doc preview and parameters table CSS, plus the iframe resize messaging JS. (The parameters table's CSS already lives in `Table`. The resize script now loads on every gallery page, so doc-page canvases also grow to fit tall content; accepted.)
 - [x] Task: Refactor and Verify Coverage [e40021e]
 - [x] Task: Confirm the track 0 visual baseline passes. [952a256]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [a9846f5]
 
 ---
 
