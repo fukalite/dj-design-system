@@ -1,1 +1,6 @@
 12 navigation baselines (0 existing changed). e2e exemptions: nav_tree nested-interactive (#112) + color-contrast (canvas lacks sidebar dark bg). just e2e 41 passed.
+
+Phase 2 checkpoint (Breadcrumb, NavTree, FolderListing)
+
+Automated: just check, typecheck clean; just test 962, just e2e 41; just visual 117/117; CI run 36705328408 green.
+Manual verification: user confirmed (after restarting a stale dev server that predated the navigation modules).
