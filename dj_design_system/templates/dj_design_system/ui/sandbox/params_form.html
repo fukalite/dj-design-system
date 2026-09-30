@@ -1,0 +1,17 @@
+<div class="gallery-sandbox__controls-wrapper" data-gallery-drawer>
+    <div class="gallery-sandbox__resizer"
+         aria-hidden="true"
+         data-gallery-resizer></div>
+    <div class="gallery-sandbox__controls">
+        <form method="get"
+              class="gallery-params-form"
+              hx-get="{{ url }}"
+              hx-replace-url="true"
+              hx-target="closest [data-gallery-sandbox-body]"
+              hx-swap="innerHTML"
+              hx-trigger="change delay:400ms, keyup delay:400ms from:input, keyup delay:400ms from:textarea">
+            <input type="hidden" name="theme" value="{{ theme }}">
+            {{ content }}
+        </form>
+    </div>
+</div>

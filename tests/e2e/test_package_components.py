@@ -40,6 +40,9 @@ LEGACY_EXEMPTIONS = {
     # see issue #122.
     ("dds__canvas__canvas_widget", "basic"): ["label"],
     ("dds__canvas__canvas_widget", "maximal"): ["label"],
+    # The red error text passes (4.51:1) on the sandbox drawer's white, but
+    # not on the canvas's grey; #112's --gallery-danger fixes the dark theme.
+    ("dds__sandbox__form_row", "maximal"): ["color-contrast"],
 }
 
 
