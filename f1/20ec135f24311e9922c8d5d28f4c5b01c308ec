@@ -1,0 +1,1 @@
+Track 6 docs: feature list entry for the component-built gallery; changelog Added (settings, Meta.internal, components package) and Changed (verbose_name); Deprecated entry corrected to stop recommending the internal components. just docs-build: no new messages.
