@@ -64,3 +64,36 @@ class TestGroupPages:
         response = client.get(node.url)
         assert response.status_code == 200
         assert f">{heading}</h1>" in response.content.decode()
+
+
+class TestCanvasTheming:
+    """Built-ins previewed under the example project's themes get its tokens."""
+
+    @pytest.fixture
+    def example_settings(self):
+        from example_project import settings as example
+
+        options = {**example.DJ_DESIGN_SYSTEM, "GALLERY_IS_PUBLIC": True}
+        with override_settings(DJ_DESIGN_SYSTEM=options):
+            yield
+
+    def _canvas(self, client, theme):
+        from django.urls import reverse
+
+        url = reverse("gallery-canvas-iframe")
+        response = client.get(
+            url, {"component": "dds__primitives__divider", "theme": theme}
+        )
+        assert response.status_code == 200
+        return response.content.decode()
+
+    @pytest.mark.parametrize(
+        ("theme", "token_class"),
+        [("default", "gallery-theme-light"), ("dark", "gallery-theme-dark")],
+    )
+    def test_theme_sets_the_token_class(
+        self, client, example_settings, theme, token_class
+    ):
+        html = self._canvas(client, theme)
+        opening = html[html.index("<html") : html.index(">", html.index("<html"))]
+        assert f'class="{token_class}"' in opening

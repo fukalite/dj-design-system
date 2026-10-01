@@ -97,12 +97,18 @@ DJ_DESIGN_SYSTEM = {
     "GALLERY_THEMES": {
         "default": {
             "label": "Default Theme",
-            "html_attrs": {"html": {"data-theme": "default"}},
+            # gallery-theme-* gives built-in components previewed in the canvas
+            # the matching gallery tokens.
+            "html_attrs": {
+                "html": {"data-theme": "default", "class": "gallery-theme-light"}
+            },
             "css": ["example_project/theme-default.css"],
         },
         "dark": {
             "label": "Dark Theme",
-            "html_attrs": {"html": {"data-theme": "dark"}},
+            "html_attrs": {
+                "html": {"data-theme": "dark", "class": "gallery-theme-dark"}
+            },
             "css": ["example_project/theme-dark.css"],
             "canvas_background": "dark",
         },
