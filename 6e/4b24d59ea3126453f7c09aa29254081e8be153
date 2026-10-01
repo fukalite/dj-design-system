@@ -1,0 +1,1 @@
+Track 6 docs: Meta.internal in components.md; is_internal, tag_name, lookups and media in registry.md. Anchors use heading slugs (attr_list isn't enabled). just docs-build: no new messages.
