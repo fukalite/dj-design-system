@@ -549,7 +549,7 @@ class TestSmokeAllPages:
             DJ_DESIGN_SYSTEM={"GALLERY_SHOW_BUILTIN_COMPONENTS": True}
         ):
             builtins = [
-                app for app in _get_nav_tree() if app.label == "Dj design system"
+                app for app in _get_nav_tree() if app.slug == "dj_design_system"
             ]
             assert builtins, "Built-ins should be in the nav when shown"
             errors = []
