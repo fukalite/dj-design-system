@@ -23,7 +23,8 @@ This script:
 3. Collects all ``/static/…`` references from each canvas page and fetches
    any that aren't already present in the snapshot's ``static/`` directory.
 4. Rewrites ``/static/`` → ``../static/`` inside each fetched canvas page.
-5. Saves each page as ``_canvas/<component>__<params>.html``.
+5. Saves each page as ``_canvas/<component>__<params>.html`` (see
+   ``make_clean_name``).
 6. Patches every gallery HTML file to replace the absolute ``/_canvas/?…``
    src with a relative path to the newly saved clean file.
 
@@ -35,6 +36,7 @@ Usage
     base_url      – running server root, e.g. http://localhost:8000
 """
 
+import hashlib
 import html as html_module
 import os
 import re
@@ -51,15 +53,32 @@ CANVAS_SRC_RE = re.compile(r'src="((?:http://[^/]+)?/_canvas/\?([^"]+))"')
 # Matches any href/src pointing to /static/ (absolute)
 STATIC_REF_RE = re.compile(r'(?:href|src)="(/static/[^"]+)"')
 
+# Canvas file names keep to characters that are safe in a URL path and on disk.
+UNSAFE_NAME_CHARS_RE = re.compile(r"[^A-Za-z0-9._-]+")
+
+# Leaves room for the hash and ".html" within the 255-byte file name limit.
+MAX_STEM_LENGTH = 200
+
 
 def make_clean_name(decoded_qs: str) -> str:
-    """Convert a canvas query string into a safe, readable filename."""
+    """Convert a canvas query string into a safe, readable filename.
+
+    Simple values are used as they are. Values with other characters (such
+    as HTML content, which includes ``/``) are reduced to safe ones, and the
+    name gets a short hash of the whole query string so it stays unique.
+    Long names are cut short the same way.
+    """
     params = dict(urllib.parse.parse_qsl(decoded_qs, keep_blank_values=True))
     component = params.pop("component", "unknown")
     # Sort remaining params so the name is deterministic
     suffix_parts = [f"{k}_{v}" for k, v in sorted(params.items()) if v]
-    suffix = "__".join(suffix_parts)
-    return component + (f"__{suffix}" if suffix else "") + ".html"
+    stem = component + "".join(f"__{part}" for part in suffix_parts)
+
+    clean_stem = UNSAFE_NAME_CHARS_RE.sub("-", stem)
+    if clean_stem == stem and len(stem) <= MAX_STEM_LENGTH:
+        return stem + ".html"
+    digest = hashlib.sha1(decoded_qs.encode()).hexdigest()[:10]
+    return f"{clean_stem[:MAX_STEM_LENGTH]}__{digest}.html"
 
 
 def fix_static_paths(html_content: str) -> str:
