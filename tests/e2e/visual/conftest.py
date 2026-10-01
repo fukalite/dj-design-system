@@ -15,6 +15,7 @@ from tests.e2e.visual.capture import (
     ScreenshotRecorder,
     block_external_requests,
     prune_orphaned_baselines,
+    record_canvas_reports,
     should_prune,
     stabilise,
 )
@@ -67,13 +68,35 @@ def pytest_sessionfinish(session, exitstatus):
             print(f"\nRemoved orphaned baseline: {path.relative_to(SUITE_DIR)}")
 
 
+VIEWPORTS = {
+    "desktop": {"width": 1280, "height": 800},
+    # >= 1800px shows the documentation and sandbox panes side by side.
+    "wide": {"width": 1920, "height": 1080},
+    # <= 768px collapses the sidebar behind the hamburger menu.
+    "mobile": {"width": 390, "height": 844},
+}
+
+GALLERY_THEMES = ("light", "dark")
+
+
 @pytest.fixture
 def gallery(page, live_server):
-    """Return a function that opens a gallery path ready for a stable screenshot."""
-    block_external_requests(page, live_server.url)
+    """Return a function that opens a gallery path ready for a stable screenshot.
 
-    def open_path(path: str = ""):
+    ``theme`` switches the gallery chrome between the ``gallery-theme-light``
+    and ``gallery-theme-dark`` classes on ``<html>``, the hook projects use to
+    theme the gallery.
+    """
+    block_external_requests(page, live_server.url)
+    record_canvas_reports(page)
+
+    def open_path(path: str = "", *, viewport: str = "desktop", theme: str = "light"):
+        page.set_viewport_size(VIEWPORTS[viewport])
         page.goto(f"{live_server.url}/dds/{path}")
+        page.evaluate(
+            "theme => { document.documentElement.className = `gallery-theme-${theme}`; }",
+            theme,
+        )
         stabilise(page)
         return page
 
