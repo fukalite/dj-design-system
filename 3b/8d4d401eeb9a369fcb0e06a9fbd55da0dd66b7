@@ -1,0 +1,1 @@
+just check, typecheck clean; just test 1191 passed; just e2e 64 passed twice; just visual 165/165 (no baseline changes); rendered-page diff vs phase 2: 142/142 identical after Icon/IconButton normalisation, except data-gallery-sandbox-body="" (same DOM).
