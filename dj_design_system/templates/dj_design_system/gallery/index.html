@@ -26,9 +26,6 @@
                     To use the fully interactive gallery, clone the repository and run <code>just demo</code> locally.
                 </p>
             </div>
-            <script src="{% static 'dj_design_system/gallery-snapshot-notice.js' %}"
-                    defer
-                    {% if request.csp_nonce %}nonce="{{ request.csp_nonce }}"{% endif %}></script>
         </div>
     </div>
 {% endblock %}

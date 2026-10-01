@@ -1,0 +1,41 @@
+/* Table — dds__primitives__table. Moved from gallery.css. */
+
+.gallery-params {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.gallery-params th,
+.gallery-params td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--gallery-pane-border);
+}
+
+.gallery-params th {
+  font-weight: 500;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--gallery-text-muted);
+  background: var(--gallery-code-bg);
+}
+
+.gallery-params td code {
+  font-family: var(--gallery-font-mono);
+  font-size: 12px;
+  background: var(--gallery-code-bg);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+
+/* Narrow screens: scroll sideways instead of squashing */
+@media (max-width: 768px) {
+  .gallery-params {
+    display: block;
+    overflow-x: auto;
+  }
+}

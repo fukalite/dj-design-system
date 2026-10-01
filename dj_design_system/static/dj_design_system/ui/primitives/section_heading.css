@@ -1,0 +1,29 @@
+/* SectionHeading — dds__primitives__section_heading. Moved from gallery.css.
+ *
+ * The section rule matches any heading level. :is() keeps the original
+ * h3.gallery-docs__section-heading specificity, so it still loses to the
+ * later .gallery-docs h3 rules exactly as before.
+ */
+
+:is(h1, h2, h3, h4, h5, h6).gallery-docs__section-heading {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--gallery-text);
+  margin: 20px 0 10px;
+}
+
+:is(h1, h2, h3, h4, h5, h6).gallery-docs__section-heading:first-child {
+  margin-top: 0;
+}
+
+
+.gallery-usage__heading {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gallery-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 0;
+}
