@@ -2,16 +2,16 @@
 
 This plan adds registry support for internal (package-owned) components and the gallery visibility settings. No visible change is made.
 
-## Phase 1: `components` Package
-- [ ] Task: Write Failing Tests (`Red Phase`)
-  - [ ] Verify `from dj_design_system.components import BaseComponent, TagComponent, BlockComponent` still works.
-  - [ ] Verify a component in a `dj_design_system/components/<sub>/` module is discovered.
-  - [ ] Verify the abstract base classes are never registered.
-- [ ] Task: Implement to Pass Tests (`Green Phase`)
-  - [ ] Move base classes to `components/base.py`; re-export from `components/__init__.py`.
-  - [ ] Update internal imports across the package.
-- [ ] Task: Refactor and Verify Coverage
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+## Phase 1: `components` Package [checkpoint: d841f15]
+- [x] Task: Write Failing Tests (`Red Phase`) [d841f15]
+  - [x] Verify `from dj_design_system.components import BaseComponent, TagComponent, BlockComponent` still works.
+  - [x] Verify a component in a `dj_design_system/components/<sub>/` module is discovered.
+  - [x] Verify the abstract base classes are never registered.
+- [x] Task: Implement to Pass Tests (`Green Phase`) [d841f15]
+  - [x] Move base classes to `components/base.py`; re-export from `components/__init__.py`.
+  - [x] Update internal imports across the package.
+- [x] Task: Refactor and Verify Coverage [d841f15]
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [d841f15]
 
 ---
 
