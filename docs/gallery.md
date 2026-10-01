@@ -388,6 +388,8 @@ DJ_DESIGN_SYSTEM = {
 | `GALLERY_CANVAS_EXTRA_BACKGROUNDS`  | `dict`                    | `{}`                                                       | Extra backgrounds merged into the built-in set.             |
 | `GALLERY_CANVAS_HTML_ATTRS`         | `dict`                    | `{}`                                                       | Extra attributes for the canvas `<html>` and `<body>` tags. |
 | `GALLERY_CODEHILITE_STYLE`          | `str`                     | `"monokai"`                                                | Pygments style for code highlighting. `""` to disable.      |
+| `GALLERY_EXCLUDE_APPS`              | `list[str]`               | `[]`                                                       | App labels to hide from the gallery.                        |
+| `GALLERY_SHOW_BUILTIN_COMPONENTS`   | `bool`                    | `False`                                                    | Show the gallery's own built-in components.                 |
 
 ### Navigation sort order
 
@@ -424,6 +426,98 @@ DJ_DESIGN_SYSTEM = {
 By default, the gallery is public. To restrict access, set
 `GALLERY_IS_PUBLIC = False` and assign the
 `dj_design_system.can_view_gallery` permission to appropriate users.
+
+See [Gallery Visibility](api/settings.md#gallery-visibility) for how `GALLERY_EXCLUDE_APPS` and `GALLERY_SHOW_BUILTIN_COMPONENTS` combine.
+
+## Customising the Gallery
+
+The gallery's pages are built from Django Design System's own components: the sidebar, toolbar, panes, usage examples, sandbox toolbar and so on are each a built-in [internal component](components.md#internal-true) with its own template, CSS and JS. Set `GALLERY_SHOW_BUILTIN_COMPONENTS = True` to browse them in your gallery.
+
+The built-in components are not a supported public API. To change how the gallery looks, use the theme tokens and page templates below.
+
+### Theme tokens
+
+Every built-in reads its colours, fonts and sizes from CSS custom properties defined in `dj_design_system/ui/foundation.css`:
+
+- **Colours:** `--gallery-bg`, `--gallery-content-bg`, `--gallery-text`, `--gallery-text-muted`, `--gallery-border`, `--gallery-pane-border`, `--gallery-accent`, `--gallery-accent-hover`, `--gallery-code-bg`, `--gallery-dark-code-bg`, `--gallery-dark-code-text`, `--gallery-dark-code-border`, and the sidebar's `--gallery-sidebar-bg`, `--gallery-sidebar-text`, `--gallery-sidebar-heading`, `--gallery-sidebar-hover`, `--gallery-sidebar-active` and `--gallery-sidebar-border`.
+- **Type:** `--gallery-font`, `--gallery-font-mono` and `--gallery-font-size`.
+- **Layout:** `--gallery-sidebar-width`, `--gallery-radius` and `--gallery-transition`.
+- **Icons:** `--gallery-icon-component`, `--gallery-icon-doc`, `--gallery-icon-folder` and `--gallery-icon-folder-open` (SVG masks).
+
+The defaults are set on `:root`. The `.gallery-theme-light` and `.gallery-theme-dark` classes redefine the colours for each theme; the gallery's pages use `.gallery-theme-light` on `<html>`.
+
+To preview built-in components in a theme of their own inside the canvas, add the matching class through your theme's `html_attrs`, as the example project does:
+
+```python
+"GALLERY_THEMES": {
+    "dark": {
+        "label": "Dark Theme",
+        "html_attrs": {"html": {"data-theme": "dark", "class": "gallery-theme-dark"}},
+    },
+},
+```
+
+The `.gallery-*` class names on the gallery's markup are the same as before the gallery was built from components, so existing stylesheets that target them keep working. Prefer the tokens for new customisation: they are what the components are styled from.
+
+### Overriding a gallery page
+
+Each gallery page is a template under `dj_design_system/gallery/` that extends `dj_design_system/gallery/base.html`:
+
+| Template | Page |
+| --- | --- |
+| `index.html` | The gallery home |
+| `folder.html` | A folder's default page |
+| `documentation.html` | A Markdown document, or a folder's `index.md` |
+| `component.html` | A component's documentation and sandbox |
+| `sandbox_fragment.html` | The sandbox, also returned on its own to HTMX requests |
+
+To change a page, add a template with the same path to one of your `TEMPLATES["DIRS"]` (which Django searches before app templates). It can extend the template it replaces, so you only fill in the blocks you want to change. `base.html` provides these blocks:
+
+| Block | Holds |
+| --- | --- |
+| `title` | The page title |
+| `extra_css` | Stylesheets loaded after the gallery's, e.g. token overrides |
+| `toolbar` | The whole toolbar |
+| `breadcrumb` | The toolbar's breadcrumb trail |
+| `toolbar_actions` | Controls after the theme picker |
+| `content` | The main area |
+| `extra_js` | Scripts loaded after the gallery's |
+
+To restyle every page, override `base.html`:
+
+```django
+{# templates/dj_design_system/gallery/base.html #}
+{% extends "dj_design_system/gallery/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'myproject/gallery-overrides.css' %}">
+{% endblock %}
+```
+
+```css
+/* myproject/gallery-overrides.css */
+:root,
+.gallery-theme-light {
+  --gallery-accent: #7c3aed;
+}
+```
+
+To add to one page, override that page and use `{{ block.super }}` to keep its content:
+
+```django
+{# templates/dj_design_system/gallery/index.html #}
+{% extends "dj_design_system/gallery/index.html" %}
+
+{% block content %}
+    <p>Start with the Buttons folder.</p>
+    {{ block.super }}
+{% endblock %}
+```
+
+Templates that **extend** the gallery's templates like this keep working across releases: the block names, element IDs and `.gallery-*` classes are kept. A template that **replaces** a gallery template without extending it copies its markup, which changes as the built-in components change, so check it when you upgrade.
+
+> **Deprecated partials:** `dj_design_system/gallery/breadcrumb.html`, `dj_design_system/gallery/navtree.html`, `dj_design_system/gallery/toolbar.html` and `dj_design_system/canvas_widget.html` are kept so existing `{% include %}`s keep working, but each is now a thin wrapper around a built-in component. They may be removed in a future release.
 
 ## Content Security Policy (CSP)
 
