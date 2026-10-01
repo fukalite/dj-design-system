@@ -18,6 +18,9 @@ LEGACY_EXEMPTIONS = {
     # The debug hint's faded muted text (opacity: 0.6) is below WCAG AA
     # contrast; see issue #115. The maximal example renders the hint variant.
     ("dds__primitives__notice", "maximal"): ["color-contrast"],
+    # Breadcrumb links are told apart from the surrounding text by colour
+    # only; see issue #117. The maximal example has text around its link.
+    ("dds__layout__toolbar", "maximal"): ["link-in-text-block"],
 }
 
 

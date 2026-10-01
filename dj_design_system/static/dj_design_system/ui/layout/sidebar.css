@@ -1,0 +1,56 @@
+/* Sidebar — dds__layout__sidebar. Moved from gallery.css. */
+
+.gallery-sidebar {
+  width: var(--gallery-sidebar-width);
+  min-width: var(--gallery-sidebar-width);
+  background: var(--gallery-sidebar-bg);
+  color: var(--gallery-sidebar-text);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--gallery-sidebar-border);
+}
+
+.gallery-sidebar__header {
+  padding: 20px 16px 12px;
+  border-bottom: 1px solid var(--gallery-sidebar-border);
+}
+
+.gallery-sidebar__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--gallery-sidebar-heading);
+  text-decoration: none;
+  display: block;
+}
+
+.gallery-sidebar__title:hover {
+  color: var(--gallery-accent);
+}
+
+@media (max-width: 768px) {
+  .gallery-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+  }
+
+  .gallery-sidebar-toggle:checked ~ .gallery-sidebar {
+    transform: translateX(0);
+  }
+
+  /* Offset sidebar header so the close × doesn't cover the title */
+  .gallery-sidebar__header {
+    padding-left: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --gallery-sidebar-width: 240px;
+  }
+}

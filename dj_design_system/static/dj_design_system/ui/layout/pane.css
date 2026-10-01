@@ -1,0 +1,47 @@
+/* Pane — dds__layout__pane. Moved from gallery.css. */
+
+/* Pane: split-pane surfaces (no gaps between them) */
+.gallery-split__pane {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.gallery-split__pane-header {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gallery-text-muted);
+  padding: 8px 20px;
+  background: #eef0f4;
+  border-bottom: 2px solid var(--gallery-pane-border);
+}
+
+.gallery-split__pane-body {
+  padding: 24px;
+  flex: 1;
+  overflow: auto;
+}
+
+.gallery-documentation {
+  flex: 1;
+  background: var(--gallery-content-bg);
+}
+
+.gallery-sandbox {
+  flex: 1;
+  background: var(--gallery-content-bg);
+}
+
+@media (max-width: 768px) {
+  .gallery-split__pane-body {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .gallery-split__pane-body {
+    padding: 12px;
+  }
+}
