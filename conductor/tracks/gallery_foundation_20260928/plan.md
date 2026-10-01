@@ -15,22 +15,22 @@ This plan adds registry support for internal (package-owned) components and the 
 
 ---
 
-## Phase 2: Internal Components
-- [ ] Task: Write Failing Tests (`Red Phase`)
-  - [ ] `ComponentInfo.is_internal` is true for `dj_design_system` components and for `Meta.internal = True`.
-  - [ ] Internal components register only their qualified tag name; short names are not registered.
-  - [ ] A consumer component with the same short name as an internal one renders under the short name regardless of `INSTALLED_APPS` order.
-  - [ ] Built-in qualified names use the `dds` prefix, and consumer `COMPONENT_DIRECTORIES` settings cannot remove it.
-  - [ ] `get_by_name()` without `app_label`, and `resolve_component()`, ignore internal components; qualified names still resolve.
-  - [ ] `get_merged_media()` excludes internal media; an internal-media accessor returns it.
-  - [ ] Markdown canvases do not receive internal media.
-- [ ] Task: Implement to Pass Tests (`Green Phase`)
-  - [ ] Add `is_internal` to `ComponentInfo`; honour `Meta.internal`.
-  - [ ] Update `register_templatetags`, `get_by_name`, `resolve_component`, `get_merged_media`.
-  - [ ] Add the built-in `dds` prefix resolution.
-  - [ ] Add the internal-media accessor.
-- [ ] Task: Refactor and Verify Coverage
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+## Phase 2: Internal Components [checkpoint: ba6b5e0]
+- [x] Task: Write Failing Tests (`Red Phase`) [ba6b5e0]
+  - [x] `ComponentInfo.is_internal` is true for `dj_design_system` components and for `Meta.internal = True`.
+  - [x] Internal components register only their qualified tag name; short names are not registered.
+  - [x] A consumer component with the same short name as an internal one renders under the short name regardless of `INSTALLED_APPS` order.
+  - [x] Built-in qualified names use the `dds` prefix, and consumer `COMPONENT_DIRECTORIES` settings cannot remove it.
+  - [x] `get_by_name()` without `app_label`, and `resolve_component()`, ignore internal components; qualified names still resolve.
+  - [x] `get_merged_media()` excludes internal media; an internal-media accessor returns it.
+  - [x] Markdown canvases do not receive internal media.
+- [x] Task: Implement to Pass Tests (`Green Phase`) [ba6b5e0]
+  - [x] Add `is_internal` to `ComponentInfo`; honour `Meta.internal`.
+  - [x] Update `register_templatetags`, `get_by_name`, `resolve_component`, `get_merged_media`.
+  - [x] Add the built-in `dds` prefix resolution.
+  - [x] Add the internal-media accessor.
+- [x] Task: Refactor and Verify Coverage [ba6b5e0]
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [ba6b5e0]
 
 ---
 
