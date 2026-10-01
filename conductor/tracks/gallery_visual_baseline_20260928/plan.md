@@ -44,18 +44,18 @@ Captures a deterministic Playwright screenshot baseline of the current gallery i
 
 ---
 
-## Phase 4: CI Job
+## Phase 4: CI Job [checkpoint: 0f76464]
 - [x] Task: Add the `visual-regression` job to `ci.yml` [d6908bb]
   - [x] Run in the pinned container; install with `uv`; run `just visual-run` (the container is already the pinned environment).
   - [x] Upload `actual` screenshots always; upload `expected` / `actual` / `diff` and write a job summary on failure.
   - [x] Add the job to `ci-complete`'s `needs`.
-- [~] Task: Verify
-  - [ ] Re-run the job several times on the same commit; confirm it passes every time.
-  - [ ] On a scratch branch, change a gallery colour; confirm the job fails with a useful diff artifact and summary; revert.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Verify [0f76464]
+  - [x] Re-run the job on the same commit; confirm it passes every time (run 36549328837, attempts 1 and 2 green on d6908bb).
+  - [x] Change a gallery colour; confirm the job fails with a useful diff artifact and summary; revert (b60fa2e failed with 25 light-theme diffs in run 36549929875; reverted in 0f76464, green in run 36550723600).
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [0f76464]
 
 ---
 
-## Phase 5: Documentation
-- [ ] Task: Document running visual tests and updating baselines locally via Docker in `CONTRIBUTING.md`, including the Docker prerequisite and the "explain baseline changes in the PR" rule.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+## Phase 5: Documentation [checkpoint: 3727019]
+- [x] Task: Document running visual tests and updating baselines locally via Docker in `CONTRIBUTING.md`, including the Docker prerequisite and the "explain baseline changes in the PR" rule. [3727019]
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [3727019]
