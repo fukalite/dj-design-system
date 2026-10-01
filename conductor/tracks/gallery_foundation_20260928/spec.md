@@ -86,15 +86,15 @@ Two new settings:
 - **Testing:** TDD per `workflow.md`; >80% coverage of new code; `just check` and `just test` pass.
 
 ## Acceptance Criteria
-- [ ] The track 0 visual baseline passes.
-- [ ] `dj_design_system.components` is a package; existing imports work.
-- [ ] Internal components register only qualified tag names, prefixed `dds__` for built-ins.
-- [ ] Short-name lookups and `resolve_component()` ignore internal components.
-- [ ] Internal component media is excluded from merged media and consumer canvases.
-- [ ] `Meta.internal = True` marks a consumer component as internal.
-- [ ] `GALLERY_EXCLUDE_APPS` and `GALLERY_SHOW_BUILTIN_COMPONENTS` behave as specified across nav, search, count, node URLs and API.
-- [ ] A convention test forbids co-located assets for built-in components.
-- [ ] Example project sets `GALLERY_SHOW_BUILTIN_COMPONENTS = True`.
+- [x] The track 0 visual baseline passes.
+- [x] `dj_design_system.components` is a package; existing imports work.
+- [x] Internal components register only qualified tag names, prefixed `dds__` for built-ins.
+- [x] Short-name lookups and `resolve_component()` ignore internal components.
+- [x] Internal component media is excluded from merged media and consumer canvases.
+- [x] `Meta.internal = True` marks a consumer component as internal.
+- [x] `GALLERY_EXCLUDE_APPS` and `GALLERY_SHOW_BUILTIN_COMPONENTS` behave as specified across nav, search, count, node URLs and API.
+- [x] A convention test forbids co-located assets for built-in components.
+- [x] Example project sets `GALLERY_SHOW_BUILTIN_COMPONENTS = True`.
 
 ## Out of Scope
 - Building any actual gallery components (tracks 2–4).

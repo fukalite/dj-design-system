@@ -91,6 +91,8 @@ STATICFILES_FINDERS = [
 DJ_DESIGN_SYSTEM = {
     "DESIGN_SYSTEM_NAME": "Example Component Library",
     "GALLERY_IS_PUBLIC": True,
+    # Show dj_design_system's own built-in components in the gallery.
+    "GALLERY_SHOW_BUILTIN_COMPONENTS": True,
     "GLOBAL_CSS": ["example_project/demo.css"],
     "GALLERY_THEMES": {
         "default": {
