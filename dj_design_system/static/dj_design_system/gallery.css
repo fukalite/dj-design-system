@@ -7,55 +7,8 @@
  */
 
 /* ------------------------------------------------------------------ */
-/* Shell layout                                                        */
+/* Navigation tree                                                     */
 /* ------------------------------------------------------------------ */
-html,
-body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-.gallery {
-  display: flex;
-  height: 100vh;
-  font-family: var(--gallery-font);
-  font-size: var(--gallery-font-size);
-  color: var(--gallery-text);
-  background: var(--gallery-bg);
-}
-
-/* ------------------------------------------------------------------ */
-/* Sidebar                                                             */
-/* ------------------------------------------------------------------ */
-.gallery-sidebar {
-  width: var(--gallery-sidebar-width);
-  min-width: var(--gallery-sidebar-width);
-  background: var(--gallery-sidebar-bg);
-  color: var(--gallery-sidebar-text);
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  border-right: 1px solid var(--gallery-sidebar-border);
-}
-
-.gallery-sidebar__header {
-  padding: 20px 16px 12px;
-  border-bottom: 1px solid var(--gallery-sidebar-border);
-}
-
-.gallery-sidebar__title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--gallery-sidebar-heading);
-  text-decoration: none;
-  display: block;
-}
-
-.gallery-sidebar__title:hover {
-  color: var(--gallery-accent);
-}
-
 /* Navigation groups */
 .gallery-nav {
   flex: 1;
@@ -286,50 +239,8 @@ body {
 }
 
 /* ------------------------------------------------------------------ */
-/* Main content area                                                   */
+/* Toolbar actions                                                     */
 /* ------------------------------------------------------------------ */
-.gallery-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.gallery-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 20px;
-  border-bottom: 2px solid var(--gallery-border);
-  background: var(--gallery-content-bg);
-  min-height: 48px;
-  position: relative;
-  z-index: 10;
-}
-
-.gallery-toolbar__breadcrumb {
-  font-size: 13px;
-  line-height: 1.4;
-  color: var(--gallery-text-muted);
-  min-width: 0;
-  position: relative;
-}
-
-.gallery-toolbar__breadcrumb a {
-  color: var(--gallery-accent);
-  text-decoration: none;
-}
-
-.gallery-toolbar__breadcrumb a:hover {
-  text-decoration: underline;
-}
-
-.gallery-toolbar__actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
 /* Global Theme Switcher (Header) */
 .gallery-header-theme {
   position: relative;
@@ -366,57 +277,8 @@ body {
 }
 
 /* ------------------------------------------------------------------ */
-/* Content area: Documentation + Sandbox split                         */
+/* Sandbox pane                                                        */
 /* ------------------------------------------------------------------ */
-.gallery-content-area {
-  flex: 1;
-  overflow: auto;
-}
-
-.gallery-split {
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
-}
-
-/* Pane: split-pane surfaces (no gaps between them) */
-.gallery-split__pane {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.gallery-split__pane + .gallery-split__pane {
-  border-top: 2px solid var(--gallery-pane-border);
-}
-
-.gallery-split__pane-header {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--gallery-text-muted);
-  padding: 8px 20px;
-  background: #eef0f4;
-  border-bottom: 2px solid var(--gallery-pane-border);
-}
-
-.gallery-split__pane-body {
-  padding: 24px;
-  flex: 1;
-  overflow: auto;
-}
-
-.gallery-documentation {
-  flex: 1;
-  background: var(--gallery-content-bg);
-}
-
-.gallery-sandbox {
-  flex: 1;
-  background: var(--gallery-content-bg);
-}
-
 .gallery-sandbox .gallery-split__pane-body {
   display: flex;
   flex-direction: column;
@@ -566,54 +428,11 @@ body {
   z-index: 1;
 }
 
-/* Tab-driven pane visibility (default: stacked, tabs active) */
-.gallery-split--show-sandbox .gallery-documentation {
-  display: none;
-}
-
-.gallery-split:not(.gallery-split--show-sandbox) .gallery-sandbox {
-  display: none;
-}
-
 /* Wide viewports: Documentation + Sandbox side-by-side, hide tabs */
 @media (min-width: 1800px) {
   .gallery-tabs {
     display: none;
   }
-
-  .gallery-split {
-    flex-direction: row;
-  }
-
-  .gallery-split__pane + .gallery-split__pane {
-    border-top: none;
-    border-left: 2px solid var(--gallery-pane-border);
-  }
-
-  .gallery-documentation {
-    flex: 1;
-  }
-
-  .gallery-sandbox {
-    flex: 0 0 45%;
-    max-width: 45%;
-  }
-
-  /* Override tab hiding — both panes visible */
-  .gallery-split--show-sandbox .gallery-documentation,
-  .gallery-split:not(.gallery-split--show-sandbox) .gallery-sandbox {
-    display: flex;
-  }
-}
-
-/* ------------------------------------------------------------------ */
-/* Standalone page (folder listing, documentation)                     */
-/* ------------------------------------------------------------------ */
-.gallery-page {
-  flex: 1;
-  padding: 24px;
-  background: var(--gallery-content-bg);
-  overflow: auto;
 }
 
 /* ------------------------------------------------------------------ */
@@ -623,7 +442,9 @@ body {
   margin-top: 16px;
 }
 
-.gallery-folder-contents h2 {
+/* :where() keeps this below .gallery-docs h2 (ui/layout/page.css), which it
+ * used to lose to on source order and now loads before it. */
+:where(.gallery-folder-contents) h2 {
   font-size: 14px;
   font-weight: 600;
   color: var(--gallery-text-muted);
@@ -696,211 +517,6 @@ body {
 }
 
 /* ------------------------------------------------------------------ */
-/* Component info / docs pane                                          */
-/* ------------------------------------------------------------------ */
-.gallery-docs h1,
-.gallery-docs h2,
-.gallery-docs h3 {
-  margin-top: 0;
-  margin-bottom: 8px;
-}
-
-.gallery-docs h1 {
-  font-size: 22px;
-}
-
-.gallery-docs h2 {
-  font-size: 17px;
-}
-
-.gallery-docs h3 {
-  font-size: 14px;
-}
-
-.gallery-docs p {
-  margin-bottom: 12px;
-  line-height: 1.6;
-}
-
-.gallery-docs code {
-  font-family: var(--gallery-font-mono);
-  font-size: 13px;
-  background: var(--gallery-code-bg);
-  padding: 2px 5px;
-  border-radius: 3px;
-}
-
-.gallery-docs pre {
-  background: var(--gallery-code-bg);
-  padding: 12px 16px;
-  border-radius: var(--gallery-radius);
-  overflow-x: auto;
-  margin-bottom: 12px;
-}
-
-.gallery-docs pre code {
-  background: none;
-  padding: 0;
-}
-
-/* ------------------------------------------------------------------ */
-/* Markdown-rich docs content                                          */
-/* ------------------------------------------------------------------ */
-.gallery-markdown {
-  font-size: 16px;
-  line-height: 1.7;
-  max-width: 980px;
-}
-
-.gallery-markdown > *:first-child {
-  margin-top: 0;
-}
-
-.gallery-markdown > *:last-child {
-  margin-bottom: 0;
-}
-
-.gallery-markdown h1,
-.gallery-markdown h2,
-.gallery-markdown h3,
-.gallery-markdown h4,
-.gallery-markdown h5,
-.gallery-markdown h6 {
-  line-height: 1.3;
-  letter-spacing: -0.01em;
-  color: var(--gallery-text);
-}
-
-.gallery-markdown h1 {
-  font-size: 32px;
-  margin: 0 0 20px;
-}
-
-.gallery-markdown h2 {
-  font-size: 26px;
-  margin: 36px 0 14px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--gallery-pane-border);
-}
-
-.gallery-markdown h3 {
-  font-size: 21px;
-  margin: 30px 0 12px;
-}
-
-.gallery-markdown h4 {
-  font-size: 18px;
-  margin: 24px 0 10px;
-}
-
-.gallery-markdown h5,
-.gallery-markdown h6 {
-  font-size: 16px;
-  margin: 20px 0 8px;
-}
-
-.gallery-markdown p,
-.gallery-markdown ul,
-.gallery-markdown ol,
-.gallery-markdown blockquote,
-.gallery-markdown pre,
-.gallery-markdown table,
-.gallery-markdown hr {
-  margin: 0 0 16px;
-}
-
-.gallery-markdown ul,
-.gallery-markdown ol {
-  padding-left: 1.6em;
-}
-
-.gallery-markdown li {
-  margin: 0.32em 0;
-  padding-left: 0.15em;
-}
-
-.gallery-markdown li > ul,
-.gallery-markdown li > ol {
-  margin-top: 0.38em;
-  margin-bottom: 0.38em;
-}
-
-.gallery-markdown ul ul,
-.gallery-markdown ul ol,
-.gallery-markdown ol ul,
-.gallery-markdown ol ol {
-  padding-left: 1.45em;
-}
-
-.gallery-markdown a {
-  color: var(--gallery-accent);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 2px;
-}
-
-.gallery-markdown a:hover {
-  color: var(--gallery-accent-hover);
-}
-
-.gallery-markdown blockquote {
-  border-left: 4px solid var(--gallery-pane-border);
-  background: var(--gallery-bg);
-  color: var(--gallery-text-muted);
-  padding: 10px 14px;
-  border-radius: 0 var(--gallery-radius) var(--gallery-radius) 0;
-}
-
-.gallery-markdown hr {
-  border: 0;
-  border-top: 1px solid var(--gallery-pane-border);
-}
-
-.gallery-markdown table {
-  width: 100%;
-  border-collapse: collapse;
-  border: 1px solid var(--gallery-pane-border);
-  font-size: 14px;
-}
-
-.gallery-markdown th,
-.gallery-markdown td {
-  padding: 9px 12px;
-  border: 1px solid var(--gallery-pane-border);
-  text-align: left;
-  vertical-align: top;
-}
-
-.gallery-markdown th {
-  background: var(--gallery-code-bg);
-  font-weight: 600;
-}
-
-.gallery-markdown img,
-.gallery-markdown video {
-  max-width: 100%;
-  height: auto;
-  border-radius: var(--gallery-radius);
-}
-
-@media (max-width: 900px) {
-  .gallery-markdown {
-    font-size: 15px;
-  }
-
-  .gallery-markdown h1 {
-    font-size: 28px;
-  }
-
-  .gallery-markdown h2 {
-    font-size: 23px;
-  }
-
-  .gallery-markdown h3 {
-    font-size: 20px;
-  }
-}
-
-/* ------------------------------------------------------------------ */
 /* Usage examples (minimal and bigger tag signatures)                  */
 /* ------------------------------------------------------------------ */
 .gallery-usage {
@@ -921,75 +537,6 @@ body {
   .gallery-usage {
     flex-direction: column;
   }
-}
-
-/* ------------------------------------------------------------------ */
-/* Hamburger toggle (hidden checkbox pattern — no JS needed)           */
-/* ------------------------------------------------------------------ */
-.gallery-sidebar-toggle {
-  display: none;
-}
-
-.gallery-hamburger {
-  display: none;
-  /* visible only on small viewports */
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  z-index: 1100;
-  width: 28px;
-  height: 28px;
-  cursor: pointer;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  background: var(--gallery-sidebar-bg);
-  border-radius: var(--gallery-radius);
-  border: none;
-}
-
-.gallery-hamburger__line {
-  display: block;
-  width: 14px;
-  height: 2px;
-  background: var(--gallery-sidebar-heading);
-  border-radius: 1px;
-  transition:
-    transform var(--gallery-transition),
-    opacity var(--gallery-transition);
-}
-
-/* Animate lines into an × when sidebar is open */
-.gallery-sidebar-toggle:checked
-  ~ .gallery-hamburger
-  .gallery-hamburger__line:nth-child(1) {
-  transform: translateY(5px) rotate(45deg);
-}
-
-.gallery-sidebar-toggle:checked
-  ~ .gallery-hamburger
-  .gallery-hamburger__line:nth-child(2) {
-  opacity: 0;
-}
-
-.gallery-sidebar-toggle:checked
-  ~ .gallery-hamburger
-  .gallery-hamburger__line:nth-child(3) {
-  transform: translateY(-5px) rotate(-45deg);
-}
-
-/* Overlay behind the sidebar when open on mobile */
-.gallery-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 999;
-  background: rgba(0, 0, 0, 0.4);
-}
-
-.gallery-sidebar-toggle:checked ~ .gallery-overlay {
-  display: block;
 }
 
 /* ------------------------------------------------------------------ */
@@ -1077,60 +624,8 @@ body {
     display: inline;
   }
 
-  .gallery-hamburger {
-    display: flex;
-  }
-
-  .gallery-sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    z-index: 1000;
-    transform: translateX(-100%);
-    transition: transform 0.2s ease;
-  }
-
-  .gallery-sidebar-toggle:checked ~ .gallery-sidebar {
-    transform: translateX(0);
-  }
-
-  /* Offset sidebar header so the close × doesn't cover the title */
-  .gallery-sidebar__header {
-    padding-left: 44px;
-  }
-
-  .gallery-toolbar {
-    padding-left: 48px;
-    /* room for hamburger */
-    min-height: 44px;
-  }
-
-  .gallery-split__pane-body,
-  .gallery-page {
-    padding: 16px;
-  }
-
   .gallery-preview {
     padding: 20px;
-  }
-}
-
-/* ------------------------------------------------------------------ */
-/* Responsive: phones (≤ 480px)                                        */
-/* ------------------------------------------------------------------ */
-@media (max-width: 480px) {
-  :root {
-    --gallery-sidebar-width: 240px;
-  }
-
-  .gallery-toolbar {
-    padding: 8px 12px 8px 44px;
-  }
-
-  .gallery-split__pane-body,
-  .gallery-page {
-    padding: 12px;
   }
 }
 

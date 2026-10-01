@@ -1,0 +1,6 @@
+<div class="{{ pane_class }} gallery-split__pane"
+     {% if pane_id %} id="{{ pane_id }}"{% endif %}>
+    <div class="gallery-split__pane-header">{{ title }}</div>
+    <div class="gallery-split__pane-body{% if body_classes %} {{ body_classes }}{% endif %}"
+         {{ body_extra_attrs }}>{{ content }}</div>
+</div>
