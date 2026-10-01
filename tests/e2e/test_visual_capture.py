@@ -52,6 +52,7 @@ class TestStabilise:
         assert durations == ["0s", "0s"]
 
     def test_waits_for_fonts_and_iframes(self, page, live_server):
+        record_canvas_reports(page)
         page.goto(f"{live_server.url}/dds/demo_components/alert/")
         stabilise(page)
         state = page.evaluate(
@@ -95,6 +96,7 @@ class TestStabilise:
 
     def test_waits_for_delayed_canvas_resize_to_converge(self, page, live_server):
         """Under CPU contention the first resize report can arrive late."""
+        record_canvas_reports(page)
         page.goto(f"{live_server.url}/dds/demo_components/alert/")
         stabilise(page)  # let the page's own previews finish first
         page.evaluate(
@@ -144,6 +146,24 @@ class TestStabilise:
                 .map(f => [f.style.height, f.contentDocument.documentElement.scrollHeight])"""
         )
         assert heights == [["58px", 58], ["58px", 58]]
+
+    def test_does_not_hang_on_a_lost_report_without_the_recorder(
+        self, page, live_server
+    ):
+        """Without record_canvas_reports a lost first report can't be replayed,
+        so the preview's height is never applied. stabilise() must still finish
+        rather than wait for a resize that will never come."""
+        import time
+
+        def delay_listener(route):
+            time.sleep(1)
+            route.continue_()
+
+        page.route("**/gallery-tabs.js", delay_listener)
+        page.goto(f"{live_server.url}/dds/demo_components/alert/")
+        started = time.monotonic()
+        stabilise(page)
+        assert time.monotonic() - started < 10
 
 
 class TestScreenshotRecorder:
