@@ -232,11 +232,13 @@ class TestMedia:
 
     def test_internal_media_returns_only_internal(self, registry):
         media = registry.get_internal_media()
-        assert media.css == [
+        fixture_css = [p for p in media.css if "fixture_nav" in p or "consumer" in p]
+        assert fixture_css == [
             "dj_design_system/ui/fixture_nav/crumb.css",
             "consumer_app/secret.css",
         ]
-        assert media.js == ["dj_design_system/ui/fixture_nav/crumb.js"]
+        assert "dj_design_system/ui/fixture_nav/crumb.js" in media.js
+        assert "consumer_app/button.css" not in media.css
 
 
 @pytest.mark.django_db

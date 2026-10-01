@@ -1,0 +1,7 @@
+<button class="{{ button_classes }}"
+        type="button"
+        {% if pressed is not None %} aria-pressed="{{ pressed|yesno:'true,false' }}"{% endif %}
+        {% if expanded is not None %} aria-expanded="{{ expanded|yesno:'true,false' }}"{% endif %}
+        {% if controls %} aria-controls="{{ controls }}"{% endif %}
+        {% if title %} title="{{ title }}"{% endif %}
+        {{ extra_attrs }}>{{ content }}</button>
