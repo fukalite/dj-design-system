@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- The gallery pages are now built from the design system's own components
+  (`dds__layout__*`, `dds__navigation__*`, `dds__sandbox__*` and so on). Their
+  `.gallery-*` classes, `--gallery-*` tokens, template block names, element IDs
+  and include paths are unchanged, so templates that **extend** the gallery
+  templates keep working. Templates that **override** a gallery template
+  outright may need updating to match the new markup.
+- The gallery's stylesheets and scripts now come from the components' own
+  media, in the order the components need them.
+
+### Deprecated
+
+- The gallery partials `breadcrumb.html`, `navtree.html`, `toolbar.html` and
+  `canvas_widget.html` are now thin wrappers around their components. Render
+  the components instead (`dds__navigation__breadcrumb`,
+  `dds__navigation__nav_tree`, `dds__sandbox__sandbox_toolbar` and
+  `dds__canvas__canvas_widget`).
+
+### Removed
+
+- `gallery.css` and `gallery-toolbar.css`. Their rules now live in the
+  stylesheets of the components that use them.
+- The `source_html` and `rendered_output_html` context variables on the
+  component page. The canvas widget now receives the raw `template_source` and
+  `rendered_output` and highlights them itself.
+
 ## [0.0.1] - unreleased
 
 ### Added

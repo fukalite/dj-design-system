@@ -7,7 +7,6 @@ component renders something the legacy markup didn't (``Icon``'s classes),
 the rendered page is checked too.
 """
 
-import re
 from pathlib import Path
 
 import pytest
@@ -16,7 +15,7 @@ from django.template.loader import render_to_string
 
 import dj_design_system
 from dj_design_system.components.navigation.nav_tree import NavTree
-from tests.html_utils import render
+from tests.html_utils import STATIC, render
 from tests.test_navigation_components import CRUMBS
 from tests.test_views import _collect_all_nodes, _get_nav_tree
 
@@ -77,21 +76,23 @@ class TestBase:
         nav = page[page.index('id="gallery-nav"') : page.index("</nav>")]
         assert "gallery-icon gallery-icon--mask" in nav
 
-    def test_code_highlight_is_linked_again_last(self, client):
-        # The built-ins load it before layout/page.css, whose .gallery-docs pre
-        # rules would override it; linking it again keeps it last.
+    def test_no_hard_coded_stylesheets(self):
+        # Gallery CSS comes only from the built-in components' media.
+        assert "<link" not in source("base.html")
+
+    def test_code_highlight_loads_after_page_and_prose(self, client):
+        # Page and Prose list it after their own stylesheets: its dark theme
+        # for code blocks overrides their pre styles.
         page = client.get("/dds/").content.decode()
         highlight = "ui/primitives/code_highlight.css"
-        assert page.count(highlight) == 2
-        assert page.index("ui/layout/page.css") < page.rindex(highlight)
+        assert page.count(highlight) == 1
+        assert page.index("ui/layout/page.css") < page.index(highlight)
+        assert page.index("ui/layout/prose.css") < page.index(highlight)
 
-    def test_only_legacy_stylesheets_are_hard_coded(self):
-        # gallery.css goes in phase 4, once its last rules have owners; the
-        # second code_highlight.css link goes once built-in CSS order allows.
-        links = re.findall(r"<link[^>]*>", source("base.html"), flags=re.S)
-        assert len(links) == 2
-        assert "dj_design_system/gallery.css" in links[0]
-        assert "ui/primitives/code_highlight.css" in links[1]
+    @pytest.mark.parametrize("legacy", ["gallery.css", "gallery-toolbar.css"])
+    def test_legacy_stylesheets_are_deleted(self, client, legacy):
+        assert not (STATIC / legacy).exists()
+        assert legacy not in client.get("/dds/").content.decode()
 
 
 # ---------------------------------------------------------------------------

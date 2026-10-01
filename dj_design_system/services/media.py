@@ -1,4 +1,5 @@
 import html
+from collections.abc import Iterable
 from typing import TYPE_CHECKING, Type
 
 from django.templatetags.static import static
@@ -39,6 +40,35 @@ def get_gallery_media(registry: "ComponentRegistry | None" = None) -> ComponentM
 
         registry = component_registry
     return ComponentMedia(css=[FOUNDATION_CSS]).merge(registry.get_internal_media())
+
+
+def merge_in_order(lists: Iterable[list[str]]) -> list[str]:
+    """Merge path lists, keeping each list's order, de-duplicated.
+
+    Paths keep the order they are first seen in, except that a path a list
+    puts after another is moved after it. So a component that lists
+    ``a.css`` before ``b.css`` gets ``b.css`` later in the cascade, even when
+    another component brought in ``b.css`` first. When lists disagree, the
+    order first seen wins.
+    """
+    lists = [list(dict.fromkeys(paths)) for paths in lists]
+    seen = list(dict.fromkeys(path for paths in lists for path in paths))
+    rank = {path: i for i, path in enumerate(seen)}
+    before: dict[str, set[str]] = {path: set() for path in seen}
+    for paths in lists:
+        for earlier, later in zip(paths, paths[1:]):
+            before[later].add(earlier)
+    merged: list[str] = []
+    placed: set[str] = set()
+    while len(merged) < len(seen):
+        ready = [p for p in seen if p not in placed and before[p] <= placed]
+        # A cycle (lists disagreeing): fall back to first-seen order.
+        path = min(ready, key=rank.__getitem__) if ready else next(
+            p for p in seen if p not in placed
+        )
+        merged.append(path)
+        placed.add(path)
+    return merged
 
 
 def coerce_path_list(value: str | list[str]) -> list[str]:

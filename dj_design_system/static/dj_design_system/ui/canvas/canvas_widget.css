@@ -131,3 +131,23 @@
   background: var(--gallery-accent);
   color: #fff;
 }
+
+/* ------------------------------------------------------------------ */
+/* In the sandbox pane (moved from gallery.css)                        */
+/* ------------------------------------------------------------------ */
+.gallery-sandbox__widget.gallery-md-canvas {
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  flex: 1;
+}
+
+.gallery-sandbox__iframe {
+  flex: 1;
+}
+
+/* Canvas Error styling */
+.gallery-canvas-error {
+  color: #e03131;
+  font-weight: 500;
+}
