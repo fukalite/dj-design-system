@@ -16,24 +16,24 @@ Captures a deterministic Playwright screenshot baseline of the current gallery i
 
 ---
 
-## Phase 2: Pinned Rendering Environment & Recipes
+## Phase 2: Pinned Rendering Environment & Recipes [checkpoint: 08f675b]
 - [x] Task: Pin the Playwright version in the `justfile`; add a unit test that the CI container tag matches it. [f093cd2]
 - [x] Task: Add `just visual-run` (direct), and `just visual` / `just update-visual-baselines` (in the pinned `linux/amd64` container, installing `playwright==<version>`). [d85b948]
-- [~] Task: `just update-visual-baselines` regenerates **all** gallery screenshots in one command
-  - [ ] Write failing tests: update mode rewrites only changed baselines, and deletes orphaned baselines (files no screenshot test produced) after a full run.
-  - [ ] Implement pruning in the suite's session teardown, only when the whole suite ran in update mode (never on a filtered `-k` run).
+- [x] Task: `just update-visual-baselines` regenerates **all** gallery screenshots in one command [08f675b]
+  - [x] Write failing tests: update mode rewrites only changed baselines, and deletes orphaned baselines (files no screenshot test produced) after a full run.
+  - [x] Implement pruning in the suite's session teardown, only when the whole suite ran in update mode (never on a filtered `-k` run).
 - [x] Task: Change `just e2e` to exclude the `visual` marker. [f093cd2]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
 
 ## Phase 3: Screenshot Coverage
-- [ ] Task: Capture Scrolling Regions
-  - [ ] The gallery shell scrolls inside the sidebar and main panes, so `full_page` screenshots stop at the viewport height (found in Phase 1 verification: nav items below the fold are cut off). Use a viewport tall enough to show all content, or capture each scroll container's full height separately; add a test that fails if content is clipped.
-- [ ] Task: Static States
-  - [ ] Index, folder, documentation and component pages.
-  - [ ] Light and dark gallery themes; wide and narrow viewports.
-- [ ] Task: Interactive States
+- [x] Task: Capture Scrolling Regions [45ccfcb]
+  - [x] The gallery shell scrolls inside the sidebar and main panes, so `full_page` screenshots stop at the viewport height (found in Phase 1 verification: nav items below the fold are cut off). Use a viewport tall enough to show all content, or capture each scroll container's full height separately; add a test that fails if content is clipped.
+- [x] Task: Static States [d6519d6]
+  - [x] Index, folder, documentation and component pages.
+  - [x] Light and dark gallery themes; wide and narrow viewports.
+- [~] Task: Interactive States
   - [ ] Mobile sidebar open; breadcrumb flyout open.
   - [ ] Each sandbox toolbar popout open; outline and RTL toggles active.
   - [ ] Search results with a query entered.
