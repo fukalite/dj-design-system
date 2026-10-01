@@ -23,14 +23,14 @@ Rewrites the gallery templates as compositions of built-in components and remove
 ---
 
 ## Phase 3: Component Page & Sandbox
-- [ ] Task: Write Failing Tests (`Red Phase`)
-  - [ ] `component.html` and `sandbox_fragment.html` render via components; the HTMX fragment response still contains only the sandbox body.
-  - [ ] View context provides tab, viewport and zoom option lists.
-- [ ] Task: Implement to Pass Tests (`Green Phase`)
-  - [ ] Rewrite the templates; move hard-coded option lists into view context or component defaults.
-  - [ ] Convert `canvas_widget.html` into a thin wrapper.
-- [ ] Task: Refactor and Verify Coverage
-- [ ] Task: Confirm the track 0 visual baseline and all e2e tests pass.
+- [x] Task: Write Failing Tests (`Red Phase`) [3b8d4d4]
+  - [x] `component.html` and `sandbox_fragment.html` render via components; the HTMX fragment response still contains only the sandbox body.
+  - [x] View context provides tab, viewport and zoom option lists.
+- [x] Task: Implement to Pass Tests (`Green Phase`) [3b8d4d4]
+  - [x] Rewrite the templates; move hard-coded option lists into view context or component defaults. (`toolbar.html` holds the toolbar composition, included by `sandbox_fragment.html`.)
+  - [x] Convert `canvas_widget.html` into a thin wrapper. (Markdown canvases now use `CanvasWidget` directly.)
+- [x] Task: Refactor and Verify Coverage [3b8d4d4]
+- [x] Task: Confirm the track 0 visual baseline and all e2e tests pass. [3b8d4d4]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
