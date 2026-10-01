@@ -1,0 +1,1 @@
+Track 6 docs: gallery.md 'Customising the Gallery' (built-ins, tokens, overriding pages, deprecated partials) and the two visibility settings. Override patterns verified against the example project (a DIRS base.html extending the original applies everywhere; index.html extending itself with block.super keeps content). just docs-build: no new messages.
