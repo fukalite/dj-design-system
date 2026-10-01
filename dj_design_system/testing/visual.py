@@ -108,13 +108,13 @@ def assert_matches_baseline(
 
     try:
         result = compare_images(actual, baseline, threshold=threshold)
-    except ScreenshotMismatch:
+    except ScreenshotMismatch as exc:
         if update:
             _copy(actual, baseline)
             return
         _copy(baseline, out_dir / "expected.png")
         _copy(actual, out_dir / "actual.png")
-        raise
+        raise ScreenshotMismatch(f"{baseline.name}: {exc}. See {out_dir}") from exc
 
     if result.mismatched_pixels == 0:
         return
