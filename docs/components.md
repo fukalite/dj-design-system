@@ -338,6 +338,24 @@ Setting `dependency` alone (without `dependent`) is always valid — the constra
 
 Both `mutually_exclusive` and `requires` can be combined on the same component, and multiple pairs can be declared in each list. Meta constraints are enforced before the [`validate_params()`](#validate_params) override hook runs.
 
+### `internal = True`
+
+Marks a component as internal: a building block for your own tooling rather than something page authors should reach for. An internal component:
+
+- is registered only under its qualified tag name (e.g. `{% myapp__admin_toolbar %}`), never a short one;
+- is skipped by short-name lookups (`component_registry.get_by_name(name)` without an `app_label`);
+- is left out of the merged component media (`component_registry.get_merged_media()`), so its CSS and JS don't load on your pages or in other components' canvases.
+
+```python
+class AdminToolbarComponent(TagComponent):
+    class Meta:
+        internal = True
+```
+
+Like other `Meta` options, `internal` is not inherited.
+
+Django Design System's own built-in components (the ones the gallery is built from) are always internal, and their qualified names start with `dds`, e.g. `{% dds__primitives__button %}`. The gallery hides them unless [`GALLERY_SHOW_BUILTIN_COMPONENTS`](api/settings.md#gallery_show_builtin_components) is on. They are not a supported public API: their parameters and markup may change without a deprecation period, so build your pages from your own components.
+
 ## Override Hooks
 
 ### `validate_params()`
