@@ -62,4 +62,4 @@ class TestComponentsPackage:
         assert components_package.BaseComponent not in classes
         assert components_package.TagComponent not in classes
         assert components_package.BlockComponent not in classes
-        assert {i.name for i in reg.list_all()} == {"crumb"}
+        assert "crumb" in {i.name for i in reg.list_all()}

@@ -1,0 +1,7 @@
+{% if href %}<a class="{{ button_classes }}"
+   href="{{ href }}"
+   title="{{ label }}"
+   aria-label="{{ label }}">{{ icon_html }}</a>{% else %}<button class="{{ button_classes }}"
+        type="button"
+        title="{{ label }}"
+        aria-label="{{ label }}">{{ icon_html }}</button>{% endif %}
