@@ -23,9 +23,9 @@ Polishes the built-in components' presentation in the example project and docume
 ---
 
 ## Phase 3: Documentation
-- [ ] Task: Document `GALLERY_EXCLUDE_APPS` and `GALLERY_SHOW_BUILTIN_COMPONENTS` in `docs/api/settings.md`.
-- [ ] Task: Document internal components in `docs/components.md` and `docs/registry.md`.
-- [ ] Task: Update `docs/gallery.md` (built from DjDS components, stable classes and tokens, deprecated partials, overriding pages).
-- [ ] Task: Update the feature list and `CHANGELOG.md`.
-- [ ] Task: Confirm `just docs-build` succeeds with no new warnings.
+- [x] Task: Document `GALLERY_EXCLUDE_APPS` and `GALLERY_SHOW_BUILTIN_COMPONENTS` in `docs/api/settings.md`. [8024543]
+- [x] Task: Document internal components in `docs/components.md` and `docs/registry.md`. [6e4b24d]
+- [x] Task: Update `docs/gallery.md` (built from DjDS components, stable classes and tokens, deprecated partials, overriding pages). [6d2b6f1]
+- [x] Task: Update the feature list and `CHANGELOG.md`. [f120ec1]
+- [x] Task: Confirm `just docs-build` succeeds with no new warnings. [f120ec1] (No new messages. The existing `#security-fields-all` anchor in `components.md` is broken because `attr_list` isn't enabled, so the new links use heading anchors.)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
