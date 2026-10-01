@@ -1,0 +1,48 @@
+{% if crumbs %}
+    <span class="gallery-breadcrumb__full">
+        {% for crumb in crumbs %}
+            {% if not forloop.last %}
+                <a href="{{ crumb.url }}">{{ crumb.label }}</a>
+                <span class="gallery-breadcrumb__sep">/</span>
+            {% else %}
+                <span class="gallery-breadcrumb__current">{{ crumb.label }}</span>
+            {% endif %}
+        {% endfor %}
+    </span>
+    {% with last=crumbs|last %}
+        {% if crumbs|length > 2 %}
+            <span class="gallery-breadcrumb__collapsed">
+                <a href="{{ crumbs.0.url }}">{{ crumbs.0.label }}</a>
+                <span class="gallery-breadcrumb__sep">/</span>
+                <input type="checkbox"
+                       class="gallery-breadcrumb__toggle"
+                       id="bc-toggle"
+                       aria-hidden="true">
+                <label class="gallery-breadcrumb__ellipsis"
+                       for="bc-toggle"
+                       title="Show full path">…</label>
+                <span class="gallery-breadcrumb__sep">/</span>
+                <span class="gallery-breadcrumb__current">{{ last.label }}</span>
+                <div class="gallery-breadcrumb__flyout">
+                    {% for crumb in crumbs %}
+                        {% if not forloop.first and not forloop.last %}
+                            <a href="{{ crumb.url }}">{{ crumb.label }}</a>
+                            {% if not forloop.last %}<span class="gallery-breadcrumb__sep">/</span>{% endif %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </span>
+        {% else %}
+            <span class="gallery-breadcrumb__collapsed">
+                {% for crumb in crumbs %}
+                    {% if not forloop.last %}
+                        <a href="{{ crumb.url }}">{{ crumb.label }}</a>
+                        <span class="gallery-breadcrumb__sep">/</span>
+                    {% else %}
+                        <span class="gallery-breadcrumb__current">{{ crumb.label }}</span>
+                    {% endif %}
+                {% endfor %}
+            </span>
+        {% endif %}
+    {% endwith %}
+{% endif %}

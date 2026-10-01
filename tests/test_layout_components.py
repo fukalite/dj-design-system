@@ -213,13 +213,15 @@ class TestCssMovedNotCopied:
 
     def test_legacy_stylesheet_keeps_unmoved_sections(self):
         legacy = (STATIC / "gallery.css").read_text()
-        assert ".gallery-nav {" in legacy  # track 3 phase 2
+        assert ".gallery-sandbox__controls {" in legacy  # track 4
         assert ".gallery-tabs {" in legacy  # track 3 phase 3
 
     def test_folder_heading_yields_to_page_context(self):
         # .gallery-docs h2 now loads before gallery.css; the folder heading
         # uses :where() to keep losing to it, as it did on source order.
-        assert css_homes(":where(.gallery-folder-contents) h2 {") == ["gallery.css"]
+        assert css_homes(":where(.gallery-folder-contents) h2 {") == [
+            "ui/navigation/folder_listing.css"
+        ]
 
     def test_section_heading_yields_to_page_context(self):
         # Page CSS now loads before the primitives, so SectionHeading uses
