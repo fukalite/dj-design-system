@@ -2,7 +2,7 @@
 
 Polishes the built-in components' presentation in the example project and documents the gallery rebuild series.
 
-## Phase 1: Example Project Showcase
+## Phase 1: Example Project Showcase [checkpoint: 19b80af]
 - [x] Task: Review Labels & Structure [57096db]
   - [x] Set the app `verbose_name` and group labels for the built-in section. (`verbose_name = "Django Design System"`; the group folders already read well.)
   - [x] Add an `index.md` for each built-in group. (And one for the app.)
@@ -11,12 +11,12 @@ Polishes the built-in components' presentation in the example project and docume
 - [x] Task: Canvas Theming [19b80af]
   - [x] Write a failing test that a built-in previewed under the example "dark" theme receives the dark token class.
   - [x] Implement the theme mapping; confirm the test passes. (Each example theme's `html_attrs` adds the matching `gallery-theme-*` class. Pre-existing dark styling problems this exposes: #129, and the warning Notice, covered by #112.)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [19b80af]
 
 ---
 
 ## Phase 2: Snapshots & Static Demo
-- [ ] Task: Generate and commit built-in component snapshot baselines with the integration testing harness.
+- [~] Task: Generate and commit built-in component snapshot baselines with the integration testing harness.
 - [ ] Task: Confirm the static demo export includes and renders the built-in components.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
