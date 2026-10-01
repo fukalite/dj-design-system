@@ -2,6 +2,13 @@ import re
 from typing import Type
 
 
+BUILTIN_APP_LABEL = "dj_design_system"
+"""App label of the package itself; its components are built-ins."""
+
+BUILTIN_PREFIX = "dds"
+"""Qualified-name prefix for built-in components, e.g. ``dds__navigation__breadcrumb``."""
+
+
 class EmptyMeta:
     """Sentinel returned by ``get_own_meta`` when a class has no own Meta.
 
@@ -22,6 +29,18 @@ def get_own_meta(cls: Type) -> type:
 def is_abstract(cls: Type) -> bool:
     """Return True if the class's own Meta marks it as abstract."""
     return getattr(get_own_meta(cls), "abstract", False)
+
+
+def is_internal(cls: Type, app_label: str) -> bool:
+    """Return True if the component is internal.
+
+    Built-in components (from the ``dj_design_system`` app) are always
+    internal. Any other component is internal when its own ``Meta`` sets
+    ``internal = True``; like other ``Meta`` options, it is not inherited.
+    """
+    return app_label == BUILTIN_APP_LABEL or bool(
+        getattr(get_own_meta(cls), "internal", False)
+    )
 
 
 def get_meta_name(cls: Type) -> str | None:

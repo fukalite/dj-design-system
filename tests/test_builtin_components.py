@@ -1,8 +1,5 @@
 """Tests for the ``dj_design_system.components`` package and built-in components."""
 
-import sys
-import textwrap
-
 import pytest
 
 import dj_design_system.components as components_package
@@ -10,32 +7,21 @@ from dj_design_system.services.registry import ComponentRegistry
 from tests.conftest import discover_app_into_registry
 
 
-@pytest.fixture()
-def builtin_subpackage(tmp_path):
-    """Add a temporary ``dj_design_system.components.fixture_nav`` subpackage.
+CRUMB = {
+    "fixture_nav/crumb.py": """
+        from dj_design_system.components import TagComponent
 
-    The directory is appended to the package's ``__path__`` so autodiscovery
-    sees it exactly as it would a real built-in subpackage.
+
+        class CrumbComponent(TagComponent):
+            template_format_str = "<span>crumb</span>"
     """
-    package_dir = tmp_path / "fixture_nav"
-    package_dir.mkdir()
-    (package_dir / "__init__.py").write_text("")
-    (package_dir / "crumb.py").write_text(
-        textwrap.dedent(
-            """
-            from dj_design_system.components import TagComponent
+}
 
 
-            class CrumbComponent(TagComponent):
-                template_format_str = "<span>crumb</span>"
-            """
-        )
-    )
-    components_package.__path__.append(str(tmp_path))
-    yield "dj_design_system.components.fixture_nav.crumb"
-    components_package.__path__.remove(str(tmp_path))
-    for name in [m for m in sys.modules if ".fixture_nav" in m]:
-        del sys.modules[name]
+@pytest.fixture()
+def builtin_subpackage(builtin_modules):
+    builtin_modules(CRUMB)
+    return "dj_design_system.components.fixture_nav.crumb"
 
 
 class TestComponentsPackage:
