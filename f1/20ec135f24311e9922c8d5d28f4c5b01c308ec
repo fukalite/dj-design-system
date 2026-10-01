@@ -1,1 +1,6 @@
 Track 6 docs: feature list entry for the component-built gallery; changelog Added (settings, Meta.internal, components package) and Changed (verbose_name); Deprecated entry corrected to stop recommending the internal components. just docs-build: no new messages.
+
+Phase 3 checkpoint (Documentation)
+
+Automated: just check clean; just test 1223; just e2e 64 (twice); just docs-build no new messages; CI run 36925680431 green.
+Manual verification: user confirmed.
