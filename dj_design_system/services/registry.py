@@ -343,8 +343,9 @@ class ComponentRegistry:
         Look up a component by its name.
 
         If ``app_label`` is provided, the search is scoped to that app.
-        Without it, internal components are ignored: they can only be found
-        by their app label or qualified name.
+        Without it, internal components are ignored: pass their
+        ``app_label``, or look them up by qualified name with
+        :func:`dj_design_system.services.canvas.resolve_component`.
         Raises ``ComponentDoesNotExist`` if no match is found, and
         ``MultipleComponentsFound`` if the name is ambiguous.
         """

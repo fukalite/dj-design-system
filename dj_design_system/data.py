@@ -135,7 +135,7 @@ class ComponentInfo:
 
         return load_gallery_config(source_file.parent, self.name)
 
-    @property
+    @cached_property
     def is_internal(self) -> bool:
         """Return True if this is an internal component.
 
