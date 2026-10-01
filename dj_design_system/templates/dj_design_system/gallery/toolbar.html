@@ -1,172 +1,47 @@
-{# Sandbox toolbar: background colour + zoom controls #}
-{% load static %}
-<div class="gallery-sandbox-toolbar"
-     data-measure-script="{% static 'dj_design_system/ui/sandbox/measure.js' %}">
-    {# ── Background colour ── #}
-    <div class="gallery-sandbox-toolbar__group gallery-sandbox-toolbar__bg">
-        <button class="gallery-sandbox-toolbar__btn gallery-sandbox-toolbar__bg-toggle"
-                type="button"
-                aria-expanded="false"
-                aria-controls="gallery-bg-panel"
-                title="Background colour">
+{# Sandbox toolbar: canvas background, viewport and zoom popouts, and the outline, measure and RTL toggles. #}
+{# Uses the view's ``toolbar_options``, or builds them from ``canvas_backgrounds`` and ``active_bg_value``. #}
+{% load dj_design_system_gallery design_components %}
+{% sandbox_toolbar_options as options %}
+{% dds__sandbox__sandbox_toolbar %}
+    {% dds__sandbox__popout panel_id="gallery-bg-panel" panel_name="bg" title="Background colour" toggle_class="gallery-sandbox-toolbar__bg-toggle" panel_attrs=options.bg_panel_attrs %}
+        {% slot "toggle" %}
             <span class="gallery-sandbox-toolbar__bg-swatch"></span>
-        </button>
-        <div class="gallery-sandbox-toolbar__popout"
-             id="gallery-bg-panel"
-             data-gallery-panel="bg"
-             data-initial-bg="{{ active_bg_value }}"
-             hidden>
-            {% for bg in canvas_backgrounds %}
-                <button class="gallery-sandbox-toolbar__popout-option gallery-sandbox-toolbar__bg-option{% if bg.value == active_bg_value %} gallery-sandbox-toolbar__popout-option--active{% endif %}"
-                        type="button"
-                        data-bg="{{ bg.value }}"
-                        title="{{ bg.label }}">
+        {% endslot %}
+        {% slot "options" %}
+            {% for bg in options.backgrounds %}
+                {% dds__sandbox__popout_option data_name="bg" value=bg.value active=bg.active title=bg.label extra_classes="gallery-sandbox-toolbar__bg-option" %}
                     <span class="gallery-sandbox-toolbar__bg-chip gallery-bg-chip-{{ bg.value }}"></span>
                     <span class="gallery-sandbox-toolbar__bg-option-label">{{ bg.label }}</span>
-                </button>
+                {% enddds__sandbox__popout_option %}
             {% endfor %}
-        </div>
-    </div>
-
-
-
-    {# ── Viewport ── #}
-    <div class="gallery-sandbox-toolbar__group gallery-sandbox-toolbar__viewport">
-        <button class="gallery-sandbox-toolbar__btn gallery-sandbox-toolbar__viewport-toggle"
-                type="button"
-                aria-expanded="false"
-                aria-controls="gallery-viewport-panel"
-                title="Viewport width">
-            <svg width="14"
-                 height="14"
-                 viewBox="0 0 24 24"
-                 fill="none"
-                 stroke="currentColor"
-                 stroke-width="2">
-                <rect x="2" y="3" width="20" height="14" rx="2" />
-                <line x1="8" y1="21" x2="16" y2="21" />
-                <line x1="12" y1="17" x2="12" y2="21" />
-            </svg>
+        {% endslot %}
+    {% enddds__sandbox__popout %}
+    {% dds__sandbox__popout panel_id="gallery-viewport-panel" panel_name="viewport" title="Viewport width" toggle_class="gallery-sandbox-toolbar__viewport-toggle" %}
+        {% slot "toggle" %}
+            {% dds__primitives__icon "monitor" %}
             <span class="gallery-sandbox-toolbar__viewport-value">Responsive</span>
-        </button>
-        <div class="gallery-sandbox-toolbar__popout"
-             id="gallery-viewport-panel"
-             data-gallery-panel="viewport"
-             hidden>
-            <button class="gallery-sandbox-toolbar__popout-option gallery-sandbox-toolbar__viewport-btn gallery-sandbox-toolbar__popout-option--active"
-                    type="button"
-                    data-viewport="responsive"
-                    title="Responsive (fill available width)">Responsive</button>
-            <button class="gallery-sandbox-toolbar__popout-option gallery-sandbox-toolbar__viewport-btn"
-                    type="button"
-                    data-viewport="320"
-                    title="Small mobile (320px)">Small mobile — 320px</button>
-            <button class="gallery-sandbox-toolbar__popout-option gallery-sandbox-toolbar__viewport-btn"
-                    type="button"
-                    data-viewport="414"
-                    title="Large mobile (414px)">Large mobile — 414px</button>
-            <button class="gallery-sandbox-toolbar__popout-option gallery-sandbox-toolbar__viewport-btn"
-                    type="button"
-                    data-viewport="768"
-                    title="Tablet (768px)">Tablet — 768px</button>
-            <button class="gallery-sandbox-toolbar__popout-option gallery-sandbox-toolbar__viewport-btn"
-                    type="button"
-                    data-viewport="1024"
-                    title="Desktop (1024px)">Desktop — 1024px</button>
-            <button class="gallery-sandbox-toolbar__popout-option gallery-sandbox-toolbar__viewport-btn"
-                    type="button"
-                    data-viewport="1920"
-                    title="Full HD (1920px)">Full HD — 1920px</button>
-            <button class="gallery-sandbox-toolbar__popout-option gallery-sandbox-toolbar__viewport-btn"
-                    type="button"
-                    data-viewport="2560"
-                    title="Ultrawide (2560px)">Ultrawide — 2560px</button>
-        </div>
-    </div>
-
-    {# ── Zoom ── #}
-    <div class="gallery-sandbox-toolbar__group gallery-sandbox-toolbar__zoom">
-        <button class="gallery-sandbox-toolbar__btn gallery-sandbox-toolbar__zoom-toggle"
-                type="button"
-                aria-expanded="false"
-                aria-controls="gallery-zoom-panel"
-                title="Zoom level">
+        {% endslot %}
+        {% slot "options" %}
+            {% for viewport in options.viewports %}
+                {% dds__sandbox__popout_option data_name="viewport" value=viewport.value active=viewport.active title=viewport.title extra_classes="gallery-sandbox-toolbar__viewport-btn" %}
+                    {{ viewport.label }}
+                {% enddds__sandbox__popout_option %}
+            {% endfor %}
+        {% endslot %}
+    {% enddds__sandbox__popout %}
+    {% dds__sandbox__popout panel_id="gallery-zoom-panel" panel_name="zoom" title="Zoom level" toggle_class="gallery-sandbox-toolbar__zoom-toggle" %}
+        {% slot "toggle" %}
             <span class="gallery-sandbox-toolbar__zoom-value">100%</span>
-        </button>
-        <div class="gallery-sandbox-toolbar__popout"
-             id="gallery-zoom-panel"
-             data-gallery-panel="zoom"
-             hidden>
-            {% with zoom_levels="50 75 100 125 150 200" %}
-                {% for level in zoom_levels.split %}
-                    <button class="gallery-sandbox-toolbar__popout-option gallery-sandbox-toolbar__zoom-btn{% if level == '100' %} gallery-sandbox-toolbar__popout-option--active{% endif %}"
-                            type="button"
-                            data-zoom="{{ level }}"
-                            title="Zoom {{ level }}%">{{ level }}%</button>
-                {% endfor %}
-            {% endwith %}
-        </div>
-    </div>
-
-    {# ── Box model outline ── #}
-    <div class="gallery-sandbox-toolbar__group">
-        <button class="gallery-sandbox-toolbar__btn gallery-sandbox-toolbar__outline-toggle"
-                type="button"
-                aria-pressed="false"
-                title="Toggle box model outline">
-            <svg width="14"
-                 height="14"
-                 viewBox="0 0 24 24"
-                 fill="none"
-                 stroke="currentColor"
-                 stroke-width="2">
-                <rect x="1" y="1" width="22" height="22" rx="2" stroke-dasharray="4 2" />
-                <rect x="5" y="5" width="14" height="14" rx="1" />
-                <rect x="9" y="9" width="6" height="6" rx="0.5" fill="currentColor" opacity="0.3" />
-            </svg>
-        </button>
-    </div>
-
-    {# ── Measure ── #}
-    <div class="gallery-sandbox-toolbar__group">
-        <button class="gallery-sandbox-toolbar__btn gallery-sandbox-toolbar__measure-toggle"
-                type="button"
-                aria-pressed="false"
-                title="Toggle measurement overlay on hover">
-            <svg width="14"
-                 height="14"
-                 viewBox="0 0 24 24"
-                 fill="none"
-                 stroke="currentColor"
-                 stroke-width="2">
-                <path d="M2 2v20h20" />
-                <path d="M6 18V8" />
-                <path d="M4 8h4" />
-                <path d="M4 18h4" />
-                <path d="M10 18h8" />
-                <path d="M10 16v4" />
-                <path d="M18 16v4" />
-            </svg>
-        </button>
-    </div>
-
-    {# ── RTL direction ── #}
-    <div class="gallery-sandbox-toolbar__group">
-        <button class="gallery-sandbox-toolbar__btn gallery-sandbox-toolbar__rtl-toggle"
-                type="button"
-                aria-pressed="false"
-                title="Toggle right-to-left direction">
-            <svg width="14"
-                 height="14"
-                 viewBox="0 0 24 24"
-                 fill="none"
-                 stroke="currentColor"
-                 stroke-width="2">
-                <path d="M10 5v14" />
-                <path d="M14 5v14" />
-                <path d="M14 5h2a4 4 0 0 1 0 8h-2" />
-                <path d="M7 15l-3-3 3-3" />
-            </svg>
-        </button>
-    </div>
-</div>
+        {% endslot %}
+        {% slot "options" %}
+            {% for zoom in options.zooms %}
+                {% dds__sandbox__popout_option data_name="zoom" value=zoom.value active=zoom.active title=zoom.title extra_classes="gallery-sandbox-toolbar__zoom-btn" %}
+                    {{ zoom.value }}%
+                {% enddds__sandbox__popout_option %}
+            {% endfor %}
+        {% endslot %}
+    {% enddds__sandbox__popout %}
+    {% dds__sandbox__toggle_button "outline" %}
+    {% dds__sandbox__toggle_button "measure" %}
+    {% dds__sandbox__toggle_button "rtl" %}
+{% enddds__sandbox__sandbox_toolbar %}

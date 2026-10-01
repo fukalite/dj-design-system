@@ -28,7 +28,7 @@ from django.template.loader import render_to_string
 from django.test import RequestFactory, override_settings
 
 from dj_design_system.views import get_base_context
-from tests.test_canvas_docs_components import legacy_widget
+from tests.test_canvas_docs_components import widget_context
 from tests.test_navigation_components import CRUMBS
 from tests.test_sandbox_toolbar_components import ACTIVE_BG, BACKGROUNDS
 from tests.test_views import _collect_all_nodes, _get_nav_tree
@@ -228,17 +228,23 @@ class TestLegacyPartials:
         _matches_snapshot("toolbar", markup)
 
     def test_canvas_widget_for_the_sandbox(self):
-        markup = legacy_widget(
-            iframe_src="/dds/_canvas/?component=x",
-            iframe_class="gallery-sandbox__iframe",
-            extra_classes="gallery-sandbox__widget",
+        markup = render_to_string(
+            "dj_design_system/canvas_widget.html",
+            widget_context(
+                iframe_src="/dds/_canvas/?component=x",
+                iframe_class="gallery-sandbox__iframe",
+                extra_classes="gallery-sandbox__widget",
+            ),
         )
         _matches_snapshot("canvas_widget-sandbox", markup)
 
     def test_canvas_widget_for_markdown(self):
-        markup = legacy_widget(
-            unique_id="md-1",
-            iframe_srcdoc="<p>Hi & bye</p>",
-            sandbox_attrs="allow-scripts",
+        markup = render_to_string(
+            "dj_design_system/canvas_widget.html",
+            widget_context(
+                unique_id="md-1",
+                iframe_srcdoc="<p>Hi & bye</p>",
+                sandbox_attrs="allow-scripts",
+            ),
         )
         _matches_snapshot("canvas_widget-markdown", markup)

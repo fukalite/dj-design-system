@@ -1,46 +1,13 @@
 {# Partial fragment rendered when htmx requests only the sandbox pane body. #}
-{% load static %}
-
-{# ── Toolbar ──────────────────────────────────────────── #}
+{% load design_components %}
 {% include "dj_design_system/gallery/toolbar.html" %}
-
-{# ── Canvas ───────────────────────────────────────────── #}
 <div class="gallery-sandbox__canvas">
-    {% include "dj_design_system/canvas_widget.html" with unique_id="sandbox" iframe_src=canvas_iframe_url iframe_class="gallery-sandbox__iframe" extra_classes="gallery-sandbox__widget" source_html=source_html rendered_output_html=rendered_output_html %}
+    {% dds__canvas__canvas_widget unique_id="sandbox" iframe_src=canvas_iframe_url iframe_class="gallery-sandbox__iframe" extra_classes="gallery-sandbox__widget" template_source=template_source rendered_output=rendered_output %}
 </div>
-
-{# ── Parameter controls ────────────────────────────────── #}
 {% if param_rows %}
-    <div class="gallery-sandbox__controls-wrapper" data-gallery-drawer>
-        <div class="gallery-sandbox__resizer"
-             aria-hidden="true"
-             data-gallery-resizer></div>
-        <div class="gallery-sandbox__controls">
-            <form method="get"
-                  class="gallery-params-form"
-                  hx-get="{{ request.path }}"
-                  hx-replace-url="true"
-                  hx-target="closest [data-gallery-sandbox-body]"
-                  hx-swap="innerHTML"
-                  hx-trigger="change delay:400ms, keyup delay:400ms from:input, keyup delay:400ms from:textarea">
-                <input type="hidden" name="theme" value="{{ active_theme }}">
-                {% for row in param_rows %}
-                    <div class="gallery-params-form__row">
-                        <label class="gallery-params-form__label" for="{{ row.field.id_for_label }}">
-                            <code>{{ row.name }}</code>
-                            {% if row.spec.description %}<span class="gallery-params-form__hint">{{ row.spec.description }}</span>{% endif %}
-                        </label>
-                        <div class="gallery-params-form__field">
-                            {{ row.field }}
-                            {% if row.field.errors %}
-                                <ul class="gallery-params__errors">
-                                    {% for error in row.field.errors %}<li>{{ error }}</li>{% endfor %}
-                                </ul>
-                            {% endif %}
-                        </div>
-                    </div>
-                {% endfor %}
-            </form>
-        </div>
-    </div>
+    {% dds__sandbox__params_form url=request.path theme=active_theme %}
+        {% for row in param_rows %}
+            {% dds__sandbox__form_row row.field %}
+        {% endfor %}
+    {% enddds__sandbox__params_form %}
 {% endif %}

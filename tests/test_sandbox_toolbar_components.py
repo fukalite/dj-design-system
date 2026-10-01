@@ -6,9 +6,10 @@ come from the components they reuse: ``Icon``'s classes and its
 ``aria-hidden``/``focusable`` on decorative SVGs.
 """
 
+from pathlib import Path
+
 import pytest
-from django.template import TemplateSyntaxError
-from django.template.loader import render_to_string
+from django.template import Context, Template, TemplateSyntaxError
 from django.templatetags.static import static
 
 from dj_design_system.services.media import FOUNDATION_CSS
@@ -87,10 +88,15 @@ def new_toolbar() -> str:
     )
 
 
+# gallery/toolbar.html as it was before it was built from these components.
+LEGACY_TOOLBAR = (
+    Path(__file__).parent / "legacy_partials" / "templates" / "toolbar.html"
+)
+
+
 def legacy_toolbar() -> str:
-    return render_to_string(
-        "dj_design_system/gallery/toolbar.html",
-        {"canvas_backgrounds": BACKGROUNDS, "active_bg_value": ACTIVE_BG},
+    return Template(LEGACY_TOOLBAR.read_text()).render(
+        Context({"canvas_backgrounds": BACKGROUNDS, "active_bg_value": ACTIVE_BG})
     )
 
 

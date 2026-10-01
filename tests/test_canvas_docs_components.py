@@ -9,10 +9,10 @@ and ``IconButton``'s ``aria-label``.
 import html
 import re
 from html.parser import HTMLParser
+from pathlib import Path
 
 import pytest
 from django.template import Context, Template
-from django.template.loader import render_to_string
 
 from dj_design_system.parameters import BoolParam, StrParam
 from dj_design_system.parameters.base import _get_type_name
@@ -99,16 +99,28 @@ SOURCE = '{% alert "info" %}\n    Sample & <content>\n{% endalert %}'
 OUTPUT = "\n<div class='alert alert-info info' role='alert'>Sample</div>\n"
 
 
-def legacy_widget(**overrides) -> str:
-    """The legacy template, fed exactly as its two callers feed it."""
-    context = {
+# canvas_widget.html as it was before it became a wrapper around CanvasWidget.
+LEGACY_WIDGET = (
+    Path(__file__).parent / "legacy_partials" / "templates" / "canvas_widget.html"
+)
+
+
+def widget_context(**overrides) -> dict:
+    """canvas_widget.html's context, fed exactly as its two callers fed it."""
+    return {
         "unique_id": "sandbox",
         "source_html": highlight_code(SOURCE) or html.escape(SOURCE),
         "rendered_output_html": highlight_html(OUTPUT.strip())
         or html.escape(OUTPUT.strip()),
         **overrides,
     }
-    return render_to_string("dj_design_system/canvas_widget.html", context)
+
+
+def legacy_widget(**overrides) -> str:
+    """The legacy template's output."""
+    return Template(LEGACY_WIDGET.read_text()).render(
+        Context(widget_context(**overrides))
+    )
 
 
 def widget(**kwargs) -> str:
