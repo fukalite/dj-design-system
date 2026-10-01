@@ -145,9 +145,71 @@ jobs:
       - name: Run E2E tests
         run: just e2e
 
+  visual-regression:
+    name: Visual Regression
+    # Same image and architecture (linux/amd64) the baselines are rendered in
+    # by `just update-visual-baselines`; the tag must match the justfile's
+    # playwright_version (tests/test_visual_config.py enforces this).
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright/python:v1.63.0-noble
+      options: --ipc=host --init
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: extractions/setup-just@v2
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: uv pip install -e ".[dev]" "playwright==$(just --evaluate playwright_version)"
+
+      - name: Compare gallery screenshots to baselines
+        run: |
+          set -o pipefail
+          just visual-run 2>&1 | tee visual.log
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-regression-actual
+          path: tests/e2e/visual/output/actual
+          if-no-files-found: ignore
+
+      - name: Upload failure diffs
+        id: diffs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-regression-diffs
+          path: tests/e2e/visual/output/failures
+          if-no-files-found: ignore
+
+      - name: Summarise failures
+        if: failure()
+        run: |
+          {
+            echo "## Visual regression failures"
+            echo
+            grep -hE "ScreenshotMismatch: |did not finish resizing|still clipped" visual.log \
+              | sed -E 's/^E +//; s/.*ScreenshotMismatch: //; s/^/- /' | sort -u
+            echo
+            if [ -n "${{ steps.diffs.outputs.artifact-url }}" ]; then
+              echo "Expected, actual and diff images: [visual-regression-diffs](${{ steps.diffs.outputs.artifact-url }})"
+            fi
+            echo
+            echo "If the change is intended, run \`just update-visual-baselines\` locally (requires Docker) and commit the updated baselines, explaining why in the PR."
+          } >> "$GITHUB_STEP_SUMMARY"
+
   ci-complete:
     name: CI Complete
-    needs: [lint, typecheck, test, e2e]
+    needs: [lint, typecheck, test, e2e, visual-regression]
     runs-on: ubuntu-latest
     if: always()
     steps:

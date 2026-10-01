@@ -27,28 +27,29 @@ Captures a deterministic Playwright screenshot baseline of the current gallery i
 
 ---
 
-## Phase 3: Screenshot Coverage
+## Phase 3: Screenshot Coverage [checkpoint: bd1b89d]
 - [x] Task: Capture Scrolling Regions [45ccfcb]
   - [x] The gallery shell scrolls inside the sidebar and main panes, so `full_page` screenshots stop at the viewport height (found in Phase 1 verification: nav items below the fold are cut off). Use a viewport tall enough to show all content, or capture each scroll container's full height separately; add a test that fails if content is clipped.
 - [x] Task: Static States [d6519d6]
   - [x] Index, folder, documentation and component pages.
   - [x] Light and dark gallery themes; wide and narrow viewports.
-- [~] Task: Interactive States
-  - [ ] Mobile sidebar open; breadcrumb flyout open.
-  - [ ] Each sandbox toolbar popout open; outline and RTL toggles active.
-  - [ ] Search results with a query entered.
-  - [ ] Documentation / sandbox tab switch on a narrow viewport.
-- [ ] Task: Generate baselines with `just update-visual-baselines` against the current `main` gallery and commit them.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Interactive States [bd1b89d]
+  - [x] Mobile sidebar open; breadcrumb flyout open.
+  - [x] Each sandbox toolbar popout open; outline and RTL toggles active.
+  - [x] Search results with a query entered.
+  - [x] Documentation / sandbox tab switch on a narrow viewport.
+  - [x] Make canvas iframe capture deterministic: wait for the canvas-resize loop to converge and replay reports lost before the gallery listener attaches (issue #111).
+- [x] Task: Generate baselines with `just update-visual-baselines` against the current `main` gallery and commit them. [d6519d6, bd1b89d] (40 baselines)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
 
 ## Phase 4: CI Job
-- [ ] Task: Add the `visual-regression` job to `ci.yml`
-  - [ ] Run in the pinned container; install with `uv`; run `just visual`.
-  - [ ] Upload `actual` screenshots always; upload `expected` / `actual` / `diff` and write a job summary on failure.
-  - [ ] Add the job to `ci-complete`'s `needs`.
-- [ ] Task: Verify
+- [x] Task: Add the `visual-regression` job to `ci.yml` [d6908bb]
+  - [x] Run in the pinned container; install with `uv`; run `just visual-run` (the container is already the pinned environment).
+  - [x] Upload `actual` screenshots always; upload `expected` / `actual` / `diff` and write a job summary on failure.
+  - [x] Add the job to `ci-complete`'s `needs`.
+- [~] Task: Verify
   - [ ] Re-run the job several times on the same commit; confirm it passes every time.
   - [ ] On a scratch branch, change a gallery colour; confirm the job fails with a useful diff artifact and summary; revert.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
