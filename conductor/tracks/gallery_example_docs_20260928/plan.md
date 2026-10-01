@@ -8,9 +8,9 @@ Polishes the built-in components' presentation in the example project and docume
   - [x] Add an `index.md` for each built-in group. (And one for the app.)
 - [x] Task: Review Docstrings & Gallery Examples [57096db]
   - [x] Audit every built-in for docstring, parameter descriptions and `basic` / `maximal` examples; fill gaps. (No gaps: every built-in has a docstring with usage, every parameter has a description, and all have examples except `Divider`, which has no parameters.)
-- [ ] Task: Canvas Theming
-  - [ ] Write a failing test that a built-in previewed under the example "dark" theme receives the dark token class.
-  - [ ] Implement the theme mapping; confirm the test passes.
+- [x] Task: Canvas Theming [19b80af]
+  - [x] Write a failing test that a built-in previewed under the example "dark" theme receives the dark token class.
+  - [x] Implement the theme mapping; confirm the test passes. (Each example theme's `html_attrs` adds the matching `gallery-theme-*` class. Pre-existing dark styling problems this exposes: #129, and the warning Notice, covered by #112.)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
