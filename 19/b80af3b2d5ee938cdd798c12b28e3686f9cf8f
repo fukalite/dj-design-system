@@ -1,1 +1,6 @@
 Track 6 task 'Canvas Theming': example GALLERY_THEMES html_attrs add class gallery-theme-light/dark. Test: TestCanvasTheming (red then green). just test-demo: built-in dark a11y failures drop by 7 but 3 new ParamsForm contrast failures appear (pre-existing dark styling, issue #129); the demo suite already fails locally on track 5 (259 failures, not in CI) and is Phase 2's concern. Warning Notice light-on-yellow text in dark: pre-existing, covered by #112's notice tokens.
+
+Phase 1 checkpoint (Example Project Showcase)
+
+Automated: just check clean; just test 1217; just e2e 64 (twice); just visual 165/165; CI run 36873558000 green.
+Manual verification: user confirmed from another machine on the LAN (nav label, group index pages, dark built-in previews, demo components unchanged).
