@@ -1,1 +1,6 @@
 Track 6 Phase 2: snapshot task resolved as covered by tests/e2e/visual/test_builtin_components.py (user's choice); harness problems raised as #130. Static demo: save_canvas_pages.make_clean_name now gives safe, unique, length-limited names (tests/test_save_canvas_pages.py, red then green). Export check: 38 built-in pages, 98 previews, none empty; 137 canvas files saved (94 before). Only 404 is the demo RichButton's missing stylesheet (pre-existing, #131).
+
+Phase 2 checkpoint (Snapshots & Static Demo)
+
+Automated: just check clean; just test 1223; just e2e 64 (twice); visual not re-run (only the export script changed); CI run 36922175515 green.
+Manual verification: user confirmed the static export from another machine (built-in previews render).
