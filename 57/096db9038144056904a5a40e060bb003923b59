@@ -1,0 +1,1 @@
+Track 6 task 'Review Labels & Structure': AppConfig.verbose_name = 'Django Design System' (user chose package-wide over example-only); index.md for the app and its six groups. Tests: tests/test_builtin_showcase.py (17). just test 1215, just check clean.
