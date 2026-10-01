@@ -1,1 +1,6 @@
 just check, typecheck clean; just test 1191 passed; just e2e 64 passed twice; just visual 165/165 (no baseline changes); rendered-page diff vs phase 2: 142/142 identical after Icon/IconButton normalisation, except data-gallery-sandbox-body="" (same DOM).
+
+Phase 3 checkpoint (Component Page & Sandbox)
+
+Automated: just check and typecheck clean; just test 1191; just e2e 64 (twice); just visual 165/165 (no baseline changes); rendered-page diff 142/142 identical (after Icon/IconButton normalisation; data-gallery-sandbox-body="" is the same DOM); CI run 36799342516 green.
+Manual verification: user confirmed (keeps the highlighted_code recovery in canvas_widget.html).
