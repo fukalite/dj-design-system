@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 from django.template.loader import render_to_string
 from django.test import RequestFactory
@@ -5,6 +7,21 @@ from django.test import RequestFactory
 from dj_design_system.data import NavNode
 from dj_design_system.types import NodeType
 from dj_design_system.views.gallery import get_base_context
+
+
+STATIC = Path("dj_design_system/static/dj_design_system")
+
+
+def read_gallery_css() -> str:
+    """Return all the gallery's stylesheets, foundation.css first.
+
+    The gallery's rules live in its built-in components' stylesheets, so the
+    checks look at all of them rather than one file.
+    """
+    foundation = STATIC / "ui" / "foundation.css"
+    others = sorted(set(STATIC.glob("*.css")) | set((STATIC / "ui").rglob("*.css")))
+    paths = [foundation, *(p for p in others if p != foundation)]
+    return "\n".join(p.read_text(encoding="utf-8") for p in paths)
 
 
 @pytest.mark.django_db
@@ -175,11 +192,8 @@ class TestNavtreeAccessibility:
         assert 'aria-hidden="true"' not in resizer_tag
 
     def test_css_design_tokens_in_root_and_dark_theme(self):
-        """gallery.css must define complete tokens in :root and .gallery-theme-dark."""
-        from pathlib import Path
-
-        css_path = Path("dj_design_system/static/dj_design_system/gallery.css")
-        content = css_path.read_text(encoding="utf-8")
+        """The gallery must define complete tokens in :root and .gallery-theme-dark."""
+        content = read_gallery_css()
 
         # :root tokens
         assert "--gallery-danger:" in content or "--gallery-error:" in content
@@ -239,10 +253,7 @@ class TestNavtreeAccessibility:
 
     def test_depth_indentation_uses_custom_properties(self):
         """Depth indentation should use CSS custom properties instead of hardcoded pixel values."""
-        from pathlib import Path
-
-        css_path = Path("dj_design_system/static/dj_design_system/gallery.css")
-        content = css_path.read_text(encoding="utf-8")
+        content = read_gallery_css()
 
         # Custom properties used for depth calculation
         assert "--gallery-nav-depth" in content
@@ -308,14 +319,9 @@ class TestNavtreeAccessibility:
         assert "gallery-params-form__errors" in sandbox_html
 
         # 4. CSS contains corresponding BEM selectors
-        gallery_css = Path(
-            "dj_design_system/static/dj_design_system/gallery.css"
-        ).read_text(encoding="utf-8")
+        gallery_css = read_gallery_css()
         assert ".gallery-sidebar__search-input" in gallery_css
         assert ".gallery-sidebar__search-results" in gallery_css
         assert ".gallery-params-form__errors" in gallery_css
 
-        toolbar_css = Path(
-            "dj_design_system/static/dj_design_system/gallery-toolbar.css"
-        ).read_text(encoding="utf-8")
-        assert ".gallery-sandbox-toolbar__bg-chip--white" in toolbar_css
+        assert ".gallery-sandbox-toolbar__bg-chip--white" in gallery_css

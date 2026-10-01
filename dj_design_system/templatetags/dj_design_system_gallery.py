@@ -7,6 +7,11 @@ import html
 from django import template
 
 from dj_design_system.services.canvas_renderer import build_canvas_srcdoc
+from dj_design_system.services.media import (
+    build_link_tags,
+    build_script_tags,
+    get_gallery_media,
+)
 from dj_design_system.settings import get_default_theme, get_theme
 from dj_design_system.types import Theme
 
@@ -15,6 +20,20 @@ register = template.Library()
 
 BASE_INDENT_PX = 0
 INDENT_PER_LEVEL_PX = 16
+
+
+@register.simple_tag
+def gallery_stylesheets() -> str:
+    """Render ``<link>`` tags for ``foundation.css`` and internal component CSS."""
+    return build_link_tags(get_gallery_media().css)
+
+
+@register.simple_tag(takes_context=True)
+def gallery_scripts(context: template.Context) -> str:
+    """Render ``<script>`` tags for internal component JS, with any CSP nonce."""
+    request = context.get("request")
+    nonce = getattr(request, "csp_nonce", None) if request else None
+    return build_script_tags(get_gallery_media().js, nonce=nonce)
 
 
 @register.filter

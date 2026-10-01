@@ -4,7 +4,7 @@
  * Mirrors the gallery's colour palette and typography so the docs site and
  * the interactive gallery feel like a single product.
  *
- * Gallery design tokens (source: gallery.css):
+ * Gallery design tokens (source: ui/foundation.css):
  *   --gallery-sidebar-bg:      #1e1e2e   dark sidebar background
  *   --gallery-sidebar-text:    #cdd6f4   sidebar body text
  *   --gallery-sidebar-heading: #ffffff   sidebar headings / title
