@@ -2,7 +2,7 @@
 
 Captures a deterministic Playwright screenshot baseline of the current gallery in a pinned container, and adds a blocking CI job that compares fresh screenshots against it on every pull request.
 
-## Phase 1: Harness & Comparison
+## Phase 1: Harness & Comparison [checkpoint: 9dee0fe]
 - [x] Task: Write Failing Tests (`Red Phase`) [5f29cf1]
   - [x] The comparison helper passes identical images, fails on differences beyond tolerance, fails on size mismatch, and writes `expected` / `actual` / `diff` files.
   - [x] A missing baseline fails normally and is created in update mode.
@@ -10,23 +10,26 @@ Captures a deterministic Playwright screenshot baseline of the current gallery i
   - [x] Extract or add a shared `pixelmatch` comparison helper (reusing `VisualRegressionPlugin` logic). [5f29cf1]
   - [x] Add the `visual` marker. [29bc1fe]
   - [x] Add capture helpers: wait for iframes and `document.fonts.ready`, disable animations, mask dynamic regions, block external network. [29bc1fe]
-- [ ] Task: Refactor and Verify Coverage
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Refactor and Verify Coverage [9dee0fe]
+  - [x] Enable greenlet coverage tracing (Playwright); visual.py 92%, capture.py 100%.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
 
 ## Phase 2: Pinned Rendering Environment & Recipes
-- [ ] Task: Pin the Playwright version in the `justfile`; add a unit test that the CI container tag matches it.
-- [ ] Task: Add `just visual-run` (direct), and `just visual` / `just update-visual-baselines` (in the pinned `linux/amd64` container, installing `playwright==<version>`).
-- [ ] Task: `just update-visual-baselines` regenerates **all** gallery screenshots in one command
+- [x] Task: Pin the Playwright version in the `justfile`; add a unit test that the CI container tag matches it. [f093cd2]
+- [x] Task: Add `just visual-run` (direct), and `just visual` / `just update-visual-baselines` (in the pinned `linux/amd64` container, installing `playwright==<version>`). [d85b948]
+- [~] Task: `just update-visual-baselines` regenerates **all** gallery screenshots in one command
   - [ ] Write failing tests: update mode rewrites only changed baselines, and deletes orphaned baselines (files no screenshot test produced) after a full run.
   - [ ] Implement pruning in the suite's session teardown, only when the whole suite ran in update mode (never on a filtered `-k` run).
-- [ ] Task: Change `just e2e` to exclude the `visual` marker.
+- [x] Task: Change `just e2e` to exclude the `visual` marker. [f093cd2]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
 
 ## Phase 3: Screenshot Coverage
+- [ ] Task: Capture Scrolling Regions
+  - [ ] The gallery shell scrolls inside the sidebar and main panes, so `full_page` screenshots stop at the viewport height (found in Phase 1 verification: nav items below the fold are cut off). Use a viewport tall enough to show all content, or capture each scroll container's full height separately; add a test that fails if content is clipped.
 - [ ] Task: Static States
   - [ ] Index, folder, documentation and component pages.
   - [ ] Light and dark gallery themes; wide and narrow viewports.
