@@ -1,0 +1,17 @@
+{% if entries %}
+    <div class="gallery-folder-contents">
+        <h2>{{ title }}</h2>
+        <ul class="gallery-folder-list">
+            {% for entry in entries %}
+                <li class="gallery-folder-list__item">
+                    <a href="{{ entry.url }}" class="gallery-folder-list__link">
+                        {{ entry.icon }}
+                        {{ entry.label }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% else %}
+    <p>This folder is empty.</p>
+{% endif %}

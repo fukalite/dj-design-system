@@ -56,7 +56,14 @@ SVG_ICONS: dict[str, tuple[str, bool]] = {
 }
 
 #: Icons drawn with a CSS mask from the ``--gallery-icon-*`` tokens.
-MASK_ICONS = ("component", "doc", "folder", "folder-open")
+MASK_ICONS = (
+    "component",
+    "component-variants",
+    "doc",
+    "folder",
+    "folder-open",
+    "variant",
+)
 
 ICON_NAMES = [*SVG_ICONS, *MASK_ICONS]
 
@@ -65,7 +72,8 @@ class Icon(TagComponent):
     """A decorative gallery icon.
 
     Line icons render as inline SVG sized in pixels. Node-type icons
-    (``component``, ``doc``, ``folder``, ``folder-open``) render as a span
+    (``component``, ``component-variants``, ``doc``, ``folder``,
+    ``folder-open``, ``variant``) render as a span
     masked with the ``--gallery-icon-*`` tokens, coloured by ``currentColor``.
     Icons are always hidden from assistive technology: give the surrounding
     control an accessible label instead.

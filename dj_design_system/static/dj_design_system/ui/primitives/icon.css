@@ -27,6 +27,11 @@
   mask-image: var(--gallery-icon-component);
 }
 
+.gallery-icon--component-variants {
+  -webkit-mask-image: var(--gallery-icon-component-variants);
+  mask-image: var(--gallery-icon-component-variants);
+}
+
 .gallery-icon--doc {
   -webkit-mask-image: var(--gallery-icon-doc);
   mask-image: var(--gallery-icon-doc);
@@ -40,4 +45,9 @@
 .gallery-icon--folder-open {
   -webkit-mask-image: var(--gallery-icon-folder-open);
   mask-image: var(--gallery-icon-folder-open);
+}
+
+.gallery-icon--variant {
+  -webkit-mask-image: var(--gallery-icon-variant);
+  mask-image: var(--gallery-icon-variant);
 }
