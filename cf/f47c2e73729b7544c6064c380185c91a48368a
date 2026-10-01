@@ -1,1 +1,6 @@
 Phase 4 (Legacy Asset Removal): gallery.css deleted; remaining rules moved to pane.css and canvas_widget.css; unused rules dropped. Gallery media merged in dependency order (merge_in_order) so code_highlight.css follows page/prose CSS. Verified: computed-style diff 0 across 101 gallery page loads and 27 static-export pages; just check, typecheck, test (1198), e2e x2, visual (Pane sandbox preview baselines regenerated, approved). Render time: +24% with cached loader, +80% without (performance.md).
+
+Phase 4 checkpoint (Legacy Asset Removal)
+
+Automated: just check and typecheck clean; just test 1198; just e2e 64 (twice); just visual 165/165 (Pane sandbox preview baselines regenerated with user approval); CI run 36870364082 green.
+Manual verification: user confirmed. Render-time follow-ups (cached loader in the example project, get_params caching) left open for the user.
