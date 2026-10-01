@@ -127,3 +127,50 @@ class ScreenshotRecorder:
             max_mismatch_ratio=self.max_mismatch_ratio,
             update=self.update,
         )
+
+
+def prune_orphaned_baselines(
+    baseline_dir: str | Path, produced: set[str]
+) -> list[Path]:
+    """Delete baseline PNGs that no screenshot in this run produced.
+
+    Returns the deleted paths. Only call this after a full, passing update
+    run (see ``should_prune``); otherwise live baselines would be removed.
+    """
+    baseline_dir = Path(baseline_dir)
+    if not baseline_dir.is_dir():
+        return []
+    removed = []
+    for path in sorted(baseline_dir.glob("*.png")):
+        if path.name not in produced:
+            path.unlink()
+            removed.append(path)
+    return removed
+
+
+def should_prune(
+    *,
+    update: bool,
+    args: Sequence[str],
+    suite_dir: Path,
+    deselected: int,
+    failed: int,
+) -> bool:
+    """Return True only when an update run covered the whole visual suite.
+
+    ``args`` are the absolute paths pytest was invoked with. Any argument that
+    targets a single file or test, or a directory outside the suite, means
+    some screenshots were not taken, so nothing may be pruned. The same goes
+    for deselected (e.g. ``-k``) or failed tests.
+    """
+    if not update or deselected or failed:
+        return False
+    for arg in args:
+        if "::" in arg:
+            return False
+        target = Path(arg)
+        if target.suffix == ".py":
+            return False
+        if target != suite_dir and target not in suite_dir.parents:
+            return False
+    return True
