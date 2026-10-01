@@ -15,10 +15,10 @@ Polishes the built-in components' presentation in the example project and docume
 
 ---
 
-## Phase 2: Snapshots & Static Demo
+## Phase 2: Snapshots & Static Demo [checkpoint: 0f71c42]
 - [x] Task: Generate and commit built-in component snapshot baselines with the integration testing harness. [0f71c42] (Not done with the harness: its baselines only match the machine that made them, and it fails for other reasons; see #130. The built-ins' snapshots are covered by `tests/e2e/visual/test_builtin_components.py`, which renders every built-in's basic and maximal examples in light and dark in the pinned Playwright image and runs in CI.)
 - [x] Task: Confirm the static demo export includes and renders the built-in components. [0f71c42] (`save_canvas_pages.py` now gives canvases with HTML in their parameters safe file names; before, those previews were empty. All 38 built-in pages and their 98 previews load.)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [0f71c42]
 
 ---
 
