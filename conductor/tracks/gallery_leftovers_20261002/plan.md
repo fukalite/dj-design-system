@@ -1,0 +1,26 @@
+# Implementation Plan: Gallery Rebuild 7 — Remaining Markup into Components
+
+Moves the last hand-written gallery markup into built-in components and shared templates.
+
+## Phase 1: Canvas Messages, PageHeader, UsageExamples
+- [ ] Task: Canvas Messages
+  - [ ] Write failing tests that the three canvas messages render from shared templates with unchanged markup.
+  - [ ] Move them to `canvas/error.html` and `canvas/warning.html`; raise an issue for the unstyled error in the canvas iframe.
+- [ ] Task: `PageHeader`
+  - [ ] Write failing tests (parity with the index and folder headings, escaping, registration).
+  - [ ] Implement it and use it in `index.html` and `folder.html`.
+- [ ] Task: `UsageExamples`
+  - [ ] Write failing tests (parity with the `.gallery-usage` wrapper, CSS ownership).
+  - [ ] Implement it, move the `.gallery-usage` rules, and use it in `component.html`.
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+---
+
+## Phase 2: Sandbox Parts
+- [ ] Task: `BgSwatch` and `ToolbarValue`
+  - [ ] Write failing tests (parity with the toolbar's swatch, chip and value markup).
+  - [ ] Implement them and use them in `toolbar.html`.
+- [ ] Task: `SandboxCanvas`
+  - [ ] Write failing tests (parity with the wrapper, CSS ownership).
+  - [ ] Implement it, move the `.gallery-sandbox__canvas` rule, and use it in `sandbox_fragment.html`.
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
