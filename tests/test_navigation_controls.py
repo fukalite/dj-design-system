@@ -288,6 +288,5 @@ class TestRegistrationAndCss:
         assert css_homes(selector) == [f"ui/navigation/{owner}"]
 
     def test_wide_screen_tabs_rule_moved(self):
-        assert ".gallery-tabs" not in (STATIC / "gallery.css").read_text()
         tabs_css = (STATIC / "ui/navigation/tabs.css").read_text()
         assert "@media (min-width: 1800px)" in tabs_css

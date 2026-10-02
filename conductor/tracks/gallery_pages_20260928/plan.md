@@ -22,23 +22,23 @@ Rewrites the gallery templates as compositions of built-in components and remove
 
 ---
 
-## Phase 3: Component Page & Sandbox
-- [ ] Task: Write Failing Tests (`Red Phase`)
-  - [ ] `component.html` and `sandbox_fragment.html` render via components; the HTMX fragment response still contains only the sandbox body.
-  - [ ] View context provides tab, viewport and zoom option lists.
-- [ ] Task: Implement to Pass Tests (`Green Phase`)
-  - [ ] Rewrite the templates; move hard-coded option lists into view context or component defaults.
-  - [ ] Convert `canvas_widget.html` into a thin wrapper.
-- [ ] Task: Refactor and Verify Coverage
-- [ ] Task: Confirm the track 0 visual baseline and all e2e tests pass.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+## Phase 3: Component Page & Sandbox [checkpoint: 3b8d4d4]
+- [x] Task: Write Failing Tests (`Red Phase`) [3b8d4d4]
+  - [x] `component.html` and `sandbox_fragment.html` render via components; the HTMX fragment response still contains only the sandbox body.
+  - [x] View context provides tab, viewport and zoom option lists.
+- [x] Task: Implement to Pass Tests (`Green Phase`) [3b8d4d4]
+  - [x] Rewrite the templates; move hard-coded option lists into view context or component defaults. (`toolbar.html` holds the toolbar composition, included by `sandbox_fragment.html`.)
+  - [x] Convert `canvas_widget.html` into a thin wrapper. (Markdown canvases now use `CanvasWidget` directly.)
+- [x] Task: Refactor and Verify Coverage [3b8d4d4]
+- [x] Task: Confirm the track 0 visual baseline and all e2e tests pass. [3b8d4d4]
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [3b8d4d4]
 
 ---
 
-## Phase 4: Legacy Asset Removal
-- [ ] Task: Assign or remove every remaining rule in the legacy stylesheets; delete the empty files.
-- [ ] Task: Remove references to deleted files (templates, `.github/scripts/save_canvas_pages.py`, docs, tests).
-- [ ] Task: Verify the static demo export still builds and renders.
-- [ ] Task: Re-measure component page render time; investigate any significant regression.
-- [ ] Task: Confirm the track 0 visual baseline, `just check`, `just test` and `just e2e` pass.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+## Phase 4: Legacy Asset Removal [checkpoint: cff47c2]
+- [x] Task: Assign or remove every remaining rule in the legacy stylesheets; delete the empty files. [cff47c2] (Sandbox pane rules moved to `pane.css` and `canvas_widget.css`; unused rules dropped. Media is merged in dependency order so `code_highlight.css` still follows the page and prose CSS.)
+- [x] Task: Remove references to deleted files (templates, `.github/scripts/save_canvas_pages.py`, docs, tests). [cff47c2] (Only provenance comments remain. Changelog updated.)
+- [x] Task: Verify the static demo export still builds and renders. [cff47c2] (Only `gallery.css` drops out; 0 computed-style differences across 27 exported pages.)
+- [x] Task: Re-measure component page render time; investigate any significant regression. [cff47c2] (See `performance.md`: +24% with the cached template loader, +80% without.)
+- [x] Task: Confirm the track 0 visual baseline, `just check`, `just test` and `just e2e` pass. [cff47c2] (Pane's `sandbox` variant preview baselines regenerated: its own preview now gets the sandbox rule it always had in the gallery.)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [cff47c2]

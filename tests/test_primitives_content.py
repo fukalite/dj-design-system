@@ -226,8 +226,6 @@ class TestCssMovedNotCopied:
     def test_responsive_table_rule_moved(self):
         from tests.html_utils import STATIC
 
-        legacy = (STATIC / "gallery.css").read_text()
-        assert ".gallery-params {" not in legacy
         table = (STATIC / "ui/primitives/table.css").read_text()
         assert "@media (max-width: 768px)" in table
 

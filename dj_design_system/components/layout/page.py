@@ -16,4 +16,10 @@ class Page(BlockComponent):
     template_name = "dj_design_system/ui/layout/page.html"
 
     class Media:
-        css = [FOUNDATION_CSS, "dj_design_system/ui/layout/page.css"]
+        # code_highlight.css last: its dark theme for code blocks overrides
+        # the page's own pre styles.
+        css = [
+            FOUNDATION_CSS,
+            "dj_design_system/ui/layout/page.css",
+            "dj_design_system/ui/primitives/code_highlight.css",
+        ]
