@@ -5,6 +5,7 @@ from __future__ import annotations
 import html
 
 from django import template
+from django.utils.html import strip_tags
 
 from dj_design_system.services.canvas_renderer import build_canvas_srcdoc
 from dj_design_system.services.media import (
@@ -37,6 +38,21 @@ def gallery_scripts(context: template.Context) -> str:
 
 
 @register.simple_tag(takes_context=True)
+def sandbox_toolbar_options(context: template.Context) -> dict:
+    """The sandbox toolbar's popout options, for ``gallery/toolbar.html``.
+
+    The component view provides them as ``toolbar_options``. Templates that
+    include the toolbar with only ``canvas_backgrounds`` and
+    ``active_bg_value`` get them built from those.
+    """
+    from dj_design_system.services.sandbox_toolbar import build_toolbar_options
+
+    return context.get("toolbar_options") or build_toolbar_options(
+        context.get("canvas_backgrounds"), context.get("active_bg_value")
+    )
+
+
+@register.simple_tag(takes_context=True)
 def gallery_nav_node(context: template.Context, node, depth: int = 0) -> str:
     """Render one navigation node with ``NavTree``, for ``gallery/navtree.html``."""
     from dj_design_system.components.navigation.nav_tree import NavTree
@@ -47,6 +63,16 @@ def gallery_nav_node(context: template.Context, node, depth: int = 0) -> str:
         active_variant=context.get("active_variant") or None,
     )
     return tree.render_node(node, depth=int(depth))
+
+
+@register.filter
+def highlighted_code(markup: str) -> str:
+    """Recover the code from syntax-highlighted (or escaped) HTML.
+
+    For ``canvas_widget.html``, whose callers pass highlighted code but whose
+    ``CanvasWidget`` takes raw code and highlights it itself.
+    """
+    return html.unescape(strip_tags(str(markup or "")))
 
 
 @register.filter

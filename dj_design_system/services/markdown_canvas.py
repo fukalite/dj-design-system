@@ -29,17 +29,16 @@ import html
 import re
 from typing import TYPE_CHECKING
 
-from django.template.loader import render_to_string
 from markdown import Extension
 from markdown.postprocessors import Postprocessor
 from markdown.preprocessors import Preprocessor
 
+from dj_design_system.components.canvas.canvas_widget import CanvasWidget
 from dj_design_system.services.canvas_renderer import (
     build_canvas_srcdoc,
     render_canvas_block,
 )
 from dj_design_system.services.registry import component_registry
-from dj_design_system.services.tag_signature import highlight_code, highlight_html
 
 
 if TYPE_CHECKING:
@@ -57,25 +56,14 @@ def _build_widget_html(
     rendered_html: str,
     unique_id: str,
 ) -> str:
-    """Build the HTML widget with preview iframe, code block, and toggle.
-
-    Radio inputs are placed as direct children of the wrapper so CSS
-    ``:checked ~ .target`` selectors can show/hide preview and code.
-
-    """
-    code_markup = highlight_code(source) or html.escape(source)
-    html_markup = highlight_html(rendered_html.strip()) or html.escape(
-        rendered_html.strip()
-    )
-
-    context = {
-        "unique_id": unique_id,
-        "source_html": code_markup,
-        "rendered_output_html": html_markup,
-        "iframe_srcdoc": srcdoc,
-        "sandbox_attrs": "allow-scripts",
-    }
-    return render_to_string("dj_design_system/canvas_widget.html", context)
+    """Build the HTML widget with preview iframe, code block, and toggle."""
+    return CanvasWidget(
+        unique_id=unique_id,
+        iframe_srcdoc=srcdoc,
+        sandbox_attrs="allow-scripts",
+        template_source=source,
+        rendered_output=rendered_html,
+    ).render()
 
 
 def _build_error_html(message: str, source: str = "", debug: bool = False) -> str:
