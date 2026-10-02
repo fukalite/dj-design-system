@@ -208,7 +208,7 @@ class TestToggles:
         assert self._pressed(sandbox, "measure") == ("true", True)
         sandbox.wait_for_function(
             f"() => !!{WRAPPER}._galleryMeasureCleanup"
-        )  # gallery-measure.js has loaded in the canvas
+        )  # measure.js has loaded in the canvas
 
         canvas = sandbox.frame_locator(".gallery-sandbox__iframe")
         canvas.locator(".canvas-wrapper > *").first.hover()
