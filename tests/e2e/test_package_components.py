@@ -26,6 +26,12 @@ LEGACY_EXEMPTIONS = {
     # in the gallery.
     ("dds__navigation__nav_tree", "basic"): ["color-contrast"],
     ("dds__navigation__nav_tree", "maximal"): ["color-contrast"],
+    # The search input's pale text is also designed for the sidebar.
+    ("dds__navigation__search_box", "basic"): ["color-contrast"],
+    ("dds__navigation__search_box", "maximal"): ["color-contrast"],
+    # The theme <select> is named only by its title; see issue #119.
+    ("dds__navigation__theme_select", "basic"): ["label-title-only"],
+    ("dds__navigation__theme_select", "maximal"): ["label-title-only"],
 }
 
 

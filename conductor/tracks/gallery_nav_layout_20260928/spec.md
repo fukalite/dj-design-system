@@ -46,10 +46,10 @@ Follows the conventions defined in `gallery_primitives_20260928/spec.md`: explic
 - **Testing:** TDD per `workflow.md`; >80% coverage; e2e checks for search, tabs and theme switching still pass.
 
 ## Acceptance Criteria
-- [ ] All fourteen components exist with templates, CSS/JS, docstrings and gallery side-cars.
-- [ ] Their CSS/JS has been moved (not copied) out of the legacy assets.
-- [ ] JS behaviour, element IDs and CSP nonce handling are preserved.
-- [ ] The track 0 visual baseline passes; `just check`, `just test` and `just e2e` pass.
+- [x] All fourteen components exist with templates, CSS/JS, docstrings and gallery side-cars.
+- [x] Their CSS/JS has been moved (not copied) out of the legacy assets.
+- [x] JS behaviour, element IDs and CSP nonce handling are preserved.
+- [x] The track 0 visual baseline passes; `just check`, `just test` and `just e2e` pass.
 
 ## Out of Scope
 - Using these components in the gallery templates (track 5).

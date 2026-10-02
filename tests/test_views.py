@@ -545,6 +545,23 @@ class TestSmokeAllPages:
 
         assert errors == [], "Pages that failed:\n" + "\n".join(errors)
 
+    def test_every_builtin_page_returns_200(self, client):
+        """Built-ins are hidden by default, so the walk above skips them."""
+        with override_settings(
+            DJ_DESIGN_SYSTEM={"GALLERY_SHOW_BUILTIN_COMPONENTS": True}
+        ):
+            builtins = [
+                app for app in _get_nav_tree() if app.label == "Dj design system"
+            ]
+            assert builtins, "Built-ins should be in the nav when shown"
+            errors = []
+            for node in _collect_all_nodes(builtins):
+                response = client.get(node.url)
+                if response.status_code != 200:
+                    errors.append(f"{node.url} -> {response.status_code}")
+
+        assert errors == [], "Pages that failed:\n" + "\n".join(errors)
+
     def test_index_page_renders(self, client):
         response = client.get(reverse("gallery"))
         assert response.status_code == 200
