@@ -2,11 +2,10 @@ from pathlib import Path
 
 import pytest
 from django.template.loader import render_to_string
-from django.test import RequestFactory
+from django.test import Client
 
 from dj_design_system.data import NavNode
 from dj_design_system.types import NodeType
-from dj_design_system.views.gallery import get_base_context
 
 
 STATIC = Path("dj_design_system/static/dj_design_system")
@@ -125,21 +124,9 @@ class TestNavtreeAccessibility:
 
     def test_component_tab_switcher_accessibility(self):
         """Tab switcher radio buttons must not have aria-hidden='true' and must have radiogroup role."""
-        rf = RequestFactory()
-        request = rf.get("/gallery/test_app/button/")
-        context = get_base_context(request)
-        context.update(
-            {
-                "component_info": type("Info", (), {"name": "button"})(),
-                "design_system_name": "Test DS",
-                "active_variant": None,
-                "params": {},
-            }
-        )
-
-        html = render_to_string(
-            "dj_design_system/gallery/component.html", context, request=request
-        )
+        # The page is built from strict built-in components, so render a
+        # real component page rather than the template with partial context.
+        html = Client().get("/dds/demo_components/alert/").content.decode()
 
         assert 'class="gallery-tabs"' in html
         assert 'role="radiogroup"' in html
@@ -175,9 +162,10 @@ class TestNavtreeAccessibility:
 
     def test_drawer_resizer_accessibility(self):
         """Drawer resizer must have role='separator', tabindex='0', and not be aria-hidden."""
-        html = render_to_string(
-            "dj_design_system/gallery/sandbox_fragment.html",
-            {"param_rows": [{"name": "test"}]},
+        html = (
+            Client()
+            .get("/dds/demo_components/alert/", HTTP_HX_REQUEST="true")
+            .content.decode()
         )
 
         assert "data-gallery-resizer" in html

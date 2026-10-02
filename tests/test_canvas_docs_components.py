@@ -9,10 +9,10 @@ and ``IconButton``'s ``aria-label``.
 import html
 import re
 from html.parser import HTMLParser
+from pathlib import Path
 
 import pytest
 from django.template import Context, Template
-from django.template.loader import render_to_string
 
 from dj_design_system.parameters import BoolParam, StrParam
 from dj_design_system.parameters.base import _get_type_name
@@ -99,16 +99,28 @@ SOURCE = '{% alert "info" %}\n    Sample & <content>\n{% endalert %}'
 OUTPUT = "\n<div class='alert alert-info info' role='alert'>Sample</div>\n"
 
 
-def legacy_widget(**overrides) -> str:
-    """The legacy template, fed exactly as its two callers feed it."""
-    context = {
+# canvas_widget.html as it was before it became a wrapper around CanvasWidget.
+LEGACY_WIDGET = (
+    Path(__file__).parent / "legacy_partials" / "templates" / "canvas_widget.html"
+)
+
+
+def widget_context(**overrides) -> dict:
+    """canvas_widget.html's context, fed exactly as its two callers fed it."""
+    return {
         "unique_id": "sandbox",
         "source_html": highlight_code(SOURCE) or html.escape(SOURCE),
         "rendered_output_html": highlight_html(OUTPUT.strip())
         or html.escape(OUTPUT.strip()),
         **overrides,
     }
-    return render_to_string("dj_design_system/canvas_widget.html", context)
+
+
+def legacy_widget(**overrides) -> str:
+    """The legacy template's output."""
+    return Template(LEGACY_WIDGET.read_text()).render(
+        Context(widget_context(**overrides))
+    )
 
 
 def widget(**kwargs) -> str:
@@ -360,6 +372,57 @@ class TestParamsTable:
 # ---------------------------------------------------------------------------
 
 
+# Copied from the variant view in gallery/component.html before it used
+# VariantView, with the example as block content.
+LEGACY_VARIANT_VIEW = Template(
+    """<div class="gallery-variant-view">
+    <div class="gallery-variant-view__header">
+        <span class="gallery-variant-view__badge">Variant</span>
+        <h2 class="gallery-variant-view__title">{{ active_variant.label }}</h2>
+    </div>
+    {% if variant_description %}
+        <div class="gallery-markdown gallery-variant-view__description">{{ variant_description|safe }}</div>
+    {% endif %}
+    {{ body|safe }}
+</div>"""
+)
+
+BODY = '<div class="gallery-usage__block">example</div>'
+
+
+def variant_view(label, description="") -> str:
+    return render(
+        "{% dds__docs__variant_view label=label %}"
+        '{% slot "description" %}{{ description|safe }}{% endslot %}'
+        '{% slot "body" %}{{ body|safe }}{% endslot %}'
+        "{% enddds__docs__variant_view %}",
+        label=label,
+        description=description,
+        body=BODY,
+    )
+
+
+class TestVariantView:
+    @pytest.mark.parametrize("description", ["", "<p>For <em>outages</em>.</p>"])
+    def test_matches_legacy(self, description):
+        legacy = LEGACY_VARIANT_VIEW.render(
+            Context(
+                {
+                    "active_variant": {"label": "Security outage"},
+                    "variant_description": description,
+                    "body": BODY,
+                }
+            )
+        )
+        assert structure(variant_view("Security outage", description)) == structure(
+            legacy
+        )
+
+    def test_escapes_the_label(self):
+        markup = variant_view("<b>Bold</b>")
+        assert "&lt;b&gt;Bold&lt;/b&gt;" in markup
+
+
 class TestRegistrationAndAssets:
     @pytest.mark.parametrize(
         ("name", "qualified"),
@@ -367,6 +430,7 @@ class TestRegistrationAndAssets:
             ("canvas_widget", "dds__canvas__canvas_widget"),
             ("usage_example", "dds__docs__usage_example"),
             ("params_table", "dds__docs__params_table"),
+            ("variant_view", "dds__docs__variant_view"),
         ],
     )
     def test_internal_with_dds_name(self, name, qualified):
@@ -386,6 +450,9 @@ class TestRegistrationAndAssets:
             (".gallery-usage__block {", "ui/docs/usage_example.css"),
             (".gallery-doc-preview {", "ui/docs/usage_example.css"),
             (".gallery-doc-preview__iframe {", "ui/docs/usage_example.css"),
+            (".gallery-variant-view {", "ui/docs/variant_view.css"),
+            (".gallery-variant-view__badge {", "ui/docs/variant_view.css"),
+            (".gallery-back-link {", "ui/docs/variant_view.css"),
         ],
     )
     def test_rule_lives_only_in_owner(self, selector, owner):
