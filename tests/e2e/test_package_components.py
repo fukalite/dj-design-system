@@ -32,6 +32,10 @@ LEGACY_EXEMPTIONS = {
     # The theme <select> is named only by its title; see issue #119.
     ("dds__navigation__theme_select", "basic"): ["label-title-only"],
     ("dds__navigation__theme_select", "maximal"): ["label-title-only"],
+    # The preview/source/output switch radios are labelled only by an icon;
+    # see issue #122.
+    ("dds__canvas__canvas_widget", "basic"): ["label"],
+    ("dds__canvas__canvas_widget", "maximal"): ["label"],
 }
 
 

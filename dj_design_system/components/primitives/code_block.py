@@ -33,6 +33,10 @@ class CodeBlock(BlockComponent):
     the component unescapes them before highlighting, so they display as
     written rather than double-escaped.
 
+    The ``bare`` variant renders a plain ``<pre><code>`` with none of the
+    block's styling, for a container that styles its own code, such as
+    ``CanvasWidget``'s code panes.
+
     Example usage::
 
         {% dds__primitives__code_block language="python" %}
@@ -47,6 +51,13 @@ class CodeBlock(BlockComponent):
         " ``django``. ``text`` shows plain text.",
         required=False,
         default="text",
+    )
+    variant = StrParam(
+        "``block`` is the styled code block; ``bare`` renders a plain"
+        " ``<pre><code>`` for a container that styles its own code.",
+        required=False,
+        default="block",
+        choices=["block", "bare"],
     )
 
     class Media:

@@ -1,0 +1,14 @@
+<div class="gallery-usage__block">
+    {{ heading_html }}
+    {% if preview_url %}
+        <div class="gallery-doc-preview">
+            <iframe class="gallery-canvas gallery-doc-preview__iframe"
+                    src="{{ preview_url }}"
+                    name="{{ preview_id }}"
+                    data-canvas-id="{{ preview_id }}"
+                    title="{{ preview_title }}"></iframe>
+            {{ sandbox_link }}
+        </div>
+    {% endif %}
+    {{ code_html }}
+</div>
