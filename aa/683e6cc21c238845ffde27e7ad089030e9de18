@@ -1,0 +1,15 @@
+Task: PageHeader (gallery_leftovers_20261002, phase 1)
+
+Summary: new built-in dds__layout__page_header (block): title param plus the
+introduction as content. index.html and folder.html use it; their rendered
+markup is the same (the heading still gets its style from Page).
+
+Files:
+- dj_design_system/components/layout/page_header.py, page_header_gallery.py (new)
+- dj_design_system/templates/dj_design_system/ui/layout/page_header.html (new)
+- dj_design_system/templates/dj_design_system/gallery/index.html, folder.html
+- pyproject.toml (djlint custom block)
+- tests/test_layout_components.py
+
+Why: the page headings were the last page markup written by hand outside a
+component.
