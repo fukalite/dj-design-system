@@ -3,11 +3,11 @@
 Polishes the built-in components' presentation in the example project and documents the gallery rebuild series.
 
 ## Phase 1: Example Project Showcase
-- [ ] Task: Review Labels & Structure
-  - [ ] Set the app `verbose_name` and group labels for the built-in section.
-  - [ ] Add an `index.md` for each built-in group.
-- [ ] Task: Review Docstrings & Gallery Examples
-  - [ ] Audit every built-in for docstring, parameter descriptions and `basic` / `maximal` examples; fill gaps.
+- [x] Task: Review Labels & Structure [57096db]
+  - [x] Set the app `verbose_name` and group labels for the built-in section. (`verbose_name = "Django Design System"`; the group folders already read well.)
+  - [x] Add an `index.md` for each built-in group. (And one for the app.)
+- [x] Task: Review Docstrings & Gallery Examples [57096db]
+  - [x] Audit every built-in for docstring, parameter descriptions and `basic` / `maximal` examples; fill gaps. (No gaps: every built-in has a docstring with usage, every parameter has a description, and all have examples except `Divider`, which has no parameters.)
 - [ ] Task: Canvas Theming
   - [ ] Write a failing test that a built-in previewed under the example "dark" theme receives the dark token class.
   - [ ] Implement the theme mapping; confirm the test passes.
