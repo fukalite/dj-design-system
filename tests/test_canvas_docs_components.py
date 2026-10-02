@@ -423,12 +423,36 @@ class TestVariantView:
         assert "&lt;b&gt;Bold&lt;/b&gt;" in markup
 
 
+class TestUsageExamples:
+    def test_wraps_the_examples(self):
+        markup = render(
+            "{% dds__docs__usage_examples %}<b>examples</b>"
+            "{% enddds__docs__usage_examples %}"
+        )
+        assert markup == '<div class="gallery-usage"><b>examples</b></div>'
+
+    def test_component_page_uses_it(self):
+        source = Path(
+            "dj_design_system/templates/dj_design_system/gallery/component.html"
+        ).read_text()
+        assert "dds__docs__usage_examples" in source
+        assert 'class="gallery-usage"' not in source
+
+    def test_owns_the_responsive_rule(self):
+        css = (STATIC / "ui/docs/usage_examples.css").read_text()
+        assert "@media (max-width: 1200px)" in css
+        assert (
+            ".gallery-usage {" not in (STATIC / "ui/docs/usage_example.css").read_text()
+        )
+
+
 class TestRegistrationAndAssets:
     @pytest.mark.parametrize(
         ("name", "qualified"),
         [
             ("canvas_widget", "dds__canvas__canvas_widget"),
             ("usage_example", "dds__docs__usage_example"),
+            ("usage_examples", "dds__docs__usage_examples"),
             ("params_table", "dds__docs__params_table"),
             ("variant_view", "dds__docs__variant_view"),
         ],
@@ -446,7 +470,7 @@ class TestRegistrationAndAssets:
             (".gallery-md-canvas {", "ui/canvas/canvas_widget.css"),
             (".gallery-md-canvas__toggles {", "ui/canvas/canvas_widget.css"),
             (".gallery-md-canvas__iframe {", "ui/canvas/canvas_widget.css"),
-            (".gallery-usage {", "ui/docs/usage_example.css"),
+            (".gallery-usage {", "ui/docs/usage_examples.css"),
             (".gallery-usage__block {", "ui/docs/usage_example.css"),
             (".gallery-doc-preview {", "ui/docs/usage_example.css"),
             (".gallery-doc-preview__iframe {", "ui/docs/usage_example.css"),
