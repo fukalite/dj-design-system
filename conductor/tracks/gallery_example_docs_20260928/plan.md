@@ -15,17 +15,17 @@ Polishes the built-in components' presentation in the example project and docume
 
 ---
 
-## Phase 2: Snapshots & Static Demo
-- [~] Task: Generate and commit built-in component snapshot baselines with the integration testing harness.
-- [ ] Task: Confirm the static demo export includes and renders the built-in components.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+## Phase 2: Snapshots & Static Demo [checkpoint: 0f71c42]
+- [x] Task: Generate and commit built-in component snapshot baselines with the integration testing harness. [0f71c42] (Not done with the harness: its baselines only match the machine that made them, and it fails for other reasons; see #130. The built-ins' snapshots are covered by `tests/e2e/visual/test_builtin_components.py`, which renders every built-in's basic and maximal examples in light and dark in the pinned Playwright image and runs in CI.)
+- [x] Task: Confirm the static demo export includes and renders the built-in components. [0f71c42] (`save_canvas_pages.py` now gives canvases with HTML in their parameters safe file names; before, those previews were empty. All 38 built-in pages and their 98 previews load.)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [0f71c42]
 
 ---
 
-## Phase 3: Documentation
-- [ ] Task: Document `GALLERY_EXCLUDE_APPS` and `GALLERY_SHOW_BUILTIN_COMPONENTS` in `docs/api/settings.md`.
-- [ ] Task: Document internal components in `docs/components.md` and `docs/registry.md`.
-- [ ] Task: Update `docs/gallery.md` (built from DjDS components, stable classes and tokens, deprecated partials, overriding pages).
-- [ ] Task: Update the feature list and `CHANGELOG.md`.
-- [ ] Task: Confirm `just docs-build` succeeds with no new warnings.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+## Phase 3: Documentation [checkpoint: f120ec1]
+- [x] Task: Document `GALLERY_EXCLUDE_APPS` and `GALLERY_SHOW_BUILTIN_COMPONENTS` in `docs/api/settings.md`. [8024543]
+- [x] Task: Document internal components in `docs/components.md` and `docs/registry.md`. [6e4b24d]
+- [x] Task: Update `docs/gallery.md` (built from DjDS components, stable classes and tokens, deprecated partials, overriding pages). [6d2b6f1]
+- [x] Task: Update the feature list and `CHANGELOG.md`. [f120ec1]
+- [x] Task: Confirm `just docs-build` succeeds with no new warnings. [f120ec1] (No new messages. The existing `#security-fields-all` anchor in `components.md` is broken because `attr_list` isn't enabled, so the new links use heading anchors.)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [f120ec1]

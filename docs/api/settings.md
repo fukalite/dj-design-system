@@ -34,6 +34,30 @@ If `True`, the gallery is accessible to anyone. If `False`, only logged-in staff
 **Default:** `[NodeType.FOLDER, NodeType.COMPONENT, NodeType.DOCUMENT]`  
 Controls the sorting order of the gallery sidebar navigation. Can specify the order in which folders, components, and documents appear.
 
+## Gallery Visibility
+
+These settings only change what the gallery shows. Hidden components still work as template tags.
+
+### `GALLERY_EXCLUDE_APPS`
+**Type:** `list[str]`  
+**Default:** `[]`  
+App labels to hide from the gallery. A hidden app's components are left out of the sidebar, the search, the component count on the home page, the REST API's component list, and their gallery pages return 404 Not Found.
+
+### `GALLERY_SHOW_BUILTIN_COMPONENTS`
+**Type:** `bool`  
+**Default:** `False`  
+Whether the gallery shows Django Design System's own built-in components: the ones the gallery is built from (see [Internal components](../components.md#internal-true)). They appear under the `dj_design_system` app as "Django Design System".
+
+The two settings combine: built-ins are shown only when `GALLERY_SHOW_BUILTIN_COMPONENTS` is `True` **and** `dj_design_system` isn't in `GALLERY_EXCLUDE_APPS`.
+
+```python
+DJ_DESIGN_SYSTEM = {
+    # Show the built-ins, but hide an app that's still in progress.
+    "GALLERY_SHOW_BUILTIN_COMPONENTS": True,
+    "GALLERY_EXCLUDE_APPS": ["experimental_components"],
+}
+```
+
 ## Global Assets
 
 ### `GLOBAL_CSS`
