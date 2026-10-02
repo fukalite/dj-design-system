@@ -53,7 +53,7 @@
 - [x] **Track: Gallery Rebuild 5 — Page Composition & Legacy Asset Removal**
   *Link: [tracks/gallery_pages_20260928/index.md](tracks/gallery_pages_20260928/index.md)*
 
-- [ ] **Track: Gallery Rebuild 6 — Example Project Showcase & Documentation**
+- [x] **Track: Gallery Rebuild 6 — Example Project Showcase & Documentation**
   *Link: [tracks/gallery_example_docs_20260928/index.md](tracks/gallery_example_docs_20260928/index.md)*
 
 - [ ] **Track: Usage Example Block Content**

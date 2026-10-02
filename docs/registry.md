@@ -40,6 +40,8 @@ Each discovered component is stored as a `ComponentInfo` dataclass.
 | ---------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | `qualified_name` | `str`     | Fully qualified name: `{app_label}__{path}__{name}`                                                                             |
 | `tag_type`       | `TagType` | `TagType.TAG` for TagComponent, `TagType.BLOCK` for BlockComponent. Raises `InvalidTagType` for direct BaseComponent subclasses |
+| `is_internal`    | `bool`    | Whether the component is [internal](components.md#internal-true): a built-in, or `Meta.internal = True`                    |
+| `tag_name`       | `str`     | The tag to use in templates: `name`, or `qualified_name` for internal components, which have no short tag                       |
 
 ## Lookup Methods
 
@@ -53,7 +55,7 @@ Return all components belonging to the given app.
 
 ### `component_registry.get_by_name(name: str, app_label: str | None = None) -> ComponentInfo`
 
-Look up a component by its short name. If `app_label` is provided, the search is scoped to that app.
+Look up a component by its short name. If `app_label` is provided, the search is scoped to that app. Without `app_label`, [internal components](components.md#internal-true) are skipped, so look them up with their `app_label`.
 
 Raises:
 
@@ -66,6 +68,16 @@ Look up the `ComponentInfo` for a given component class.
 
 Raises `ComponentDoesNotExist` if the class is not registered.
 
+## Media
+
+### `component_registry.get_merged_media() -> ComponentMedia`
+
+Return the CSS and JS of every public component, merged into one `ComponentMedia`. [Internal components](components.md#internal-true) are left out.
+
+### `component_registry.get_internal_media() -> ComponentMedia`
+
+Return the CSS and JS of every internal component. The gallery loads this on its own pages. Each component's own file order is kept, so a stylesheet that overrides another can rely on loading after it.
+
 ## Template Tag Registration
 
 ### `component_registry.register_templatetags(library, app_label=None)`
@@ -74,6 +86,8 @@ Register discovered components as template tags on a Django `template.Library`.
 
 - `library`: A `django.template.Library` instance
 - `app_label`: When provided, only registers components from this app, and uniqueness is evaluated within this app's scope
+
+Every component is registered under its qualified name. Short names are registered for every component except [internal ones](components.md#internal-true).
 
 See [Template Tag Auto-Registration](templatetags.md) for full details on naming and ambiguity handling.
 
