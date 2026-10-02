@@ -1,0 +1,84 @@
+<div class="gallery-md-canvas ">
+    <input type="radio"
+           name="mc-toggle-md-1"
+           id="mc-preview-md-1"
+           class="gallery-md-canvas__input gallery-md-canvas__input--preview"
+           checked>
+    <input type="radio"
+           name="mc-toggle-md-1"
+           id="mc-code-md-1"
+           class="gallery-md-canvas__input gallery-md-canvas__input--code">
+    <input type="radio"
+           name="mc-toggle-md-1"
+           id="mc-html-md-1"
+           class="gallery-md-canvas__input gallery-md-canvas__input--html">
+    <div class="gallery-md-canvas__toggles">
+        <label for="mc-preview-md-1"
+               class="gallery-md-canvas__label"
+               title="Preview">
+            <svg width="14"
+                 height="14"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+            </svg>
+        </label>
+        <label for="mc-code-md-1"
+               class="gallery-md-canvas__label"
+               title="Template Source">
+            <svg width="14"
+                 height="14"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round">
+                <polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" />
+            </svg>
+        </label>
+        <label for="mc-html-md-1"
+               class="gallery-md-canvas__label"
+               title="Output HTML">
+            <svg width="14"
+                 height="14"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" /><polyline points="10 13 8 15 10 17" /><polyline points="14 13 16 15 14 17" />
+            </svg>
+        </label>
+    </div>
+    <div class="gallery-md-canvas__preview">
+        <iframe class="gallery-canvas gallery-md-canvas__iframe"
+                srcdoc="&lt;p&gt;Hi &amp; bye&lt;/p&gt;"
+                
+                data-canvas-id="md-1"
+                sandbox="allow-scripts"
+                loading="lazy"
+                title="Component preview"></iframe>
+    </div>
+    <div class="gallery-md-canvas__code gallery-highlight">
+        
+            <pre><code><span class="cp">{%</span> <span class="k">alert</span> <span class="s2">"info"</span> <span class="cp">%}</span>
+<span class="x">    Sample &amp; &lt;content&gt;</span>
+<span class="cp">{%</span> <span class="k">endalert</span> <span class="cp">%}</span>
+</code></pre>
+        
+    </div>
+    <div class="gallery-md-canvas__html gallery-highlight">
+        
+            <pre><code><span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">'alert alert-info info'</span> <span class="na">role</span><span class="o">=</span><span class="s">'alert'</span><span class="p">&gt;</span>Sample<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+</code></pre>
+        
+    </div>
+</div>
