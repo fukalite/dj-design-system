@@ -81,9 +81,12 @@ class TestGalleryShell:
         assert html.count(f"/static/{FOUNDATION_CSS}") == 1
 
     def test_internal_js_loads_before_legacy_scripts(self, client, global_builtins):
-        html = client.get(reverse("gallery")).content.decode()
+        page = reverse("gallery") + "demo_components/button/"
+        html = client.get(page).content.decode()
         crumb = _position(html, f"/static/{CRUMB_JS}")
-        assert crumb < _position(html, "/static/dj_design_system/gallery-search.js")
+        assert crumb < _position(
+            html, "/static/dj_design_system/gallery-preview-resize.js"
+        )
 
     def test_internal_js_carries_csp_nonce(self, client, global_builtins):
         from django.test import RequestFactory

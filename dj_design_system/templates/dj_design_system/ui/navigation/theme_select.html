@@ -1,0 +1,12 @@
+{% if options|length > 1 %}
+    <div class="gallery-header-theme">
+        <select class="gallery-header-theme__select"
+                id="gallery-global-theme-select"
+                title="Global Theme">
+            {% for option in options %}
+                <option value="{{ option.value }}"
+                        {% if option.value == active %}selected{% endif %}>{{ option.label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+{% endif %}

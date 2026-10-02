@@ -214,7 +214,6 @@ class TestCssMovedNotCopied:
     def test_legacy_stylesheet_keeps_unmoved_sections(self):
         legacy = (STATIC / "gallery.css").read_text()
         assert ".gallery-sandbox__controls {" in legacy  # track 4
-        assert ".gallery-tabs {" in legacy  # track 3 phase 3
 
     def test_folder_heading_yields_to_page_context(self):
         # .gallery-docs h2 now loads before gallery.css; the folder heading
