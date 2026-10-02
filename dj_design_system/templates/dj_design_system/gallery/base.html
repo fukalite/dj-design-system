@@ -1,4 +1,4 @@
-{% load static dj_design_system_gallery design_components %}
+{% load dj_design_system_gallery design_components %}
 <!DOCTYPE html>
 <html lang="en" class="gallery-theme-light">
     <head>
@@ -6,12 +6,6 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{% block title %}{{ design_system_name }}{% endblock %}</title>
         {% gallery_stylesheets %}
-        <link rel="stylesheet" href="{% static 'dj_design_system/gallery.css' %}">
-        {# CodeBlock's highlight theme, also loaded above with the other built-ins. #}
-        {# There it comes before layout/page.css, whose .gallery-docs pre rules would #}
-        {# override it, so link it again here to keep its place last in the cascade. #}
-        <link rel="stylesheet"
-              href="{% static 'dj_design_system/ui/primitives/code_highlight.css' %}">
         {% block extra_css %}{% endblock %}
         {{ search_index|json_script:"gallery-search-index" }}
     </head>

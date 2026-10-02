@@ -324,8 +324,19 @@ class ComponentRegistry:
         return self._merge_media(i for i in self._components if not i.is_internal)
 
     def get_internal_media(self) -> ComponentMedia:
-        """Return a single ``ComponentMedia`` merging all internal components."""
-        return self._merge_media(i for i in self._components if i.is_internal)
+        """Return a single ``ComponentMedia`` merging all internal components.
+
+        Each component's own order is kept (see ``merge_in_order``), so a
+        built-in whose stylesheet overrides another's can rely on loading
+        after it.
+        """
+        from dj_design_system.services.media import merge_in_order
+
+        internal = [i.media for i in self._components if i.is_internal]
+        return ComponentMedia(
+            css=merge_in_order(m.css for m in internal),
+            js=merge_in_order(m.js for m in internal),
+        )
 
     @staticmethod
     def _merge_media(infos) -> ComponentMedia:

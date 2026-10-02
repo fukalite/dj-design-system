@@ -6,7 +6,11 @@ import pytest
 from django.test import override_settings
 from django.urls import reverse
 
-from dj_design_system.services.media import FOUNDATION_CSS, get_gallery_media
+from dj_design_system.services.media import (
+    FOUNDATION_CSS,
+    get_gallery_media,
+    merge_in_order,
+)
 from dj_design_system.services.registry import ComponentRegistry, component_registry
 from tests.conftest import discover_app_into_registry
 
@@ -66,18 +70,15 @@ class TestGetGalleryMedia:
 
 
 class TestGalleryShell:
-    def test_foundation_loads_before_legacy_stylesheets(self, client):
+    def test_foundation_is_the_first_stylesheet(self, client):
         html = client.get(reverse("gallery")).content.decode()
-        foundation = _position(html, f"/static/{FOUNDATION_CSS}")
-        assert foundation < _position(html, "/static/dj_design_system/gallery.css")
+        first = re.search(r'<link rel="stylesheet" href="([^"]+)"', html)
+        assert first.group(1) == f"/static/{FOUNDATION_CSS}"
 
-    def test_internal_css_loads_between_foundation_and_legacy(
-        self, client, global_builtins
-    ):
+    def test_internal_css_loads_after_foundation(self, client, global_builtins):
         html = client.get(reverse("gallery")).content.decode()
         crumb = _position(html, f"/static/{CRUMB_CSS}")
         assert _position(html, f"/static/{FOUNDATION_CSS}") < crumb
-        assert crumb < _position(html, "/static/dj_design_system/gallery.css")
         assert html.count(f"/static/{FOUNDATION_CSS}") == 1
 
     def test_internal_js_loads_before_legacy_scripts(self, client, global_builtins):
@@ -133,3 +134,35 @@ class TestInternalUsageSnippets:
             context = client.get(url).context
         assert context["tag_signature"].minimal == "{% dds__fixture_media__crumb %}"
         assert context["tag_signature"].maximal == "{% dds__fixture_media__crumb %}"
+
+
+class TestMergeInOrder:
+    def test_keeps_first_seen_order(self):
+        assert merge_in_order([["a", "b"], ["c"], ["b", "d"]]) == ["a", "b", "c", "d"]
+
+    def test_removes_duplicates(self):
+        assert merge_in_order([["a", "a", "b"], ["b"]]) == ["a", "b"]
+
+    def test_moves_a_path_after_one_a_list_puts_first(self):
+        # "x" is seen first, but the second list needs it after "p".
+        assert merge_in_order([["f", "x", "y"], ["f", "p", "x"]]) == [
+            "f",
+            "p",
+            "x",
+            "y",
+        ]
+
+    def test_conflicting_lists_fall_back_to_first_seen_order(self):
+        assert merge_in_order([["a", "b"], ["b", "a"]]) == ["a", "b"]
+
+    def test_gallery_loads_code_highlight_after_page_and_prose(self):
+        css = get_gallery_media().css
+        highlight = "dj_design_system/ui/primitives/code_highlight.css"
+        assert css.index("dj_design_system/ui/layout/page.css") < css.index(highlight)
+        assert css.index("dj_design_system/ui/layout/prose.css") < css.index(highlight)
+
+    def test_gallery_media_keeps_every_builtins_order(self):
+        css = get_gallery_media().css
+        for info in component_registry.list_by_app("dj_design_system"):
+            positions = [css.index(path) for path in info.media.css]
+            assert positions == sorted(positions), info.qualified_name
