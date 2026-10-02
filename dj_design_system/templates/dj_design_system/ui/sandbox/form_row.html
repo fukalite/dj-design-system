@@ -1,0 +1,15 @@
+<div class="gallery-params-form__row">
+    <label class="gallery-params-form__label"
+           for="{{ bound_field.id_for_label }}">
+        <code>{{ bound_field.name }}</code>
+        {% if bound_field.help_text %}<span class="gallery-params-form__hint">{{ bound_field.help_text }}</span>{% endif %}
+    </label>
+    <div class="gallery-params-form__field">
+        {{ bound_field }}
+        {% if errors %}
+            <ul class="gallery-params-form__errors gallery-params__errors">
+                {% for error in errors %}<li>{{ error }}</li>{% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+</div>

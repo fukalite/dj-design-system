@@ -36,6 +36,12 @@ LEGACY_EXEMPTIONS = {
     # see issue #122.
     ("dds__canvas__canvas_widget", "basic"): ["label"],
     ("dds__canvas__canvas_widget", "maximal"): ["label"],
+    # The red error text passes (4.51:1) on the sandbox drawer's white, but
+    # not on the canvas's grey; #112's --gallery-danger fixes the dark theme.
+    ("dds__sandbox__form_row", "maximal"): ["color-contrast"],
+    # The drawer's focusable separator has no aria-valuenow; see issue #134.
+    ("dds__sandbox__params_form", "basic"): ["aria-required-attr"],
+    ("dds__sandbox__params_form", "maximal"): ["aria-required-attr"],
 }
 
 

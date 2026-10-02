@@ -22,6 +22,10 @@ Each gallery template is rewritten to compose `dds__*` components:
 
 - **Template blocks preserved:** `title`, `extra_css`, `toolbar`, `breadcrumb`, `toolbar_actions`, `content` and `extra_js` keep their names and positions, so consumer templates that `{% extends %}` the gallery base keep working.
 - **Legacy partials:** `breadcrumb.html`, `navtree.html` and `toolbar.html` become thin wrappers that render the corresponding component, so consumer `{% include %}`s keep working. They are marked deprecated in the changelog.
+- **Deriving `UsageExample` from its example (design once #86 is in):** today `UsageExample` takes `code` and `preview_url` separately, so the caller must keep them describing the same example. Consider a parameter that takes the example itself and derives both, from the tag signature code and `build_canvas_url`. Design it after Marcel's #86 (`GalleryConfig` and named `Variant`s) has merged, because that changes what an example is, so a variant-shaped input (e.g. component + variant) is likely a better fit than a component instance. Notes from the discussion:
+  - An instance loses which arguments were positional, the sample values and slot/block content. A `CanvasSpec` or variant keeps them.
+  - Built-in gallery examples travel as URL query parameters and are edited in the sandbox form, so the parameter needs a string form and a form field, as `ModelParam` has with its primary key.
+  - The preview URL also needs page state (the active theme, `mode=basic`), so it still needs a `theme` or the request.
 - **Views:** Views build component-friendly context (e.g. tab lists, toolbar option lists) where the templates previously hard-coded markup. Viewport and zoom option lists move from the template into view context or component defaults.
 
 ### 2. Asset Loading
