@@ -6,9 +6,9 @@ Moves the last hand-written gallery markup into built-in components and shared t
 - [x] Task: Canvas Messages [4e297be]
   - [x] Write failing tests that the three canvas messages render from shared templates with unchanged markup.
   - [x] Move them to `canvas/error.html` and `canvas/warning.html`; raise an issue for the unstyled error in the canvas iframe. (unstyled error in the iframe: #147)
-- [ ] Task: `PageHeader`
-  - [ ] Write failing tests (parity with the index and folder headings, escaping, registration).
-  - [ ] Implement it and use it in `index.html` and `folder.html`.
+- [x] Task: `PageHeader` [aa683e6]
+  - [x] Write failing tests (parity with the index and folder headings, escaping, registration).
+  - [x] Implement it and use it in `index.html` and `folder.html`.
 - [ ] Task: `UsageExamples`
   - [ ] Write failing tests (parity with the `.gallery-usage` wrapper, CSS ownership).
   - [ ] Implement it, move the `.gallery-usage` rules, and use it in `component.html`.
