@@ -3,9 +3,9 @@
 Moves the last hand-written gallery markup into built-in components and shared templates.
 
 ## Phase 1: Canvas Messages, PageHeader, UsageExamples
-- [ ] Task: Canvas Messages
-  - [ ] Write failing tests that the three canvas messages render from shared templates with unchanged markup.
-  - [ ] Move them to `canvas/error.html` and `canvas/warning.html`; raise an issue for the unstyled error in the canvas iframe.
+- [x] Task: Canvas Messages [4e297be]
+  - [x] Write failing tests that the three canvas messages render from shared templates with unchanged markup.
+  - [x] Move them to `canvas/error.html` and `canvas/warning.html`; raise an issue for the unstyled error in the canvas iframe. (unstyled error in the iframe: #147)
 - [ ] Task: `PageHeader`
   - [ ] Write failing tests (parity with the index and folder headings, escaping, registration).
   - [ ] Implement it and use it in `index.html` and `folder.html`.
