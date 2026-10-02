@@ -9,7 +9,8 @@
 
 {% block content %}
     {% dds__layout__page %}
-        <h1>{{ folder_label }}</h1>
+        {% dds__layout__page_header title=folder_label %}
+        {% enddds__layout__page_header %}
         {% dds__navigation__folder_listing children %}
         {% if is_debug %}
             {% dds__primitives__notice variant="hint" %}
