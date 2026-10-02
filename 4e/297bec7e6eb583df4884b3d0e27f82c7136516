@@ -1,0 +1,18 @@
+Task: Canvas Messages (gallery_leftovers_20261002, phase 1)
+
+Summary: moved the canvas's error and warning markup out of Python string
+building into two shared templates, rendered by canvas_error() and
+plain_str_warning() in services/canvas_messages.py. The output is unchanged
+(tested against the legacy markup, including escaping).
+
+Files:
+- dj_design_system/services/canvas_messages.py (new)
+- dj_design_system/templates/dj_design_system/canvas/error.html (new)
+- dj_design_system/templates/dj_design_system/canvas/warning.html (new)
+- dj_design_system/views/canvas.py, services/canvas.py, services/markdown_canvas.py
+- tests/test_canvas_messages.py (new)
+
+Why: the same error markup was written three times. The messages render
+inside component canvases, which must not load built-in media, so they are
+templates, not built-ins. The error is unstyled inside the canvas iframe on
+main too; raised as #147 rather than restyled here.
