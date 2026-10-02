@@ -1,7 +1,7 @@
 from dj_design_system.gallery import GalleryConfig, Variant
 
 
-_BLOCK = '<div class="gallery-usage__block"><p>{}</p></div>'
+_BLOCK = "<p>{}</p>"
 
 config = GalleryConfig(
     variants=[
