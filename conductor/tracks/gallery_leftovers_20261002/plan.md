@@ -9,9 +9,9 @@ Moves the last hand-written gallery markup into built-in components and shared t
 - [x] Task: `PageHeader` [aa683e6]
   - [x] Write failing tests (parity with the index and folder headings, escaping, registration).
   - [x] Implement it and use it in `index.html` and `folder.html`.
-- [ ] Task: `UsageExamples`
-  - [ ] Write failing tests (parity with the `.gallery-usage` wrapper, CSS ownership).
-  - [ ] Implement it, move the `.gallery-usage` rules, and use it in `component.html`.
+- [x] Task: `UsageExamples` [9b1c524]
+  - [x] Write failing tests (parity with the `.gallery-usage` wrapper, CSS ownership).
+  - [x] Implement it, move the `.gallery-usage` rules, and use it in `component.html`.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
