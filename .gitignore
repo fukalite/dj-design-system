@@ -64,3 +64,6 @@ scratch/
 **/snapshots/diff/
 /*.png
 /demo_*.py
+
+# Gallery visual regression run output (actual screenshots and failure diffs)
+tests/e2e/visual/output/
