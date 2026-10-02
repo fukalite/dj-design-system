@@ -12,8 +12,6 @@
         {# been in the cascade, until the gallery templates use the components. #}
         <link rel="stylesheet"
               href="{% static 'dj_design_system/ui/primitives/code_highlight.css' %}">
-        <link rel="stylesheet"
-              href="{% static 'dj_design_system/gallery-toolbar.css' %}">
         {% block extra_css %}{% endblock %}
         {{ search_index|json_script:"gallery-search-index" }}
     </head>

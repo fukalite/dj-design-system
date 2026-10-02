@@ -151,11 +151,8 @@ class TestNavtreeAccessibility:
         assert 'aria-hidden="true"' not in tabs_html
 
     def test_variant_select_keyboard_navigation_guard(self):
-        """gallery-toolbar.js must guard against premature auto-submit during keyboard navigation."""
-        from pathlib import Path
-
-        js_path = Path("dj_design_system/static/dj_design_system/gallery-toolbar.js")
-        content = js_path.read_text(encoding="utf-8")
+        """The sandbox toolbar must guard against premature auto-submit during keyboard navigation."""
+        content = (STATIC / "ui/sandbox/sandbox_toolbar.js").read_text(encoding="utf-8")
 
         # Must listen to keydown or blur to prevent premature change submission
         assert "isKeyNav" in content or "isKeyboard" in content
@@ -163,11 +160,8 @@ class TestNavtreeAccessibility:
         assert "Enter" in content
 
     def test_toolbar_popouts_escape_key_handler(self):
-        """gallery-toolbar.js must include an Escape key listener to close open popouts and refocus toggle."""
-        from pathlib import Path
-
-        js_path = Path("dj_design_system/static/dj_design_system/gallery-toolbar.js")
-        content = js_path.read_text(encoding="utf-8")
+        """Popouts must include an Escape key listener to close open popouts and refocus toggle."""
+        content = (STATIC / "ui/sandbox/popout.js").read_text(encoding="utf-8")
 
         assert "Escape" in content
         assert "toggle.focus()" in content
