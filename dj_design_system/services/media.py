@@ -1,11 +1,15 @@
 import html
-from typing import Type
+from typing import TYPE_CHECKING, Type
 
 from django.templatetags.static import static
 from django.utils.html import format_html_join
 from django.utils.safestring import mark_safe
 
 from dj_design_system.data import ComponentMedia
+
+
+if TYPE_CHECKING:
+    from dj_design_system.services.registry import ComponentRegistry
 
 try:
     from webpack_loader.utils import get_files as _webpack_get_files
@@ -14,6 +18,27 @@ try:
 except ImportError:
     _webpack_get_files = None
     _WEBPACK_AVAILABLE = False
+
+
+FOUNDATION_CSS = "dj_design_system/ui/foundation.css"
+"""Gallery design tokens, icon masks, typography and the scoped reset.
+
+Every built-in component lists it first in its ``Media.css``.
+"""
+
+
+def get_gallery_media(registry: "ComponentRegistry | None" = None) -> ComponentMedia:
+    """Return the media the gallery shell loads before its legacy stylesheets.
+
+    That is ``foundation.css`` followed by every internal component's media,
+    de-duplicated. The foundation is included even when no built-ins exist,
+    because the legacy gallery stylesheets depend on its tokens.
+    """
+    if registry is None:
+        from dj_design_system.services.registry import component_registry
+
+        registry = component_registry
+    return ComponentMedia(css=[FOUNDATION_CSS]).merge(registry.get_internal_media())
 
 
 def coerce_path_list(value: str | list[str]) -> list[str]:

@@ -38,7 +38,7 @@
 - [x] **Track: Gallery Rebuild 1 — Internal Component Foundation**
   *Link: [tracks/gallery_foundation_20260928/index.md](tracks/gallery_foundation_20260928/index.md)*
 
-- [ ] **Track: Gallery Rebuild 2 — Primitive Components**
+- [x] **Track: Gallery Rebuild 2 — Primitive Components**
   *Link: [tracks/gallery_primitives_20260928/index.md](tracks/gallery_primitives_20260928/index.md)*
 
 - [ ] **Track: Gallery Rebuild 3 — Navigation & Layout Components**
