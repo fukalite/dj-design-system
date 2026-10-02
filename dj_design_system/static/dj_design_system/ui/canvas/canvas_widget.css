@@ -1,3 +1,15 @@
+/* CanvasWidget — dds__canvas__canvas_widget. Moved from gallery.css and
+ * gallery-markdown.css. */
+
+.gallery-canvas {
+  width: 100%;
+  min-height: 100px;
+  border: 1px dashed var(--gallery-border);
+  border-radius: var(--gallery-radius);
+  background: var(--gallery-content-bg);
+  display: block;
+}
+
 /* ------------------------------------------------------------------ */
 /* Markdown canvas widget (```canvas blocks in .md files)              */
 /* ------------------------------------------------------------------ */

@@ -230,9 +230,9 @@ class TestDrawer:
     def sandbox(self, sandbox):
         # At this width the sandbox canvas is ~1100px tall, so in a shorter
         # window the drawer is clipped below the fold and can't be dragged.
-        sandbox.set_viewport_size({"width": 1900, "height": 1400})
+        sandbox.set_viewport_size({"width": 1900, "height": 1600})
         sandbox.wait_for_function(
-            """() => document.querySelector('[data-gallery-resizer]')
+            """() => document.querySelector('[data-gallery-drawer]')
                 .getBoundingClientRect().bottom <= innerHeight"""
         )
         return sandbox
@@ -256,7 +256,14 @@ class TestDrawer:
         assert self._height(sandbox) == pytest.approx(before + 60, abs=1)
 
     def test_is_at_least_48px(self, sandbox):
-        self._drag(sandbox, 2000)
+        # Drag to the bottom edge of the window, which is far enough to take
+        # the drawer below 48px. Pointer events past the window edge aren't
+        # reliably delivered, so don't drag beyond it.
+        box = sandbox.locator("[data-gallery-resizer]").bounding_box()
+        centre = box["y"] + box["height"] / 2
+        bottom = sandbox.viewport_size["height"] - 1
+        assert bottom - centre > self._height(sandbox) - 48
+        self._drag(sandbox, bottom - centre)
         assert self._height(sandbox) == pytest.approx(48, abs=1)
 
     def test_resets_the_cursor_after_dragging(self, sandbox):
