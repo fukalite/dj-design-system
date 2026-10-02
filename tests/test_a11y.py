@@ -12,6 +12,13 @@ from dj_design_system.views.gallery import get_base_context
 STATIC = Path("dj_design_system/static/dj_design_system")
 
 
+def read_gallery_templates() -> str:
+    """Return the gallery's templates and its built-in components' templates."""
+    root = Path("dj_design_system/templates/dj_design_system")
+    paths = sorted([*(root / "gallery").glob("*.html"), *(root / "ui").rglob("*.html")])
+    return "\n".join(p.read_text(encoding="utf-8") for p in paths)
+
+
 def read_gallery_css() -> str:
     """Return all the gallery's stylesheets, foundation.css first.
 
@@ -291,26 +298,20 @@ class TestNavtreeAccessibility:
 
     def test_bem_naming_consistency(self):
         """BEM naming conventions should be followed consistently across templates and CSS."""
-        from pathlib import Path
 
-        # 1. Base template search input and results include BEM classes
-        base_html = Path(
-            "dj_design_system/templates/dj_design_system/gallery/base.html"
-        ).read_text(encoding="utf-8")
-        assert "gallery-sidebar__search-input" in base_html
-        assert "gallery-sidebar__search-results" in base_html
+        # The markup lives in the built-in components' templates, which the
+        # gallery templates call, so look at all of them.
+        templates = read_gallery_templates()
+
+        # 1. The search input and results include BEM classes
+        assert "gallery-sidebar__search-input" in templates
+        assert "gallery-sidebar__search-results" in templates
 
         # 2. Toolbar background chips include BEM modifier classes
-        toolbar_html = Path(
-            "dj_design_system/templates/dj_design_system/gallery/toolbar.html"
-        ).read_text(encoding="utf-8")
-        assert "gallery-sandbox-toolbar__bg-chip--" in toolbar_html
+        assert "gallery-sandbox-toolbar__bg-chip--" in templates
 
-        # 3. Sandbox fragment error list includes BEM element class
-        sandbox_html = Path(
-            "dj_design_system/templates/dj_design_system/gallery/sandbox_fragment.html"
-        ).read_text(encoding="utf-8")
-        assert "gallery-params-form__errors" in sandbox_html
+        # 3. The parameter form's error list includes the BEM element class
+        assert "gallery-params-form__errors" in templates
 
         # 4. CSS contains corresponding BEM selectors
         gallery_css = read_gallery_css()
