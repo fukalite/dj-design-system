@@ -7,6 +7,7 @@ aria-hidden it always adds to decorative icons).
 """
 
 from html.parser import HTMLParser
+from pathlib import Path
 
 import pytest
 from django.template import Context, Template
@@ -19,6 +20,16 @@ from dj_design_system.services.navigation import build_navigation
 from dj_design_system.services.registry import component_registry
 from dj_design_system.types import NodeType
 from tests.html_utils import css_homes, render, root, tags
+
+
+# The legacy breadcrumb.html and navtree.html are now thin wrappers around
+# these components, so compare with snapshots of their legacy output
+# (recorded by test_gallery_template_contract.py).
+LEGACY_PARTIALS = Path(__file__).parent / "legacy_partials"
+
+
+def _legacy(name: str) -> str:
+    return (LEGACY_PARTIALS / f"{name}.html").read_text()
 
 
 class _Events(HTMLParser):
@@ -70,11 +81,8 @@ class TestBreadcrumb:
     @pytest.mark.parametrize("count", [1, 2, 3, 5])
     def test_matches_legacy_template(self, count):
         crumbs = CRUMBS[: count - 1] + [CRUMBS[-1]]
-        legacy = render_to_string(
-            "dj_design_system/gallery/breadcrumb.html", {"breadcrumbs": crumbs}
-        )
         html = render("{% dds__navigation__breadcrumb crumbs %}", crumbs=crumbs)
-        assert structure(html) == structure(legacy)
+        assert structure(html) == structure(_legacy(f"breadcrumb-{count}"))
 
     def test_collapses_long_paths_with_a_flyout(self):
         html = render("{% dds__navigation__breadcrumb crumbs %}", crumbs=CRUMBS)
@@ -105,18 +113,8 @@ class TestBreadcrumb:
 # ---------------------------------------------------------------------------
 
 
-def _legacy_nav(nav_tree, active_path, active_variant=None) -> str:
-    return Template(
-        '{% for app_node in nav_tree %}{% include "dj_design_system/gallery/navtree.html" with node=app_node depth=0 active_path=active_path active_variant=active_variant %}{% endfor %}'
-    ).render(
-        Context(
-            {
-                "nav_tree": nav_tree,
-                "active_path": active_path,
-                "active_variant": active_variant,
-            }
-        )
-    )
+def _legacy_nav(active_path) -> str:
+    return _legacy(f"navtree-{active_path.replace('/', '-') or 'root'}")
 
 
 def _nav(nav_tree, active_path="", active_variant=None) -> str:
@@ -129,84 +127,45 @@ def _nav(nav_tree, active_path="", active_variant=None) -> str:
 
 
 class TestNavTree:
-    @pytest.mark.parametrize("active_path", ["", "cards", "elements/icon"])
+    @pytest.mark.parametrize(
+        "active_path", ["", "demo_nav/cards", "demo_nav/elements/icon"]
+    )
     def test_matches_legacy_template(self, nav_tree, active_path):
         html = _nav(nav_tree, active_path)
         assert root(html) == ("nav", {"class": "gallery-nav", "id": "gallery-nav"})
         inner = html[html.index(">") + 1 : html.rindex("</nav>")]
-        assert structure(inner) == structure(_legacy_nav(nav_tree, active_path))
+        assert structure(inner) == structure(_legacy_nav(active_path))
 
     @pytest.mark.parametrize(
-        "active_path, active_variant",
+        ("active_variant", "snapshot"),
         [
-            ("", None),
-            ("alert", None),
+            (None, "component"),
             # A folder or document page's ?variant= string.
-            ("alert", "critical"),
+            ("critical", "variant-name"),
             # A component page passes the Variant itself.
-            ("alert", Variant(name="critical")),
+            (Variant(name="critical"), "variant-object"),
         ],
     )
-    def test_matches_legacy_template_with_variants(self, active_path, active_variant):
-        nav_tree = build_navigation()
-        html = _nav(nav_tree, active_path, active_variant)
+    def test_matches_legacy_template_with_variants(self, active_variant, snapshot):
+        html = _nav(build_navigation(), "demo_components/alert", active_variant)
         inner = html[html.index(">") + 1 : html.rindex("</nav>")]
-        legacy = _legacy_nav(nav_tree, active_path, active_variant)
+        legacy = _legacy(f"navtree-variants-{snapshot}")
         assert "gallery-nav__link--variant" in legacy
         assert structure(inner) == structure(legacy)
 
-    def test_custom_icons_match_legacy_template(self):
-        nodes = [
+    @pytest.mark.parametrize(
+        "icon", ["<svg viewBox='0 0 10 10'></svg>", "/static/i.svg", "fa fa-book"]
+    )
+    def test_custom_icons_match_legacy_nav_icon(self, icon):
+        nodes = [{"type": "component", "label": "X", "url": "/x/", "icon": icon}]
+        legacy = render_to_string(
+            "dj_design_system/gallery/nav_icon.html",
             {
-                "type": "app",
-                "label": "App",
-                "url": "/app/",
-                "children": [
-                    {
-                        "type": "component",
-                        "label": "Svg",
-                        "url": "/a/",
-                        "icon": "<svg viewBox='0 0 10 10'></svg>",
-                    },
-                    {
-                        "type": "component",
-                        "label": "Url",
-                        "url": "/b/",
-                        "icon": "/static/i.svg",
-                    },
-                    {
-                        "type": "document",
-                        "label": "Class",
-                        "url": "/c/",
-                        "icon": "fa fa-book",
-                    },
-                ],
-            }
-        ]
-        legacy_nodes = [
-            NavNode(
-                label="App",
-                slug="app",
-                node_type=NodeType.APP,
-                url="/app/",
-                children=[
-                    NavNode(
-                        label="Class",
-                        slug="c",
-                        node_type=NodeType.FOLDER,
-                        url="/c/",
-                        icon=icon,
-                    )
-                    for icon in (
-                        "<svg viewBox='0 0 10 10'></svg>",
-                        "/static/i.svg",
-                        "fa fa-book",
-                    )
-                ],
-            )
-        ]
-        html = _nav(nodes)
-        legacy = _legacy_nav(legacy_nodes, "")
+                "node": NavNode(
+                    label="X", slug="x", node_type=NodeType.FOLDER, url="/x/", icon=icon
+                )
+            },
+        )
 
         def custom_icons(markup):
             # Attribute values are compared ignoring whitespace (the legacy
@@ -217,8 +176,9 @@ class TestNavTree:
                 if "gallery-nav__icon--custom" in a.get("class", "")
             ]
 
+        html = _nav(nodes)
         assert custom_icons(html) == custom_icons(legacy)
-        assert "<svg viewBox='0 0 10 10'></svg>" in html
+        assert len(custom_icons(html)) == 1
 
     def test_uses_icon_component(self, nav_tree):
         html = _nav(nav_tree)
@@ -302,15 +262,34 @@ def _children(nav_tree) -> list[NavNode]:
     return app.children
 
 
+# Copied from the listing in gallery/folder.html before it used FolderListing.
+LEGACY_LISTING = Template(
+    """<div class="gallery-folder-contents">
+    <h2>Contents</h2>
+    <ul class="gallery-folder-list">
+        {% for child in children %}
+            <li class="gallery-folder-list__item">
+                <a href="{{ child.url }}" class="gallery-folder-list__link">
+                    {% if child.has_children %}
+                        <span class="gallery-folder-list__icon gallery-folder-list__icon--folder"></span>
+                    {% elif child.is_component %}
+                        <span class="gallery-folder-list__icon gallery-folder-list__icon--component"></span>
+                    {% elif child.is_document %}
+                        <span class="gallery-folder-list__icon gallery-folder-list__icon--doc"></span>
+                    {% endif %}
+                    {{ child.label }}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+</div>"""
+)
+
+
 class TestFolderListing:
     def test_matches_legacy_markup(self, nav_tree):
         children = _children(nav_tree)
-        legacy = render_to_string(
-            "dj_design_system/gallery/folder.html",
-            {"children": children, "folder_label": "X"},
-        )
-        legacy = legacy[legacy.index('<div class="gallery-folder-contents">') :]
-        legacy = legacy[: legacy.index("</ul>") + len("</ul>")] + "</div>"
+        legacy = LEGACY_LISTING.render(Context({"children": children}))
         html = render("{% dds__navigation__folder_listing items %}", items=children)
         assert structure(html) == structure(legacy)
 

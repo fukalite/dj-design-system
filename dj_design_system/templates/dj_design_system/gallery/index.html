@@ -1,31 +1,29 @@
 {% extends "dj_design_system/gallery/base.html" %}
-{% load static dj_design_system_gallery %}
+{% load design_components %}
 
 {% block title %}{{ design_system_name }}{% endblock %}
 
 {% block content %}
-    <div class="gallery-page">
-        <div class="gallery-docs">
-            <h1>{{ design_system_name }}</h1>
+    {% dds__layout__page %}
+        <h1>{{ design_system_name }}</h1>
+        <p>
+            Browse the component library using the sidebar.
+            Select a component to see its documentation, preview, and parameters.
+        </p>
+        <p>{{ total_components }} component{{ total_components|pluralize }} registered.</p>
+        {% dds__primitives__notice snapshot=True %}
+            <strong>⚠ You are viewing a static snapshot of the gallery.</strong>
             <p>
-                Browse the component library using the sidebar.
-                Select a component to see its documentation, preview, and parameters.
+                The component previews on each page are <strong>pre-rendered, static HTML files</strong> —
+                they show how components look but are not interactive.
             </p>
-            <p>{{ total_components }} component{{ total_components|pluralize }} registered.</p>
-            <div id="static-snapshot-notice" class="gallery-static-snapshot-notice">
-                <strong>⚠ You are viewing a static snapshot of the gallery.</strong>
-                <p>
-                    The component previews on each page are <strong>pre-rendered, static HTML files</strong> —
-                    they show how components look but are not interactive.
-                </p>
-                <p>
-                    The <strong>sandbox is fully disabled</strong> in the static snapshot.
-                    Live parameter controls, HTMX interactions, and the canvas all require a running Django server.
-                </p>
-                <p>
-                    To use the fully interactive gallery, clone the repository and run <code>just demo</code> locally.
-                </p>
-            </div>
-        </div>
-    </div>
+            <p>
+                The <strong>sandbox is fully disabled</strong> in the static snapshot.
+                Live parameter controls, HTMX interactions, and the canvas all require a running Django server.
+            </p>
+            <p>
+                To use the fully interactive gallery, clone the repository and run <code>just demo</code> locally.
+            </p>
+        {% enddds__primitives__notice %}
+    {% enddds__layout__page %}
 {% endblock %}
