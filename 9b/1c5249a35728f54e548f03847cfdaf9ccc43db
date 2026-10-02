@@ -1,0 +1,18 @@
+Task: UsageExamples (gallery_leftovers_20261002, phase 1)
+
+Summary: new built-in dds__docs__usage_examples (block) renders
+<div class="gallery-usage">…</div>. component.html uses it. The
+.gallery-usage rule and its 1200px media rule move from usage_example.css
+to usage_examples.css, unchanged.
+
+Files:
+- dj_design_system/components/docs/usage_examples.py, usage_examples_gallery.py (new)
+- dj_design_system/templates/dj_design_system/ui/docs/usage_examples.html (new)
+- dj_design_system/static/dj_design_system/ui/docs/usage_examples.css (new)
+- dj_design_system/static/dj_design_system/ui/docs/usage_example.css
+- dj_design_system/templates/dj_design_system/gallery/component.html
+- dj_design_system/components/docs/index.md, pyproject.toml
+- tests/test_canvas_docs_components.py
+
+Why: the wrapper was the last hand-written markup in the component page's
+documentation pane.
