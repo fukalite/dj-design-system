@@ -1,0 +1,18 @@
+Task: SandboxCanvas (gallery_leftovers_20261002, phase 2)
+
+Summary: new built-in dds__sandbox__sandbox_canvas (block) renders
+<div class="gallery-sandbox__canvas">…</div>; sandbox_fragment.html uses it
+and now has no hand-written markup. .gallery-sandbox__canvas moves from
+pane.css, and the --viewport modifier rules (set by the toolbar's script)
+from sandbox_toolbar.css, into sandbox_canvas.css, unchanged.
+
+Files:
+- dj_design_system/components/sandbox/sandbox_canvas.py, sandbox_canvas_gallery.py (new)
+- dj_design_system/templates/dj_design_system/ui/sandbox/sandbox_canvas.html (new)
+- dj_design_system/static/dj_design_system/ui/sandbox/sandbox_canvas.css (new)
+- dj_design_system/static/dj_design_system/ui/layout/pane.css, ui/sandbox/sandbox_toolbar.css
+- dj_design_system/templates/dj_design_system/gallery/sandbox_fragment.html
+- dj_design_system/components/sandbox/index.md, pyproject.toml
+- tests/test_sandbox_toolbar_components.py
+
+Why: the wrapper was the last hand-written markup in the sandbox fragment.
