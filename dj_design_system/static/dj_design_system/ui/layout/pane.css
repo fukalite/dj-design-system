@@ -55,11 +55,3 @@
   padding: 0;
   overflow: hidden;
 }
-
-.gallery-sandbox__canvas {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 0;
-  overflow: hidden;
-}
