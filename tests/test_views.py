@@ -679,6 +679,24 @@ class TestGalleryAccessRequired:
         assert response.status_code == 302
         assert response["Location"].startswith("https://sso.example.com/login/?next=")
 
+    @override_settings(
+        DJ_DESIGN_SYSTEM={"GALLERY_IS_PUBLIC": False},
+        LOGIN_URL="login",
+    )
+    def test_unauthenticated_redirect_supports_named_login_url(self, client):
+        response = client.get(reverse("gallery"))
+        assert response.status_code == 302
+        assert response["Location"].startswith("/login/?next=")
+
+    @override_settings(
+        DJ_DESIGN_SYSTEM={"GALLERY_IS_PUBLIC": False},
+        LOGIN_URL="googleauth:signin",
+    )
+    def test_unauthenticated_redirect_supports_namespaced_login_url(self, client):
+        response = client.get(reverse("gallery"))
+        assert response.status_code == 302
+        assert response["Location"].startswith("/auth/signin/?next=")
+
     @override_settings(DJ_DESIGN_SYSTEM={"GALLERY_IS_PUBLIC": False})
     def test_authenticated_without_permission_is_forbidden(
         self, client, django_user_model

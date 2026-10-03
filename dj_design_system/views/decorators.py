@@ -21,6 +21,8 @@ def gallery_access_required(view_func):
             return view_func(request, *args, **kwargs)
 
         if not request.user.is_authenticated:
+            # redirect_to_login resolves settings.LOGIN_URL (supporting paths,
+            # named URL patterns, and namespaced patterns).
             return redirect_to_login(request.get_full_path())
 
         if not request.user.has_perm(GALLERY_PERMISSION):

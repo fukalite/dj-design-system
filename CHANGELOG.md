@@ -27,6 +27,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The non-public gallery login redirect now preserves the request's query string in `next`, and supports an absolute `LOGIN_URL` (e.g. an external SSO page) instead of falling back to `/`.
 
+### Fixed
+
+- Verified and added test coverage for named and namespaced URL patterns (e.g. `LOGIN_URL = "login"` or `"googleauth:signin"`) in non-public gallery login redirects.
+
+
 ## [0.0.1] - unreleased
 
 ### Added
