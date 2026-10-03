@@ -2,7 +2,7 @@
 
 Moves the last hand-written gallery markup into built-in components and shared templates.
 
-## Phase 1: Canvas Messages, PageHeader, UsageExamples
+## Phase 1: Canvas Messages, PageHeader, UsageExamples [checkpoint: 23168bc]
 - [x] Task: Canvas Messages [4e297be]
   - [x] Write failing tests that the three canvas messages render from shared templates with unchanged markup.
   - [x] Move them to `canvas/error.html` and `canvas/warning.html`; raise an issue for the unstyled error in the canvas iframe. (unstyled error in the iframe: #147)
@@ -12,7 +12,7 @@ Moves the last hand-written gallery markup into built-in components and shared t
 - [x] Task: `UsageExamples` [9b1c524]
   - [x] Write failing tests (parity with the `.gallery-usage` wrapper, CSS ownership).
   - [x] Implement it, move the `.gallery-usage` rules, and use it in `component.html`.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [23168bc]
 
 ---
 
