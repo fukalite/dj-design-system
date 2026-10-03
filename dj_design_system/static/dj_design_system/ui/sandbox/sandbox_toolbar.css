@@ -47,15 +47,6 @@ form.gallery-sandbox-toolbar__presets {
   min-width: 0;
 }
 
-/* Dashed border on the iframe when a fixed viewport is active */
-.gallery-sandbox__canvas--viewport {
-  overflow: hidden;
-}
-
-.gallery-sandbox__canvas--viewport .gallery-sandbox__iframe {
-  border: 1px dashed var(--gallery-border);
-}
-
 /* Variant Presets Selector */
 .gallery-sandbox-toolbar__select {
   padding: 2px 8px;

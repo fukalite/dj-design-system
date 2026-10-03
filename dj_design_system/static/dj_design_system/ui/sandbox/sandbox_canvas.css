@@ -1,0 +1,19 @@
+/* SandboxCanvas — dds__sandbox__sandbox_canvas. Moved from pane.css and
+ * sandbox_toolbar.css. */
+
+.gallery-sandbox__canvas {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Dashed border on the iframe when a fixed viewport is active */
+.gallery-sandbox__canvas--viewport {
+  overflow: hidden;
+}
+
+.gallery-sandbox__canvas--viewport .gallery-sandbox__iframe {
+  border: 1px dashed var(--gallery-border);
+}

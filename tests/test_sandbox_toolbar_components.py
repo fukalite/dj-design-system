@@ -171,6 +171,22 @@ class TestToolbarValue:
             render('{% dds__sandbox__toolbar_value "bg" "x" %}')
 
 
+class TestSandboxCanvas:
+    def test_wraps_the_canvas(self):
+        markup = render(
+            "{% dds__sandbox__sandbox_canvas %}<iframe></iframe>"
+            "{% enddds__sandbox__sandbox_canvas %}"
+        )
+        assert markup == '<div class="gallery-sandbox__canvas"><iframe></iframe></div>'
+
+    def test_sandbox_fragment_uses_it(self):
+        source = Path(
+            "dj_design_system/templates/dj_design_system/gallery/sandbox_fragment.html"
+        ).read_text()
+        assert "dds__sandbox__sandbox_canvas" in source
+        assert "<div" not in source
+
+
 class TestToolbarTemplate:
     def test_has_no_hand_written_markup(self):
         source = Path(
@@ -427,6 +443,7 @@ class TestRegistrationAndMedia:
             "toggle_button",
             "bg_swatch",
             "toolbar_value",
+            "sandbox_canvas",
         ],
     )
     def test_internal_with_dds_name(self, name):
@@ -501,7 +518,8 @@ class TestRegistrationAndMedia:
                 ".gallery-sandbox-toolbar__viewport-value {",
                 "ui/sandbox/toolbar_value.css",
             ),
-            (".gallery-sandbox__canvas--viewport {", "ui/sandbox/sandbox_toolbar.css"),
+            (".gallery-sandbox__canvas {", "ui/sandbox/sandbox_canvas.css"),
+            (".gallery-sandbox__canvas--viewport {", "ui/sandbox/sandbox_canvas.css"),
             (".gallery-sandbox-toolbar__popout {", "ui/sandbox/popout.css"),
             (".gallery-sandbox-toolbar__popout[hidden] {", "ui/sandbox/popout.css"),
             (
