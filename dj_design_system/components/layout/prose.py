@@ -17,8 +17,11 @@ class Prose(BlockComponent):
 
     class Media:
         # page.css first: prose refines the page's heading and code styles.
+        # code_highlight.css last: its dark theme for code blocks overrides
+        # both.
         css = [
             FOUNDATION_CSS,
             "dj_design_system/ui/layout/page.css",
             "dj_design_system/ui/layout/prose.css",
+            "dj_design_system/ui/primitives/code_highlight.css",
         ]

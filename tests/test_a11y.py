@@ -2,14 +2,20 @@ from pathlib import Path
 
 import pytest
 from django.template.loader import render_to_string
-from django.test import RequestFactory
+from django.test import Client
 
 from dj_design_system.data import NavNode
 from dj_design_system.types import NodeType
-from dj_design_system.views.gallery import get_base_context
 
 
 STATIC = Path("dj_design_system/static/dj_design_system")
+
+
+def read_gallery_templates() -> str:
+    """Return the gallery's templates and its built-in components' templates."""
+    root = Path("dj_design_system/templates/dj_design_system")
+    paths = sorted([*(root / "gallery").glob("*.html"), *(root / "ui").rglob("*.html")])
+    return "\n".join(p.read_text(encoding="utf-8") for p in paths)
 
 
 def read_gallery_css() -> str:
@@ -118,21 +124,9 @@ class TestNavtreeAccessibility:
 
     def test_component_tab_switcher_accessibility(self):
         """Tab switcher radio buttons must not have aria-hidden='true' and must have radiogroup role."""
-        rf = RequestFactory()
-        request = rf.get("/gallery/test_app/button/")
-        context = get_base_context(request)
-        context.update(
-            {
-                "component_info": type("Info", (), {"name": "button"})(),
-                "design_system_name": "Test DS",
-                "active_variant": None,
-                "params": {},
-            }
-        )
-
-        html = render_to_string(
-            "dj_design_system/gallery/component.html", context, request=request
-        )
+        # The page is built from strict built-in components, so render a
+        # real component page rather than the template with partial context.
+        html = Client().get("/dds/demo_components/alert/").content.decode()
 
         assert 'class="gallery-tabs"' in html
         assert 'role="radiogroup"' in html
@@ -168,9 +162,10 @@ class TestNavtreeAccessibility:
 
     def test_drawer_resizer_accessibility(self):
         """Drawer resizer must have role='separator', tabindex='0', and not be aria-hidden."""
-        html = render_to_string(
-            "dj_design_system/gallery/sandbox_fragment.html",
-            {"param_rows": [{"name": "test"}]},
+        html = (
+            Client()
+            .get("/dds/demo_components/alert/", HTTP_HX_REQUEST="true")
+            .content.decode()
         )
 
         assert "data-gallery-resizer" in html
@@ -291,26 +286,20 @@ class TestNavtreeAccessibility:
 
     def test_bem_naming_consistency(self):
         """BEM naming conventions should be followed consistently across templates and CSS."""
-        from pathlib import Path
 
-        # 1. Base template search input and results include BEM classes
-        base_html = Path(
-            "dj_design_system/templates/dj_design_system/gallery/base.html"
-        ).read_text(encoding="utf-8")
-        assert "gallery-sidebar__search-input" in base_html
-        assert "gallery-sidebar__search-results" in base_html
+        # The markup lives in the built-in components' templates, which the
+        # gallery templates call, so look at all of them.
+        templates = read_gallery_templates()
+
+        # 1. The search input and results include BEM classes
+        assert "gallery-sidebar__search-input" in templates
+        assert "gallery-sidebar__search-results" in templates
 
         # 2. Toolbar background chips include BEM modifier classes
-        toolbar_html = Path(
-            "dj_design_system/templates/dj_design_system/gallery/toolbar.html"
-        ).read_text(encoding="utf-8")
-        assert "gallery-sandbox-toolbar__bg-chip--" in toolbar_html
+        assert "gallery-sandbox-toolbar__bg-chip--" in templates
 
-        # 3. Sandbox fragment error list includes BEM element class
-        sandbox_html = Path(
-            "dj_design_system/templates/dj_design_system/gallery/sandbox_fragment.html"
-        ).read_text(encoding="utf-8")
-        assert "gallery-params-form__errors" in sandbox_html
+        # 3. The parameter form's error list includes the BEM element class
+        assert "gallery-params-form__errors" in templates
 
         # 4. CSS contains corresponding BEM selectors
         gallery_css = read_gallery_css()

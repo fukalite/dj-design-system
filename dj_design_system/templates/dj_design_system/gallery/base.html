@@ -1,4 +1,4 @@
-{% load static dj_design_system_gallery %}
+{% load dj_design_system_gallery design_components %}
 <!DOCTYPE html>
 <html lang="en" class="gallery-theme-light">
     <head>
@@ -6,91 +6,41 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{% block title %}{{ design_system_name }}{% endblock %}</title>
         {% gallery_stylesheets %}
-        <link rel="stylesheet" href="{% static 'dj_design_system/gallery.css' %}">
-        {# CodeBlock's highlight theme, also loaded above with the other built-ins. #}
-        {# Linking it here too keeps it after gallery.css, where it has always #}
-        {# been in the cascade, until the gallery templates use the components. #}
-        <link rel="stylesheet"
-              href="{% static 'dj_design_system/ui/primitives/code_highlight.css' %}">
         {% block extra_css %}{% endblock %}
         {{ search_index|json_script:"gallery-search-index" }}
     </head>
     <body>
-        <div class="gallery">
-            {# ── Mobile menu toggle (CSS-only, no JS) ────────────────── #}
-            <input type="checkbox"
-                   id="gallery-sidebar-toggle"
-                   class="gallery-sidebar-toggle"
-                   aria-hidden="true">
-            <label for="gallery-sidebar-toggle"
-                   class="gallery-hamburger"
-                   aria-label="Toggle navigation">
-                <span class="gallery-hamburger__line"></span>
-                <span class="gallery-hamburger__line"></span>
-                <span class="gallery-hamburger__line"></span>
-            </label>
-            <label for="gallery-sidebar-toggle" class="gallery-overlay"></label>
-
-            {# ── Navigation pane (left sidebar) ──────────────────────── #}
-            <aside class="gallery-sidebar">
-                <div class="gallery-sidebar__header">
-                    <a class="gallery-sidebar__title" href="{% url 'gallery' %}">{{ design_system_name }}</a>
-                </div>
-                <div class="gallery-sidebar__search">
-                    <input type="search"
-                           id="gallery-search-input"
-                           class="gallery-search-input gallery-sidebar__search-input"
-                           placeholder="Search..."
-                           autocomplete="off"
-                           aria-label="Search components and documentation">
-                </div>
-                <div id="gallery-search-results"
-                     class="gallery-search-results gallery-sidebar__search-results"
-                     role="listbox"
-                     aria-label="Search results"
-                     hidden></div>
-                <nav class="gallery-nav" id="gallery-nav">
-                    {% for app_node in nav_tree %}
-                        {% include "dj_design_system/gallery/navtree.html" with node=app_node depth=0 active_path=active_path active_variant=active_variant %}
-                    {% endfor %}
-                </nav>
-            </aside>
-
-            {# ── Right pane ──────────────────────────────────────────── #}
-            <main class="gallery-main">
+        {% url 'gallery' as gallery_url %}
+        {% dds__layout__gallery_shell %}
+            {% slot "sidebar" %}
+                {% dds__layout__sidebar title=design_system_name title_url=gallery_url %}
+                    {% slot "search" %}
+                        {% dds__navigation__search_box %}
+                    {% endslot %}
+                    {% slot "nav" %}
+                        {% dds__navigation__nav_tree nav_tree active_path=active_path active_variant=active_variant %}
+                    {% endslot %}
+                {% enddds__layout__sidebar %}
+            {% endslot %}
+            {% slot "toolbar" %}
                 {% block toolbar %}
-                    <div class="gallery-toolbar">
-                        <div class="gallery-toolbar__breadcrumb">
+                    {% dds__layout__toolbar %}
+                        {% slot "start" %}
                             {% block breadcrumb %}
-                                <a href="{% url 'gallery' %}">Gallery</a>
+                                <a href="{{ gallery_url }}">Gallery</a>
                             {% endblock %}
-                        </div>
-                        <div class="gallery-toolbar__actions">
-                            {% if available_themes|length > 1 %}
-                                <div class="gallery-header-theme">
-                                    <select class="gallery-header-theme__select"
-                                            id="gallery-global-theme-select"
-                                            title="Global Theme">
-                                        {% for theme_dict in available_themes %}
-                                            <option value="{{ theme_dict.value }}"
-                                                    {% if theme_dict.value == active_theme %}selected{% endif %}>
-                                                {{ theme_dict.label }}
-                                            </option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                            {% endif %}
+                        {% endslot %}
+                        {% slot "actions" %}
+                            {% dds__navigation__theme_select available_themes active_theme %}
                             {% block toolbar_actions %}{% endblock %}
-                        </div>
-                    </div>
+                        {% endslot %}
+                    {% enddds__layout__toolbar %}
                 {% endblock %}
-
-                {# ── Content area: Documentation + Sandbox ───────────── #}
-                <div class="gallery-content-area">
-                    {% block content %}{% endblock %}
-                </div>
-            </main>
-        </div>
+            {% endslot %}
+            {% slot "content" %}
+                {% block content %}{% endblock %}
+            {% endslot %}
+        {% enddds__layout__gallery_shell %}
         {% gallery_scripts %}
         {% block extra_js %}{% endblock %}
     </body>

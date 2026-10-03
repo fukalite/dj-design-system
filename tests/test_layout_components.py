@@ -4,7 +4,7 @@ import pytest
 
 from dj_design_system.services.media import FOUNDATION_CSS
 from dj_design_system.services.registry import component_registry
-from tests.html_utils import STATIC, css_homes, render, root, tags
+from tests.html_utils import css_homes, render, root, tags
 
 
 NAMES = [
@@ -211,13 +211,10 @@ class TestCssMovedNotCopied:
     def test_rule_lives_only_in_owner(self, selector, owner):
         assert css_homes(selector) == [f"ui/layout/{owner}"]
 
-    def test_legacy_stylesheet_keeps_unmoved_sections(self):
-        legacy = (STATIC / "gallery.css").read_text()
-        assert ".gallery-sandbox__current-signature {" in legacy  # track 4
-
     def test_folder_heading_yields_to_page_context(self):
-        # .gallery-docs h2 now loads before gallery.css; the folder heading
-        # uses :where() to keep losing to it, as it did on source order.
+        # .gallery-docs h2 used to follow the folder heading in gallery.css;
+        # the folder heading uses :where() to keep losing to it whatever the
+        # stylesheet order.
         assert css_homes(":where(.gallery-folder-contents) h2 {") == [
             "ui/navigation/folder_listing.css"
         ]
