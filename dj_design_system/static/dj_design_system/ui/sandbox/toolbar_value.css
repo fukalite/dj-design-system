@@ -1,0 +1,18 @@
+/* ToolbarValue — dds__sandbox__toolbar_value. Moved from sandbox_toolbar.css. */
+
+/* ------------------------------------------------------------------ */
+/* Zoom popout                                                         */
+/* ------------------------------------------------------------------ */
+
+.gallery-sandbox-toolbar__zoom-value {
+  font-variant-numeric: tabular-nums;
+  min-width: 3ch;
+}
+
+/* ------------------------------------------------------------------ */
+/* Viewport popout                                                     */
+/* ------------------------------------------------------------------ */
+
+.gallery-sandbox-toolbar__viewport-value {
+  font-variant-numeric: tabular-nums;
+}

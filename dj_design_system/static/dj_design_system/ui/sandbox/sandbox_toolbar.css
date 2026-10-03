@@ -47,52 +47,6 @@ form.gallery-sandbox-toolbar__presets {
   min-width: 0;
 }
 
-.gallery-sandbox-toolbar__bg-swatch {
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  border: 1px solid var(--gallery-border);
-  border-radius: 2px;
-  background: var(--gallery-content-bg);
-}
-
-/* Colour chips — preset classes or dynamic style */
-.gallery-sandbox-toolbar__bg-chip {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  border: 1px solid var(--gallery-border);
-  border-radius: 3px;
-}
-
-.gallery-sandbox-toolbar__bg-chip--white,
-.gallery-bg-chip-white { background: #ffffff; }
-.gallery-sandbox-toolbar__bg-chip--light-grey,
-.gallery-bg-chip-light-grey { background: #f6f8fa; }
-.gallery-sandbox-toolbar__bg-chip--dark-grey,
-.gallery-bg-chip-dark-grey { background: #24292e; }
-.gallery-sandbox-toolbar__bg-chip--black,
-.gallery-bg-chip-black { background: #000000; }
-.gallery-sandbox-toolbar__bg-chip--transparent,
-.gallery-bg-chip-transparent { background: transparent; }
-
-/* ------------------------------------------------------------------ */
-/* Zoom popout                                                         */
-/* ------------------------------------------------------------------ */
-
-.gallery-sandbox-toolbar__zoom-value {
-  font-variant-numeric: tabular-nums;
-  min-width: 3ch;
-}
-
-/* ------------------------------------------------------------------ */
-/* Viewport popout                                                     */
-/* ------------------------------------------------------------------ */
-
-.gallery-sandbox-toolbar__viewport-value {
-  font-variant-numeric: tabular-nums;
-}
-
 /* Dashed border on the iframe when a fixed viewport is active */
 .gallery-sandbox__canvas--viewport {
   overflow: hidden;
