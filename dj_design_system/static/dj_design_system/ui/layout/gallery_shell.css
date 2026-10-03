@@ -1,0 +1,29 @@
+/* GalleryShell — dds__layout__gallery_shell. Moved from gallery.css. */
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.gallery {
+  display: flex;
+  height: 100vh;
+  font-family: var(--gallery-font);
+  font-size: var(--gallery-font-size);
+  color: var(--gallery-text);
+  background: var(--gallery-bg);
+}
+
+.gallery-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.gallery-content-area {
+  flex: 1;
+  overflow: auto;
+}

@@ -1,0 +1,12 @@
+<div class="gallery-tabs"
+     role="radiogroup"
+     {% if label %}aria-label="{{ label }}"{% endif %}>
+    {% for tab in tabs %}
+        <input type="radio"
+               name="gallery-tab"
+               id="{{ tab.id }}"
+               class="gallery-tabs__input"
+               {% if tab.checked %}checked{% endif %}>
+        <label for="{{ tab.id }}" class="gallery-tabs__label">{{ tab.label }}</label>
+    {% endfor %}
+</div>

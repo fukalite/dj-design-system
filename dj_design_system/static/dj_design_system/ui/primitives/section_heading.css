@@ -1,11 +1,12 @@
 /* SectionHeading — dds__primitives__section_heading. Moved from gallery.css.
  *
- * The section rule matches any heading level. :is() keeps the original
- * h3.gallery-docs__section-heading specificity, so it still loses to the
- * later .gallery-docs h3 rules exactly as before.
+ * The section rule matches any heading level. :where() keeps its
+ * specificity at a single class, so page context rules such as
+ * .gallery-docs h3 still win, as they did when this rule came earlier in
+ * gallery.css, whatever order the stylesheets load in.
  */
 
-:is(h1, h2, h3, h4, h5, h6).gallery-docs__section-heading {
+:where(h1, h2, h3, h4, h5, h6).gallery-docs__section-heading {
   font-size: 13px;
   font-weight: 600;
   text-transform: uppercase;
@@ -14,7 +15,7 @@
   margin: 20px 0 10px;
 }
 
-:is(h1, h2, h3, h4, h5, h6).gallery-docs__section-heading:first-child {
+:where(h1, h2, h3, h4, h5, h6).gallery-docs__section-heading:first-child {
   margin-top: 0;
 }
 

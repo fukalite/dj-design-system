@@ -1,0 +1,81 @@
+/* Breadcrumb — dds__navigation__breadcrumb. Moved from gallery.css. */
+
+.gallery-breadcrumb__toggle {
+  display: none;
+}
+
+/* On wide viewports: show full path, hide collapsed bits */
+.gallery-breadcrumb__collapsed {
+  display: none;
+}
+
+.gallery-breadcrumb__full {
+  display: inline;
+}
+
+.gallery-breadcrumb__current {
+  font-weight: 500;
+  color: var(--gallery-text);
+}
+
+.gallery-breadcrumb__sep {
+  margin: 0 4px;
+  color: var(--gallery-text-muted);
+}
+
+/* Ellipsis trigger (visible only on narrow viewports) */
+.gallery-breadcrumb__ellipsis {
+  display: inline-block;
+  cursor: pointer;
+  padding: 0 4px;
+  color: var(--gallery-accent);
+  font-weight: 600;
+  border-radius: 3px;
+  user-select: none;
+}
+
+.gallery-breadcrumb__ellipsis:hover {
+  background: var(--gallery-code-bg);
+}
+
+/* Flyout panel for ancestor breadcrumbs */
+.gallery-breadcrumb__flyout {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  padding: 8px 12px;
+  background: var(--gallery-content-bg);
+  border: 1px solid var(--gallery-border);
+  border-radius: var(--gallery-radius);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  z-index: 100;
+  font-size: 13px;
+}
+
+.gallery-breadcrumb__flyout a {
+  color: var(--gallery-accent);
+  text-decoration: none;
+}
+
+.gallery-breadcrumb__flyout a:hover {
+  text-decoration: underline;
+}
+
+/* When toggle is checked, show the flyout */
+.gallery-breadcrumb__toggle:checked ~ .gallery-breadcrumb__flyout {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  /* Breadcrumb: collapse to first + ellipsis + current */
+  .gallery-breadcrumb__full {
+    display: none;
+  }
+
+  .gallery-breadcrumb__collapsed {
+    display: inline;
+  }
+}
