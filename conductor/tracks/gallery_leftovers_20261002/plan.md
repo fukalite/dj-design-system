@@ -17,9 +17,9 @@ Moves the last hand-written gallery markup into built-in components and shared t
 ---
 
 ## Phase 2: Sandbox Parts
-- [ ] Task: `BgSwatch` and `ToolbarValue`
-  - [ ] Write failing tests (parity with the toolbar's swatch, chip and value markup).
-  - [ ] Implement them and use them in `toolbar.html`.
+- [x] Task: `BgSwatch` and `ToolbarValue` [65011ab]
+  - [x] Write failing tests (parity with the toolbar's swatch, chip and value markup).
+  - [x] Implement them and use them in `toolbar.html`.
 - [ ] Task: `SandboxCanvas`
   - [ ] Write failing tests (parity with the wrapper, CSS ownership).
   - [ ] Implement it, move the `.gallery-sandbox__canvas` rule, and use it in `sandbox_fragment.html`.
