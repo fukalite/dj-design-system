@@ -1,0 +1,15 @@
+/* UsageExamples — dds__docs__usage_examples. Moved from usage_example.css. */
+
+.gallery-usage {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+
+/* Responsive: maintain full width on all viewports */
+@media (max-width: 1200px) {
+  .gallery-usage {
+    flex-direction: column;
+  }
+}

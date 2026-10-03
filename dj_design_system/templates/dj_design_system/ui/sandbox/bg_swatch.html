@@ -1,0 +1,6 @@
+{% if value %}
+    <span class="gallery-sandbox-toolbar__bg-chip gallery-sandbox-toolbar__bg-chip--{{ value }} gallery-bg-chip-{{ value }}"></span>
+    {% if label %}<span class="gallery-sandbox-toolbar__bg-option-label">{{ label }}</span>{% endif %}
+{% else %}
+    <span class="gallery-sandbox-toolbar__bg-swatch"></span>
+{% endif %}

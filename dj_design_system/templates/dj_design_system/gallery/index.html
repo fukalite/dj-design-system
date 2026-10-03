@@ -5,12 +5,13 @@
 
 {% block content %}
     {% dds__layout__page %}
-        <h1>{{ design_system_name }}</h1>
-        <p>
-            Browse the component library using the sidebar.
-            Select a component to see its documentation, preview, and parameters.
-        </p>
-        <p>{{ total_components }} component{{ total_components|pluralize }} registered.</p>
+        {% dds__layout__page_header title=design_system_name %}
+            <p>
+                Browse the component library using the sidebar.
+                Select a component to see its documentation, preview, and parameters.
+            </p>
+            <p>{{ total_components }} component{{ total_components|pluralize }} registered.</p>
+        {% enddds__layout__page_header %}
         {% dds__primitives__notice snapshot=True %}
             <strong>⚠ You are viewing a static snapshot of the gallery.</strong>
             <p>

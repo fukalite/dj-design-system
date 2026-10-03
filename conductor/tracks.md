@@ -52,3 +52,6 @@
 
 - [x] **Track: Gallery Rebuild 6 — Example Project Showcase & Documentation**
   *Link: [tracks/gallery_example_docs_20260928/index.md](tracks/gallery_example_docs_20260928/index.md)*
+
+- [x] **Track: Gallery Rebuild 7 — Remaining Markup into Components**
+  *Link: [tracks/gallery_leftovers_20261002/index.md](tracks/gallery_leftovers_20261002/index.md)*

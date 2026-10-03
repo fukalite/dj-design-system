@@ -1,9 +1,9 @@
 {# Partial fragment rendered when htmx requests only the sandbox pane body. #}
 {% load design_components %}
 {% include "dj_design_system/gallery/toolbar.html" %}
-<div class="gallery-sandbox__canvas">
+{% dds__sandbox__sandbox_canvas %}
     {% dds__canvas__canvas_widget unique_id="sandbox" iframe_src=canvas_iframe_url iframe_class="gallery-sandbox__iframe" extra_classes="gallery-sandbox__widget" template_source=template_source rendered_output=rendered_output %}
-</div>
+{% enddds__sandbox__sandbox_canvas %}
 {% if param_rows %}
     {% dds__sandbox__params_form url=request.path theme=active_theme active_variant=active_variant.name %}
         {% for row in param_rows %}
