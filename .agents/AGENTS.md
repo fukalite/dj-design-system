@@ -1,5 +1,5 @@
 # Code stylguides
-There are clear styleguides to follow, you can find them in `conductor/styleguides`.
+There are clear styleguides to follow, you can find them in `conductor/code_styleguides`. For Python/Django code, follow `layered-architecture.md`.
 
 # Agent Behaviours & Persona
 

@@ -65,7 +65,7 @@ Style Guide.
 # Python & Django Coding Rules
 
 ## Architecture & Structure
-- **Service Layers**: Use service layers for all logic, to handle all mutations and side effects.
+- **Layering**: Follow [layered-architecture.md](layered-architecture.md). Business logic holds rules and processes (including side effects); services read and change data for their own app.
 - **Imports**: Prefer global imports over local ones (except to avoid specific circular dependencies).
 - **Decoupling**: Minimize dependencies and coupling. Wrap side-effect libraries in service layers to limit blast area.
 - **Module Scope**: Only use `_` prefix for functions scoped to the current module. Never import `_` functions from elsewhere.
