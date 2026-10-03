@@ -40,18 +40,17 @@ VIEWPORTS = [
 TOOLBAR = """
 {% dds__sandbox__sandbox_toolbar variants=variants variants_url=variants_url active_variant=active_variant theme=theme %}
     {% dds__sandbox__popout panel_id="gallery-bg-panel" panel_name="bg" title="Background colour" toggle_class="gallery-sandbox-toolbar__bg-toggle" panel_attrs=bg_attrs %}
-        {% slot "toggle" %}<span class="gallery-sandbox-toolbar__bg-swatch"></span>{% endslot %}
+        {% slot "toggle" %}{% dds__sandbox__bg_swatch %}{% endslot %}
         {% slot "options" %}
             {% for bg in backgrounds %}
                 {% dds__sandbox__popout_option data_name="bg" value=bg.value active=bg.active title=bg.label extra_classes="gallery-sandbox-toolbar__bg-option" %}
-                    <span class="gallery-sandbox-toolbar__bg-chip gallery-sandbox-toolbar__bg-chip--{{ bg.value }} gallery-bg-chip-{{ bg.value }}"></span>
-                    <span class="gallery-sandbox-toolbar__bg-option-label">{{ bg.label }}</span>
+                    {% dds__sandbox__bg_swatch value=bg.value label=bg.label %}
                 {% enddds__sandbox__popout_option %}
             {% endfor %}
         {% endslot %}
     {% enddds__sandbox__popout %}
     {% dds__sandbox__popout panel_id="gallery-viewport-panel" panel_name="viewport" title="Viewport width" toggle_class="gallery-sandbox-toolbar__viewport-toggle" %}
-        {% slot "toggle" %}{% dds__primitives__icon "monitor" %}<span class="gallery-sandbox-toolbar__viewport-value">Responsive</span>{% endslot %}
+        {% slot "toggle" %}{% dds__primitives__icon "monitor" %}{% dds__sandbox__toolbar_value "viewport" "Responsive" %}{% endslot %}
         {% slot "options" %}
             {% for vp in viewports %}
                 {% dds__sandbox__popout_option data_name="viewport" value=vp.value active=vp.active title=vp.title extra_classes="gallery-sandbox-toolbar__viewport-btn" %}{{ vp.label }}{% enddds__sandbox__popout_option %}
@@ -59,7 +58,7 @@ TOOLBAR = """
         {% endslot %}
     {% enddds__sandbox__popout %}
     {% dds__sandbox__popout panel_id="gallery-zoom-panel" panel_name="zoom" title="Zoom level" toggle_class="gallery-sandbox-toolbar__zoom-toggle" %}
-        {% slot "toggle" %}<span class="gallery-sandbox-toolbar__zoom-value">100%</span>{% endslot %}
+        {% slot "toggle" %}{% dds__sandbox__toolbar_value "zoom" "100%" %}{% endslot %}
         {% slot "options" %}
             {% for level in zoom_levels %}
                 {% dds__sandbox__popout_option data_name="zoom" value=level.value active=level.active title=level.title extra_classes="gallery-sandbox-toolbar__zoom-btn" %}{{ level.value }}%{% enddds__sandbox__popout_option %}
@@ -119,6 +118,65 @@ def legacy_toolbar(variants=(), active_variant=None, theme="") -> str:
 
 def _info(name: str):
     return component_registry.get_by_name(name, app_label="dj_design_system")
+
+
+class TestBgSwatch:
+    def test_toggle_swatch(self):
+        assert render("{% dds__sandbox__bg_swatch %}") == (
+            '<span class="gallery-sandbox-toolbar__bg-swatch"></span>'
+        )
+
+    def test_option_chip_and_label(self):
+        markup = render(
+            '{% dds__sandbox__bg_swatch value="dark-grey" label="Dark grey" %}'
+        )
+        assert tags(markup) == [
+            (
+                "span",
+                {
+                    "class": "gallery-sandbox-toolbar__bg-chip"
+                    " gallery-sandbox-toolbar__bg-chip--dark-grey"
+                    " gallery-bg-chip-dark-grey"
+                },
+            ),
+            ("span", {"class": "gallery-sandbox-toolbar__bg-option-label"}),
+        ]
+        assert "Dark grey" in markup
+
+    def test_chip_without_label(self):
+        markup = render('{% dds__sandbox__bg_swatch value="white" %}')
+        assert [t for t, a in tags(markup)] == ["span"]
+
+    def test_escapes(self):
+        markup = render(
+            "{% dds__sandbox__bg_swatch value=v label=l %}", v='x"y', l="<b>"
+        )
+        assert "&lt;b&gt;" in markup
+        assert 'x"y' not in markup
+
+
+class TestToolbarValue:
+    @pytest.mark.parametrize(
+        ("name", "text"), [("zoom", "100%"), ("viewport", "Responsive")]
+    )
+    def test_value_label(self, name, text):
+        markup = render(f'{{% dds__sandbox__toolbar_value "{name}" "{text}" %}}')
+        assert (
+            markup
+            == f'<span class="gallery-sandbox-toolbar__{name}-value">{text}</span>'
+        )
+
+    def test_rejects_other_names(self):
+        with pytest.raises((TypeError, ValueError)):
+            render('{% dds__sandbox__toolbar_value "bg" "x" %}')
+
+
+class TestToolbarTemplate:
+    def test_has_no_hand_written_markup(self):
+        source = Path(
+            "dj_design_system/templates/dj_design_system/gallery/toolbar.html"
+        ).read_text()
+        assert "<span" not in source
 
 
 class TestComposedToolbar:
@@ -361,7 +419,15 @@ UI = "dj_design_system/ui"
 
 class TestRegistrationAndMedia:
     @pytest.mark.parametrize(
-        "name", ["sandbox_toolbar", "popout", "popout_option", "toggle_button"]
+        "name",
+        [
+            "sandbox_toolbar",
+            "popout",
+            "popout_option",
+            "toggle_button",
+            "bg_swatch",
+            "toolbar_value",
+        ],
     )
     def test_internal_with_dds_name(self, name):
         info = _info(name)
@@ -398,6 +464,8 @@ class TestRegistrationAndMedia:
                     "primitives/icon.css",
                     "primitives/button.css",
                     "sandbox/sandbox_toolbar.css",
+                    "sandbox/bg_swatch.css",
+                    "sandbox/toolbar_value.css",
                     "sandbox/popout.css",
                     "sandbox/toggle_button.css",
                 ],
@@ -422,16 +490,16 @@ class TestRegistrationAndMedia:
             (".gallery-sandbox-toolbar {", "ui/sandbox/sandbox_toolbar.css"),
             (".gallery-sandbox-toolbar__group {", "ui/sandbox/sandbox_toolbar.css"),
             (".gallery-sandbox-toolbar__bg-toggle {", "ui/sandbox/sandbox_toolbar.css"),
-            (".gallery-sandbox-toolbar__bg-swatch {", "ui/sandbox/sandbox_toolbar.css"),
-            (".gallery-sandbox-toolbar__bg-chip {", "ui/sandbox/sandbox_toolbar.css"),
-            (".gallery-bg-chip-white {", "ui/sandbox/sandbox_toolbar.css"),
+            (".gallery-sandbox-toolbar__bg-swatch {", "ui/sandbox/bg_swatch.css"),
+            (".gallery-sandbox-toolbar__bg-chip {", "ui/sandbox/bg_swatch.css"),
+            (".gallery-bg-chip-white {", "ui/sandbox/bg_swatch.css"),
             (
                 ".gallery-sandbox-toolbar__zoom-value {",
-                "ui/sandbox/sandbox_toolbar.css",
+                "ui/sandbox/toolbar_value.css",
             ),
             (
                 ".gallery-sandbox-toolbar__viewport-value {",
-                "ui/sandbox/sandbox_toolbar.css",
+                "ui/sandbox/toolbar_value.css",
             ),
             (".gallery-sandbox__canvas--viewport {", "ui/sandbox/sandbox_toolbar.css"),
             (".gallery-sandbox-toolbar__popout {", "ui/sandbox/popout.css"),

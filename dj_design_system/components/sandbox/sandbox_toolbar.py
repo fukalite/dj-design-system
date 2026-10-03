@@ -39,12 +39,15 @@ class SandboxToolbar(BlockComponent):
     )
 
     class Media:
-        # The content is Popouts, PopoutOptions and ToggleButtons.
+        # The content is Popouts, PopoutOptions, ToggleButtons, BgSwatches
+        # and ToolbarValues.
         css = [
             FOUNDATION_CSS,
             "dj_design_system/ui/primitives/icon.css",
             "dj_design_system/ui/primitives/button.css",
             "dj_design_system/ui/sandbox/sandbox_toolbar.css",
+            "dj_design_system/ui/sandbox/bg_swatch.css",
+            "dj_design_system/ui/sandbox/toolbar_value.css",
             "dj_design_system/ui/sandbox/popout.css",
             "dj_design_system/ui/sandbox/toggle_button.css",
         ]
