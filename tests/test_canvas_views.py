@@ -35,6 +35,23 @@ class TestCanvasIframeView:
         assert "gallery-canvas-error" in content
         assert "not found" in content
 
+    def test_canvas_css_defines_error_rule(self):
+        """canvas.css must style .gallery-canvas-error without parent tokens."""
+        from pathlib import Path
+
+        css_path = Path("dj_design_system/static/dj_design_system/canvas.css")
+        content = css_path.read_text(encoding="utf-8")
+
+        assert ".gallery-canvas-error" in content
+        start = content.find(".gallery-canvas-error")
+        end = content.find("}", start)
+        error_rule = content[start:end]
+
+        assert "#e03131" in error_rule
+        assert "500" in error_rule
+        assert "system-ui" in error_rule
+        assert "--gallery-" not in error_rule
+
     def test_valid_component_renders_html_document(self):
         client = Client()
         url = reverse("gallery-canvas-iframe")
