@@ -1,0 +1,20 @@
+Phase 1 verification: Canvas Messages, PageHeader, UsageExamples
+(gallery_leftovers_20261002)
+
+Automated:
+- just check: ruff clean, djlint 0 files would be updated
+- just typecheck: no issues in 128 source files
+- just test: 1459 passed
+- just e2e (non-visual): 64 passed
+- Visual (pinned container): 157 passed, 26 known cases kept (#135, #136);
+  only 8 new built-in baselines added, no existing baseline changed
+- Markup comparison against t6 (c99e16a): index, folder, component, variant,
+  sandbox fragment, working canvas and failing canvas render identically
+
+Manual (on the LAN dev server, port 8010):
+- Index and folder headings, component page usage examples and the variant
+  page unchanged
+- PageHeader and UsageExamples gallery pages render with examples and sandbox
+- Canvas error unchanged (unstyled in the iframe, #147)
+
+User confirmation: "Happy" (2026-10-03)
