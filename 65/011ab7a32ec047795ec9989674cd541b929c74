@@ -1,0 +1,21 @@
+Task: BgSwatch and ToolbarValue (gallery_leftovers_20261002, phase 2)
+
+Summary: two new built-ins.
+- dds__sandbox__bg_swatch: no value -> the toggle's swatch; with value -> the
+  option's chip (both chip class forms) plus an optional label.
+- dds__sandbox__toolbar_value: name (viewport|zoom) and text.
+toolbar.html now has no hand-written markup; the toolbar's legacy snapshot
+still matches. The swatch, chip and value rules move from
+sandbox_toolbar.css to bg_swatch.css and toolbar_value.css, and
+SandboxToolbar's Media lists both (composed media).
+
+Files:
+- dj_design_system/components/sandbox/bg_swatch.py, toolbar_value.py (+ _gallery.py)
+- dj_design_system/templates/dj_design_system/ui/sandbox/bg_swatch.html, toolbar_value.html
+- dj_design_system/static/dj_design_system/ui/sandbox/bg_swatch.css, toolbar_value.css
+- dj_design_system/static/dj_design_system/ui/sandbox/sandbox_toolbar.css
+- dj_design_system/components/sandbox/sandbox_toolbar.py, index.md
+- dj_design_system/templates/dj_design_system/gallery/toolbar.html
+- tests/test_sandbox_toolbar_components.py
+
+Why: the toolbar composition still wrote its swatches and value labels by hand.
