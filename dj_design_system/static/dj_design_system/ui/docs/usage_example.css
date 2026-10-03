@@ -1,0 +1,32 @@
+/* UsageExample — dds__docs__usage_example. Moved from gallery.css. */
+
+/* Doc preview iframe (basic-mode canvas in docs pane) */
+.gallery-doc-preview {
+  position: relative;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.gallery-doc-preview__iframe {
+  min-height: 60px;
+}
+
+.gallery-usage {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+
+.gallery-usage__block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Responsive: maintain full width on all viewports */
+@media (max-width: 1200px) {
+  .gallery-usage {
+    flex-direction: column;
+  }
+}

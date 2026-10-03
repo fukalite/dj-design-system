@@ -1,0 +1,23 @@
+/* Popout — dds__sandbox__popout. Moved from gallery-toolbar.css. The
+ * --toolbar-* token is set on .gallery-sandbox-toolbar; the fallback repeats
+ * its value so a popout outside a toolbar is styled the same. */
+
+.gallery-sandbox-toolbar__popout {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  background: var(--gallery-content-bg);
+  border: 1px solid var(--gallery-border);
+  border-radius: var(--gallery-radius);
+  box-shadow: 0 4px 12px var(--toolbar-popout-shadow, rgba(0, 0, 0, 0.12));
+  min-width: 140px;
+}
+
+.gallery-sandbox-toolbar__popout[hidden] {
+  display: none;
+}

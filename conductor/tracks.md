@@ -44,7 +44,7 @@
 - [x] **Track: Gallery Rebuild 3 — Navigation & Layout Components**
   *Link: [tracks/gallery_nav_layout_20260928/index.md](tracks/gallery_nav_layout_20260928/index.md)*
 
-- [ ] **Track: Gallery Rebuild 4 — Sandbox & Canvas Components**
+- [x] **Track: Gallery Rebuild 4 — Sandbox & Canvas Components**
   *Link: [tracks/gallery_sandbox_20260928/index.md](tracks/gallery_sandbox_20260928/index.md)*
 
 - [ ] **Track: Gallery Rebuild 5 — Page Composition & Legacy Asset Removal**

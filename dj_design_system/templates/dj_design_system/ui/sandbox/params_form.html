@@ -1,0 +1,21 @@
+<div class="gallery-sandbox__controls-wrapper" data-gallery-drawer>
+    <div class="gallery-sandbox__resizer"
+         role="separator"
+         tabindex="0"
+         aria-orientation="horizontal"
+         aria-label="Resize controls drawer"
+         data-gallery-resizer></div>
+    <div class="gallery-sandbox__controls">
+        <form method="get"
+              class="gallery-params-form"
+              hx-get="{{ url }}"
+              hx-replace-url="true"
+              hx-target="closest [data-gallery-sandbox-body]"
+              hx-swap="innerHTML"
+              hx-trigger="change delay:400ms, keyup delay:400ms from:input, keyup delay:400ms from:textarea">
+            <input type="hidden" name="theme" value="{{ theme }}">
+            {% if active_variant %}<input type="hidden" name="variant" value="{{ active_variant }}">{% endif %}
+            {{ content }}
+        </form>
+    </div>
+</div>

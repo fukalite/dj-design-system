@@ -1,0 +1,28 @@
+{% load static %}
+<div class="gallery-sandbox-toolbar"
+     data-measure-script="{% static 'dj_design_system/ui/sandbox/measure.js' %}">
+    {% if variants %}
+        <form method="get"
+              action="{{ variants_url }}#pane-sandbox"
+              class="gallery-sandbox-toolbar__group gallery-sandbox-toolbar__presets">
+            {% if theme %}<input type="hidden" name="theme" value="{{ theme }}">{% endif %}
+            <label for="gallery-variant-select" class="gallery-visually-hidden">Preset:</label>
+            <select id="gallery-variant-select"
+                    name="variant"
+                    class="gallery-sandbox-toolbar__select"
+                    data-gallery-variant-select
+                    aria-label="Select variant preset"
+                    title="Select variant preset">
+                <option value=""{% if not active_variant %} selected{% endif %}>Default</option>
+                {% for v in variants %}
+                    <option value="{{ v.name }}"
+                            {% if active_variant == v.name %}selected{% endif %}>{{ v.label }}</option>
+                {% endfor %}
+            </select>
+            <noscript>
+                <button type="submit" class="gallery-sandbox-toolbar__btn">Apply</button>
+            </noscript>
+        </form>
+    {% endif %}
+    {{ content }}
+</div>

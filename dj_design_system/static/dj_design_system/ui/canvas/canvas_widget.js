@@ -1,5 +1,5 @@
-/* Preview auto-height, split out of gallery-tabs.js when the tab syncing
- * moved to the Tabs component. Loaded only on component pages. */
+/* CanvasWidget — dds__canvas__canvas_widget. Moved from gallery-preview-resize.js.
+ * Sizes preview iframes to the height their canvas reports. */
 (function () {
     /* Auto-height: listen for resize messages from basic-mode iframes */
     window.addEventListener("message", function (event) {
