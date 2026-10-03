@@ -2,7 +2,7 @@
 
 - **ID:** gallery_leftovers_20261002
 - **Type:** refactor
-- **Status:** in progress
+- **Status:** completed
 
 ## Documents
 - [Specification](./spec.md)
