@@ -1,0 +1,22 @@
+Phase 2 verification: Sandbox Parts (gallery_leftovers_20261002)
+
+Automated:
+- just check: ruff clean, djlint 0 files would be updated
+- just typecheck: no issues in 134 source files
+- just test: 1473 passed
+- just e2e (non-visual): 64 passed (also 64 in phase 1)
+- Visual (pinned container): 169 passed, 26 known cases kept (#135, #136);
+  only 12 new built-in baselines added, no existing baseline changed
+  (including the open viewport popout)
+- Markup comparison against t6 (c99e16a): index, folder, component, variant,
+  sandbox fragment, working and failing canvas render identically; the
+  toolbar's legacy snapshot still matches
+
+Manual (on the LAN dev server, port 8010):
+- Background, viewport and zoom popouts and their labels behave as before;
+  parameter changes keep the choices
+- New built-in pages render
+- Choosing a variant preset resets background/viewport/zoom: pre-existing on
+  main (#86's full-page form submit), raised as #151, not changed here
+
+User confirmation: "Happy with phase 2" (2026-10-03)
