@@ -39,7 +39,7 @@ class TestCanvasIframeView:
         """canvas.css must style .gallery-canvas-error without parent tokens."""
         from pathlib import Path
 
-        css_path = Path("dj_design_system/static/dj_design_system/canvas.css")
+        css_path = Path(__file__).resolve().parents[1] / "dj_design_system" / "static" / "dj_design_system" / "canvas.css"
         content = css_path.read_text(encoding="utf-8")
 
         assert ".gallery-canvas-error" in content
