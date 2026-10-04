@@ -35,6 +35,7 @@ Usage
     base_url      – running server root, e.g. http://localhost:8000
 """
 
+import hashlib
 import html as html_module
 import os
 import re
@@ -53,13 +54,40 @@ STATIC_REF_RE = re.compile(r'(?:href|src)="(/static/[^"]+)"')
 
 
 def make_clean_name(decoded_qs: str) -> str:
-    """Convert a canvas query string into a safe, readable filename."""
+    """Convert a canvas query string into a safe, readable filename.
+
+    Ensures filenames are safe across all filesystems and artifact uploaders
+    (no colons, spaces, quotes, or other reserved characters, and bounded length).
+    Appends a deterministic hash of the query string to prevent collisions.
+    """
     params = dict(urllib.parse.parse_qsl(decoded_qs, keep_blank_values=True))
     component = params.pop("component", "unknown")
+    clean_component = re.sub(r"[^a-zA-Z0-9_-]", "_", component)
+
     # Sort remaining params so the name is deterministic
-    suffix_parts = [f"{k}_{v}" for k, v in sorted(params.items()) if v]
+    suffix_parts = []
+    canonical_items = sorted(params.items())
+    for k, v in canonical_items:
+        if not v:
+            continue
+        clean_k = re.sub(r"[^a-zA-Z0-9_-]", "_", k)
+        # Sanitise value and limit length per param
+        clean_v = re.sub(r"[^a-zA-Z0-9_-]", "_", v)[:30].strip("_")
+        if clean_v:
+            suffix_parts.append(f"{clean_k}_{clean_v}")
+        else:
+            suffix_parts.append(clean_k)
+
     suffix = "__".join(suffix_parts)
-    return component + (f"__{suffix}" if suffix else "") + ".html"
+    canonical_repr = f"component={component}&" + urllib.parse.urlencode(canonical_items)
+    qs_hash = hashlib.sha256(canonical_repr.encode("utf-8")).hexdigest()[:8]
+
+    base = f"{clean_component}__{suffix}" if suffix else clean_component
+    # Limit base length to keep overall path well under 255 chars
+    if len(base) > 100:
+        base = base[:100].rstrip("_")
+
+    return f"{base}__{qs_hash}.html"
 
 
 def fix_static_paths(html_content: str) -> str:

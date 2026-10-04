@@ -228,6 +228,7 @@ DJ_DESIGN_SYSTEM = {
 }
 ```
 
+<a id="customising-gallery-examples"></a>
 ## Customising Gallery Examples & Configuration
 
 By default, the gallery generates minimal and maximal usage examples automatically based on parameter types. You can customize examples and configure rich component metadata by creating a side-car Python file next to your component (`gallery.py` or `<component_name>_gallery.py`).
