@@ -27,6 +27,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The non-public gallery login redirect now preserves the request's query string in `next`, and supports an absolute `LOGIN_URL` (e.g. an external SSO page) instead of falling back to `/`.
 
+### Fixed
+
+- Sanitised static canvas snapshot filenames in `.github/scripts/save_canvas_pages.py` to remove colons and reserved characters that broke documentation deployment artifacts.
+- Added backward-compatible HTML anchor `#customising-gallery-examples` to `docs/gallery.md`.
+
+
 ## [0.0.1] - unreleased
 
 ### Added
