@@ -34,7 +34,7 @@ Your objective is to provide a constructive, focused, and high-signal code revie
 
 - **Formatting & Linting**: Spacing, PEP 8 indentation, line length, trailing commas, and import ordering are enforced automatically by Ruff and djLint in CI.
 - **Trivial Stylistic Preferences**: Do not suggest purely subjective rewrites or alternative syntax if the author's code is clean, readable, and functional.
-- **Docstrings & Comments**: Do not nitpick missing docstrings or comment phrasing unless an API contract is misleading or completely undocumented.
+- **Docstrings & Comments**: Do not nitpick docstrings or comment phrasing, but take the styleguides' docstring rules into consideration. Comment inline only where an API contract is misleading or undocumented.
 - **Untouched Code**: Only comment on lines added or modified in this pull request diff, or its close neighbours.
 
 ---
