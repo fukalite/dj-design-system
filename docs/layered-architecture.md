@@ -1,12 +1,9 @@
 # Layered Architecture
 
 Python/Django code in this project is split into four layers: interfaces,
-business logic, services and data. This page explains why and shows how they
-fit together. The short rules that agents and reviewers check against are in
-`conductor/code_styleguides/layered-architecture.md` in the repository.
-
-Adapted from Octopus Energy's
-[layered architecture conventions](https://github.com/octoenergy/public-conventions/blob/main/conventions/patterns.md).
+business logic, services and data. The rules are in
+`conductor/code_styleguides/layered-architecture.md` in the repository; this
+page explains them and shows how the layers fit together.
 
 ## The layers
 
@@ -17,9 +14,8 @@ Adapted from Octopus Energy's
 | **Services** | `<app>/services/<area>.py` | Read and change data for one app, or wrap one external concern |
 | **Data** | models, managers, querysets | Describe the shape of the data |
 
-Code is grouped by *area of concern* (`feedback`, `notifications`) rather
-than into `domain/` or `application/` folders. Use the same area name in
-`services/` and `business_logic/` so the two sides pair up. An area can start
+Code is grouped by *area of concern* (`feedback`, `notifications`). Use the
+same area name in `services/` and `business_logic/` so the two sides pair up. An area can start
 as a module and become a package when it grows.
 
 ## A worked example: submitting feedback
@@ -187,3 +183,10 @@ these layers is a defect, not a style nit.
 In a reusable Django package such as this one, business logic functions are
 also extension points: a consuming project can override or wrap a single
 rule or process without subclassing a view.
+
+## Acknowledgements
+
+This approach was inspired by Octopus Energy's
+[layered architecture conventions](https://github.com/octoenergy/public-conventions/blob/main/conventions/patterns.md).
+It differs in structure and terminology; this page and the styleguide are the
+source of truth.
