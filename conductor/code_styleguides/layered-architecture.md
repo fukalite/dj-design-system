@@ -14,7 +14,7 @@ Explanation and examples: [`docs/layered-architecture.md`](../../docs/layered-ar
     - **Processes** perform an action (`submit_feedback`), check the relevant rule themselves, call services, and own the side effects (notifications, emails, tasks).
 - **Services** (`<app>/services/<area>.py`): read and change data for their own app, or wrap one external concern (e.g. a notifications service). No authorisation checks.
 - **Data** (models, managers, querysets): thin. Fields, relationships, simple derived properties, reusable queryset filters.
-- No `domain/` or `application/` folders. Group by area of concern, using the same area name in `services/` and `business_logic/`.
+- Group by area of concern, using the same area name in `services/` and `business_logic/`.
 
 ## Dependencies
 - Interfaces → business logic → services → data.

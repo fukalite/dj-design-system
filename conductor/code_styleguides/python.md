@@ -3,7 +3,7 @@ trigger: model_decision
 description: When editing python code
 ---
 
-# Python & Django Rules
+# Python Rules
 
 Adapted from the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html)
 to fit this project. [general.md](general.md) also applies. Formatting is
