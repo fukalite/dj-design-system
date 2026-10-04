@@ -10,7 +10,6 @@ Style Guide.
 
 ## 1. Python Language Rules
 
--   **Linting:** Run `pylint` on your code to catch bugs and style issues.
 -   **Imports:** Use `import x` for packages/modules. Use `from x import y` only
     when `y` is a submodule.
 -   **Exceptions:** Use built-in exception classes. Do not use bare `except:`
@@ -27,21 +26,12 @@ Style Guide.
 
 ## 2. Python Style Rules
 
--   **Line Length:** Maximum 80 characters.
--   **Indentation:** 4 spaces per indentation level. Never use tabs.
--   **Blank Lines:** Two blank lines between top-level definitions (classes,
-    functions). One blank line between method definitions.
--   **Whitespace:** Avoid extraneous whitespace. Surround binary operators with
-    single spaces.
 -   **Docstrings:** Use `"""triple double quotes"""`. Every public module,
     function, class, and method must have a docstring.
     -   **Format:** Start with a one-line summary. Include `Args:`, `Returns:`,
         and `Raises:` sections.
--   **Strings:** Use f-strings for formatting. Be consistent with single (`'`)
-    or double (`"`) quotes.
+-   **Strings:** Use f-strings for formatting.
 -   **`TODO` Comments:** Use `TODO(username): Fix this.` format.
--   **Imports Formatting:** Imports should be on separate lines and grouped:
-    standard library, third-party, and your own application's imports.
 
 ## 3. Naming
 
@@ -71,15 +61,10 @@ Style Guide.
 - **Module Scope**: Only use `_` prefix for functions scoped to the current module. Never import `_` functions from elsewhere.
 
 ## Logic & Flow
-- **Style**:
-    - Prefer guard clauses over if/else (minimize indentation).
-    - Prefer small functions over multi-concern loops.
-    - Always use keyword arguments (`kwargs`) when calling functions.
+- **Keyword Arguments**: Always use keyword arguments (`kwargs`) when calling functions.
 - **Data Handling**:
     - Use **Data Classes** instead of raw dicts/lists for passing data.
     - Use **Constants** for any string referenced in more than one place. Collate constants.
-- **Error Handling**:
-    - Raise custom exceptions early. Never fail silently without explicit instruction and clear test coverage.
 
 ## Typing & Documentation
 - **Type Checking**: Use specific types everywhere. Collate custom types. Don't ever use duck typing. Add type hinting as you come across it.
