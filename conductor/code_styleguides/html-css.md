@@ -1,3 +1,8 @@
+---
+trigger: model_decision
+description: When editing HTML or CSS code
+---
+
 # Google HTML/CSS Style Guide Summary
 
 This document summarizes key rules and best practices from the Google HTML/CSS
