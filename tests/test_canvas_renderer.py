@@ -41,7 +41,7 @@ class TestCanvasRenderer:
         assert "canvas-wrapper--basic" in srcdoc
         assert "canvas-bg-" in srcdoc
 
-    def test_basic_mode_injects_resizing_and_centering_css(self):
+    def test_basic_mode_injects_resizing_css(self):
         rendered_html = "<p>basic mode</p>"
         srcdoc = build_canvas_srcdoc(
             rendered_html=rendered_html,
@@ -51,5 +51,13 @@ class TestCanvasRenderer:
         assert "min-height: 0 !important" in srcdoc
         assert "height: auto !important" in srcdoc
         assert "overflow: hidden !important" in srcdoc
-        assert "justify-content: center" in srcdoc
-        assert "align-items: center" in srcdoc
+
+    def test_basic_mode_leaves_component_layout_alone(self):
+        """The wrapper must not be a flex container (#156)."""
+        srcdoc = build_canvas_srcdoc(
+            rendered_html="<p>basic mode</p>",
+            mode_class="canvas-wrapper--basic",
+        )
+        assert "display: flex" not in srcdoc
+        assert "justify-content" not in srcdoc
+        assert "align-items" not in srcdoc

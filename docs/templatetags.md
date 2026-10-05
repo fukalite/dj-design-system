@@ -241,7 +241,7 @@ on a real page, without interference from gallery chrome.
 The tag automatically:
 
 - Loads global CSS via the same logic as `{% global_stylesheets %}`
-- Includes `canvas.css` for centering and background styles
+- Includes `canvas.css` for padding and background styles
 - Reads component CSS/JS from the `_canvas_component_css` and
   `_canvas_component_js` context variables, if set
 - Applies the `GALLERY_CANVAS_DEFAULT_BACKGROUND` setting
