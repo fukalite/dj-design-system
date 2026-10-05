@@ -16,11 +16,9 @@ body {
   height: 100%;
 }
 
-/* Wrapper: centres the component */
+/* Wrapper: fills the canvas. It leaves the component's layout alone, so a
+   component that fills its container gets the full width. */
 .canvas-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   min-height: 100%;
 }
 

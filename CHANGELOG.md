@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sanitised static canvas snapshot filenames in `.github/scripts/save_canvas_pages.py` to remove colons and reserved characters that broke documentation deployment artifacts.
 - Added backward-compatible HTML anchor `#customising-gallery-examples` to `docs/gallery.md`.
 - Added `.gallery-canvas-error` styling rule to `canvas.css` so canvas error messages inside iframes render with proper colour and typography without depending on host gallery tokens.
+- The canvas wrapper is no longer a flex container, so components that fill the space they are given render at full width instead of collapsing. Components are no longer centred in the canvas; their layout is left to the project ([#156](https://github.com/fukalite/dj-design-system/issues/156)).
 
 
 ## [0.0.1] - unreleased

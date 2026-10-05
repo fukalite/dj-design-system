@@ -156,7 +156,7 @@ iframe provides full CSS/JS isolation from the gallery chrome — the
 component is rendered in its own HTML document with the correct cascade:
 
 1. Global CSS (`{% global_stylesheets %}`)
-2. Canvas layout CSS (centering, padding, backgrounds)
+2. Canvas layout CSS (padding, backgrounds)
 3. Component-specific CSS
 
 A **toolbar** above the canvas provides:

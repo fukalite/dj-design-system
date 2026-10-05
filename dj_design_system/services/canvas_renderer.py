@@ -162,7 +162,6 @@ def build_canvas_srcdoc(
         basic_mode_css = (
             "<style>"
             "html, body { min-height: 0 !important; height: auto !important; overflow: hidden !important; }"
-            ".canvas-wrapper--basic { display: flex !important; justify-content: center !important; align-items: center !important; }"
             "</style>"
         )
 
