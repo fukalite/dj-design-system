@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking:** The canvas no longer centres components; they render in normal flow at the top-left of the canvas, inside its padding. Every screenshot taken of the canvas changes, so projects using the visual regression testing harness (`VisualRegressionPlugin`) must regenerate their baseline snapshots after upgrading, by running it once with `update_snapshots=True` ([#156](https://github.com/fukalite/dj-design-system/issues/156)).
 - The non-public gallery login redirect now preserves the request's query string in `next`, and supports an absolute `LOGIN_URL` (e.g. an external SSO page) instead of falling back to `/`.
 
 ### Fixed
