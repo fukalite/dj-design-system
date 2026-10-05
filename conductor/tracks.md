@@ -23,6 +23,9 @@
 - [ ] **Track: Remove Deprecated Legacy Gallery Kwargs**
   *Link: [tracks/deprecate_legacy_gallery_kwargs_20260927/index.md](tracks/deprecate_legacy_gallery_kwargs_20260927/index.md)*
 
+- [ ] **Track: Parameter Data Factories**
+  *Link: [tracks/param_data_factories_20261006/index.md](tracks/param_data_factories_20261006/index.md)*
+
 - [x] **Track: Security & Canvas Hardening**
   *Link: [conductor/tracks/security_canvas_hardening_20260928/index.md](conductor/tracks/security_canvas_hardening_20260928/index.md)*
 
