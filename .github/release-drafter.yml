@@ -1,0 +1,43 @@
+# Release notes are built from PR labels. Every PR needs exactly one of the
+# labels below (enforced by .github/workflows/pr-labels.yml).
+name-template: "v$RESOLVED_VERSION"
+tag-template: "v$RESOLVED_VERSION"
+change-template: "- $TITLE (#$NUMBER) @$AUTHOR"
+change-title-escapes: '\<*_&@'
+no-changes-template: "- No user-facing changes"
+sort-by: title
+sort-direction: ascending
+
+# Use `skip-changelog` for PRs that should not appear in the notes.
+exclude-labels:
+  - skip-changelog
+
+categories:
+  - title: "Breaking changes"
+    labels: [breaking]
+  - title: "Added"
+    labels: [enhancement]
+  - title: "Fixed"
+    labels: [bug]
+  - title: "Security"
+    labels: [security]
+  - title: "Documentation"
+    labels: [documentation]
+  - title: "Maintenance"
+    labels: [maintenance, dependencies]
+
+# While the project is pre-1.0, breaking changes bump the minor version.
+# Move `breaking` to `major` at 1.0.
+version-resolver:
+  minor:
+    labels: [breaking, enhancement]
+  patch:
+    labels: [bug, security, documentation, maintenance, dependencies]
+  default: patch
+
+template: |
+  ## What's Changed
+
+  $CHANGES
+
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION

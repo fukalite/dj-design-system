@@ -113,6 +113,19 @@ class TestNavigationOrder:
         child_slugs = [c.slug for c in app_node.children]
         assert child_slugs == ["aardvark", "bear", "zebra"]
 
+    def test_gallery_nav_order_accepts_plain_strings(self, settings):
+        """GALLERY_NAV_ORDER can be configured using plain strings without importing NodeType."""
+        settings.DJ_DESIGN_SYSTEM = {
+            "GALLERY_NAV_ORDER": ["component", "folder", "variant", "document"],
+        }
+        grouped = make_info_with_config("grouped_btn", GalleryConfig(group="Actions"))
+        top_level = make_info_with_config("top_btn", GalleryConfig())
+
+        tree = _build_navigation([grouped, top_level])
+        app_node = tree[0]
+        child_types = [c.node_type for c in app_node.children]
+        assert child_types == [NodeType.COMPONENT, NodeType.FOLDER]
+
 
 class TestNavigationGroup:
     """Tests for group sub-folders in navigation."""

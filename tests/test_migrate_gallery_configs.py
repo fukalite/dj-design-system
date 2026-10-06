@@ -89,6 +89,53 @@ maximal_kwargs = {"b": 2}
         )
         assert "config = GalleryConfig(" in new_source
 
+    def test_migrate_source_annotated_assignments(self):
+        source = """
+from typing import Any
+
+basic_kwargs: dict[str, Any] = {}
+
+maximal_kwargs: dict[str, Any] = {"title": "Hi"}
+"""
+        new_source, modified = migrate_source(source)
+        assert modified is True
+        assert "basic_kwargs" not in new_source
+        assert "maximal_kwargs" not in new_source
+
+        namespace: dict = {}
+        exec(new_source, namespace)
+        cfg = namespace["config"]
+        assert cfg.get_variant("basic") is not None
+        assert cfg.get_variant("basic").kwargs == {}
+        assert cfg.get_variant("maximal") is not None
+        assert cfg.get_variant("maximal").kwargs == {"title": "Hi"}
+
+    def test_migrate_source_annotated_config_returns_false(self):
+        source = """
+from dj_design_system.gallery import GalleryConfig
+
+config: GalleryConfig = GalleryConfig()
+"""
+        new_source, modified = migrate_source(source)
+        assert modified is False
+        assert new_source == source
+
+    def test_migrate_source_maximal_references_basic_kwargs(self):
+        source = """
+basic_kwargs = {"title": "Hi"}
+
+maximal_kwargs = basic_kwargs
+"""
+        new_source, modified = migrate_source(source)
+        assert modified is True
+        assert "basic_kwargs" not in new_source
+
+        namespace: dict = {}
+        exec(new_source, namespace)
+        cfg = namespace["config"]
+        assert cfg.get_variant("basic").kwargs == {"title": "Hi"}
+        assert cfg.get_variant("maximal").kwargs == {"title": "Hi"}
+
 
 class TestMigrateGalleryConfigsCommand:
     """Integration tests for the migrate_gallery_configs management command."""

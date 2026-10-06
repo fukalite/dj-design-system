@@ -37,7 +37,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Block component usage snippets and previews now read `content` and `slot__*` values from `GalleryConfig.param_defaults` and `Variant` configs, rendering `content` as the block body rather than a keyword argument ([#154](https://github.com/fukalite/dj-design-system/issues/154)).
 - Trusted `content` and `slot__*` strings declared in Python side-car `GalleryConfig`s now preserve HTML fragments, attributes (`class`, `style`), and nested component template tags across server renders and URL round-trips while keeping untrusted query string parameters sanitised ([#136](https://github.com/fukalite/dj-design-system/issues/136), [#162](https://github.com/fukalite/dj-design-system/issues/162)).
 - Raw `canvas_template` strings (without `{{ component }}`) now seed the template context with declared component parameter defaults from `get_params()` ([#164](https://github.com/fukalite/dj-design-system/issues/164)).
-
+- `migrate_gallery_configs` now migrates type-annotated `basic_kwargs` / `maximal_kwargs` assignments (`ast.AnnAssign`) and inlines cross-references such as `maximal_kwargs = basic_kwargs` without leaving a `NameError` ([#133](https://github.com/fukalite/dj-design-system/issues/133)).
+- `load_gallery_config` now registers loaded side-car modules in `sys.modules` under a deterministic module name so edits to `gallery.py` trigger Django's development server autoreloader ([#163](https://github.com/fukalite/dj-design-system/issues/163)).
+- `NodeType`, `TagType`, and `CanvasMode` now subclass `(str, enum.Enum)` so `GALLERY_NAV_ORDER` can be configured using plain strings in `settings.py` without importing `dj_design_system` ([#165](https://github.com/fukalite/dj-design-system/issues/165)).
 
 
 ## [0.0.1] - unreleased
