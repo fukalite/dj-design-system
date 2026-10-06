@@ -196,3 +196,29 @@ def test_discovery_with_dict_config(tmp_path: Path):
     assert len(cfg.variants) == 1
     assert cfg.variants[0].name == "primary"
     assert cfg.variants[0].kwargs == {"color": "blue"}
+
+
+def test_gallery_sidecar_registered_for_autoreload(tmp_path: Path):
+    """Loaded gallery side-car files are registered in sys.modules so Django's autoreloader watches them."""
+    from django.utils.autoreload import iter_all_python_module_files
+
+    from dj_design_system.gallery import load_gallery_config
+
+    gallery_file = tmp_path / "reloadable_gallery.py"
+    gallery_file.write_text(
+        "from dj_design_system.gallery import GalleryConfig, Variant\n"
+        "config = GalleryConfig(variants=[Variant(name='v1')])\n"
+    )
+
+    cfg1 = load_gallery_config(tmp_path, "reloadable")
+    assert [v.name for v in cfg1.variants] == ["v1"]
+
+    watched_files = iter_all_python_module_files()
+    assert gallery_file.resolve() in watched_files
+
+    gallery_file.write_text(
+        "from dj_design_system.gallery import GalleryConfig, Variant\n"
+        "config = GalleryConfig(variants=[Variant(name='v2')])\n"
+    )
+    cfg2 = load_gallery_config(tmp_path, "reloadable")
+    assert [v.name for v in cfg2.variants] == ["v2"]

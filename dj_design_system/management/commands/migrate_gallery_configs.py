@@ -3,12 +3,25 @@
 from __future__ import annotations
 
 import ast
+import copy
 import shutil
 import subprocess
 from pathlib import Path
 
 from django.apps import apps
 from django.core.management.base import BaseCommand, CommandError
+
+
+class _LegacyNameInliner(ast.NodeTransformer):
+    """Replace load references to stripped legacy kwargs names with their AST values."""
+
+    def __init__(self, replacements: dict[str, ast.expr]) -> None:
+        self.replacements = replacements
+
+    def visit_Name(self, node: ast.Name) -> ast.AST:
+        if isinstance(node.ctx, ast.Load) and node.id in self.replacements:
+            return copy.deepcopy(self.replacements[node.id])
+        return node
 
 
 def migrate_source(source: str, keep_legacy: bool = False) -> tuple[str, bool]:
@@ -42,10 +55,46 @@ def migrate_source(source: str, keep_legacy: bool = False) -> tuple[str, bool]:
                         is_legacy = True
             if is_legacy and not keep_legacy:
                 continue
+        elif (
+            isinstance(stmt, ast.AnnAssign)
+            and isinstance(stmt.target, ast.Name)
+            and stmt.value is not None
+        ):
+            is_legacy = False
+            if stmt.target.id == "config":
+                has_config = True
+            elif stmt.target.id == "basic_kwargs":
+                basic_val = stmt.value
+                is_legacy = True
+            elif stmt.target.id == "maximal_kwargs":
+                max_val = stmt.value
+                is_legacy = True
+            if is_legacy and not keep_legacy:
+                continue
         other_stmts.append(stmt)
 
     if has_config or (basic_val is None and max_val is None):
         return source, False
+
+    if not keep_legacy:
+        if (
+            max_val is not None
+            and basic_val is not None
+            and not (
+                isinstance(basic_val, ast.Name) and basic_val.id == "maximal_kwargs"
+            )
+        ):
+            max_val = _LegacyNameInliner({"basic_kwargs": basic_val}).visit(
+                copy.deepcopy(max_val)
+            )
+        if (
+            basic_val is not None
+            and max_val is not None
+            and not (isinstance(max_val, ast.Name) and max_val.id == "basic_kwargs")
+        ):
+            basic_val = _LegacyNameInliner({"maximal_kwargs": max_val}).visit(
+                copy.deepcopy(basic_val)
+            )
 
     has_gallery_import = False
     for stmt in other_stmts:
