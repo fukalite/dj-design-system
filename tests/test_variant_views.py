@@ -186,18 +186,6 @@ class TestVariantViews:
             in html
         )
 
-    def test_toolbar_persists_state_across_variant_selection(self):
-        """gallery-toolbar.js persists and restores toolbar state via sessionStorage (#151)."""
-        from pathlib import Path
-
-        js_path = Path("dj_design_system/static/dj_design_system/gallery-toolbar.js")
-        content = js_path.read_text(encoding="utf-8")
-
-        assert "sessionStorage" in content
-        assert "dds_toolbar_state" in content
-        assert "saveToolbarState" in content
-        assert "loadToolbarState" in content
-
 
 class TestNavLinkIsActive:
     """Unit tests for the ``nav_link_is_active`` template tag (#137)."""

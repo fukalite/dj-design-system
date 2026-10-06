@@ -211,3 +211,32 @@ class TestGallerySearch:
         page.wait_for_timeout(300)  # debounce
         content = page.content()
         assert "rich_button" in content
+
+
+# ---------------------------------------------------------------------------
+# Toolbar state persistence
+# ---------------------------------------------------------------------------
+
+
+class TestToolbarStatePersistence:
+    """Toolbar settings survive switching variant presets (#151)."""
+
+    def test_zoom_persists_across_variant_selection(self, page, live_server):
+        page.goto(f"{live_server.url}/dds/demo_components/badge/#pane-sandbox")
+        zoom_value = page.locator(".gallery-sandbox-toolbar__zoom-value")
+        assert zoom_value.inner_text() == "100%"
+
+        page.locator(".gallery-sandbox-toolbar__zoom-toggle").click()
+        page.locator('[data-zoom="150"]').click()
+        assert zoom_value.inner_text() == "150%"
+
+        # Choosing a preset submits the form and reloads the page.
+        with page.expect_navigation():
+            page.select_option("[data-gallery-variant-select]", "status")
+        assert "variant=status" in page.url
+
+        assert zoom_value.inner_text() == "150%"
+        active = page.locator(
+            '[data-zoom="150"].gallery-sandbox-toolbar__popout-option--active'
+        )
+        assert active.count() == 1
