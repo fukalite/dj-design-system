@@ -359,7 +359,7 @@ def generate_current_tag_signature(
     )
 
 
-def _content_code(value: Any) -> str | None:
+def _content_code(value: object) -> str | None:
     """Return how a side-car's block content appears in a usage example."""
     from dj_design_system.data import GalleryParameter
 
