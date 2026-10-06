@@ -76,10 +76,15 @@ jobs:
           # --exclude-directories=_canvas keeps the canvas iframe src attrs as
           # absolute URLs (/_canvas/?component=…) so the Python step below can
           # fetch, clean-name, and patch them properly.
+          # --restrict-file-names=windows saves query-string pages (e.g.
+          # ?variant=x) with '@' in place of '?', which artifact uploads reject,
+          # and --convert-links rewrites links to match.
           wget \
             --mirror \
             --convert-links \
             --adjust-extension \
+            --restrict-file-names=windows \
+            --no-host-directories \
             --no-parent \
             --page-requisites \
             --reject "*.py,*.pyc" \
@@ -95,11 +100,11 @@ jobs:
       - name: Save canvas iframe pages as clean static files
         run: |
           python3 .github/scripts/save_canvas_pages.py \
-            gallery-snapshot/localhost:8000 \
+            gallery-snapshot \
             http://localhost:8000
           # Jekyll (which GitHub Pages may invoke) silently ignores directories
           # starting with '_' (including _canvas). .nojekyll disables that.
-          touch gallery-snapshot/localhost:8000/.nojekyll
+          touch gallery-snapshot/.nojekyll
         env:
           DJANGO_SETTINGS_MODULE: example_project.settings
 
@@ -107,7 +112,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: gallery-snapshot
-          path: gallery-snapshot/localhost:8000/
+          path: gallery-snapshot/
 
   deploy:
     name: Deploy to GitHub Pages

@@ -31,10 +31,11 @@ Usage
 -----
     python3 save_canvas_pages.py <snapshot_dir> <base_url>
 
-    snapshot_dir  – root of the wget mirror, e.g. gallery-snapshot/localhost:8000
+    snapshot_dir  – root of the wget mirror, e.g. gallery-snapshot
     base_url      – running server root, e.g. http://localhost:8000
 """
 
+import functools
 import hashlib
 import html as html_module
 import os
@@ -164,6 +165,22 @@ def fetch_and_save(
     return errors
 
 
+def replace_canvas_src(
+    m: re.Match,
+    html_file: Path,
+    canvas_out: Path,
+    canvas_map: dict[str, str],
+) -> str:
+    """Return a ``src`` attr pointing at the saved canvas file, relative to ``html_file``."""
+    decoded_qs = html_module.unescape(m.group(2))
+    clean_name = canvas_map.get(decoded_qs)
+    if not clean_name:
+        return m.group(0)
+    canvas_file = canvas_out / clean_name
+    rel = os.path.relpath(canvas_file, html_file.parent)
+    return f'src="{rel}"'
+
+
 def patch_gallery_html(
     snapshot: Path,
     canvas_out: Path,
@@ -175,16 +192,12 @@ def patch_gallery_html(
         if html_file.is_relative_to(canvas_out):
             continue
         text = html_file.read_text(encoding="utf-8", errors="replace")
-
-        def replace_src(m: re.Match) -> str:
-            decoded_qs = html_module.unescape(m.group(2))
-            clean_name = canvas_map.get(decoded_qs)
-            if not clean_name:
-                return m.group(0)
-            canvas_file = canvas_out / clean_name
-            rel = os.path.relpath(canvas_file, html_file.parent)
-            return f'src="{rel}"'
-
+        replace_src = functools.partial(
+            replace_canvas_src,
+            html_file=html_file,
+            canvas_out=canvas_out,
+            canvas_map=canvas_map,
+        )
         new_text = CANVAS_SRC_RE.sub(replace_src, text)
         if new_text != text:
             html_file.write_text(new_text, encoding="utf-8")
