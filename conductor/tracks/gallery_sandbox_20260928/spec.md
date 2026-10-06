@@ -12,7 +12,7 @@ Follows the conventions defined in `gallery_primitives_20260928/spec.md`.
 ### 1. Canvas & Documentation Components
 | Component | Type | Replaces |
 | --- | --- | --- |
-| `CanvasWidget` | Tag | `canvas_widget.html`: CSS-only preview / template source / output HTML toggle around an iframe. Params: `unique_id`, `iframe_src` or `iframe_srcdoc`, `iframe_class`, `sandbox_attrs`, `source_html`, `rendered_output_html`, `extra_classes`. Composes `Icon` and `CodeBlock`. |
+| `CanvasWidget` | Tag | `canvas_widget.html`: CSS-only preview / template source / output HTML toggle around an iframe. Params: `unique_id`, `iframe_src` or `iframe_srcdoc`, `iframe_class`, `sandbox_attrs`, `template_source`, `rendered_output`, `extra_classes`. Composes `Icon` and `CodeBlock`, passing raw source (`language="django"` / `"html"`) for `CodeBlock` to highlight. |
 | `UsageExample` | Tag | `.gallery-usage__block`: heading, optional live preview iframe with an "open in sandbox" `IconButton`, and code block. |
 | `ParamsTable` | Tag | Documentation parameters table (name, type, required, default, choices, description). Composes `Table`. |
 

@@ -1,0 +1,35 @@
+/* CodeBlock — dds__primitives__code_block. Moved from gallery.css. */
+
+.gallery-usage__pre {
+  margin: 0;
+  padding: 0;
+  border-radius: var(--gallery-radius);
+  overflow: hidden;
+  background: var(--gallery-dark-code-bg);
+  border: 1px solid var(--gallery-dark-code-border);
+  width: 100%;
+}
+
+:is(.gallery-docs, .gallery-sandbox) .gallery-usage__pre {
+  background: var(--gallery-dark-code-bg) !important;
+  border: 1px solid var(--gallery-dark-code-border) !important;
+}
+
+.gallery-usage__code {
+  display: block;
+  font-family: var(--gallery-font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--gallery-dark-code-text);
+  padding: 16px;
+  margin: 0;
+  white-space: pre;
+  word-break: normal;
+  overflow-x: auto;
+  background: var(--gallery-dark-code-bg);
+}
+
+:is(.gallery-docs, .gallery-sandbox) .gallery-usage__code {
+  background: var(--gallery-dark-code-bg) !important;
+  color: var(--gallery-dark-code-text) !important;
+}

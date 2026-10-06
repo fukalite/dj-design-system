@@ -1,0 +1,43 @@
+/* Icon — dds__primitives__icon
+ *
+ * Line icons are inline SVGs sized by their width/height attributes.
+ * Mask icons are spans masked with the --gallery-icon-* tokens from
+ * foundation.css and coloured by currentColor. Contexts add their own
+ * classes (e.g. gallery-nav__icon) to size or colour an icon.
+ */
+.gallery-icon {
+  flex-shrink: 0;
+}
+
+.gallery-icon--mask {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  background: currentColor;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+.gallery-icon--component {
+  -webkit-mask-image: var(--gallery-icon-component);
+  mask-image: var(--gallery-icon-component);
+}
+
+.gallery-icon--doc {
+  -webkit-mask-image: var(--gallery-icon-doc);
+  mask-image: var(--gallery-icon-doc);
+}
+
+.gallery-icon--folder {
+  -webkit-mask-image: var(--gallery-icon-folder);
+  mask-image: var(--gallery-icon-folder);
+}
+
+.gallery-icon--folder-open {
+  -webkit-mask-image: var(--gallery-icon-folder-open);
+  mask-image: var(--gallery-icon-folder-open);
+}

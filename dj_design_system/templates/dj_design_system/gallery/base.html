@@ -5,9 +5,13 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{% block title %}{{ design_system_name }}{% endblock %}</title>
+        {% gallery_stylesheets %}
         <link rel="stylesheet" href="{% static 'dj_design_system/gallery.css' %}">
+        {# CodeBlock's highlight theme, also loaded above with the other built-ins. #}
+        {# Linking it here too keeps it after gallery.css, where it has always #}
+        {# been in the cascade, until the gallery templates use the components. #}
         <link rel="stylesheet"
-              href="{% static 'dj_design_system/gallery-highlight.css' %}">
+              href="{% static 'dj_design_system/ui/primitives/code_highlight.css' %}">
         <link rel="stylesheet"
               href="{% static 'dj_design_system/gallery-markdown.css' %}">
         <link rel="stylesheet"
@@ -91,6 +95,7 @@
                 </div>
             </main>
         </div>
+        {% gallery_scripts %}
         {% block extra_js %}{% endblock %}
         <script src="{% static 'dj_design_system/gallery-search.js' %}"
                 defer

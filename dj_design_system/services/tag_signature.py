@@ -359,6 +359,17 @@ def generate_current_tag_signature(
     )
 
 
+def _content_code(value: object) -> str | None:
+    """Return how a side-car's block content appears in a usage example."""
+    from dj_design_system.data import GalleryParameter
+
+    if value is None:
+        return None
+    if isinstance(value, GalleryParameter) and value.code is not None:
+        return value.code
+    return str(_unwrap_example(value))
+
+
 def _build_sig_raw(
     component_name: str,
     positional_formatted: list[str],
@@ -368,6 +379,7 @@ def _build_sig_raw(
     block_class: type[BlockComponent] | None,
     required_only: bool,
     slot_overrides: dict[str, Any] | None = None,
+    content: str | None = None,
 ) -> str:
     all_args = positional_formatted + keyword_formatted
     args_str = " ".join(all_args)
@@ -387,7 +399,8 @@ def _build_sig_raw(
         if args_str:
             opening += f" {args_str}"
         opening += " %}"
-        raw = f"{opening}{BLOCK_CONTENT_PLACEHOLDER}{{% end{component_name} %}}"
+        body = BLOCK_CONTENT_PLACEHOLDER if content is None else content
+        raw = f"{opening}{body}{{% end{component_name} %}}"
         return _format_multiline_example(raw, is_block, component_name)
     else:
         opening = f"{{% {component_name}"
@@ -508,6 +521,12 @@ def generate_tag_signature(
         basic_kwargs = {}
         maximal_kwargs = {}
 
+    # A side-car's "content" is a block component's body, not a parameter.
+    basic_content = maximal_content = None
+    if is_block and not is_slotted:
+        basic_content = basic_kwargs.pop("content", None)
+        maximal_content = maximal_kwargs.pop("content", None)
+
     basic_slot_overrides = {
         k: basic_kwargs.pop(k)
         for k in list(basic_kwargs.keys())
@@ -554,6 +573,7 @@ def generate_tag_signature(
         block_class,
         required_only=True,
         slot_overrides=basic_slot_overrides,
+        content=_content_code(basic_content),
     )
 
     # Maximal Signature
@@ -572,6 +592,7 @@ def generate_tag_signature(
         block_class,
         required_only=False,
         slot_overrides=maximal_slot_overrides,
+        content=_content_code(maximal_content),
     )
 
     minimal_html = highlight_code(minimal)
@@ -603,6 +624,11 @@ def generate_tag_signature(
                 maximal_slot_params[override_key] = (
                     slot.default or f"Sample {slot_name} content"
                 )
+
+    if basic_content is not None:
+        min_kw_vals["content"] = _unwrap_example(basic_content)
+    if maximal_content is not None:
+        max_kw_vals["content"] = _unwrap_example(maximal_content)
 
     minimal_spec = CanvasSpec(
         component_name=canvas_name,

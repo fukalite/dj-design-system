@@ -1,0 +1,12 @@
+{% if svg %}<svg class="{{ icon_classes }}"
+     width="{{ px }}"
+     height="{{ px }}"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     {% if rounded %} stroke-linecap="round" stroke-linejoin="round"{% endif %}
+     aria-hidden="true"
+     focusable="false">{{ svg }}</svg>{% else %}<span class="{{ icon_classes }}"
+      {% if size %} style="width: {{ size }}px; height: {{ size }}px"{% endif %}
+      aria-hidden="true"></span>{% endif %}

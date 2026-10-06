@@ -542,7 +542,7 @@ DJ_DESIGN_SYSTEM = {
 ```
 
 Highlight colours are defined as CSS custom properties in
-`gallery-highlight.css`. Override the `--hl-palette-*` variables for
+`ui/primitives/code_highlight.css`. Override the `--hl-palette-*` variables for
 palette changes, or the `--hl-*` semantic variables for finer control:
 
 ```css
