@@ -13,17 +13,17 @@ exclude-labels:
   - skip-changelog
 
 categories:
-  - title: "⚠️ Breaking changes"
+  - title: "Breaking changes"
     labels: [breaking]
-  - title: "✨ Added"
+  - title: "Added"
     labels: [enhancement]
-  - title: "🐛 Fixed"
+  - title: "Fixed"
     labels: [bug]
-  - title: "🔒 Security"
+  - title: "Security"
     labels: [security]
-  - title: "📚 Documentation"
+  - title: "Documentation"
     labels: [documentation]
-  - title: "🔧 Maintenance"
+  - title: "Maintenance"
     labels: [maintenance, dependencies]
 
 # While the project is pre-1.0, breaking changes bump the minor version.
