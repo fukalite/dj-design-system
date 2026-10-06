@@ -518,3 +518,115 @@ class TestRequiredKeywordParam:
         assert sig.maximal_spec.params.get("title") == "foo"
         assert 'subtitle="Default Subtitle"' in sig.maximal
         assert sig.maximal_spec.params.get("subtitle") == "Default Subtitle"
+
+
+class TestBlockContentFromGalleryConfig:
+    """Tests for usage example block content and param_defaults (#154, #162)."""
+
+    def test_param_defaults_content_used_in_both_snippets(self):
+        import warnings
+
+        from dj_design_system.components import BlockComponent
+        from dj_design_system.data import ComponentInfo
+        from dj_design_system.gallery import GalleryConfig, Variant
+        from dj_design_system.services.registry import component_registry
+
+        class RichBlock(BlockComponent):
+            title = StrParam("Title", default="Heading")
+
+        cfg = GalleryConfig(
+            param_defaults={"content": "<p>Default body</p>"},
+            variants=[
+                Variant(name="maximal", kwargs={"content": "<p>Maximal body</p>"}),
+            ],
+        )
+        info = ComponentInfo(
+            component_class=RichBlock,
+            name="rich_block",
+            app_label="test_app",
+            relative_path="",
+        )
+        info.__dict__["gallery_config"] = cfg
+        component_registry._components.append(info)
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("error", DeprecationWarning)
+                sig = generate_tag_signature(RichBlock)
+
+            assert "<p>Default body</p>" in sig.minimal
+            assert "content=" not in sig.minimal
+            assert sig.minimal_spec.params.get("content") == "<p>Default body</p>"
+
+            assert "<p>Maximal body</p>" in sig.maximal
+            assert "content=" not in sig.maximal
+            assert sig.maximal_spec.params.get("content") == "<p>Maximal body</p>"
+        finally:
+            component_registry._components.remove(info)
+
+    def test_gallery_parameter_code_used_for_block_content(self):
+        from dj_design_system.components import BlockComponent
+        from dj_design_system.data import ComponentInfo, GalleryParameter
+        from dj_design_system.gallery import GalleryConfig, Variant
+        from dj_design_system.services.registry import component_registry
+
+        class CodeBlock(BlockComponent):
+            pass
+
+        cfg = GalleryConfig(
+            variants=[
+                Variant(
+                    name="basic",
+                    kwargs={
+                        "content": GalleryParameter(
+                            value="<strong>Rendered</strong>",
+                            code="{{ article.body }}",
+                        )
+                    },
+                ),
+            ],
+        )
+        info = ComponentInfo(
+            component_class=CodeBlock,
+            name="code_block",
+            app_label="test_app",
+            relative_path="",
+        )
+        info.__dict__["gallery_config"] = cfg
+        component_registry._components.append(info)
+        try:
+            sig = generate_tag_signature(CodeBlock)
+            assert (
+                "{% code_block %}{{ article.body }}{% endcode_block %}" in sig.minimal
+            )
+            assert sig.minimal_spec.params.get("content") == "<strong>Rendered</strong>"
+        finally:
+            component_registry._components.remove(info)
+
+    def test_multiline_content_in_parameterless_block_tag_sits_on_own_lines(self):
+        from dj_design_system.components import BlockComponent
+        from dj_design_system.data import ComponentInfo
+        from dj_design_system.gallery import GalleryConfig
+        from dj_design_system.services.registry import component_registry
+
+        class StackBlock(BlockComponent):
+            pass
+
+        cfg = GalleryConfig(
+            param_defaults={"content": "<div>One</div>\n<div>Two</div>"},
+        )
+        info = ComponentInfo(
+            component_class=StackBlock,
+            name="stack_block",
+            app_label="test_app",
+            relative_path="",
+        )
+        info.__dict__["gallery_config"] = cfg
+        component_registry._components.append(info)
+        try:
+            sig = generate_tag_signature(StackBlock)
+            assert (
+                sig.minimal
+                == "{% stack_block %}\n<div>One</div>\n<div>Two</div>\n{% endstack_block %}"
+            )
+        finally:
+            component_registry._components.remove(info)

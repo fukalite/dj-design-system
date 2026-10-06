@@ -14,7 +14,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Model
 from django.template import Context, Template
 from django.utils.html import format_html
-from django.utils.safestring import SafeData, mark_safe
+from django.utils.safestring import SafeData, SafeString, mark_safe
 
 from dj_design_system.components import BaseComponent, BlockComponent
 from dj_design_system.data import (
@@ -60,6 +60,54 @@ logger = logging.getLogger(__name__)
 _warned_unsafe_render: set[type] = set()
 
 
+class _SanitizedBlockStr(SafeString):
+    """Marker subclass for untrusted query-string slot/content values cleaned by nh3."""
+
+
+def _get_trusted_block_strings(
+    component_class: type, config: GalleryConfig | None
+) -> set[str]:
+    """Collect trusted block content and slot strings declared in Python/side-car configs."""
+    trusted: set[str] = set()
+
+    def _add(val: Any) -> None:
+        resolved = _resolve_param_value(val)
+        if isinstance(resolved, str):
+            trusted.add(resolved)
+            trusted.add(resolved.replace("\r\n", "\n"))
+
+    if issubclass(component_class, BlockComponent) and component_class.has_slots():
+        for slot in component_class.get_slots().values():
+            if slot.default:
+                _add(slot.default)
+
+    if config is not None:
+        for key, val in config.param_defaults.items():
+            if key == "content" or key.startswith(SLOT_PARAM_PREFIX):
+                _add(val)
+        for variant in config.variants:
+            for key, val in variant.kwargs.items():
+                if key == "content" or key.startswith(SLOT_PARAM_PREFIX):
+                    _add(val)
+
+    return trusted
+
+
+def _render_trusted_block_value(
+    val: str, extra_context: dict[str, Any] | None = None
+) -> SafeString:
+    """Render trusted block/slot strings, evaluating Django template syntax if present."""
+    if "{%" in val or "{{" in val:
+        template_str = val
+        if not re.search(
+            r"{%\n?\s*load\s+[^%]*\bdesign_components\b[^%]*%}", template_str
+        ):
+            template_str = f"{{% load design_components %}}\n{template_str}"
+        template = _compile_canvas_template(template_str)
+        return mark_safe(template.render(Context(extra_context or {})))
+    return mark_safe(val)
+
+
 def resolve_from_get_params(
     query_dict: QueryDict,
     registry: ComponentRegistry,
@@ -83,12 +131,22 @@ def resolve_from_get_params(
     )
 
     if issubclass(info.component_class, BlockComponent):
+        config = getattr(info, "gallery_config", None)
+        trusted_strings = _get_trusted_block_strings(info.component_class, config)
         if info.component_class.has_slots():
             for key, value in raw_params.items():
                 if key.startswith(SLOT_PARAM_PREFIX):
-                    params[key] = mark_safe(nh3.clean(value))
+                    normalised = value.replace("\r\n", "\n")
+                    if normalised in trusted_strings:
+                        params[key] = normalised
+                    else:
+                        params[key] = _SanitizedBlockStr(nh3.clean(value))
         elif "content" in raw_params:
-            params["content"] = mark_safe(nh3.clean(raw_params["content"]))
+            normalised = raw_params["content"].replace("\r\n", "\n")
+            if normalised in trusted_strings:
+                params["content"] = normalised
+            else:
+                params["content"] = _SanitizedBlockStr(nh3.clean(raw_params["content"]))
 
     return CanvasSpec(
         component_name=component_name,
@@ -163,7 +221,9 @@ def merge_variant_params(
 
 
 def _render_block_component(
-    component_class: type[BlockComponent], kwargs: dict[str, Any]
+    component_class: type[BlockComponent],
+    kwargs: dict[str, Any],
+    extra_context: dict[str, Any] | None = None,
 ) -> str:
     """Instantiate and render a BlockComponent with slots or default content."""
     kw = dict(kwargs)
@@ -172,20 +232,38 @@ def _render_block_component(
         slot_keys = [k for k in kw if k.startswith(SLOT_PARAM_PREFIX)]
         for key in slot_keys:
             slot_name = key[len(SLOT_PARAM_PREFIX) :]
-            slots[slot_name] = kw.pop(key)
+            val = kw.pop(key)
+            if isinstance(val, str) and not isinstance(val, _SanitizedBlockStr):
+                val = _render_trusted_block_value(val, extra_context)
+            slots[slot_name] = val
         for name, slot in component_class.get_slots().items():
             if name not in slots and slot.required:
-                slots[name] = slot.default or f"Sample {name} content"
+                default_val = slot.default or f"Sample {name} content"
+                if isinstance(default_val, str) and not isinstance(
+                    default_val, _SanitizedBlockStr
+                ):
+                    default_val = _render_trusted_block_value(
+                        default_val, extra_context
+                    )
+                slots[name] = default_val
         return _render_instance(component_class(slots=slots, **kw))
 
     content = kw.pop("content", BLOCK_CONTENT_PLACEHOLDER)
+    if isinstance(content, str) and not isinstance(content, _SanitizedBlockStr):
+        content = _render_trusted_block_value(content, extra_context)
     return _render_instance(component_class(content=content, **kw))
 
 
-def _render_component_class(component_class: type, kwargs: dict[str, Any]) -> str:
+def _render_component_class(
+    component_class: type,
+    kwargs: dict[str, Any],
+    extra_context: dict[str, Any] | None = None,
+) -> str:
     """Instantiate and render a component class with given keyword arguments."""
     if issubclass(component_class, BlockComponent):
-        return _render_block_component(component_class, kwargs)
+        return _render_block_component(
+            component_class, kwargs, extra_context=extra_context
+        )
     return _render_instance(component_class(**kwargs))
 
 
@@ -232,10 +310,19 @@ def _render_with_canvas_template(
     has_component_placeholder = bool(
         re.search(r"\{\{\s*component\b[^}]*\}\}", canvas_template)
     )
-    template_kwargs = dict(resolved_kwargs)
+    param_specs = (
+        component_class.get_params() if hasattr(component_class, "get_params") else {}
+    )
+    param_defaults = {
+        name: _resolve_param_value(getattr(spec, "default", None))
+        for name, spec in param_specs.items()
+    }
+    template_kwargs = {**param_defaults, **resolved_kwargs}
 
     if has_component_placeholder:
-        component_html = _render_component_class(component_class, dict(resolved_kwargs))
+        component_html = _render_component_class(
+            component_class, dict(resolved_kwargs), extra_context=extra_context
+        )
         context_dict = {
             **template_kwargs,
             **extra_context,
@@ -290,7 +377,9 @@ def render_component(
                 resolved_extra_context,
             )
 
-        return _render_component_class(component_class, resolved_kwargs)
+        return _render_component_class(
+            component_class, resolved_kwargs, extra_context=resolved_extra_context
+        )
     except Exception as exc:  # Catch all rendering/template exceptions
         if raise_errors:
             raise
