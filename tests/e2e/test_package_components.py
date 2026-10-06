@@ -32,6 +32,16 @@ LEGACY_EXEMPTIONS = {
     # The theme <select> is named only by its title; see issue #119.
     ("dds__navigation__theme_select", "basic"): ["label-title-only"],
     ("dds__navigation__theme_select", "maximal"): ["label-title-only"],
+    # The preview/source/output switch radios are labelled only by an icon;
+    # see issue #122.
+    ("dds__canvas__canvas_widget", "basic"): ["label"],
+    ("dds__canvas__canvas_widget", "maximal"): ["label"],
+    # The red error text passes (4.51:1) on the sandbox drawer's white, but
+    # not on the canvas's grey; #112's --gallery-danger fixes the dark theme.
+    ("dds__sandbox__form_row", "maximal"): ["color-contrast"],
+    # The drawer's focusable separator has no aria-valuenow; see issue #134.
+    ("dds__sandbox__params_form", "basic"): ["aria-required-attr"],
+    ("dds__sandbox__params_form", "maximal"): ["aria-required-attr"],
 }
 
 

@@ -1,0 +1,15 @@
+/* ToggleButton — dds__sandbox__toggle_button. Moved from
+ * gallery-toolbar.css. The --toolbar-* token is set on
+ * .gallery-sandbox-toolbar; the fallbacks repeat its value so a button
+ * outside a toolbar is styled the same. */
+
+/* Outline/RTL/Measure toggle: use accent border ring instead of colour inversion */
+.gallery-sandbox-toolbar__outline-toggle.gallery-sandbox-toolbar__btn--active,
+.gallery-sandbox-toolbar__rtl-toggle.gallery-sandbox-toolbar__btn--active,
+.gallery-sandbox-toolbar__measure-toggle.gallery-sandbox-toolbar__btn--active {
+  background: var(--gallery-content-bg);
+  color: var(--gallery-text);
+  border-color: var(--toolbar-btn-active-bg, var(--gallery-sidebar-bg));
+  box-shadow: 0 0 0 2px var(--toolbar-btn-active-bg, var(--gallery-sidebar-bg));
+  font-weight: normal;
+}

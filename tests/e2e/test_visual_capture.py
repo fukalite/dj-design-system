@@ -129,15 +129,15 @@ class TestStabilise:
         assert state[0] == f"{state[1]}px"
 
     def test_recovers_resize_report_sent_before_listener(self, page, live_server):
-        """If a preview reports its size before gallery-preview-resize.js is
-        listening, the report is lost and the preview never resizes (#111)."""
+        """If a preview reports its size before canvas_widget.js is listening,
+        the report is lost and the preview never resizes (#111)."""
         import time
 
         def delay_listener(route):
             time.sleep(1)
             route.continue_()
 
-        page.route("**/gallery-preview-resize.js", delay_listener)
+        page.route("**/ui/canvas/canvas_widget.js", delay_listener)
         record_canvas_reports(page)
         page.goto(f"{live_server.url}/dds/demo_components/alert/")
         stabilise(page)
@@ -159,7 +159,7 @@ class TestStabilise:
             time.sleep(1)
             route.continue_()
 
-        page.route("**/gallery-preview-resize.js", delay_listener)
+        page.route("**/ui/canvas/canvas_widget.js", delay_listener)
         page.goto(f"{live_server.url}/dds/demo_components/alert/")
         started = time.monotonic()
         stabilise(page)
