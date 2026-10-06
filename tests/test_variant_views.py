@@ -111,6 +111,10 @@ class TestVariantViews:
         response = client.get(f"{url}?variant=maximal")
         assert response.status_code == 200
         assert (
+            b'<input type="hidden" name="_iss" value="1"'
+            in response.content
+        )
+        assert (
             b'<input type="hidden" name="_dds_variant" value="maximal"'
             in response.content
         )
@@ -187,7 +191,7 @@ class TestVariantViews:
 
         # 2. Submitting the sandbox form with both _dds_variant=product and component param variant=outlined
         submit_response = client.get(
-            f"{url}?_dds_theme=default&_dds_variant=product&title=Pro&variant=outlined&slot__body=Body"
+            f"{url}?_iss=1&_dds_theme=default&_dds_variant=product&title=Pro&variant=outlined&slot__body=Body"
         )
         assert submit_response.status_code == 200
         assert submit_response.context["active_variant"].name == "product"
@@ -197,6 +201,18 @@ class TestVariantViews:
         iframe_url = submit_response.context["canvas_iframe_url"]
         assert "_dds_variant=product" in iframe_url
         assert "variant=outlined" in iframe_url
+
+        # 3. Submitting the sandbox form on default variant with component param variant=outlined
+        submit_default_response = client.get(
+            f"{url}?_iss=1&_dds_theme=default&title=Pro&variant=outlined&slot__body=Body"
+        )
+        assert submit_default_response.status_code == 200
+        assert submit_default_response.context["active_variant"] is None
+        bound_default_form = submit_default_response.context["form"]
+        assert bound_default_form.is_bound
+        assert bound_default_form.is_valid()
+        iframe_default_url = submit_default_response.context["canvas_iframe_url"]
+        assert "variant=outlined" in iframe_default_url
 
     def test_unbound_variant_sandbox_spec_omits_redundant_query_params(
         self, custom_variant_component, client: Client
