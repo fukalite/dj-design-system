@@ -276,16 +276,16 @@ class TestBuildCanvasUrl:
         spec = CanvasSpec(component_name="button", variant="danger")
         url = build_canvas_url(spec, "/base/", mode="basic", theme="dark")
         assert "component=button" in url
-        assert "variant=danger" in url
-        assert "mode=basic" in url
-        assert "theme=dark" in url
+        assert "_dds_variant=danger" in url
+        assert "_dds_mode=basic" in url
+        assert "_dds_theme=dark" in url
 
     def test_with_existing_query_params_uses_ampersand(self):
         spec = CanvasSpec(component_name="button")
         url = build_canvas_url(spec, "/base/?token=xyz", theme="light")
         assert url.startswith("/base/?token=xyz&")
         assert "component=button" in url
-        assert "theme=light" in url
+        assert "_dds_theme=light" in url
 
     def test_with_extra_query_params(self):
         spec = CanvasSpec(component_name="button")
@@ -294,24 +294,93 @@ class TestBuildCanvasUrl:
         assert "custom_id=123" in url
 
     def test_param_shadowing_prevented(self):
-        """Component params cannot shadow reserved canvas control parameters."""
+        """Component params cannot shadow reserved _dds_ canvas control parameters."""
         spec = CanvasSpec(
             component_name="button",
             params={
                 "component": "malicious",
-                "mode": "standalone",
-                "variant": "injected",
-                "theme": "dark",
+                "_dds_mode": "standalone",
+                "_dds_variant": "injected",
+                "_dds_theme": "dark",
+                "_dds_bg": "dark",
                 "label": "Click me",
             },
         )
         url = build_canvas_url(spec, "/base/")
         assert "component=button" in url
         assert "component=malicious" not in url
-        assert "mode=standalone" not in url
-        assert "variant=injected" not in url
-        assert "theme=dark" not in url
+        assert "_dds_mode=standalone" not in url
+        assert "_dds_variant=injected" not in url
+        assert "_dds_theme=dark" not in url
+        assert "_dds_bg=dark" not in url
         assert "label=Click+me" in url
+
+    def test_component_params_named_variant_mode_theme_bg_are_preserved(
+        self, registry_with_demo_components
+    ):
+        """Component parameters named variant, mode, theme, or bg do not collide with canvas controls (#135)."""
+        from django.http import QueryDict
+
+        from dj_design_system.components import TagComponent
+        from dj_design_system.data import ComponentInfo
+        from dj_design_system.parameters import StrParam
+
+        class CollidingWidget(TagComponent):
+            template_format_str = (
+                '<div data-variant="{variant}" data-mode="{mode}" '
+                'data-theme="{theme}" data-bg="{bg}"></div>'
+            )
+            variant = StrParam("Widget variant", default="solid")
+            mode = StrParam("Widget mode", default="compact")
+            theme = StrParam("Widget theme", default="brand")
+            bg = StrParam("Widget bg", default="surface")
+
+        info = ComponentInfo(
+            component_class=CollidingWidget,
+            name="colliding_widget",
+            app_label="demo_components",
+            relative_path="colliding_widget",
+        )
+        registry_with_demo_components._components.append(info)
+        try:
+            spec = CanvasSpec(
+                component_name="colliding_widget",
+                params={
+                    "variant": "outline",
+                    "mode": "expanded",
+                    "theme": "accent",
+                    "bg": "muted",
+                },
+                variant="showcase",
+            )
+            url = build_canvas_url(
+                spec,
+                "/_canvas/",
+                registry=registry_with_demo_components,
+                mode="basic",
+                theme="dark",
+            )
+            assert "variant=outline" in url
+            assert "mode=expanded" in url
+            assert "theme=accent" in url
+            assert "bg=muted" in url
+            assert "_dds_variant=showcase" in url
+            assert "_dds_mode=basic" in url
+            assert "_dds_theme=dark" in url
+
+            qs = url.split("?", 1)[1]
+            resolved = resolve_from_get_params(
+                QueryDict(qs), registry_with_demo_components
+            )
+            assert resolved.variant == "showcase"
+            assert resolved.params == {
+                "variant": "outline",
+                "mode": "expanded",
+                "theme": "accent",
+                "bg": "muted",
+            }
+        finally:
+            registry_with_demo_components._components.remove(info)
 
     def test_extra_query_shadowing_prevented(self):
         """Component params cannot shadow explicit extra_query parameters."""

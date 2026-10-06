@@ -34,6 +34,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added backward-compatible HTML anchor `#customising-gallery-examples` to `docs/gallery.md`.
 - Added `.gallery-canvas-error` styling rule to `canvas.css` so canvas error messages inside iframes render with proper colour and typography without depending on host gallery tokens.
 - The canvas wrapper is no longer a flex container, so components that fill the space they are given render at full width instead of collapsing. Components are no longer centred in the canvas; their layout is left to the project ([#156](https://github.com/fukalite/dj-design-system/issues/156)).
+- Namespaced internal canvas and sandbox control query parameters with the `_dds_` prefix (`_dds_variant`, `_dds_mode`, `_dds_theme`, `_dds_bg`) with bare-name fallback so components declaring parameters named `variant`, `mode`, `theme`, or `bg` no longer collide with gallery controls ([#135](https://github.com/fukalite/dj-design-system/issues/135)).
+
 
 
 ## [0.0.1] - unreleased

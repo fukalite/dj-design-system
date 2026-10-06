@@ -32,7 +32,7 @@ class PlaywrightAssessmentPlugin(AssessmentPlugin):
 
     def _navigate_to_component(self, component: Any, variant: str, theme: str) -> Any:
         kwargs = self._resolve_kwargs(component, variant)
-        params: dict[str, str] = {"component": component.qualified_name, "theme": theme}
+        params: dict[str, str] = {"component": component.qualified_name}
 
         for key, value in kwargs.items():
             if hasattr(value, "value"):
@@ -45,6 +45,7 @@ class PlaywrightAssessmentPlugin(AssessmentPlugin):
                 else:
                     params[key] = str(value)
 
+        params["_dds_theme"] = theme
         url = f"{self.base_url}/_canvas/?{urllib.parse.urlencode(params, doseq=True)}"
         return self.page.goto(url)
 

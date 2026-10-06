@@ -36,9 +36,14 @@ def get_base_context(
     active_variant = None
     if request:
         active_theme = (
-            request.GET.get("theme") or request.COOKIES.get("dds_theme") or active_theme
+            request.GET.get("_dds_theme")
+            or request.GET.get("theme")
+            or request.COOKIES.get("dds_theme")
+            or active_theme
         )
-        active_variant = request.GET.get("variant", "").strip() or None
+        active_variant = (
+            request.GET.get("_dds_variant") or request.GET.get("variant") or ""
+        ).strip() or None
     return {
         "nav_tree": nav_tree,
         "search_index": [] if is_htmx else build_search_index(nav_tree),

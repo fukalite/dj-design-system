@@ -73,10 +73,20 @@ def resolve_from_get_params(
     param_specs = info.component_class.get_params()
     positional_arg_names = info.component_class.get_positional_args()
 
-    variant = query_dict.get("variant", "").strip() or None
-    raw_params = {
-        k: v for k, v in query_dict.items() if k not in ("component", "bg", "variant")
-    }
+    variant = query_dict.get("_dds_variant", "").strip() or None
+    if (
+        variant is None
+        and "variant" not in param_specs
+        and "variant" not in positional_arg_names
+    ):
+        variant = query_dict.get("variant", "").strip() or None
+
+    excluded_keys = set(RESERVED_CANVAS_PARAMS)
+    for bare_key in ("variant", "mode", "theme", "bg"):
+        if bare_key not in param_specs and bare_key not in positional_arg_names:
+            excluded_keys.add(bare_key)
+
+    raw_params = {k: v for k, v in query_dict.items() if k not in excluded_keys}
 
     positional_args, params = _coerce_params(
         raw_params, param_specs, positional_arg_names
@@ -330,7 +340,9 @@ def get_component_media(
         return ComponentMedia()
 
 
-RESERVED_CANVAS_PARAMS = frozenset({"component", "variant", "mode", "theme"})
+RESERVED_CANVAS_PARAMS = frozenset(
+    {"component", "_dds_variant", "_dds_mode", "_dds_theme", "_dds_bg"}
+)
 
 
 def build_canvas_url(
@@ -370,11 +382,11 @@ def build_canvas_url(
     # Core canvas control parameters take priority to avoid parameter shadowing
     query["component"] = spec.component_name
     if spec.variant:
-        query["variant"] = spec.variant
+        query["_dds_variant"] = spec.variant
     if mode:
-        query["mode"] = mode
+        query["_dds_mode"] = mode
     if theme:
-        query["theme"] = theme
+        query["_dds_theme"] = theme
     for k, v in extra_query.items():
         if v is not None:
             query[k] = v
