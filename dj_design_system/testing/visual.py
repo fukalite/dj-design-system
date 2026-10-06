@@ -27,7 +27,7 @@ class ImageComparison:
 
     mismatched_pixels: int
     total_pixels: int
-    diff: Any
+    diff: "Image.Image"
 
     @property
     def mismatch_ratio(self) -> float:
@@ -50,9 +50,18 @@ def compare_images(
 ) -> ImageComparison:
     """Compare two images and return how many pixels differ.
 
-    ``threshold`` is pixelmatch's per-pixel colour sensitivity (0 to 1;
-    smaller is stricter). Raises ``ScreenshotMismatch`` if the images are
-    different sizes, since pixelmatch cannot compare them.
+    Args:
+        actual: Path to the actual screenshot.
+        expected: Path to the baseline screenshot.
+        threshold: pixelmatch's per-pixel colour sensitivity (0 to 1;
+            smaller is stricter).
+
+    Returns:
+        The mismatched and total pixel counts, and the diff image.
+
+    Raises:
+        ScreenshotMismatch: If the images are different sizes, since
+            pixelmatch cannot compare them.
     """
     _require_dependencies()
     img_actual = Image.open(actual).convert("RGBA")
@@ -84,6 +93,21 @@ def assert_matches_baseline(
     update: bool = False,
 ) -> None:
     """Assert that the screenshot at ``actual`` matches ``baseline``.
+
+    Args:
+        actual: Path to the actual screenshot.
+        baseline: Path to the baseline screenshot.
+        failure_dir: Directory the failure images are written to.
+        threshold: pixelmatch's per-pixel colour sensitivity (0 to 1;
+            smaller is stricter).
+        max_mismatch_ratio: The largest fraction of pixels (0.0 to 1.0)
+            allowed to differ.
+        update: If true, create or overwrite the baseline instead of
+            comparing.
+
+    Raises:
+        ScreenshotMismatch: If the baseline is missing or the screenshot
+            does not match it.
 
     On failure, ``expected.png``, ``actual.png`` and (when the sizes match)
     ``diff.png`` are written to ``failure_dir/<baseline stem>/`` for review,
