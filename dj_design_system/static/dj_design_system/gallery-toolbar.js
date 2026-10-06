@@ -32,6 +32,62 @@
   // Resolved once and kept in scope so applyIframeEffects can access it.
   var measureScriptSrc = null;
 
+  var STORAGE_KEY = "dds_toolbar_state";
+
+  function saveToolbarState() {
+    try {
+      sessionStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          bg: currentBg,
+          theme: currentTheme,
+          zoom: currentZoom,
+          viewportWidth: currentViewportWidth,
+          outline: outlineState.active,
+          rtl: rtlState.active,
+          measure: measureState.active,
+        }),
+      );
+    } catch (e) {
+      // Ignore storage errors
+    }
+  }
+
+  function loadToolbarState() {
+    try {
+      var raw = sessionStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      var parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object") return;
+      if (typeof parsed.bg === "string" || parsed.bg === null) {
+        currentBg = parsed.bg;
+      }
+      if (typeof parsed.theme === "string" || parsed.theme === null) {
+        currentTheme = parsed.theme;
+      }
+      if (typeof parsed.zoom === "number" || parsed.zoom === null) {
+        currentZoom = parsed.zoom;
+      }
+      if (
+        typeof parsed.viewportWidth === "number" ||
+        parsed.viewportWidth === null
+      ) {
+        currentViewportWidth = parsed.viewportWidth;
+      }
+      if (typeof parsed.outline === "boolean") {
+        outlineState.active = parsed.outline;
+      }
+      if (typeof parsed.rtl === "boolean") {
+        rtlState.active = parsed.rtl;
+      }
+      if (typeof parsed.measure === "boolean") {
+        measureState.active = parsed.measure;
+      }
+    } catch (e) {
+      // Ignore corrupt or inaccessible sessionStorage
+    }
+  }
+
   /* ---- Helpers --------------------------------------------------- */
 
   function getSandboxIframe() {
@@ -141,6 +197,7 @@
         btn.setAttribute("aria-pressed", "true");
         btn.classList.add("gallery-sandbox-toolbar__btn--active");
       }
+      saveToolbarState();
     });
   }
 
@@ -393,6 +450,12 @@
     initPopout(bgToggle, bgPanel, signal);
 
     if (bgPanel) {
+      if (
+        currentBg !== null &&
+        !bgPanel.querySelector("[data-bg='" + currentBg + "']")
+      ) {
+        currentBg = null;
+      }
       // Restore active selection in the newly-created panel
       var activeBg = currentBg !== null ? currentBg : bgPanel.dataset.initialBg;
       if (activeBg) {
@@ -422,6 +485,7 @@
 
         var bgValue = btn.dataset.bg;
         currentBg = bgValue;
+        saveToolbarState();
         var iframe = getSandboxIframe();
         if (!iframe) return;
 
@@ -465,6 +529,7 @@
         currentBg = null;
       }
       currentTheme = e.detail;
+      saveToolbarState();
     }, { signal: signal });
 
     /* -- Zoom -- */
@@ -498,6 +563,7 @@
         if (!btn) return;
 
         currentZoom = parseInt(btn.dataset.zoom, 10);
+        saveToolbarState();
         var zoomLevel = currentZoom / 100;
         var iframe = getSandboxIframe();
         if (!iframe) return;
@@ -570,6 +636,10 @@
         reapplyToggleEffects();
       });
 
+      applyViewportScale();
+      applyIframeEffects();
+      reapplyToggleEffects();
+
       if (canvasContainer && typeof ResizeObserver !== "undefined") {
         new ResizeObserver(function () {
           if (currentViewportWidth) {
@@ -590,6 +660,7 @@
         } else {
           currentViewportWidth = parseInt(value, 10);
         }
+        saveToolbarState();
 
         // Update toggle label
         if (viewportValueEl) {
@@ -767,6 +838,7 @@
 
   /* ---- Bootstrap ------------------------------------------------- */
 
+  loadToolbarState();
   initToolbar();
 
   // Re-initialise whenever HTMX swaps the gallery sandbox body. Added once at

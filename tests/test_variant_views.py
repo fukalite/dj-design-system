@@ -167,3 +167,31 @@ class TestVariantViews:
         assert form.initial.get("theme") == "danger"
         # Focused description rendered
         assert b"Destructive action button." in response.content
+
+    def test_variant_view_highlights_active_variant_in_sidebar_nav(
+        self, client: Client
+    ):
+        """Full-page variant view marks the active variant link as active in the sidebar nav (#137)."""
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "badge"},
+        )
+        response = client.get(f"{url}?variant=status")
+        assert response.status_code == 200
+        html = response.content.decode("utf-8")
+        assert (
+            'class="gallery-nav__link gallery-nav__link--variant gallery-nav__link--active"'
+            in html
+        )
+
+    def test_toolbar_persists_state_across_variant_selection(self):
+        """gallery-toolbar.js persists and restores toolbar state via sessionStorage (#151)."""
+        from pathlib import Path
+
+        js_path = Path("dj_design_system/static/dj_design_system/gallery-toolbar.js")
+        content = js_path.read_text(encoding="utf-8")
+
+        assert "sessionStorage" in content
+        assert "dds_toolbar_state" in content
+        assert "saveToolbarState" in content
+        assert "loadToolbarState" in content
