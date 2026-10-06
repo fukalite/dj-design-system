@@ -1,6 +1,8 @@
 """Shared fixtures for dj_design_system tests."""
 
 import pkgutil
+import sys
+import textwrap
 from importlib import import_module
 from pathlib import Path
 
@@ -54,6 +56,42 @@ def make_info(
         app_label=app_label,
         relative_path=relative_path,
     )
+
+
+@pytest.fixture()
+def builtin_modules(tmp_path):
+    """Factory adding temporary modules under ``dj_design_system.components``.
+
+    Call it with ``{"<subpackage>/<module>.py": source}``. The files are
+    written to a temporary directory appended to the package's ``__path__``,
+    so autodiscovery treats them exactly like real built-in components.
+    Returns the registry-ready ``tmp_path`` root; everything is removed from
+    ``__path__`` and ``sys.modules`` afterwards.
+    """
+    import dj_design_system.components as components_package
+
+    root = tmp_path / "builtins"
+    root.mkdir()
+    components_package.__path__.append(str(root))
+    before = set(sys.modules)
+
+    def add(files: dict[str, str]) -> Path:
+        for relative, source in files.items():
+            path = root / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            for parent in path.relative_to(root).parents:
+                init = root / parent / "__init__.py"
+                if parent != Path(".") and not init.exists():
+                    init.write_text("")
+            path.write_text(textwrap.dedent(source))
+        return root
+
+    yield add
+
+    components_package.__path__.remove(str(root))
+    for name in set(sys.modules) - before:
+        if name.startswith("dj_design_system.components."):
+            del sys.modules[name]
 
 
 # ---------------------------------------------------------------------------

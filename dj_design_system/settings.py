@@ -58,6 +58,12 @@ DEFAULTS: dict = {
         },
     },
     "GALLERY_DEFAULT_THEME": "default",
+    # App labels hidden from the gallery (navigation, search, index count,
+    # node URLs and the REST API). Hidden components still work as tags.
+    "GALLERY_EXCLUDE_APPS": [],
+    # Show dj_design_system's own built-in components in the gallery. When
+    # False, they are hidden regardless of GALLERY_EXCLUDE_APPS.
+    "GALLERY_SHOW_BUILTIN_COMPONENTS": False,
     "APP_THEMES": {},
     "APP_CSS": {},
     "APP_CSS_BUNDLES": {},
@@ -88,6 +94,8 @@ class DjangoDesignSystemSettings:
     GALLERY_CODEHILITE_STYLE: str
     GALLERY_THEMES: dict[str, dict]
     GALLERY_DEFAULT_THEME: str
+    GALLERY_EXCLUDE_APPS: list[str]
+    GALLERY_SHOW_BUILTIN_COMPONENTS: bool
     APP_THEMES: dict[str, list[str]]
     APP_CSS: dict[str, list[str] | str]
     APP_CSS_BUNDLES: dict[str, list[tuple[str, ...]]]
