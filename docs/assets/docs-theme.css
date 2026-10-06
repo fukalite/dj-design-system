@@ -11,7 +11,10 @@
  *   --gallery-bg:              #f8f9fa   page/content area background
  *   --gallery-content-bg:      #ffffff   card / main pane background
  *   --gallery-text:            #212529   body text
- *   --gallery-text-muted:      #495057   muted / secondary text
+ *   --gallery-text-muted:      #495057   muted / secondary text (5.4:1 in dark)
+ *   --gallery-input-bg:        #ffffff   sandbox form input background
+ *   --gallery-input-text:      #212529   sandbox form input value
+ *   --gallery-input-border:    #c9cdd4   sandbox form input border
  *   --gallery-accent:          #4263eb   links and interactive accent
  *   --gallery-accent-hover:    #3b5bdb   link hover
  *   --gallery-border:          #c9cdd4   dividers and borders
