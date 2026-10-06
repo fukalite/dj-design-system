@@ -32,7 +32,7 @@
   // Resolved once and kept in scope so applyIframeEffects can access it.
   var measureScriptSrc = null;
 
-  var STORAGE_KEY = "dds_toolbar_state";
+  const STORAGE_KEY = "dds_toolbar_state";
 
   function saveToolbarState() {
     try {
@@ -55,9 +55,9 @@
 
   function loadToolbarState() {
     try {
-      var raw = sessionStorage.getItem(STORAGE_KEY);
+      const raw = sessionStorage.getItem(STORAGE_KEY);
       if (!raw) return;
-      var parsed = JSON.parse(raw);
+      const parsed = JSON.parse(raw);
       if (!parsed || typeof parsed !== "object") return;
       if (typeof parsed.bg === "string" || parsed.bg === null) {
         currentBg = parsed.bg;
@@ -452,7 +452,7 @@
     if (bgPanel) {
       if (
         currentBg !== null &&
-        !bgPanel.querySelector("[data-bg='" + currentBg + "']")
+        !bgPanel.querySelector(`[data-bg='${currentBg}']`)
       ) {
         currentBg = null;
       }
