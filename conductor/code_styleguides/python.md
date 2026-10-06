@@ -31,6 +31,7 @@ enforced by tooling and is not repeated here.
 - **True/False Evaluations**: Use implicit false (`if not my_list:`). Use `if foo is None:` to check for `None`.
 - **Exceptions**: Never use a bare `except:`.
 - **Strings**: Use f-strings for formatting.
+- **Nested Functions**: Do not define functions inside other functions. Use a module-level function (with `functools.partial` to bind arguments) or a method. The exception is a standard pattern that needs a closure, such as a decorator's wrapper.
 
 ## Naming
 - `snake_case` for modules, functions, methods and variables.
