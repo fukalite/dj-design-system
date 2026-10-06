@@ -76,7 +76,7 @@ class DjangoDesignSystemSettings:
     DESIGN_SYSTEM_NAME: str
     ENABLE_GALLERY: bool
     GALLERY_IS_PUBLIC: bool
-    GALLERY_NAV_ORDER: list[NodeType] | str
+    GALLERY_NAV_ORDER: list[NodeType | str] | str
     GLOBAL_CSS: list[str]
     GLOBAL_JS: list[str]
     GLOBAL_CSS_BUNDLES: list[tuple[str, ...]]

@@ -29,6 +29,9 @@ theme:
     - content.code.copy
     - content.action.edit
 
+hooks:
+  - docs_hooks/changelog.py
+
 plugins:
   - search
   - mkdocstrings:
@@ -53,6 +56,7 @@ nav:
   - REST API: rest-api.md
   - Integration Testing: testing.md
   - Organisation: organisation.md
+  - Changelog: changelog.md
   - API Reference:
       - Gallery Configuration: api/gallery.md
       - Parameters: api/parameters.md

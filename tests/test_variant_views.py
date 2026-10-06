@@ -197,3 +197,55 @@ class TestVariantViews:
         iframe_url = submit_response.context["canvas_iframe_url"]
         assert "_dds_variant=product" in iframe_url
         assert "variant=outlined" in iframe_url
+
+    def test_unbound_variant_sandbox_spec_omits_redundant_query_params(
+        self, custom_variant_component, client: Client
+    ):
+        """When viewing a variant with an unbound form, canvas_iframe_url resolves kwargs via variant= on the server rather than duplicating kwargs in the URL (#162)."""
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "variant_demo_btn"},
+        )
+        response = client.get(f"{url}?variant=danger")
+        assert response.status_code == 200
+        iframe_url = response.context["canvas_iframe_url"]
+        assert "variant=danger" in iframe_url
+        assert "Delete+All" not in iframe_url
+
+    def test_component_page_code_snippets_and_preview_urls_carry_block_content(
+        self, client: Client
+    ):
+        """Component page's code snippets and preview URLs carry the same configured block content (#154)."""
+        from dj_design_system.components import BlockComponent
+
+        class AlertBox(BlockComponent):
+            template_format_str = '<div class="alert">{content}</div>'
+
+        cfg = GalleryConfig(
+            param_defaults={"content": "Default alert body"},
+            variants=[
+                Variant(name="maximal", kwargs={"content": "Detailed alert body"}),
+            ],
+        )
+        info = ComponentInfo(
+            component_class=AlertBox,
+            name="alert_box",
+            app_label="demo_components",
+            relative_path="alert_box",
+        )
+        info.__dict__["gallery_config"] = cfg
+        component_registry._components.append(info)
+        try:
+            url = reverse(
+                "gallery-node",
+                kwargs={"app_label": "demo_components", "path": "alert_box"},
+            )
+            response = client.get(url)
+            assert response.status_code == 200
+            sig = response.context["tag_signature"]
+            assert "Default alert body" in sig.minimal
+            assert "Detailed alert body" in sig.maximal
+            assert "Default+alert+body" in response.context["minimal_preview_url"]
+            assert "Detailed+alert+body" in response.context["maximal_preview_url"]
+        finally:
+            component_registry._components.remove(info)

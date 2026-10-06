@@ -357,3 +357,118 @@ class TestCanvasVariantIntegration:
         spec = CanvasSpec(component_name="button_pos", variant="warn")
         output = render_component(spec, reg)
         assert '<button class="btn">Caution</button>' in output
+
+    def test_raw_canvas_template_seeds_declared_param_defaults(self):
+        """_render_with_canvas_template seeds declared *Param.default values in Raw Template Mode (#164)."""
+
+        class ChoiceCard(TagComponent):
+            template_format_str = '<div class="card card--{variant}">{title}</div>'
+            title = StrParam("Title", default="Card Title")
+            variant = StrParam(
+                "Variant",
+                default="default",
+                choices=["default", "outlined", "elevated"],
+            )
+            badge = StrParam("Optional badge", required=False)
+
+        from dj_design_system.services.registry import component_registry
+
+        cfg = GalleryConfig(
+            param_defaults={"title": "Configured Title"},
+            canvas_template="{% choice_card title=title variant=variant badge=badge %}",
+        )
+        info = ComponentInfo(
+            component_class=ChoiceCard,
+            name="choice_card",
+            app_label="test_app",
+            relative_path="",
+        )
+        info.__dict__["gallery_config"] = cfg
+        component_registry._components.append(info)
+        from dj_design_system.templatetags.design_components import register
+
+        component_registry.register_templatetags(register)
+        try:
+            spec = CanvasSpec(component_name="choice_card")
+            output = render_component(spec, component_registry, raise_errors=True)
+            assert '<div class="card card--default">Configured Title</div>' in output
+        finally:
+            component_registry._components.remove(info)
+
+    def test_sidecar_trusted_html_and_nested_tags_in_slots_and_content(
+        self, registry_with_demo_components
+    ):
+        """Trusted side-car HTML and nested component tags in slot__* / content render unescaped and execute tags (#136, #162)."""
+        info = registry_with_demo_components.get_by_name("slotted_card")
+        orig_config = info.__dict__.get("gallery_config")
+        cfg = GalleryConfig(
+            param_defaults={
+                "title": "Card",
+                "slot__body": '<tr class="row" style="color: red"><td>Cell</td></tr>',
+                "slot__footer": '{% button label="Subscribe" %}',
+            },
+            variants=[
+                Variant(
+                    name="basic",
+                    kwargs={
+                        "slot__body": '<tr class="row" style="color: red"><td>Cell</td></tr>',
+                    },
+                ),
+            ],
+        )
+        info.__dict__["gallery_config"] = cfg
+        try:
+            # 1. Server-side variant render
+            spec = CanvasSpec(component_name="slotted_card", variant="basic")
+            html = render_component(
+                spec, registry_with_demo_components, raise_errors=True
+            )
+            assert '<tr class="row" style="color: red"><td>Cell</td></tr>' in html
+            assert "<button" in html
+            assert "Subscribe" in html
+
+            # 2. Round-trip through build_canvas_url + resolve_from_get_params preserves trusted side-car HTML
+            from urllib.parse import urlparse
+
+            url = build_canvas_url(
+                CanvasSpec(
+                    component_name="slotted_card",
+                    params={
+                        "title": "Card",
+                        "slot__body": '<tr class="row" style="color: red"><td>Cell</td></tr>',
+                        "slot__footer": '{% button label="Subscribe" %}',
+                    },
+                ),
+                "/canvas/",
+                registry=registry_with_demo_components,
+            )
+            qd = QueryDict(urlparse(url).query)
+            resolved_spec = resolve_from_get_params(qd, registry_with_demo_components)
+            roundtrip_html = render_component(
+                resolved_spec, registry_with_demo_components, raise_errors=True
+            )
+            assert (
+                '<tr class="row" style="color: red"><td>Cell</td></tr>'
+                in roundtrip_html
+            )
+            assert "<button" in roundtrip_html
+            assert "Subscribe" in roundtrip_html
+
+            # 3. Untrusted query string input is still sanitised by nh3 and never compiled as a template
+            untrusted_qd = QueryDict(
+                'component=slotted_card&title=Card&slot__body=<script>alert(1)</script><tr class="x"><td>Drop</td></tr>&slot__footer={% button label="Hacked" %}'
+            )
+            untrusted_spec = resolve_from_get_params(
+                untrusted_qd, registry_with_demo_components
+            )
+            untrusted_html = render_component(
+                untrusted_spec, registry_with_demo_components, raise_errors=True
+            )
+            assert "<script>" not in untrusted_html
+            assert '<tr class="x">' not in untrusted_html
+            assert '<button class="btn' not in untrusted_html
+        finally:
+            if orig_config is not None:
+                info.__dict__["gallery_config"] = orig_config
+            else:
+                info.__dict__.pop("gallery_config", None)
