@@ -28,8 +28,8 @@ def declares_param(component_class: Any, name: str) -> bool:
     """Return True if ``component_class`` declares a parameter called ``name``."""
     if component_class is None:
         return False
-    params = getattr(component_class, "get_params", lambda: {})()
-    positional = getattr(component_class, "get_positional_args", lambda: [])()
+    params: Mapping[str, Any] = getattr(component_class, "get_params", dict)()
+    positional: list[str] = getattr(component_class, "get_positional_args", list)()
     return name in params or name in positional
 
 
