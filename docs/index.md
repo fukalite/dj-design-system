@@ -64,6 +64,8 @@ The gallery generates the templatetag syntax automatically and shows a live prev
 
 **Multi-app** — register components across multiple Django apps. When a name is ambiguous, templates use an app-qualified syntax: `{% myapp:button "Click" %}`.
 
+**A gallery built from components** — the gallery itself is made from Django Design System components. Theme it with CSS custom properties, extend its page templates, hide apps with `GALLERY_EXCLUDE_APPS`, and browse its built-in components with `GALLERY_SHOW_BUILTIN_COMPONENTS`. See [Customising the Gallery](gallery.md#customising-the-gallery).
+
 **Markdown documentation** — place `index.md` or any other `.md` file alongside your components for narrative documentation that appears in the gallery.
 
 **Integration testing** — use the testing extras (like `[testing-all]`) to automatically assert accessibility, HTML validity, and visual regression across every variant of every component.

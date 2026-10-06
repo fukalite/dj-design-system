@@ -5,6 +5,7 @@ class DjangoDesignSystemConfig(AppConfig):
     """App configuration for dj_design_system."""
 
     name = "dj_design_system"
+    verbose_name = "Django Design System"
     default_auto_field = "django.db.models.BigAutoField"
 
     def ready(self) -> None:

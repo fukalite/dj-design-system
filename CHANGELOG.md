@@ -12,6 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Explicit per-component `GalleryConfig` and `Variant` dataclasses in `dj_design_system.gallery` for configuring sidebar navigation, custom icons, groupings, themes, canvas templates, and named variants.
 - Navigation builder support for `hidden` exclusion, custom `icon`s, explicit `order` sorting, `group` sub-folders, and deep-linkable variant child links (`?variant=<name>`).
 - Search indexing for component variants and descriptions.
+- `GALLERY_EXCLUDE_APPS` setting: app labels to hide from the gallery.
+- `GALLERY_SHOW_BUILTIN_COMPONENTS` setting: show the gallery's own built-in
+  components (off by default).
+- `Meta.internal = True` marks a component as internal: it gets only its
+  qualified tag name, short-name lookups skip it, and its media stays out of
+  the merged component media.
+- `dj_design_system.components`: the built-in components the gallery is built
+  from, registered as internal `dds__*` tags. They are not a supported public
+  API and may change without a deprecation period.
 
 ### Changed
 
@@ -25,16 +34,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   outright may need updating to match the new markup.
 - The gallery's stylesheets and scripts now come from the components' own
   media, in the order the components need them.
+- The `dj_design_system` app's `verbose_name` is now "Django Design System",
+  which the gallery and the Django admin show instead of "Dj design system".
 
 ### Deprecated
 
 - Defining `basic_kwargs` and `maximal_kwargs` dictionaries directly in `gallery.py` or `<name>_gallery.py` files is deprecated and will be removed in a future release. Export `config = GalleryConfig(...)` instead.
 - `ComponentInfo.gallery_basic_kwargs` and `ComponentInfo.gallery_maximal_kwargs` are deprecated in favor of `ComponentInfo.gallery_config`.
 - The gallery partials `breadcrumb.html`, `navtree.html`, `toolbar.html` and
-  `canvas_widget.html` are now thin wrappers around their components. Render
-  the components instead (`dds__navigation__breadcrumb`,
-  `dds__navigation__nav_tree`, `dds__sandbox__sandbox_toolbar` and
-  `dds__canvas__canvas_widget`).
+  `canvas_widget.html` are now thin wrappers around built-in components, kept
+  so existing `{% include %}`s keep working. Don't use them in new templates:
+  extend the gallery's page templates instead (see "Customising the Gallery"
+  in the gallery docs).
 
 ### Removed
 
