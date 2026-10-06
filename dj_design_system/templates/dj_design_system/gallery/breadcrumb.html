@@ -1,53 +1,5 @@
-{# Breadcrumb trail — collapsed on narrow viewports, full on wide. Expects ``breadcrumbs``: list of dicts with ``label`` and optional ``url``. #}
+{# Deprecated: use {% dds__navigation__breadcrumb breadcrumbs %}. Kept so existing includes keep working. Expects ``breadcrumbs``: list of dicts with ``label`` and optional ``url``. #}
+{% load design_components %}
 {% if breadcrumbs %}
-    {# Full path — shown on wide viewports #}
-    <span class="gallery-breadcrumb__full">
-        {% for crumb in breadcrumbs %}
-            {% if not forloop.last %}
-                <a href="{{ crumb.url }}">{{ crumb.label }}</a>
-                <span class="gallery-breadcrumb__sep">/</span>
-            {% else %}
-                <span class="gallery-breadcrumb__current">{{ crumb.label }}</span>
-            {% endif %}
-        {% endfor %}
-    </span>
-
-    {# Collapsed path — shown on narrow viewports #}
-    {% with last=breadcrumbs|last %}
-        {% if breadcrumbs|length > 2 %}
-            <span class="gallery-breadcrumb__collapsed">
-                <a href="{{ breadcrumbs.0.url }}">{{ breadcrumbs.0.label }}</a>
-                <span class="gallery-breadcrumb__sep">/</span>
-                <input type="checkbox"
-                       class="gallery-breadcrumb__toggle"
-                       id="bc-toggle"
-                       aria-hidden="true">
-                <label class="gallery-breadcrumb__ellipsis"
-                       for="bc-toggle"
-                       title="Show full path">…</label>
-                <span class="gallery-breadcrumb__sep">/</span>
-                <span class="gallery-breadcrumb__current">{{ last.label }}</span>
-                <div class="gallery-breadcrumb__flyout">
-                    {% for crumb in breadcrumbs %}
-                        {% if not forloop.first and not forloop.last %}
-                            <a href="{{ crumb.url }}">{{ crumb.label }}</a>
-                            {% if not forloop.last %}<span class="gallery-breadcrumb__sep">/</span>{% endif %}
-                        {% endif %}
-                    {% endfor %}
-                </div>
-            </span>
-        {% else %}
-            {# Only 2 crumbs — no collapse needed, just duplicate the full view #}
-            <span class="gallery-breadcrumb__collapsed">
-                {% for crumb in breadcrumbs %}
-                    {% if not forloop.last %}
-                        <a href="{{ crumb.url }}">{{ crumb.label }}</a>
-                        <span class="gallery-breadcrumb__sep">/</span>
-                    {% else %}
-                        <span class="gallery-breadcrumb__current">{{ crumb.label }}</span>
-                    {% endif %}
-                {% endfor %}
-            </span>
-        {% endif %}
-    {% endwith %}
+    {% dds__navigation__breadcrumb breadcrumbs %}
 {% endif %}

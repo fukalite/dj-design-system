@@ -1,4 +1,5 @@
 {% extends "dj_design_system/gallery/base.html" %}
+{% load design_components %}
 
 {% block title %}
     {% if doc_label %}
@@ -10,13 +11,11 @@
 {% endblock %}
 
 {% block breadcrumb %}
-    {% include "dj_design_system/gallery/breadcrumb.html" %}
+    {% dds__navigation__breadcrumb breadcrumbs %}
 {% endblock %}
 
 {% block content %}
-    <div class="gallery-page">
-        <div class="gallery-docs">
-            <div class="gallery-markdown">{{ doc_html|safe }}</div>
-        </div>
-    </div>
+    {% dds__layout__page %}
+        {% dds__layout__prose %}{{ doc_html|safe }}{% enddds__layout__prose %}
+    {% enddds__layout__page %}
 {% endblock %}

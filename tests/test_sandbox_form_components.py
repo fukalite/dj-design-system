@@ -249,4 +249,6 @@ class TestRegistrationAndCss:
         assert css_homes(selector) == [owner]
 
     def test_dark_theme_resizer_rule_moved(self):
-        assert "gallery-sandbox__resizer" not in (STATIC / "gallery.css").read_text()
+        assert css_homes(".gallery-theme-dark .gallery-sandbox__resizer:hover,") == [
+            "ui/sandbox/params_form.css"
+        ]
