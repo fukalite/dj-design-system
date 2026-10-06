@@ -1,0 +1,30 @@
+name: PR Labels
+
+# Release notes are generated from PR labels (see .github/release-drafter.yml),
+# so every PR must carry at least one of them.
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, labeled, unlabeled]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  require-label:
+    name: Require release label
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check labels
+        env:
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+          REQUIRED: breaking,enhancement,bug,security,documentation,maintenance,dependencies,skip-changelog
+        run: |
+          IFS=, read -ra have <<< "$LABELS"
+          IFS=, read -ra want <<< "$REQUIRED"
+          for l in "${have[@]}"; do
+            for w in "${want[@]}"; do
+              [ "$l" = "$w" ] && exit 0
+            done
+          done
+          echo "::error::Add one of these labels so the PR appears in the release notes: ${REQUIRED//,/, }"
+          exit 1
