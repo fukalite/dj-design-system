@@ -20,6 +20,11 @@ from dj_design_system.services.canvas import (
     merge_variant_params,
     render_component,
 )
+from dj_design_system.services.control_params import (
+    SANDBOX_SUBMISSION_PARAM,
+    declares_param,
+    get_control_param,
+)
 from dj_design_system.services.navigation import (
     build_breadcrumbs,
     to_display_label,
@@ -40,14 +45,24 @@ from dj_design_system.slots import SLOT_PARAM_PREFIX
 from dj_design_system.types import Theme
 
 
-SANDBOX_SUBMISSION_PARAM = "_iss"
-
-
 def _is_sandbox_form_submission(
     request: HttpRequest, form_fields: Any | None = None
 ) -> bool:
     """Return True if request.GET represents a sandbox parameter form submission."""
     return SANDBOX_SUBMISSION_PARAM in request.GET
+
+
+def _bare_belongs_to_component(
+    request: HttpRequest, component_class: type, name: str
+) -> bool:
+    """True if a bare ``name`` query key is a component parameter, not a control.
+
+    Only sandbox form submissions carry component values under their own names;
+    on plain navigation URLs a bare ``variant``/``theme`` is a gallery control.
+    """
+    return _is_sandbox_form_submission(request) and declares_param(
+        component_class, name
+    )
 
 
 def _get_form_and_sandbox_spec(
@@ -148,13 +163,11 @@ def _resolve_sandbox_theme(
         theme_dict = get_theme(t)
         if theme_dict is not None:
             available_themes.append(theme_dict)
-    theme_from_get = request.GET.get("_dds_theme")
-    if not theme_from_get:
-        if (
-            not _is_sandbox_form_submission(request)
-            or "theme" not in component_class.get_params()
-        ):
-            theme_from_get = request.GET.get("theme")
+    theme_from_get = get_control_param(
+        request.GET,
+        "theme",
+        bare_fallback=not _bare_belongs_to_component(request, component_class, "theme"),
+    )
     active_theme = theme_from_get or request.COOKIES.get("dds_theme") or ""
     if not active_theme:
         if active_variant and active_variant.theme:
@@ -273,12 +286,16 @@ def _render_component(request, context, node, app_label, path_parts):
     params = component_class.get_params()
     config = info.gallery_config
 
-    if "_dds_variant" in request.GET:
-        variant_param = request.GET.get("_dds_variant", "").strip() or None
-    elif _is_sandbox_form_submission(request) and "variant" in params:
-        variant_param = None
-    else:
-        variant_param = request.GET.get("variant", "").strip() or None
+    variant_param = (
+        get_control_param(
+            request.GET,
+            "variant",
+            bare_fallback=not _bare_belongs_to_component(
+                request, component_class, "variant"
+            ),
+        )
+        or ""
+    ).strip() or None
     active_variant: Variant | None = None
     if variant_param:
         active_variant = config.get_variant(variant_param)

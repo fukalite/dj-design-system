@@ -15,6 +15,7 @@ from dj_design_system.services.canvas import (
     resolve_component,
     resolve_from_get_params,
 )
+from dj_design_system.services.control_params import declares_param, get_control_param
 from dj_design_system.services.media import get_bundle_urls
 from dj_design_system.services.registry import component_registry
 from dj_design_system.settings import (
@@ -34,15 +35,9 @@ def _canvas_mode_class(
     request: HttpRequest, component_class: type | None = None
 ) -> str:
     """Return the CSS class for the canvas mode from GET params."""
-    mode_param = request.GET.get("_dds_mode")
-    if mode_param is None:
-        has_mode_param = bool(
-            component_class
-            and hasattr(component_class, "get_params")
-            and "mode" in component_class.get_params()
-        )
-        if not has_mode_param:
-            mode_param = request.GET.get("mode")
+    mode_param = get_control_param(
+        request.GET, "mode", bare_fallback=not declares_param(component_class, "mode")
+    )
     if mode_param:
         try:
             mode = CanvasMode(mode_param)
@@ -88,15 +83,9 @@ def _canvas_bg_class(
     component_class: type | None = None,
 ) -> str:
     """Return the CSS class for the canvas background from GET params, theme, or settings."""
-    bg_param = request.GET.get("_dds_bg")
-    if bg_param is None:
-        has_bg_param = bool(
-            component_class
-            and hasattr(component_class, "get_params")
-            and "bg" in component_class.get_params()
-        )
-        if not has_bg_param:
-            bg_param = request.GET.get("bg")
+    bg_param = get_control_param(
+        request.GET, "bg", bare_fallback=not declares_param(component_class, "bg")
+    )
     if bg_param:
         for bg in get_backgrounds():
             if bg["value"] == bg_param:
@@ -176,10 +165,11 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
     component_class = info.component_class
     context["canvas_mode_class"] = _canvas_mode_class(request, component_class)
 
-    theme_val = request.GET.get("_dds_theme")
-    if not theme_val:
-        if "theme" not in component_class.get_params():
-            theme_val = request.GET.get("theme")
+    theme_val = get_control_param(
+        request.GET,
+        "theme",
+        bare_fallback=not declares_param(component_class, "theme"),
+    )
     if not theme_val:
         theme_val = request.COOKIES.get("dds_theme")
 

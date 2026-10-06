@@ -6,6 +6,10 @@ from django.conf import settings
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import render
 
+from dj_design_system.services.control_params import (
+    SANDBOX_SUBMISSION_PARAM,
+    get_control_param,
+)
 from dj_design_system.services.markdown import render_markdown_doc
 from dj_design_system.services.navigation import (
     build_breadcrumbs,
@@ -35,14 +39,15 @@ def get_base_context(
     active_theme = get_default_theme().value
     active_variant = None
     if request:
+        # On a sandbox submission bare names are component values, not controls.
+        bare_fallback = SANDBOX_SUBMISSION_PARAM not in request.GET
         active_theme = (
-            request.GET.get("_dds_theme")
-            or request.GET.get("theme")
+            get_control_param(request.GET, "theme", bare_fallback=bare_fallback)
             or request.COOKIES.get("dds_theme")
             or active_theme
         )
         active_variant = (
-            request.GET.get("_dds_variant") or request.GET.get("variant") or ""
+            get_control_param(request.GET, "variant", bare_fallback=bare_fallback) or ""
         ).strip() or None
     return {
         "nav_tree": nav_tree,

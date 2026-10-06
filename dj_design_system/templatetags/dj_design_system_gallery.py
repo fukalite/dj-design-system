@@ -9,6 +9,10 @@ from django import template
 from dj_design_system.data import NavNode
 from dj_design_system.gallery import Variant
 from dj_design_system.services.canvas_renderer import build_canvas_srcdoc
+from dj_design_system.services.control_params import (
+    SANDBOX_SUBMISSION_PARAM,
+    get_control_param,
+)
 from dj_design_system.settings import get_default_theme, get_theme
 from dj_design_system.types import Theme
 
@@ -57,7 +61,11 @@ class CanvasNode(template.Node):
         if not theme_val:
             request = context.get("request")
             if request:
-                theme_val = request.GET.get("theme")
+                theme_val = get_control_param(
+                    request.GET,
+                    "theme",
+                    bare_fallback=SANDBOX_SUBMISSION_PARAM not in request.GET,
+                )
         if not theme_val:
             theme_val = get_default_theme().value
         return get_theme(theme_val)
