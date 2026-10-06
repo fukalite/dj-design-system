@@ -24,6 +24,8 @@ dist/
 build/
 # mkdocs build output
 site/
+# generated from GitHub releases by .github/scripts/generate_changelog.py
+docs/changelog.md
 
 # Coverage
 .coverage
