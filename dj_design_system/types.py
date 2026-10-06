@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 
-class NodeType(enum.Enum):
+class NodeType(str, enum.Enum):
     """Discriminates the kind of navigation node."""
 
     APP = "app"
@@ -15,14 +15,14 @@ class NodeType(enum.Enum):
     VARIANT = "variant"
 
 
-class TagType(enum.Enum):
+class TagType(str, enum.Enum):
     """The type of template tag a component should be registered as."""
 
     TAG = "tag"
     BLOCK = "block"
 
 
-class CanvasMode(enum.Enum):
+class CanvasMode(str, enum.Enum):
     """Rendering mode for a canvas instance."""
 
     BASIC = "basic"

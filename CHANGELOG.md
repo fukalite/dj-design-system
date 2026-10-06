@@ -34,6 +34,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added backward-compatible HTML anchor `#customising-gallery-examples` to `docs/gallery.md`.
 - Added `.gallery-canvas-error` styling rule to `canvas.css` so canvas error messages inside iframes render with proper colour and typography without depending on host gallery tokens.
 - The canvas wrapper is no longer a flex container, so components that fill the space they are given render at full width instead of collapsing. Components are no longer centred in the canvas; their layout is left to the project ([#156](https://github.com/fukalite/dj-design-system/issues/156)).
+- `migrate_gallery_configs` now migrates type-annotated `basic_kwargs` / `maximal_kwargs` assignments (`ast.AnnAssign`) and inlines cross-references such as `maximal_kwargs = basic_kwargs` without leaving a `NameError` ([#133](https://github.com/fukalite/dj-design-system/issues/133)).
+- `load_gallery_config` now registers loaded side-car modules in `sys.modules` under a deterministic module name so edits to `gallery.py` trigger Django's development server autoreloader ([#163](https://github.com/fukalite/dj-design-system/issues/163)).
+- `NodeType`, `TagType`, and `CanvasMode` now subclass `(str, enum.Enum)` so `GALLERY_NAV_ORDER` can be configured using plain strings in `settings.py` without importing `dj_design_system` ([#165](https://github.com/fukalite/dj-design-system/issues/165)).
 
 
 ## [0.0.1] - unreleased

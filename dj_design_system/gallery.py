@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import hashlib
 import importlib.util
-import uuid
+import sys
 import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -197,13 +198,17 @@ def load_gallery_config(source_dir: Path, component_name: str) -> GalleryConfig:
     if not gallery_path:
         return GalleryConfig()
 
-    mod_name = f"dj_design_system_gallery_{uuid.uuid4().hex}"
-    spec = importlib.util.spec_from_file_location(mod_name, gallery_path)
+    resolved_path = gallery_path.resolve()
+    path_hash = hashlib.sha256(str(resolved_path).encode("utf-8")).hexdigest()[:16]
+    mod_name = f"dj_design_system_gallery_{component_name}_{path_hash}"
+    spec = importlib.util.spec_from_file_location(mod_name, resolved_path)
     if not (spec and spec.loader):
         return GalleryConfig()
 
     mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
+    sys.modules[mod_name] = mod
+    source = resolved_path.read_text(encoding="utf-8")
+    exec(compile(source, str(resolved_path), "exec"), mod.__dict__)
 
     cfg = getattr(mod, "config", None)
     if isinstance(cfg, GalleryConfig):
