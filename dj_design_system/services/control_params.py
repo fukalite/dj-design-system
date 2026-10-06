@@ -6,8 +6,6 @@ name. The bare names are still accepted as a legacy fallback, but only where
 the bare name cannot belong to the component.
 """
 
-from __future__ import annotations
-
 from collections.abc import Mapping
 from typing import Any
 
