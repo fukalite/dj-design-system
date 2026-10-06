@@ -63,6 +63,7 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
           GEMINI_MODEL: 'gemini-3.8-flash'
           INSTRUCTIONS_FILE: '.github/copilot-instructions.md'
+          STYLEGUIDES_DIR: 'conductor/code_styleguides'
           USER_COMMENT: ${{ github.event.comment.body || '' }}
         run: |
           python3 .github/scripts/ai_pr_review.py

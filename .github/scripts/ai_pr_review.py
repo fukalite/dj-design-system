@@ -5,11 +5,12 @@ AI Pull Request Reviewer using Gemini.
 Performs inline code reviews on GitHub Pull Requests by:
 1. Fetching PR details and diff (supports pull_request events, issue_comment /review triggers, and workflow_dispatch).
 2. Parsing the PR diff and mapping exact modified line numbers.
-3. Reading review instructions from .github/copilot-instructions.md (with optional custom prompt appended from /review comment).
+3. Reading review instructions from .github/copilot-instructions.md, followed by the project styleguides in conductor/code_styleguides (with optional custom prompt appended from /review comment).
 4. Invoking the Gemini API (default: gemini-3.8-flash) with structured JSON output.
 5. Posting a formal GitHub Pull Request Review with inline comments directly on the diff.
 """
 
+import glob
 import json
 import os
 import random
@@ -404,6 +405,21 @@ def post_github_review(
         raise
 
 
+FRONT_MATTER_PATTERN = re.compile(r"\A---\n.*?\n---\n", re.DOTALL)
+
+
+def load_styleguides(directory: str) -> str:
+    """Return every Markdown styleguide in `directory`, front matter removed."""
+    sections = []
+    for path in sorted(glob.glob(os.path.join(directory, "*.md"))):
+        with open(path, "r", encoding="utf-8") as f:
+            content = FRONT_MATTER_PATTERN.sub("", f.read()).strip()
+        sections.append(f"## Styleguide: {os.path.basename(path)}\n\n{content}")
+    if not sections:
+        return ""
+    return "# Project Styleguides\n\n" + "\n\n".join(sections)
+
+
 def main():
     gemini_key = get_env_var("GEMINI_API_KEY")
     github_token = get_env_var("GITHUB_TOKEN")
@@ -415,6 +431,7 @@ def main():
     instructions_file = get_env_var(
         "INSTRUCTIONS_FILE", ".github/copilot-instructions.md"
     )
+    styleguides_dir = get_env_var("STYLEGUIDES_DIR", "conductor/code_styleguides")
     user_comment = get_env_var("USER_COMMENT")
 
     if not gemini_key:
@@ -451,6 +468,11 @@ def main():
             f"Notice: {instructions_file} not found; using standard review guidelines."
         )
         instructions = "You are a Senior Python & Django Engineer. Review code for correctness, Django idiomaticness, security, and performance. Use ```suggestion blocks for fixes."
+
+    styleguides = load_styleguides(directory=styleguides_dir)
+    if styleguides:
+        instructions += f"\n\n{styleguides}"
+        print(f"Loaded styleguides from {styleguides_dir} ({len(styleguides)} chars).")
 
     if user_comment:
         custom_focus = re.sub(

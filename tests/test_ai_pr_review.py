@@ -181,3 +181,34 @@ def test_post_github_review_header_formatting(mock_urlopen):
         "### ⚠️ Gemini Code Review Temporarily Unavailable"
     )
     assert "### ⚡ Gemini Code Review\n\n### ⚠️" not in payload["body"]
+
+
+def test_load_styleguides_includes_every_markdown_file_in_order(tmp_path):
+    (tmp_path / "python.md").write_text("# Python\nUse types.\n", encoding="utf-8")
+    (tmp_path / "general.md").write_text("# General\nBe clear.\n", encoding="utf-8")
+    (tmp_path / "notes.txt").write_text("ignored", encoding="utf-8")
+
+    result = ai_pr_review.load_styleguides(directory=str(tmp_path))
+
+    assert "Be clear." in result
+    assert "Use types." in result
+    assert "ignored" not in result
+    assert result.index("general.md") < result.index("python.md")
+
+
+def test_load_styleguides_strips_front_matter(tmp_path):
+    (tmp_path / "python.md").write_text(
+        "---\ntrigger: model_decision\n---\n\n# Python\nUse types.\n",
+        encoding="utf-8",
+    )
+
+    result = ai_pr_review.load_styleguides(directory=str(tmp_path))
+
+    assert "trigger: model_decision" not in result
+    assert "# Python\nUse types." in result
+
+
+def test_load_styleguides_returns_empty_string_for_missing_directory(tmp_path):
+    result = ai_pr_review.load_styleguides(directory=str(tmp_path / "missing"))
+
+    assert result == ""
