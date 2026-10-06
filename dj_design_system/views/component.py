@@ -40,14 +40,14 @@ from dj_design_system.slots import SLOT_PARAM_PREFIX
 from dj_design_system.types import Theme
 
 
-def _is_sandbox_form_submission(request: HttpRequest, form_fields: Any) -> bool:
+SANDBOX_SUBMISSION_PARAM = "_iss"
+
+
+def _is_sandbox_form_submission(
+    request: HttpRequest, form_fields: Any | None = None
+) -> bool:
     """Return True if request.GET represents a sandbox parameter form submission."""
-    if "_dds_theme" in request.GET or "_dds_variant" in request.GET:
-        return True
-    non_nav_fields = [k for k in form_fields if k not in ("variant", "theme")]
-    if any(k in request.GET for k in non_nav_fields):
-        return True
-    return False
+    return SANDBOX_SUBMISSION_PARAM in request.GET
 
 
 def _get_form_and_sandbox_spec(
@@ -156,8 +156,9 @@ def _resolve_sandbox_theme(
             available_themes.append(theme_dict)
     theme_from_get = request.GET.get("_dds_theme")
     if not theme_from_get:
-        if "theme" not in component_class.get_params() or not any(
-            k not in ("theme", "variant") for k in request.GET
+        if (
+            not _is_sandbox_form_submission(request)
+            or "theme" not in component_class.get_params()
         ):
             theme_from_get = request.GET.get("theme")
     active_theme = theme_from_get or request.COOKIES.get("dds_theme") or ""
@@ -280,7 +281,7 @@ def _render_component(request, context, node, app_label, path_parts):
 
     if "_dds_variant" in request.GET:
         variant_param = request.GET.get("_dds_variant", "").strip() or None
-    elif "_dds_theme" in request.GET and "variant" in params:
+    elif _is_sandbox_form_submission(request) and "variant" in params:
         variant_param = None
     else:
         variant_param = request.GET.get("variant", "").strip() or None

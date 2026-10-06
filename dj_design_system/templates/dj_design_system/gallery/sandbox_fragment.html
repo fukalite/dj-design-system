@@ -26,6 +26,7 @@
                   hx-target="closest [data-gallery-sandbox-body]"
                   hx-swap="innerHTML"
                   hx-trigger="change delay:400ms, keyup delay:400ms from:input, keyup delay:400ms from:textarea">
+                <input type="hidden" name="_iss" value="1">
                 <input type="hidden" name="_dds_theme" value="{{ active_theme }}">
                 {% if active_variant %}
                     <input type="hidden" name="_dds_variant" value="{{ active_variant.name }}">
