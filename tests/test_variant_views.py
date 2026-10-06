@@ -5,10 +5,12 @@ from django.test import Client
 from django.urls import reverse
 
 from dj_design_system.components import TagComponent
-from dj_design_system.data import ComponentInfo, GalleryParameter
+from dj_design_system.data import ComponentInfo, GalleryParameter, NavNode
 from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.parameters.base import StrParam
 from dj_design_system.services.registry import component_registry
+from dj_design_system.templatetags.dj_design_system_gallery import nav_link_is_active
+from dj_design_system.types import NodeType
 
 
 pytestmark = pytest.mark.django_db
@@ -168,6 +170,22 @@ class TestVariantViews:
         # Focused description rendered
         assert b"Destructive action button." in response.content
 
+    def test_variant_view_highlights_active_variant_in_sidebar_nav(
+        self, client: Client
+    ):
+        """Full-page variant view marks the active variant link as active in the sidebar nav (#137)."""
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "badge"},
+        )
+        response = client.get(f"{url}?variant=status")
+        assert response.status_code == 200
+        html = response.content.decode("utf-8")
+        assert (
+            'class="gallery-nav__link gallery-nav__link--variant gallery-nav__link--active"'
+            in html
+        )
+
     def test_unbound_variant_sandbox_spec_omits_redundant_query_params(
         self, custom_variant_component, client: Client
     ):
@@ -219,3 +237,35 @@ class TestVariantViews:
             assert "Detailed+alert+body" in response.context["maximal_preview_url"]
         finally:
             component_registry._components.remove(info)
+
+
+class TestNavLinkIsActive:
+    """Unit tests for the ``nav_link_is_active`` template tag (#137)."""
+
+    @staticmethod
+    def _node(node_type: NodeType, **kwargs) -> NavNode:
+        return NavNode(label="x", slug="danger", node_type=node_type, **kwargs)
+
+    def test_variant_matches_variant_instance_or_slug(self):
+        node = self._node(
+            NodeType.VARIANT,
+            variant=Variant(name="danger"),
+            base_active_path="app/button",
+        )
+        assert nav_link_is_active(node, "app/button", Variant(name="danger"))
+        assert nav_link_is_active(node, "app/button", "danger")
+
+    def test_variant_not_active_for_other_variant_or_path(self):
+        node = self._node(
+            NodeType.VARIANT,
+            variant=Variant(name="danger"),
+            base_active_path="app/button",
+        )
+        assert not nav_link_is_active(node, "app/button", "basic")
+        assert not nav_link_is_active(node, "app/other", "danger")
+        assert not nav_link_is_active(node, "app/button", None)
+
+    def test_non_variant_active_only_without_active_variant(self):
+        node = self._node(NodeType.FOLDER, active_path="app/button")
+        assert nav_link_is_active(node, "app/button", None)
+        assert not nav_link_is_active(node, "app/button", "danger")
