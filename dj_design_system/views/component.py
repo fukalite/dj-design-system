@@ -105,14 +105,8 @@ def _get_form_and_sandbox_spec(
     else:
         form_kwargs = {}
         if active_variant:
-            spec_params = dict(initial_data)
-            positional_values = tuple(
-                spec_params.pop(name) for name in pos_args if name in spec_params
-            )
             sandbox_spec = CanvasSpec(
                 component_name=tag_signature.maximal_spec.component_name,
-                params=spec_params,
-                positional_args=positional_values,
                 variant=variant_name,
             )
         else:

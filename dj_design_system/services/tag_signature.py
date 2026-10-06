@@ -174,7 +174,14 @@ def _format_multiline_example(
         parts = inner.split(None, 1)
 
         if len(parts) == 1:
-            formatted = f"{{% {component_name} %}}{content}{{% end{component_name} %}}"
+            if "\n" in content:
+                formatted = (
+                    f"{{% {component_name} %}}\n{content}\n{{% end{component_name} %}}"
+                )
+            else:
+                formatted = (
+                    f"{{% {component_name} %}}{content}{{% end{component_name} %}}"
+                )
         else:
             component = parts[0]
             params = parts[1]
@@ -368,6 +375,7 @@ def _build_sig_raw(
     block_class: type[BlockComponent] | None,
     required_only: bool,
     slot_overrides: dict[str, Any] | None = None,
+    content_override: str | None = None,
 ) -> str:
     all_args = positional_formatted + keyword_formatted
     args_str = " ".join(all_args)
@@ -387,7 +395,12 @@ def _build_sig_raw(
         if args_str:
             opening += f" {args_str}"
         opening += " %}"
-        raw = f"{opening}{BLOCK_CONTENT_PLACEHOLDER}{{% end{component_name} %}}"
+        body = (
+            content_override
+            if content_override is not None
+            else BLOCK_CONTENT_PLACEHOLDER
+        )
+        raw = f"{opening}{body}{{% end{component_name} %}}"
         return _format_multiline_example(raw, is_block, component_name)
     else:
         opening = f"{{% {component_name}"
@@ -403,6 +416,16 @@ def _unwrap_example(value: Any) -> Any:
     if isinstance(value, GalleryParameter):
         return value.value
     return value
+
+
+def _content_code(value: Any) -> str:
+    from dj_design_system.data import GalleryParameter
+
+    if isinstance(value, GalleryParameter):
+        if value.code is not None:
+            return value.code
+        return str(value.value)
+    return str(value)
 
 
 def _build_minimal_positional_values(
@@ -490,6 +513,8 @@ def generate_tag_signature(
     tag_name: str | None = None,
 ) -> TagSignature:
     """Generate minimal and maximal usage signatures for a component."""
+    from dj_design_system.services.canvas import merge_variant_params
+
     component_name = (
         tag_name or get_meta_name(component_class) or derive_name(component_class)
     )
@@ -502,8 +527,13 @@ def generate_tag_signature(
 
     try:
         info = component_registry.get_info(component_class)
-        basic_kwargs = dict(info.gallery_basic_kwargs)
-        maximal_kwargs = dict(info.gallery_maximal_kwargs)
+        config = info.gallery_config
+        basic_kwargs = merge_variant_params(
+            component_class, config=config, variant=config.get_variant("basic")
+        )
+        maximal_kwargs = merge_variant_params(
+            component_class, config=config, variant=config.get_variant("maximal")
+        )
     except Exception:
         basic_kwargs = {}
         maximal_kwargs = {}
@@ -518,6 +548,13 @@ def generate_tag_signature(
         for k in list(maximal_kwargs.keys())
         if k.startswith(SLOT_PARAM_PREFIX)
     }
+
+    basic_content_override = (
+        basic_kwargs.pop("content", None) if (is_block and not is_slotted) else None
+    )
+    maximal_content_override = (
+        maximal_kwargs.pop("content", None) if (is_block and not is_slotted) else None
+    )
 
     # Minimal Signature
     min_pos_fmt, min_pos_vals, min_str_index = _build_minimal_positional_values(
@@ -554,6 +591,11 @@ def generate_tag_signature(
         block_class,
         required_only=True,
         slot_overrides=basic_slot_overrides,
+        content_override=(
+            _content_code(basic_content_override)
+            if basic_content_override is not None
+            else None
+        ),
     )
 
     # Maximal Signature
@@ -572,6 +614,11 @@ def generate_tag_signature(
         block_class,
         required_only=False,
         slot_overrides=maximal_slot_overrides,
+        content_override=(
+            _content_code(maximal_content_override)
+            if maximal_content_override is not None
+            else None
+        ),
     )
 
     minimal_html = highlight_code(minimal)
@@ -603,6 +650,11 @@ def generate_tag_signature(
                 maximal_slot_params[override_key] = (
                     slot.default or f"Sample {slot_name} content"
                 )
+    elif is_block:
+        if basic_content_override is not None:
+            minimal_slot_params["content"] = _unwrap_example(basic_content_override)
+        if maximal_content_override is not None:
+            maximal_slot_params["content"] = _unwrap_example(maximal_content_override)
 
     minimal_spec = CanvasSpec(
         component_name=canvas_name,

@@ -34,6 +34,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added backward-compatible HTML anchor `#customising-gallery-examples` to `docs/gallery.md`.
 - Added `.gallery-canvas-error` styling rule to `canvas.css` so canvas error messages inside iframes render with proper colour and typography without depending on host gallery tokens.
 - The canvas wrapper is no longer a flex container, so components that fill the space they are given render at full width instead of collapsing. Components are no longer centred in the canvas; their layout is left to the project ([#156](https://github.com/fukalite/dj-design-system/issues/156)).
+- Block component usage snippets and previews now read `content` and `slot__*` values from `GalleryConfig.param_defaults` and `Variant` configs, rendering `content` as the block body rather than a keyword argument ([#154](https://github.com/fukalite/dj-design-system/issues/154)).
+- Trusted `content` and `slot__*` strings declared in Python side-car `GalleryConfig`s now preserve HTML fragments, attributes (`class`, `style`), and nested component template tags across server renders and URL round-trips while keeping untrusted query string parameters sanitised ([#136](https://github.com/fukalite/dj-design-system/issues/136), [#162](https://github.com/fukalite/dj-design-system/issues/162)).
+- Raw `canvas_template` strings (without `{{ component }}`) now seed the template context with declared component parameter defaults from `get_params()` ([#164](https://github.com/fukalite/dj-design-system/issues/164)).
+
 
 
 ## [0.0.1] - unreleased
