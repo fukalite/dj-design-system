@@ -6,6 +6,8 @@ import html
 
 from django import template
 
+from dj_design_system.data import NavNode
+from dj_design_system.gallery import Variant
 from dj_design_system.services.canvas_renderer import build_canvas_srcdoc
 from dj_design_system.settings import get_default_theme, get_theme
 from dj_design_system.types import Theme
@@ -25,6 +27,23 @@ def add_indent(depth: int) -> int:
     except (TypeError, ValueError):
         depth = 0
     return BASE_INDENT_PX + (depth * INDENT_PER_LEVEL_PX)
+
+
+@register.simple_tag
+def nav_link_is_active(
+    node: NavNode, active_path: str, active_variant: Variant | str | None
+) -> bool:
+    """Return whether a leaf nav link is the current page.
+
+    ``active_variant`` is either a ``Variant`` (component pages) or a plain
+    slug string (raw ``?variant=`` query value); both are accepted.
+    """
+    if not node.is_variant:
+        return active_path == node.active_path and not active_variant
+    if active_path != node.base_active_path:
+        return False
+    active_slug = getattr(active_variant, "name", active_variant)
+    return active_slug == node.slug
 
 
 class CanvasNode(template.Node):
