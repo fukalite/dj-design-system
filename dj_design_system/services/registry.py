@@ -1,5 +1,6 @@
 import inspect
 import pkgutil
+from collections.abc import Iterable
 from importlib import import_module
 from pathlib import Path
 from typing import Any, Type
@@ -328,7 +329,7 @@ class ComponentRegistry:
         return self._merge_media(i for i in self._components if i.is_internal)
 
     @staticmethod
-    def _merge_media(infos) -> ComponentMedia:
+    def _merge_media(infos: Iterable[ComponentInfo]) -> ComponentMedia:
         result = ComponentMedia()
         for info in infos:
             result = result.merge(info.media)
