@@ -31,6 +31,12 @@ from dj_design_system.exceptions import (
 from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.parameters.base import DictParam, JSONParam, ListParam
 from dj_design_system.parameters.model import ModelParam
+from dj_design_system.services.control_params import (
+    CONTROL_PARAM_NAMES,
+    control_param_key,
+    declares_param,
+    get_control_param,
+)
 from dj_design_system.services.registry import component_registry
 from dj_design_system.slots import SLOT_PARAM_PREFIX
 
@@ -121,10 +127,22 @@ def resolve_from_get_params(
     param_specs = info.component_class.get_params()
     positional_arg_names = info.component_class.get_positional_args()
 
-    variant = query_dict.get("variant", "").strip() or None
-    raw_params = {
-        k: v for k, v in query_dict.items() if k not in ("component", "bg", "variant")
-    }
+    # A bare control name is a legacy control unless the component declares it.
+    excluded_keys = set(RESERVED_CANVAS_PARAMS)
+    excluded_keys.update(
+        name
+        for name in CONTROL_PARAM_NAMES
+        if not declares_param(info.component_class, name)
+    )
+
+    variant = (
+        get_control_param(
+            query_dict, "variant", bare_fallback="variant" in excluded_keys
+        )
+        or ""
+    ).strip() or None
+
+    raw_params = {k: v for k, v in query_dict.items() if k not in excluded_keys}
 
     positional_args, params = _coerce_params(
         raw_params, param_specs, positional_arg_names
@@ -419,7 +437,12 @@ def get_component_media(
         return ComponentMedia()
 
 
-RESERVED_CANVAS_PARAMS = frozenset({"component", "variant", "mode", "theme"})
+# Keys the canvas always owns. Bare control names (``variant`` etc.) are
+# deliberately absent: they are component parameters when the component
+# declares them, so they must not be dropped from or shadowed in canvas URLs.
+RESERVED_CANVAS_PARAMS = frozenset(
+    {"component", *(control_param_key(n) for n in CONTROL_PARAM_NAMES)}
+)
 
 
 def build_canvas_url(
@@ -459,11 +482,11 @@ def build_canvas_url(
     # Core canvas control parameters take priority to avoid parameter shadowing
     query["component"] = spec.component_name
     if spec.variant:
-        query["variant"] = spec.variant
+        query[control_param_key("variant")] = spec.variant
     if mode:
-        query["mode"] = mode
+        query[control_param_key("mode")] = mode
     if theme:
-        query["theme"] = theme
+        query[control_param_key("theme")] = theme
     for k, v in extra_query.items():
         if v is not None:
             query[k] = v

@@ -15,6 +15,7 @@ from dj_design_system.services.canvas import (
     resolve_component,
     resolve_from_get_params,
 )
+from dj_design_system.services.control_params import declares_param, get_control_param
 from dj_design_system.services.media import get_bundle_urls
 from dj_design_system.services.registry import component_registry
 from dj_design_system.settings import (
@@ -30,9 +31,13 @@ from dj_design_system.types import CanvasMode, Theme
 from dj_design_system.views.decorators import gallery_access_required
 
 
-def _canvas_mode_class(request: HttpRequest) -> str:
+def _canvas_mode_class(
+    request: HttpRequest, component_class: type | None = None
+) -> str:
     """Return the CSS class for the canvas mode from GET params."""
-    mode_param = request.GET.get("mode")
+    mode_param = get_control_param(
+        request.GET, "mode", bare_fallback=not declares_param(component_class, "mode")
+    )
     if mode_param:
         try:
             mode = CanvasMode(mode_param)
@@ -72,9 +77,15 @@ def _canvas_html_attrs(
     return _flatten_attrs(html_dict), _flatten_attrs(body_dict)
 
 
-def _canvas_bg_class(request: HttpRequest, theme_dict: Theme | None = None) -> str:
+def _canvas_bg_class(
+    request: HttpRequest,
+    theme_dict: Theme | None = None,
+    component_class: type | None = None,
+) -> str:
     """Return the CSS class for the canvas background from GET params, theme, or settings."""
-    bg_param = request.GET.get("bg")
+    bg_param = get_control_param(
+        request.GET, "bg", bare_fallback=not declares_param(component_class, "bg")
+    )
     if bg_param:
         for bg in get_backgrounds():
             if bg["value"] == bg_param:
@@ -124,7 +135,6 @@ def _canvas_bg_styles(
 @gallery_access_required
 def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
     """Render a single component inside a full HTML document for iframe embedding."""
-    theme_val = request.GET.get("theme") or request.COOKIES.get("dds_theme")
     context = {
         "rendered_html": "",
         "component_css": "",
@@ -153,6 +163,15 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
     info = resolve_component(spec.component_name, component_registry)
     app_label = info.app_label
     component_class = info.component_class
+    context["canvas_mode_class"] = _canvas_mode_class(request, component_class)
+
+    theme_val = get_control_param(
+        request.GET,
+        "theme",
+        bare_fallback=not declares_param(component_class, "theme"),
+    )
+    if not theme_val:
+        theme_val = request.COOKIES.get("dds_theme")
 
     available_theme_values = component_class.get_available_themes()
 
@@ -241,7 +260,7 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
     context["html_attrs"], context["body_attrs"] = _canvas_html_attrs(
         theme_dict, app_label
     )
-    context["canvas_bg_class"] = _canvas_bg_class(request, theme_dict)
+    context["canvas_bg_class"] = _canvas_bg_class(request, theme_dict, component_class)
     context["canvas_bg_styles"] = _canvas_bg_styles(theme_dict, request=request)
 
     return render(

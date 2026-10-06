@@ -373,6 +373,22 @@ class TestGalleryComponentFormIntegration:
         assert form_kwargs.get("title") == "CustomTitle"
         assert form_kwargs.get("user") == fake_instance
 
+    def test_is_sandbox_form_submission(self):
+        """_is_sandbox_form_submission returns True if and only if _iss is in GET."""
+        from django.test import RequestFactory
+
+        from dj_design_system.views.component import (
+            SANDBOX_SUBMISSION_PARAM,
+            _is_sandbox_form_submission,
+        )
+
+        rf = RequestFactory()
+        assert not _is_sandbox_form_submission(rf.get("/?variant=foo&theme=dark"))
+        assert _is_sandbox_form_submission(rf.get(f"/?{SANDBOX_SUBMISSION_PARAM}=1"))
+        assert _is_sandbox_form_submission(
+            rf.get(f"/?{SANDBOX_SUBMISSION_PARAM}=1&variant=foo")
+        )
+
     def test_param_rows_length_matches_params(self, client):
         """param_rows should contain one entry per component parameter.
 

@@ -84,7 +84,7 @@ class TestVariantViews:
         assert response.context["active_variant"].name == "maximal"
         # Focused variant view
         assert b"Maximal" in response.content
-        assert b"variant=maximal" in response.content
+        assert b"_dds_variant=maximal" in response.content
         # Breadcrumbs contain parent component link and variant as current crumb
         breadcrumbs = response.context["breadcrumbs"]
         assert breadcrumbs[-2]["url"] == url
@@ -113,7 +113,12 @@ class TestVariantViews:
         response = client.get(f"{url}?variant=maximal")
         assert response.status_code == 200
         assert (
-            b'<input type="hidden" name="variant" value="maximal"' in response.content
+            b'<input type="hidden" name="_iss" value="1"'
+            in response.content
+        )
+        assert (
+            b'<input type="hidden" name="_dds_variant" value="maximal"'
+            in response.content
         )
 
     def test_sandbox_toolbar_contains_variant_preset_selector(self, client: Client):
@@ -169,6 +174,47 @@ class TestVariantViews:
         assert form.initial.get("theme") == "danger"
         # Focused description rendered
         assert b"Destructive action button." in response.content
+
+    def test_component_with_variant_param_renders_and_submits_in_sandbox(
+        self, client: Client
+    ):
+        """A component declaring a 'variant' parameter (like SlottedCardComponent) can view presets and submit sandbox edits without parameter collision (#135)."""
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "card/slotted_card"},
+        )
+        # 1. Navigating to ?variant=product loads an unbound form without validation errors
+        response = client.get(f"{url}?variant=product")
+        assert response.status_code == 200
+        assert response.context["active_variant"].name == "product"
+        form = response.context["form"]
+        assert not form.is_bound
+        assert form.initial.get("variant") == "elevated"
+
+        # 2. Submitting the sandbox form with both _dds_variant=product and component param variant=outlined
+        submit_response = client.get(
+            f"{url}?_iss=1&_dds_theme=default&_dds_variant=product&title=Pro&variant=outlined&slot__body=Body"
+        )
+        assert submit_response.status_code == 200
+        assert submit_response.context["active_variant"].name == "product"
+        bound_form = submit_response.context["form"]
+        assert bound_form.is_bound
+        assert bound_form.is_valid()
+        iframe_url = submit_response.context["canvas_iframe_url"]
+        assert "_dds_variant=product" in iframe_url
+        assert "variant=outlined" in iframe_url
+
+        # 3. Submitting the sandbox form on default variant with component param variant=outlined
+        submit_default_response = client.get(
+            f"{url}?_iss=1&_dds_theme=default&title=Pro&variant=outlined&slot__body=Body"
+        )
+        assert submit_default_response.status_code == 200
+        assert submit_default_response.context["active_variant"] is None
+        bound_default_form = submit_default_response.context["form"]
+        assert bound_default_form.is_bound
+        assert bound_default_form.is_valid()
+        iframe_default_url = submit_default_response.context["canvas_iframe_url"]
+        assert "variant=outlined" in iframe_default_url
 
     def test_variant_view_highlights_active_variant_in_sidebar_nav(
         self, client: Client

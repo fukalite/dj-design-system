@@ -304,7 +304,7 @@ class TestCanvasVariantIntegration:
         )
         url = build_canvas_url(spec, "/canvas/")
         assert "component=dummy_button" in url
-        assert "variant=secondary" in url
+        assert "_dds_variant=secondary" in url
         assert "label=Click" in url
 
     def test_unknown_variant_raises_when_requested(self):
