@@ -63,16 +63,12 @@ typecheck:
 coverage:
     uv run --no-sync pytest tests/ -m "not e2e" --cov --cov-report=term-missing
 
-# Generate docs/changelog.md from GitHub releases (requires an authenticated `gh`)
-docs-changelog:
-    python3 .github/scripts/generate_changelog.py
-
 # Serve the MkDocs documentation site locally
-docs-serve: docs-changelog
+docs-serve:
     uv run --no-sync mkdocs serve
 
 # Build the MkDocs documentation site
-docs-build: docs-changelog
+docs-build:
     uv run --no-sync mkdocs build
 
 # Install Playwright browsers (run once after install)

@@ -29,6 +29,9 @@ theme:
     - content.code.copy
     - content.action.edit
 
+hooks:
+  - docs_hooks/changelog.py
+
 plugins:
   - search
   - mkdocstrings:
