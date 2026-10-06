@@ -38,7 +38,9 @@ _SANITISED_HTML = (
 KNOWN_CANVAS_ISSUES = {
     ("dds__primitives__notice", "maximal"): _DROPPED_VARIANT,
     ("dds__primitives__section_heading", "maximal"): _DROPPED_VARIANT,
-    ("dds__layout__pane", "maximal"): _DROPPED_VARIANT,
+    # Pane's maximal example (variant="sandbox") also loses its variant, but
+    # the variant has no visible effect in a canvas until the sandbox pane's
+    # rules move into pane.css (track 5), so it is listed from there.
     ("dds__primitives__table", "basic"): _SANITISED_HTML,
     ("dds__primitives__table", "maximal"): _SANITISED_HTML,
     ("dds__layout__split_pane", "basic"): _SANITISED_HTML,

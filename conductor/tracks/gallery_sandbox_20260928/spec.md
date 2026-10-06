@@ -32,7 +32,7 @@ Follows the conventions defined in `gallery_primitives_20260928/spec.md`.
   - Background, viewport and zoom handlers: attached by `SandboxToolbar`, using `data-gallery-panel`.
   - `ToggleButton`: outline, measure (lazy-loads `gallery-measure.js`) and RTL handlers.
   - Drawer resizing: `ParamsForm`.
-  - Iframe resize messaging: `CanvasWidget`, together with the parent side of `canvas-resize.js`.
+  - Iframe resize messaging: `CanvasWidget`, together with the parent side of `canvas-resize.js`. That parent side is `gallery-preview-resize.js`, split out of `gallery-tabs.js` in track 3 and loaded only on component pages; it also resizes `UsageExample` previews. Built-in scripts load on every gallery page, so moving it also resizes the markdown canvases on documentation and folder pages. Check the visual baselines for those pages when it moves.
 - State persistence (e.g. localStorage keys) and the `postMessage` protocol with the canvas iframe must be unchanged.
 - Behaviour must survive HTMX swaps of the sandbox body. Handlers bind by delegation or re-initialise on `htmx:afterSwap`, as the current script does.
 

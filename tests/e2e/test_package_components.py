@@ -18,6 +18,20 @@ LEGACY_EXEMPTIONS = {
     # The debug hint's faded muted text (opacity: 0.6) is below WCAG AA
     # contrast; see issue #115. The maximal example renders the hint variant.
     ("dds__primitives__notice", "maximal"): ["color-contrast"],
+    # Breadcrumb links are told apart from the surrounding text by colour
+    # only; see issue #117. The maximal example has text around its link.
+    ("dds__layout__toolbar", "maximal"): ["link-in-text-block"],
+    # The nav's pale text is designed for the sidebar's dark background,
+    # which a standalone canvas doesn't have, so contrast can only be judged
+    # in the gallery.
+    ("dds__navigation__nav_tree", "basic"): ["color-contrast"],
+    ("dds__navigation__nav_tree", "maximal"): ["color-contrast"],
+    # The search input's pale text is also designed for the sidebar.
+    ("dds__navigation__search_box", "basic"): ["color-contrast"],
+    ("dds__navigation__search_box", "maximal"): ["color-contrast"],
+    # The theme <select> is named only by its title; see issue #119.
+    ("dds__navigation__theme_select", "basic"): ["label-title-only"],
+    ("dds__navigation__theme_select", "maximal"): ["label-title-only"],
 }
 
 
