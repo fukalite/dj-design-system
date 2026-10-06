@@ -15,6 +15,7 @@ from dj_design_system.services.canvas import (
     resolve_component,
     resolve_from_get_params,
 )
+from dj_design_system.services.canvas_messages import canvas_error, plain_str_warning
 from dj_design_system.services.media import get_bundle_urls
 from dj_design_system.services.registry import component_registry
 from dj_design_system.settings import (
@@ -139,9 +140,7 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
         spec = resolve_from_get_params(request.GET, component_registry)
     except ValueError as exc:
         html_attrs, body_attrs = _canvas_html_attrs()
-        context["rendered_html"] = format_html(
-            '<p class="gallery-canvas-error">Canvas error: {}</p>', str(exc)
-        )
+        context["rendered_html"] = canvas_error(str(exc))
         context["html_attrs"] = html_attrs
         context["body_attrs"] = body_attrs
         return render(
@@ -199,18 +198,7 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
         # Show the escaped output alongside an explanation rather than trusting
         # it: params come from the query string, so marking it safe would allow
         # reflected XSS through components that don't escape their params.
-        rendered_html = format_html(
-            '<div class="gallery-canvas-warning">'
-            '<p class="gallery-canvas-warning__message">'
-            "<code>{}.render()</code> returned a plain <code>str</code>, so its "
-            "HTML is shown escaped. Return <code>format_html(...)</code> or "
-            "<code>mark_safe(...)</code> from <code>render()</code> to render it."
-            "</p>"
-            '<pre class="gallery-canvas-warning__output">{}</pre>'
-            "</div>",
-            component_class.__qualname__,
-            rendered_html,
-        )
+        rendered_html = plain_str_warning(component_class.__qualname__, rendered_html)
     context["rendered_html"] = rendered_html
 
     all_css_urls = list(

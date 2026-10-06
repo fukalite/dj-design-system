@@ -1,5 +1,7 @@
 """Tests for the gallery layout built-ins: shell, sidebar, toolbar, panes and pages."""
 
+import re
+
 import pytest
 
 from dj_design_system.services.media import FOUNDATION_CSS
@@ -15,6 +17,7 @@ NAMES = [
     "split_pane",
     "pane",
     "page",
+    "page_header",
     "prose",
 ]
 
@@ -186,6 +189,31 @@ class TestPageAndProse:
         html = block("prose", content="<p>Rich</p>")
         assert root(html) == ("div", {"class": "gallery-markdown"})
         assert "<p>Rich</p>" in html
+
+
+class TestPageHeader:
+    def test_title_only(self):
+        assert block("page_header", 'title="Cards"') == "<h1>Cards</h1>"
+
+    def test_intro_follows_the_heading(self):
+        html = block("page_header", 'title="Gallery"', content="<p>Browse.</p>")
+        assert re.sub(r">\s+<", "><", html) == "<h1>Gallery</h1><p>Browse.</p>"
+
+    def test_escapes_the_title(self):
+        assert block("page_header", "title=t", t="<b>x</b>") == (
+            "<h1>&lt;b&gt;x&lt;/b&gt;</h1>"
+        )
+
+    @pytest.mark.django_db
+    @pytest.mark.parametrize("template", ["gallery/index.html", "gallery/folder.html"])
+    def test_pages_use_it(self, template):
+        from pathlib import Path
+
+        source = Path(
+            "dj_design_system/templates/dj_design_system/" + template
+        ).read_text()
+        assert "dds__layout__page_header" in source
+        assert "<h1>" not in source
 
 
 class TestCssMovedNotCopied:

@@ -13,7 +13,6 @@ import nh3
 from django.core.exceptions import ValidationError
 from django.db.models import Model
 from django.template import Context, Template
-from django.utils.html import format_html
 from django.utils.safestring import SafeData, mark_safe
 
 from dj_design_system.components import BaseComponent, BlockComponent
@@ -31,6 +30,7 @@ from dj_design_system.exceptions import (
 from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.parameters.base import DictParam, JSONParam, ListParam
 from dj_design_system.parameters.model import ModelParam
+from dj_design_system.services.canvas_messages import canvas_error
 from dj_design_system.services.registry import component_registry
 from dj_design_system.slots import SLOT_PARAM_PREFIX
 
@@ -294,9 +294,7 @@ def render_component(
     except Exception as exc:  # Catch all rendering/template exceptions
         if raise_errors:
             raise
-        return format_html(
-            '<p class="gallery-canvas-error">Could not render: {}</p>', str(exc)
-        )
+        return canvas_error(str(exc), label="Could not render")
 
 
 def _render_instance(component: Any) -> str:

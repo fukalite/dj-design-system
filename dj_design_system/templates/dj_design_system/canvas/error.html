@@ -1,0 +1,7 @@
+{% comment %}A canvas error message. Expects ``label``, ``message`` and an optional ``source``.{% endcomment %}
+{% spaceless %}
+    <p class="gallery-canvas-error">{{ label }}: {{ message }}</p>
+    {% if source %}
+        <pre><code>{{ source }}</code></pre>
+    {% endif %}
+{% endspaceless %}

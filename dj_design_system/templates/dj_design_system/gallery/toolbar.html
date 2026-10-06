@@ -5,13 +5,12 @@
 {% dds__sandbox__sandbox_toolbar variants=gallery_variants|default:None variants_url=component_base_url active_variant=active_variant.name theme=active_theme %}
     {% dds__sandbox__popout panel_id="gallery-bg-panel" panel_name="bg" title="Background colour" toggle_class="gallery-sandbox-toolbar__bg-toggle" panel_attrs=options.bg_panel_attrs %}
         {% slot "toggle" %}
-            <span class="gallery-sandbox-toolbar__bg-swatch"></span>
+            {% dds__sandbox__bg_swatch %}
         {% endslot %}
         {% slot "options" %}
             {% for bg in options.backgrounds %}
                 {% dds__sandbox__popout_option data_name="bg" value=bg.value active=bg.active title=bg.label extra_classes="gallery-sandbox-toolbar__bg-option" %}
-                    <span class="gallery-sandbox-toolbar__bg-chip gallery-sandbox-toolbar__bg-chip--{{ bg.value }} gallery-bg-chip-{{ bg.value }}"></span>
-                    <span class="gallery-sandbox-toolbar__bg-option-label">{{ bg.label }}</span>
+                    {% dds__sandbox__bg_swatch value=bg.value label=bg.label %}
                 {% enddds__sandbox__popout_option %}
             {% endfor %}
         {% endslot %}
@@ -19,7 +18,7 @@
     {% dds__sandbox__popout panel_id="gallery-viewport-panel" panel_name="viewport" title="Viewport width" toggle_class="gallery-sandbox-toolbar__viewport-toggle" %}
         {% slot "toggle" %}
             {% dds__primitives__icon "monitor" %}
-            <span class="gallery-sandbox-toolbar__viewport-value">Responsive</span>
+            {% dds__sandbox__toolbar_value "viewport" "Responsive" %}
         {% endslot %}
         {% slot "options" %}
             {% for viewport in options.viewports %}
@@ -31,7 +30,7 @@
     {% enddds__sandbox__popout %}
     {% dds__sandbox__popout panel_id="gallery-zoom-panel" panel_name="zoom" title="Zoom level" toggle_class="gallery-sandbox-toolbar__zoom-toggle" %}
         {% slot "toggle" %}
-            <span class="gallery-sandbox-toolbar__zoom-value">100%</span>
+            {% dds__sandbox__toolbar_value "zoom" "100%" %}
         {% endslot %}
         {% slot "options" %}
             {% for zoom in options.zooms %}

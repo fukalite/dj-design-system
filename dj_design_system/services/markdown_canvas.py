@@ -25,7 +25,6 @@ plus a highlighted code block with a toggle.
 
 from __future__ import annotations
 
-import html
 import re
 from typing import TYPE_CHECKING
 
@@ -34,6 +33,7 @@ from markdown.postprocessors import Postprocessor
 from markdown.preprocessors import Preprocessor
 
 from dj_design_system.components.canvas.canvas_widget import CanvasWidget
+from dj_design_system.services.canvas_messages import canvas_error
 from dj_design_system.services.canvas_renderer import (
     build_canvas_srcdoc,
     render_canvas_block,
@@ -68,11 +68,7 @@ def _build_widget_html(
 
 def _build_error_html(message: str, source: str = "", debug: bool = False) -> str:
     """Build error HTML for invalid canvas blocks."""
-    error = f'<p class="gallery-canvas-error">Canvas error: {html.escape(message)}</p>'
-    if debug and source:
-        escaped = html.escape(source)
-        error += f"<pre><code>{escaped}</code></pre>"
-    return error
+    return canvas_error(message, source=source if debug else "")
 
 
 # ---------------------------------------------------------------------------

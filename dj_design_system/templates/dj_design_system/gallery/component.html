@@ -36,11 +36,11 @@
                     {% if tag_signature %}
                         {% dds__primitives__divider %}
                         {% dds__primitives__section_heading "Usage" %}
-                        <div class="gallery-usage">
+                        {% dds__docs__usage_examples %}
                             {% dds__docs__usage_example heading="Minimal example" code=tag_signature.minimal preview_url=minimal_preview_url preview_id="minimal" preview_title="Minimal example preview" %}
                             {% dds__docs__usage_example heading="Bigger example" code=tag_signature.maximal preview_url=maximal_preview_url preview_id="maximal" preview_title="Bigger example preview" %}
                             {% dds__docs__usage_example heading="Qualified tag usage" code=tag_signature_long.minimal %}
-                        </div>
+                        {% enddds__docs__usage_examples %}
                     {% endif %}
                 {% endif %}
                 {# 3. Parameters table (read-only — interactive form is in the Sandbox) #}

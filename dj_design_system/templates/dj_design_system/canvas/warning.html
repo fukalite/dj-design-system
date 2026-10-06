@@ -1,0 +1,7 @@
+{% comment %}Shown in the canvas when a component's render() returns a plain str. Expects ``component_name`` and the escaped ``output``.{% endcomment %}
+{% spaceless %}
+    <div class="gallery-canvas-warning">
+        <p class="gallery-canvas-warning__message"><code>{{ component_name }}.render()</code> returned a plain <code>str</code>, so its HTML is shown escaped. Return <code>format_html(...)</code> or <code>mark_safe(...)</code> from <code>render()</code> to render it.</p>
+        <pre class="gallery-canvas-warning__output">{{ output }}</pre>
+    </div>
+{% endspaceless %}
