@@ -1,8 +1,8 @@
-import os
-
 from django.apps import apps
 from django.template import Origin, TemplateDoesNotExist
 from django.template.loaders.base import Loader
+
+from dj_design_system.services import component_dirs as component_dirs_service
 
 
 class ComponentsTemplateLoader(Loader):
@@ -52,12 +52,10 @@ class ComponentsTemplateLoader(Loader):
             development server watches component templates and resets
             ``cached.Loader`` when they change.
         """
-        dirs: list[str] = []
-        for app_config in apps.get_app_configs():
-            components_dir = os.path.join(app_config.path, "components")
-            if os.path.isdir(components_dir):
-                dirs.append(components_dir)
-        return dirs
+        return [
+            str(components_dir)
+            for components_dir in component_dirs_service.get_components_dirs().values()
+        ]
 
     def get_template_sources(self, template_name: str):
         """
@@ -78,13 +76,14 @@ class ComponentsTemplateLoader(Loader):
         except LookupError:
             return
 
-        components_dir = os.path.join(app_config.path, "components")
-        if not os.path.isdir(components_dir):
+        components_dir = component_dirs_service.get_components_dir(
+            app_config=app_config
+        )
+        if components_dir is None:
             return
 
-        full_path = os.path.join(components_dir, sub_path)
         yield Origin(
-            name=full_path,
+            name=str(components_dir / sub_path),
             template_name=template_name,
             loader=self,
         )

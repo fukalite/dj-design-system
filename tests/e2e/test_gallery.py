@@ -134,6 +134,18 @@ class TestCanvasIframe:
         content = page.content()
         assert "Watch out" in content
 
+    def test_canvas_renders_colocated_template_through_cache(self, page, live_server):
+        """A co-located template is reused from the cache with fresh context (#126)."""
+        canvas_url = f"{live_server.url}/dds/_canvas/?component=demo_components__button"
+
+        page.goto(f"{canvas_url}&label=First+render")
+        assert page.locator("button.btn").inner_text() == "First render"
+
+        page.goto(f"{canvas_url}&label=Second+render&variant=danger")
+        button = page.locator("button.btn")
+        assert button.inner_text() == "Second render"
+        assert "danger" in button.get_attribute("class").split()
+
     def test_canvas_unknown_component_returns_error_page(self, page, live_server):
         """Requesting a nonexistent component name does not crash (returns 4xx)."""
         response = page.goto(f"{live_server.url}/dds/_canvas/?component=does_not_exist")

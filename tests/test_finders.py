@@ -35,7 +35,7 @@ def finder():
     )
 
     with patch(
-        "dj_design_system.finders.apps.get_app_configs",
+        "dj_design_system.services.component_dirs.apps.get_app_configs",
         return_value=[demo_config],
     ):
         yield ComponentsStaticFinder()
@@ -132,7 +132,7 @@ class TestList:
         empty_config.path = "/nonexistent/path"
 
         with patch(
-            "dj_design_system.finders.apps.get_app_configs",
+            "dj_design_system.services.component_dirs.apps.get_app_configs",
             return_value=[empty_config],
         ):
             f = ComponentsStaticFinder()

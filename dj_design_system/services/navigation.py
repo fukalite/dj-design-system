@@ -14,6 +14,7 @@ from django.apps import apps
 from django.urls import reverse
 
 from dj_design_system.data import NavNode
+from dj_design_system.services import component_dirs as component_dirs_service
 from dj_design_system.services.registry import component_registry
 from dj_design_system.settings import dds_settings
 from dj_design_system.types import NodeType
@@ -309,7 +310,7 @@ def _build_navigation(
     if components is None:
         components = component_registry.list_all()
         if app_component_paths is None:
-            app_component_paths = get_app_component_paths()
+            app_component_paths = component_dirs_service.get_components_dirs()
 
     if app_component_paths is None:
         app_component_paths = {}
@@ -375,16 +376,6 @@ def _build_navigation(
         _annotate_paths(node)
 
     return result
-
-
-def get_app_component_paths() -> dict[str, Path]:
-    """Look up the ``components/`` directory for every installed Django app."""
-    paths: dict[str, Path] = {}
-    for app_config in apps.get_app_configs():
-        components_dir = Path(app_config.path) / "components"
-        if components_dir.is_dir():
-            paths[app_config.label] = components_dir
-    return paths
 
 
 def find_node(

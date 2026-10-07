@@ -64,7 +64,9 @@ TEMPLATES = [
 ]
 ```
 
-Component auto-discovery happens automatically when Django starts up (via `AppConfig.ready()`).
+When running the development server, edits to existing component templates are picked up without a restart: `ComponentsTemplateLoader` reports each app's `components/` directory to Django's autoreloader, which clears the template cache when a file there changes.
+
+Component auto-discovery happens automatically when Django starts up (via `AppConfig.ready()`). Templates are matched to components at that point, so **adding** a new co-located `.html` file to an existing component needs a server restart before the component uses it.
 
 ### DJ_DESIGN_SYSTEM Configuration
 
