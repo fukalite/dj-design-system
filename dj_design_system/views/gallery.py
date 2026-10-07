@@ -6,11 +6,11 @@ from django.conf import settings
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import render
 
+from dj_design_system.services import markdown as markdown_service
 from dj_design_system.services.control_params import (
     SANDBOX_SUBMISSION_PARAM,
     get_control_param,
 )
-from dj_design_system.services.markdown import render_markdown_doc
 from dj_design_system.services.navigation import (
     build_breadcrumbs,
     build_navigation,
@@ -63,7 +63,9 @@ def get_base_context(
 
 def _render_markdown(file_path: Path, app_label: str = "", theme_dict=None) -> str:
     """Render a markdown file to HTML (deprecated internal helper; use services.markdown.render_markdown_doc)."""
-    return render_markdown_doc(file_path, app_label=app_label, theme_dict=theme_dict)
+    return markdown_service.render_markdown_doc(
+        file_path=file_path, app_label=app_label, theme_dict=theme_dict
+    )
 
 
 def _render_folder(request, context, node, app_label, path_parts):
@@ -74,9 +76,13 @@ def _render_folder(request, context, node, app_label, path_parts):
     )
 
     if node.has_index_doc:
-        theme_dict = get_theme(context.get("active_theme"))
-        context["doc_html"] = render_markdown_doc(
-            node.index_doc_path, app_label, theme_dict=theme_dict
+        active_theme = str(context.get("active_theme") or "")
+        theme_dict = get_theme(identifier=active_theme) or get_default_theme()
+        doc_app_label = node.app_label or app_label
+        context["doc_html"] = markdown_service.render_markdown_doc(
+            file_path=node.index_doc_path,
+            app_label=doc_app_label,
+            theme_dict=theme_dict,
         )
         return render(
             request,
@@ -92,9 +98,13 @@ def _render_folder(request, context, node, app_label, path_parts):
 
 def _render_document(request, context, node, app_label, path_parts):
     """Render a standalone markdown document."""
-    theme_dict = get_theme(context.get("active_theme"))
-    context["doc_html"] = render_markdown_doc(
-        node.doc_path, app_label, theme_dict=theme_dict
+    active_theme = str(context.get("active_theme") or "")
+    theme_dict = get_theme(identifier=active_theme) or get_default_theme()
+    doc_app_label = node.app_label or app_label
+    context["doc_html"] = markdown_service.render_markdown_doc(
+        file_path=node.doc_path,
+        app_label=doc_app_label,
+        theme_dict=theme_dict,
     )
     context["doc_label"] = node.label
     context["breadcrumbs"] = build_breadcrumbs(

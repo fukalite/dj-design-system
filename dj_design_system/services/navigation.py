@@ -260,6 +260,9 @@ def _annotate_paths(
     if parent_parts is None:
         parent_parts = []
 
+    if not node.app_label:
+        node.app_label = app_label or node.slug
+
     node._app_label = app_label
     if node.node_type == NodeType.APP:
         node._path_parts = []

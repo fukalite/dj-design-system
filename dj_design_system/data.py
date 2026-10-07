@@ -294,6 +294,7 @@ class NavNode:
     url: str = ""
     active_path: str = ""
     base_active_path: str = ""
+    app_label: str = ""
     _app_label: str = ""
     _path_parts: list[str] = field(default_factory=list)
 

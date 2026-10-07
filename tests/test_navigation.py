@@ -948,9 +948,12 @@ def test_promote_to_app_integration(registry_with_two_apps):
 
     promoted_node = next(n for n in tree if n.slug == "promoted")
     assert promoted_node.node_type == NodeType.APP
+    assert promoted_node.app_label == "demo_components"
 
     # Verify children of promoted app receive re-annotated _app_label, _path_parts and correct URLs
+    # while preserving their owning Django app_label (#187)
     for child in promoted_node.children:
+        assert child.app_label == "demo_components"
         assert child._app_label == "promoted"
         assert child._path_parts == [child.slug]
         assert "/promoted/" in child.url
