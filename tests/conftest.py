@@ -222,3 +222,52 @@ def conductor_dir(tmp_path: Path) -> Path:
         (track_dir / "metadata.json").write_text(json.dumps(metadata))
         (track_dir / "plan.md").write_text(plan)
     return root
+
+
+@pytest.fixture()
+def make_fake_project_client():
+    """Build a FakeProjectClient from a ProjectSchema and MirroredIssues."""
+    return FakeProjectClient
+
+
+class FakeProjectClient:
+    """An in-memory stand-in for the conductor_project GitHub client."""
+
+    def __init__(self, schema, issues):
+        self.schema = schema
+        self.issues = {issue.issue_id: issue for issue in issues}
+        self.calls = []
+
+    def fetch_schema(self):
+        return self.schema
+
+    def fetch_mirrored_issues(self):
+        return list(self.issues.values())
+
+    def create_issue(self, title, body):
+        issue_id = f"issue-{len(self.issues) + 1}"
+        self.calls.append(("create_issue", title))
+        self.issues[issue_id] = None
+        return issue_id
+
+    def update_issue(self, issue_id, title, body):
+        self.calls.append(("update_issue", issue_id))
+
+    def set_issue_closed(self, issue_id, is_closed):
+        self.calls.append(("set_issue_closed", issue_id, is_closed))
+
+    def add_to_project(self, issue_id):
+        self.calls.append(("add_to_project", issue_id))
+        return f"item-{issue_id}"
+
+    def set_field_value(self, item_id, field, value):
+        self.calls.append(("set_field_value", item_id, field.name, value))
+
+    def clear_field_value(self, item_id, field):
+        self.calls.append(("clear_field_value", item_id, field.name))
+
+    def add_blocked_by(self, issue_id, blocking_issue_id):
+        self.calls.append(("add_blocked_by", issue_id, blocking_issue_id))
+
+    def remove_blocked_by(self, issue_id, blocking_issue_id):
+        self.calls.append(("remove_blocked_by", issue_id, blocking_issue_id))
