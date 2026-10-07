@@ -9,6 +9,7 @@
 - [x] Task: Move the track issues to `fukalite/dj-design-system-conductor`, so they stay out of the main repo's issue list, then re-run the backfill [a2b6752] (now #1–#20; backfill reported no changes)
 - [x] Task: Hold each track's spec and plan in its issue body, then re-run the backfill [109841d]
 - [x] Task: Set Status from open PRs that name the track (draft → In progress, ready → In review) [d6cc170]
+- [x] Task: Order Project items so blockers sit above the tracks they block [8a3ef83]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Dual-Write
