@@ -84,13 +84,50 @@ def build_bg_styles() -> str:
     return f"<style>{bg_rules}</style>"
 
 
+def build_canvas_bg_styles(
+    *,
+    theme_dict: Optional[Theme] = None,
+    csp_nonce: Optional[str] = None,
+) -> str:
+    """Generate ``<style>`` CSS rules for all configured canvas backgrounds.
+
+    Args:
+        theme_dict: Optional active theme containing custom canvas background rules.
+        csp_nonce: Optional CSP nonce string for the ``<style>`` tag.
+
+    Returns:
+        A ``<style>`` HTML string defining background and chip colour rules.
+    """
+    rules = []
+    for bg in get_backgrounds():
+        rules.append(
+            f".canvas-bg-{bg['value']}, body:has(.canvas-bg-{bg['value']}) {{ background: {bg['color']}; }}"
+        )
+        rules.append(
+            f".gallery-sandbox-toolbar__bg-chip--{bg['value']}, .gallery-bg-chip-{bg['value']} {{ background: {bg['color']}; }}"
+        )
+
+    if theme_dict and isinstance(theme_dict.canvas_background, dict):
+        bg = theme_dict.canvas_background
+        if "color" in bg:
+            rules.append(
+                f".canvas-bg-theme-{theme_dict.value}, body:has(.canvas-bg-theme-{theme_dict.value}) {{ background: {bg['color']}; }}"
+            )
+
+    nonce_attr = ""
+    if csp_nonce:
+        nonce_attr = f' nonce="{html.escape(str(csp_nonce))}"'
+
+    return f"<style{nonce_attr}>\n" + "\n".join(rules) + "\n</style>"
+
+
 def build_resize_script(iframe_id: str = "") -> str:
     """Build the ResizeObserver script used by auto-height iframes."""
     id_field = f'id:"{iframe_id}",' if iframe_id else ""
     return (
         "<script>"
         "(function(){"
-        'var w=document.querySelector(".canvas-wrapper");'
+        'const w=document.querySelector(".canvas-wrapper");'
         "if(!w||!window.parent||window.parent===window)return;"
         "new ResizeObserver(function(){"
         "window.parent.postMessage({"

@@ -86,15 +86,15 @@
     /* Auto-height: listen for resize messages from basic-mode iframes */
     window.addEventListener("message", function (event) {
         if (!event.data || event.data.type !== "canvas-resize") return;
-        var iframes = document.querySelectorAll(
+        const iframes = document.querySelectorAll(
             "iframe.gallery-doc-preview__iframe, iframe.gallery-md-canvas__iframe"
         );
         iframes.forEach(function (iframe) {
-            var matched =
+            const matched =
                 (event.data.id && iframe.dataset.canvasId === event.data.id) ||
                 iframe.contentWindow === event.source;
             if (matched) {
-                var border = Math.max(0, iframe.offsetHeight - iframe.clientHeight);
+                const border = Math.max(0, iframe.offsetHeight - iframe.clientHeight);
                 iframe.style.height = (event.data.height + border) + "px";
             }
         });

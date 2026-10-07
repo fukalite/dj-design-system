@@ -1,7 +1,5 @@
 """Canvas iframe rendering and styling views/helpers."""
 
-import html
-
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.templatetags.static import static
@@ -9,6 +7,7 @@ from django.utils.html import format_html, format_html_join
 from django.utils.safestring import SafeData
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
+from dj_design_system.services import canvas_renderer as canvas_renderer_service
 from dj_design_system.services.canvas import (
     get_component_media,
     render_component,
@@ -102,35 +101,6 @@ def _canvas_bg_class(
 
     default = get_default_background()
     return f"canvas-bg-{default['value']}"
-
-
-def _canvas_bg_styles(
-    theme_dict: Theme | None = None, request: HttpRequest | None = None
-) -> str:
-    """Generate ``<style>`` CSS rules for all configured canvas backgrounds."""
-    rules = []
-    for bg in get_backgrounds():
-        rules.append(
-            f".canvas-bg-{bg['value']}, body:has(.canvas-bg-{bg['value']}) {{ background: {bg['color']}; }}"
-        )
-        rules.append(
-            f".gallery-sandbox-toolbar__bg-chip--{bg['value']}, .gallery-bg-chip-{bg['value']} {{ background: {bg['color']}; }}"
-        )
-
-    if theme_dict and isinstance(theme_dict.canvas_background, dict):
-        bg = theme_dict.canvas_background
-        if "color" in bg:
-            rules.append(
-                f".canvas-bg-theme-{theme_dict.value}, body:has(.canvas-bg-theme-{theme_dict.value}) {{ background: {bg['color']}; }}"
-            )
-
-    nonce_attr = ""
-    if request:
-        nonce = getattr(request, "csp_nonce", None)
-        if nonce:
-            nonce_attr = f' nonce="{html.escape(str(nonce))}"'
-
-    return f"<style{nonce_attr}>\n" + "\n".join(rules) + "\n</style>"
 
 
 @xframe_options_sameorigin
@@ -263,7 +233,11 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
         theme_dict, app_label
     )
     context["canvas_bg_class"] = _canvas_bg_class(request, theme_dict, component_class)
-    context["canvas_bg_styles"] = _canvas_bg_styles(theme_dict, request=request)
+    csp_nonce = getattr(request, "csp_nonce", None)
+    context["canvas_bg_styles"] = canvas_renderer_service.build_canvas_bg_styles(
+        theme_dict=theme_dict,
+        csp_nonce=str(csp_nonce) if csp_nonce else None,
+    )
 
     return render(
         request,
