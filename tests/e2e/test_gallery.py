@@ -166,6 +166,40 @@ class TestAppNavigation:
         page.wait_for_load_state("networkidle")
         assert "rich_button" in page.url
 
+    def test_folder_link_navigates_and_expands(self, page, gallery_url, live_server):
+        """Clicking a component-with-variants label opens its page, expanded."""
+        page.goto(gallery_url)
+        folder = page.locator(".gallery-nav__folder").filter(
+            has=page.get_by_role("link", name="Button", exact=True)
+        )
+        folder.get_by_role("link", name="Button", exact=True).click()
+        page.wait_for_load_state("networkidle")
+        assert page.url.rstrip("/").endswith("demo_components/button")
+        assert folder.get_by_role("button").get_attribute("aria-expanded") == "true"
+        assert folder.locator(".gallery-nav__link--variant").first.is_visible()
+
+    def test_folder_toggle_expands_without_navigating(
+        self, page, gallery_url, live_server
+    ):
+        """The toggle button shows/hides children without leaving the page."""
+        page.goto(gallery_url)
+        toggle = page.get_by_role("button", name="Toggle Button", exact=True)
+        variants = page.locator(
+            ".gallery-nav__folder:has(> div > button[aria-label='Toggle Button'])"
+            " .gallery-nav__link--variant"
+        ).first
+        assert toggle.get_attribute("aria-expanded") == "false"
+        assert not variants.is_visible()
+
+        toggle.click()
+        assert toggle.get_attribute("aria-expanded") == "true"
+        assert variants.is_visible()
+        assert page.url == gallery_url
+
+        toggle.click()
+        assert toggle.get_attribute("aria-expanded") == "false"
+        assert not variants.is_visible()
+
 
 # ---------------------------------------------------------------------------
 # Markdown documentation pages
