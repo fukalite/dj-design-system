@@ -1,5 +1,6 @@
 """Shared fixtures for dj_design_system tests."""
 
+import json
 import pkgutil
 from importlib import import_module
 from pathlib import Path
@@ -144,3 +145,80 @@ def _clear_nav_cache():
     clear_navigation_cache()
     yield
     clear_navigation_cache()
+
+
+# ---------------------------------------------------------------------------
+# Conductor fixtures
+# ---------------------------------------------------------------------------
+
+CONDUCTOR_REGISTRY = """# Tracks Registry
+
+---
+
+- [ ] **Track: Alpha Feature**
+  *Link: [tracks/alpha_20260101/index.md](tracks/alpha_20260101/index.md)*
+
+- [x] **Track: Beta Fix**
+  *Link: [conductor/tracks/beta_20260102/index.md](conductor/tracks/beta_20260102/index.md)*
+"""
+
+CONDUCTOR_ALPHA_PLAN = """# Implementation Plan
+
+## Phase 1: Setup [checkpoint: abc1234]
+- [x] Task: Do the first thing [1111111]
+  - [x] Sub-step
+- [x] Task: Phase Verification & Checkpoint
+
+## Phase 2: Build
+- [x] Task: Build it [2222222]
+- [~] Task: Test it
+  - [ ] Sub-step
+
+## Phase 3: Ship
+- [ ] Task: Ship it
+"""
+
+CONDUCTOR_BETA_PLAN = """# Implementation Plan
+
+## Phase 1: Fix
+- [x] Task: Fix it
+"""
+
+
+@pytest.fixture()
+def conductor_dir(tmp_path: Path) -> Path:
+    """A conductor directory with two tracks, one of them unregistered and untitled."""
+    root = tmp_path / "conductor"
+    (root / "tracks").mkdir(parents=True)
+    (root / "tracks.md").write_text(CONDUCTOR_REGISTRY)
+    tracks = {
+        "alpha_20260101": (
+            {
+                "id": "alpha_20260101",
+                "type": "feature",
+                "status": "in_progress",
+                "initiative": "big_push",
+                "depends_on": ["beta_20260102"],
+            },
+            CONDUCTOR_ALPHA_PLAN,
+        ),
+        "beta_20260102": (
+            {
+                "id": "beta_20260102",
+                "type": "bugfix",
+                "status": "completed",
+                "initiative": None,
+            },
+            CONDUCTOR_BETA_PLAN,
+        ),
+        "gamma_20260103": (
+            {"id": "gamma_20260103", "type": "chore", "status": "new"},
+            "# Implementation Plan\n",
+        ),
+    }
+    for track_id, (metadata, plan) in tracks.items():
+        track_dir = root / "tracks" / track_id
+        track_dir.mkdir()
+        (track_dir / "metadata.json").write_text(json.dumps(metadata))
+        (track_dir / "plan.md").write_text(plan)
+    return root
