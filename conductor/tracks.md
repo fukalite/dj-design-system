@@ -59,5 +59,5 @@
 - [x] **Track: Usage Example Block Content**
   *Link: [tracks/usage_example_content_20261005/index.md](tracks/usage_example_content_20261005/index.md)*
 
-- [ ] **Track: GitHub Project Trial for Track State**
+- [~] **Track: GitHub Project Trial for Track State**
   *Link: [tracks/github_project_trial_20261007/index.md](tracks/github_project_trial_20261007/index.md)*

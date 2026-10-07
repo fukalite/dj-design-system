@@ -2,7 +2,7 @@
 
 - **ID:** github_project_trial_20261007
 - **Type:** chore
-- **Status:** new
+- **Status:** in_progress
 
 ## Documents
 - [Specification](./spec.md)
