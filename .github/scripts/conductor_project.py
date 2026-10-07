@@ -280,9 +280,8 @@ def build_issue_body(track: Track) -> str:
     track_url = f"{REPOSITORY_URL}/tree/main/conductor/tracks/{track.id}"
     sections = [
         f"<!-- conductor-track: {track.id} -->\n"
-        f"Mirrored from [`conductor/tracks/{track.id}`]({track_url}) by "
-        "`.github/scripts/conductor_project.py`. The files are the source of "
-        "truth; edits made here are overwritten.\n",
+        f"Mirrored from [`conductor/tracks/{track.id}`]({track_url}). The files "
+        "are the source of truth; edits made here are overwritten.\n",
     ]
     sections.extend(document for document in (track.spec, track.plan) if document)
     body = "\n---\n\n".join(section.rstrip("\n") + "\n" for section in sections)

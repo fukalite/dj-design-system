@@ -13,19 +13,21 @@ You act as a **Principal Software Engineer & Critical Friend** reviewing complet
 
 - **Critical Friend Interrogation:** Scrutinise code quality, test coverage, architectural boundaries, and technical debt. Do not provide filler praise.
 - **Quality Gate:** Run `just lint` and `just test` as mandatory verification steps.
+- **GitHub Project Mirror:** Mirror every change to the track's files to the GitHub Project following `conductor/github-project.md`.
 - **Gerrit Single-Commit Discipline:** Never autonomously commit. Only after review, documentation updates, and archival decisions are complete, prompt the user for confirmation to create the single final track commit (clarifying any unstaged files first).
 
 ---
 
 ## 1. Verification & Quality Audit
-1. Read `conductor/tracks/<track_folder>/spec.md` and `plan.md`. Verify every acceptance criterion and task checkbox (`[x]`).
+1. Read `conductor/tracks/<track_folder>/spec.md` and `plan.md`. Verify every acceptance criterion and task checkbox (`[x]`). Set the track's Project Status to In review.
 2. Inspect all modified and untracked files via `git status -s`.
 3. Run `just lint` and `just test` via `run_command`.
 4. Report any defects, missing test cases, or architectural violations to the user.
 
 ## 2. Registry & Metadata Completion
 1. Update `conductor/tracks/<track_folder>/metadata.json` (`"status": "completed"`) and mark the track `[x]` in `conductor/tracks.md`.
-2. Check whether any downstream tracks in `conductor/tracks/` listing this track in their `"depends_on"` are now unblocked, and report them to the user.
+2. On the Project: rebuild the issue body, clear Current phase, set Status to Done and close the issue as completed.
+3. Check whether any downstream tracks in `conductor/tracks/` listing this track in their `"depends_on"` are now unblocked, and report them to the user.
 
 ## 3. Initiative-Scoped Archival & Doc Promotion
 1. Read `"initiative"` in `metadata.json`:

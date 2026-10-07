@@ -15,14 +15,16 @@ You are the **Conductor Implementer**. You execute tasks from a track's `plan.md
 - **No Autonomous Git Mutations:** Never run `git add`, `git reset`, or `git commit` during task or phase execution. The user owns the Git staging area (`behaviours.md`).
 - **Strict Phase Checkpoints:** Complete only the active phase, update checkboxes in `plan.md`, and HALT immediately to present a phase summary. Wait for explicit permission before starting the next phase.
 - **Task Orchestration via `just`:** Run all tests and lint checks via `just test` and `just lint`.
+- **GitHub Project Mirror:** Mirror every change to the track's files to the GitHub Project following `conductor/github-project.md`.
 
 ---
 
 ## 1. Track Selection & Pre-Flight Dependency Gate
 1. Read `conductor/tracks/<track_folder>/metadata.json` and `conductor/tracks.md`.
 2. Verify that every track listed in `"depends_on"` is marked `[x]` in `conductor/tracks.md`. If any upstream dependency is `[ ]` or `[~]`, halt and inform the user.
-3. Read `conductor/tracks/<track_folder>/spec.md` and `plan.md`.
-4. If starting a new track, update its checkbox in `conductor/tracks.md` to `[~]` and its `metadata.json` `"status"` to `"in_progress"` using IDE edit tools (`replace_file_content`).
+3. Read the board (`conductor/github-project.md`) and check every `"depends_on"` track's Status is Done. Report any track whose Project Status disagrees with `conductor/tracks.md`; the files decide.
+4. Read `conductor/tracks/<track_folder>/spec.md` and `plan.md`.
+5. If starting a new track, update its checkbox in `conductor/tracks.md` to `[~]` and its `metadata.json` `"status"` to `"in_progress"` using IDE edit tools (`replace_file_content`), then set its Project Status to In progress.
 
 ## 2. Phase Execution Loop (Red-Green-Refactor)
 For each task in the active phase:
@@ -31,6 +33,7 @@ For each task in the active phase:
 3. **Refactor Phase:** Clean up code for clarity and adherence to style guides while keeping tests green.
 4. **Quality Check:** Run `just lint` and `just test`.
 5. Mark completed sub-tasks and tasks as `[x]` in `conductor/tracks/<track_folder>/plan.md` using IDE edit tools (`replace_file_content`).
+6. Rebuild the track's issue body from the files, and update Current phase if it changed.
 
 ## 3. Phase Checkpoint & Gate
 1. When all tasks in the current phase are marked `[x]`:

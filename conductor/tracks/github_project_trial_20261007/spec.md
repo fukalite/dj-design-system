@@ -26,19 +26,19 @@ Archived tracks (`conductor/archive/`) are not mirrored.
 ## Functional Requirements
 
 ### 1. Backfill
-- `.github/scripts/conductor_project.py backfill` creates or updates one issue and one Project item per track from the files.
+- `.github/scripts/conductor_project.py backfill` creates or updates one issue and one Project item per track from the files. It is a one-off and repair tool; the Conductor skills do not depend on it.
 - Running it repeatedly makes no further changes. Issues are matched by the hidden marker, never by title.
 - It talks to GitHub through `gh api graphql`, so no new dependencies are added.
 
-### 2. Dual-Write
-- `.agents/AGENTS.md` gains a rule: after any commit that changes a track's files, run the backfill so the Project matches. Because the issue mirrors the whole track, the Project is never edited by hand.
-- New tracks get an issue when they are created.
-- Track PRs reference their issue.
+### 2. Dual-Write in the Skills
+- `conductor/github-project.md` holds the mapping, identifiers and `gh` commands for each Project operation.
+- The Conductor skills mirror their own file changes with those commands: `conductor-new-track` creates the issue and item, `conductor-implement` moves Status to In progress and refreshes the issue as tasks complete, and `conductor-review` moves Status to In review, then Done.
+- The skills and the backfill build byte-identical issue bodies, so either can update an issue without the other seeing drift.
 
 ### 3. Drift Check
-- `.github/scripts/conductor_project.py drift` compares the files in the local checkout with the Project and lists every difference. It is read-only.
+- `conductor-status` compares the files in the local checkout with the Project and reports every difference. It never changes the Project.
 - It runs locally with the developer's `gh` auth. There is no CI workflow and no stored token.
-- Differences caused by unmerged branches are expected, so the report states which branch it was run from.
+- Differences caused by unmerged branches are expected, so the report names the branch it was run from.
 
 ### 4. Evaluation
 The trial runs for 2–3 weeks of normal track work. The outcome is recorded in `evaluation.md` in this track, against these criteria:
@@ -48,9 +48,9 @@ The trial runs for 2–3 weeks of normal track work. The outcome is recorded in 
 - Dual-write does not noticeably slow track work.
 
 ## Non-Functional Requirements
-- **Auth:** All scripts run locally and use `gh` with the `project` scope (`gh auth refresh -s project`).
-- **Remote sessions:** Confirm the GitHub MCP tools can edit Project fields before relying on dual-write from remote sessions.
-- **Reversible:** Removing the trial means deleting the scripts and the `AGENTS.md` rule. Nothing else depends on them.
+- **Auth:** Mirroring uses `gh` with the `project` scope (`gh auth refresh -s project`).
+- **Resilience:** A failed `gh` call is reported and never blocks track work. Sessions without `gh` skip mirroring and say so.
+- **Reversible:** Removing the trial means deleting `conductor/github-project.md`, the script and the skills' mirror steps.
 
 ## Out of Scope
 - Changing the file workflow or removing any Conductor files.
@@ -60,5 +60,6 @@ The trial runs for 2–3 weeks of normal track work. The outcome is recorded in 
 ## Acceptance Criteria
 - Every non-archived track has exactly one issue on the Project, with the correct field values and dependencies.
 - Re-running the backfill makes no changes.
-- The drift check runs locally and reports every difference between the files and the Project.
+- The Conductor skills keep the Project in step without the script.
+- `conductor-status` reports every difference between the files and the Project.
 - `evaluation.md` records a cut-over or remove decision.

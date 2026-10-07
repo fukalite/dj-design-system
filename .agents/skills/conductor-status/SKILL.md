@@ -1,6 +1,6 @@
 ---
 name: conductor-status
-description: Displays the current progress of the project by reading conductor/tracks.md, track metadata.json files, and active track plans.
+description: Displays the current progress of the project by reading conductor/tracks.md, track metadata.json files, and active track plans, and reports where the GitHub Project disagrees with them.
 metadata:
   version: "2.0"
 ---
@@ -13,6 +13,7 @@ You are an AI agent providing a status overview of the project's multi-track ini
 
 - **Direct Markdown & JSON Inspection:** Read `conductor/tracks.md` and `conductor/tracks/*/metadata.json` directly.
 - **No Autonomous Git Mutations:** Never stage (`git add`), unstage, or commit files.
+- **Read-Only Project Check:** Compare the GitHub Project with the files following `conductor/github-project.md`. Never change the Project from this skill.
 - **Path Integrity:** Always use relative links starting from the project root.
 
 ---
@@ -32,3 +33,6 @@ You are an AI agent providing a status overview of the project's multi-track ini
    - **Active Work (`[~]`):** Current track, phase, and task in progress.
    - **Ready Queue:** Unblocked `[ ]` tracks ready for immediate execution, ordered by Initiative & Phase.
    - **Blocked Queue:** Pending `[ ]` tracks currently waiting on upstream `depends_on` tracks.
+5. **Check the GitHub Project Mirror:**
+   - Read the board and, for each track, compare its item with the files using the mapping in `conductor/github-project.md`: title, Track ID, Track type, Initiative, Current phase, Status and "blocked by" links. Rebuild each body and compare it with the issue body.
+   - Report tracks with no issue, issues with no track, and every differing value, naming the current branch. Differences on an unmerged branch are expected.

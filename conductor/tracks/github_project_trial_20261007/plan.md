@@ -12,14 +12,14 @@
 - [x] Task: Order Project items so blockers sit above the tracks they block [8a3ef83]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 2: Dual-Write
-- [ ] Task: Add the "run the backfill after changing track files" rule to `.agents/AGENTS.md`
-- [ ] Task: Add the `Part of fukalite/dj-design-system-conductor#<issue>` convention for track PRs
+## Phase 2: Dual-Write in the Skills
+- [~] Task: Write `conductor/github-project.md` (mapping, identifiers, `gh` commands) and match the backfill's issue body to it
+- [~] Task: Mirror file changes to the Project in `conductor-new-track`, `conductor-implement` and `conductor-review`
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3: Drift Check
-- [ ] Task: Write the `drift` command with unit tests, reusing the Phase 1 parsing
-- [ ] Task: Document running the drift check locally in `.agents/AGENTS.md`
+- [~] Task: Compare the Project with the files in `conductor-status`
+- [ ] Task: Run `conductor-status` against the board and confirm it reports no drift
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4: Evaluation & Decision
