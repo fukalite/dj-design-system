@@ -7,10 +7,11 @@
 - [x] Task: Write the `backfill` command with unit tests for the file-to-Project mapping [ec9978a]
 - [x] Task: Run the backfill, then re-run it and confirm it makes no changes (issues #194–#213; second run reported no changes)
 - [x] Task: Move the track issues to `fukalite/dj-design-system-conductor`, so they stay out of the main repo's issue list, then re-run the backfill [a2b6752] (now #1–#20; backfill reported no changes)
+- [x] Task: Hold each track's spec and plan in its issue body, then re-run the backfill [109841d]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Dual-Write
-- [ ] Task: Add the dual-write rule and command reference to `.agents/AGENTS.md`
+- [ ] Task: Add the "run the backfill after changing track files" rule to `.agents/AGENTS.md`
 - [ ] Task: Add the `Part of fukalite/dj-design-system-conductor#<issue>` convention for track PRs
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
