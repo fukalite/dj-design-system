@@ -78,7 +78,7 @@ def build_theme_app_media(
 def build_bg_styles() -> str:
     """Build CSS rules for all configured canvas backgrounds."""
     bg_rules = "".join(
-        f".canvas-bg-{bg['value']}{{background:{bg['color']};}}"
+        f".canvas-bg-{bg['value']},body:has(.canvas-bg-{bg['value']}){{background:{bg['color']};}}"
         for bg in get_backgrounds()
     )
     return f"<style>{bg_rules}</style>"
@@ -94,7 +94,7 @@ def build_resize_script(iframe_id: str = "") -> str:
         "if(!w||!window.parent||window.parent===window)return;"
         "new ResizeObserver(function(){"
         "window.parent.postMessage({"
-        f'type:"canvas-resize",{id_field}height:document.documentElement.scrollHeight'
+        f'type:"canvas-resize",{id_field}height:Math.max(w.scrollHeight,w.offsetHeight)'
         '},"*");'
         "}).observe(w);"
         "})();"

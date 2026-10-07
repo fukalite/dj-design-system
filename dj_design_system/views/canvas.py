@@ -110,7 +110,9 @@ def _canvas_bg_styles(
     """Generate ``<style>`` CSS rules for all configured canvas backgrounds."""
     rules = []
     for bg in get_backgrounds():
-        rules.append(f".canvas-bg-{bg['value']} {{ background: {bg['color']}; }}")
+        rules.append(
+            f".canvas-bg-{bg['value']}, body:has(.canvas-bg-{bg['value']}) {{ background: {bg['color']}; }}"
+        )
         rules.append(
             f".gallery-sandbox-toolbar__bg-chip--{bg['value']}, .gallery-bg-chip-{bg['value']} {{ background: {bg['color']}; }}"
         )
@@ -119,7 +121,7 @@ def _canvas_bg_styles(
         bg = theme_dict.canvas_background
         if "color" in bg:
             rules.append(
-                f".canvas-bg-theme-{theme_dict.value} {{ background: {bg['color']}; }}"
+                f".canvas-bg-theme-{theme_dict.value}, body:has(.canvas-bg-theme-{theme_dict.value}) {{ background: {bg['color']}; }}"
             )
 
     nonce_attr = ""

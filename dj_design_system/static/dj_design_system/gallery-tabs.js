@@ -90,10 +90,12 @@
             "iframe.gallery-doc-preview__iframe, iframe.gallery-md-canvas__iframe"
         );
         iframes.forEach(function (iframe) {
-            if (event.data.id && iframe.dataset.canvasId === event.data.id) {
-                iframe.style.height = event.data.height + "px";
-            } else if (iframe.contentWindow === event.source) {
-                iframe.style.height = event.data.height + "px";
+            var matched =
+                (event.data.id && iframe.dataset.canvasId === event.data.id) ||
+                iframe.contentWindow === event.source;
+            if (matched) {
+                var border = Math.max(0, iframe.offsetHeight - iframe.clientHeight);
+                iframe.style.height = (event.data.height + border) + "px";
             }
         });
     });

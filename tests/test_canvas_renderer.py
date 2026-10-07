@@ -61,3 +61,13 @@ class TestCanvasRenderer:
         assert "display: flex" not in srcdoc
         assert "justify-content" not in srcdoc
         assert "align-items" not in srcdoc
+
+    def test_resize_script_reports_wrapper_height_and_body_bg(self):
+        """Basic-mode resize script reports wrapper height rather than documentElement.scrollHeight (#111)."""
+        srcdoc = build_canvas_srcdoc(
+            rendered_html="<p>basic mode</p>",
+            mode_class="canvas-wrapper--basic",
+        )
+        assert "Math.max(w.scrollHeight,w.offsetHeight)" in srcdoc
+        assert "document.documentElement.scrollHeight" not in srcdoc
+        assert "body:has(.canvas-bg-" in srcdoc

@@ -6,7 +6,7 @@
         window.parent.postMessage({
             type: "canvas-resize",
             id: window.name || "",
-            height: document.documentElement.scrollHeight
+            height: Math.max(wrapper.scrollHeight, wrapper.offsetHeight)
         }, "*");
     });
     ro.observe(wrapper);
