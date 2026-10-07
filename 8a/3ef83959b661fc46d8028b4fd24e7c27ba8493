@@ -1,0 +1,2 @@
+Task: Order Project items so blockers sit above the tracks they block
+Adds order_tracks (dependency depth, then id), sync_item_order (moves only out-of-place items) and client fetch_item_order/move_item_after via updateProjectV2ItemPosition. Live run reordered 12 items; gallery rebuild 0-6 now appear in chain order.
