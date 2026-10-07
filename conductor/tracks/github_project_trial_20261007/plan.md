@@ -19,6 +19,7 @@
 
 ## Phase 3: Drift Check
 - [x] Task: Compare the Project with the files in `conductor-status` [a1d39c9]
+- [x] Task: Delete the backfill script and its tests, so the skills are the only way the Project is updated [762e2a9]
 - [ ] Task: Run `conductor-status` against the board and confirm it reports no drift
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
