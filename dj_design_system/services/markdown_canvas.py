@@ -73,7 +73,6 @@ def _build_widget_html(
         "source_html": code_markup,
         "rendered_output_html": html_markup,
         "iframe_srcdoc": srcdoc,
-        "sandbox_attrs": "allow-scripts",
     }
     return render_to_string("dj_design_system/canvas_widget.html", context)
 

@@ -48,6 +48,13 @@ class TestCanvasPreprocessor:
         result = self._process(text)
         assert 'loading="lazy"' in result
 
+    def test_iframe_does_not_force_opaque_origin_sandbox(self):
+        """Markdown canvas iframes must not set sandbox='allow-scripts' without same-origin (#185)."""
+        text = '```canvas\n{% button "Click" %}\n```'
+        result = self._process(text)
+        assert 'sandbox="allow-scripts"' not in result
+        assert "sandbox=" not in result
+
     def test_canvas_block_with_kwargs(self):
         text = '```canvas\n{% button "Click" %}\n```'
         result = self._process(text)
