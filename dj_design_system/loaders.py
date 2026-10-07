@@ -29,9 +29,14 @@ class ComponentsTemplateLoader(Loader):
                 "APP_DIRS": False,
                 "OPTIONS": {
                     "loaders": [
-                        "django.template.loaders.filesystem.Loader",
-                        "django.template.loaders.app_directories.Loader",
-                        "dj_design_system.loaders.ComponentsTemplateLoader",
+                        (
+                            "django.template.loaders.cached.Loader",
+                            [
+                                "django.template.loaders.filesystem.Loader",
+                                "django.template.loaders.app_directories.Loader",
+                                "dj_design_system.loaders.ComponentsTemplateLoader",
+                            ],
+                        ),
                     ],
                     "context_processors": [...],
                 },

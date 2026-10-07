@@ -34,7 +34,7 @@ This serves `.css` and `.js` files from each installed app's `components/` direc
 
 ### TEMPLATES
 
-To use co-located `.html` templates for components, add `ComponentsTemplateLoader` to your `TEMPLATES` loader list. Because Django does not support mixing `APP_DIRS: True` with a custom `loaders` list, you must switch to an explicit loader configuration:
+To use co-located `.html` templates for components, add `ComponentsTemplateLoader` to your `TEMPLATES` loader list. Because Django does not support mixing `APP_DIRS: True` with a custom `loaders` list, you must switch to an explicit loader configuration — wrapped in `django.template.loaders.cached.Loader` so Django keeps compiled templates in memory just as the default configuration does:
 
 ```python
 TEMPLATES = [
@@ -44,9 +44,14 @@ TEMPLATES = [
         "APP_DIRS": False,  # must be False when loaders is set
         "OPTIONS": {
             "loaders": [
-                "django.template.loaders.filesystem.Loader",
-                "django.template.loaders.app_directories.Loader",
-                "dj_design_system.loaders.ComponentsTemplateLoader",
+                (
+                    "django.template.loaders.cached.Loader",
+                    [
+                        "django.template.loaders.filesystem.Loader",
+                        "django.template.loaders.app_directories.Loader",
+                        "dj_design_system.loaders.ComponentsTemplateLoader",
+                    ],
+                ),
             ],
             "context_processors": [
                 "django.template.context_processors.debug",
