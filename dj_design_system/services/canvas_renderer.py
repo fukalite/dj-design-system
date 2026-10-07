@@ -4,7 +4,8 @@ from typing import Optional
 from django.template import Context, Template
 from django.templatetags.static import static
 
-from dj_design_system.services.media import get_bundle_urls, resolve_asset_url
+from dj_design_system.services import media as media_service
+from dj_design_system.services.media import get_bundle_urls
 from dj_design_system.settings import (
     dds_settings,
     get_app_html_attrs,
@@ -30,7 +31,7 @@ def build_global_css_tags() -> str:
     """Build ``<link>`` tags for global CSS (webpack bundles + static)."""
     all_hrefs = [
         url for url in get_bundle_urls(dds_settings.GLOBAL_CSS_BUNDLES, "css")
-    ] + [resolve_asset_url(path) for path in dds_settings.GLOBAL_CSS]
+    ] + [media_service.resolve_asset_url(path=path) for path in dds_settings.GLOBAL_CSS]
     return "".join(f'<link rel="stylesheet" href="{href}">' for href in all_hrefs)
 
 
@@ -60,12 +61,20 @@ def build_theme_app_media(
             dds_settings.APP_JS_BUNDLES.get(app_label, []), "js"
         )
 
-    theme_css_urls = theme_css_bundles + [resolve_asset_url(p) for p in theme_css]
-    app_css_urls = app_css_bundles + [resolve_asset_url(p) for p in app_css]
+    theme_css_urls = theme_css_bundles + [
+        media_service.resolve_asset_url(path=p) for p in theme_css
+    ]
+    app_css_urls = app_css_bundles + [
+        media_service.resolve_asset_url(path=p) for p in app_css
+    ]
     css_urls = list(dict.fromkeys(theme_css_urls + app_css_urls))
 
-    theme_js_urls = theme_js_bundles + [resolve_asset_url(p) for p in theme_js]
-    app_js_urls = app_js_bundles + [resolve_asset_url(p) for p in app_js]
+    theme_js_urls = theme_js_bundles + [
+        media_service.resolve_asset_url(path=p) for p in theme_js
+    ]
+    app_js_urls = app_js_bundles + [
+        media_service.resolve_asset_url(path=p) for p in app_js
+    ]
     js_urls = list(dict.fromkeys(theme_js_urls + app_js_urls))
 
     theme_app_css_tags = "".join(

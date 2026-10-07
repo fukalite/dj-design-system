@@ -8,6 +8,7 @@ from django.utils.html import format_html, format_html_join
 from django.utils.safestring import SafeData
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
+from dj_design_system.services import media as media_service
 from dj_design_system.services.canvas import (
     get_component_media,
     render_component,
@@ -15,7 +16,7 @@ from dj_design_system.services.canvas import (
     resolve_from_get_params,
 )
 from dj_design_system.services.control_params import declares_param, get_control_param
-from dj_design_system.services.media import get_bundle_urls, resolve_asset_url
+from dj_design_system.services.media import get_bundle_urls
 from dj_design_system.services.registry import component_registry
 from dj_design_system.settings import (
     dds_settings,
@@ -234,19 +235,19 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
     all_css_urls = list(
         dict.fromkeys(
             theme_css_bundles
-            + [resolve_asset_url(p) for p in theme_css]
+            + [media_service.resolve_asset_url(path=p) for p in theme_css]
             + app_css_bundles
-            + [resolve_asset_url(p) for p in app_css]
-            + [resolve_asset_url(p) for p in media.css]
+            + [media_service.resolve_asset_url(path=p) for p in app_css]
+            + [media_service.resolve_asset_url(path=p) for p in media.css]
         )
     )
     all_js_urls = list(
         dict.fromkeys(
             theme_js_bundles
-            + [resolve_asset_url(p) for p in theme_js]
+            + [media_service.resolve_asset_url(path=p) for p in theme_js]
             + app_js_bundles
-            + [resolve_asset_url(p) for p in app_js]
-            + [resolve_asset_url(p) for p in media.js]
+            + [media_service.resolve_asset_url(path=p) for p in app_js]
+            + [media_service.resolve_asset_url(path=p) for p in media.js]
         )
     )
 

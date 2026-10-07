@@ -80,8 +80,15 @@ def build_static_url(app_label: str, relative_path: str, name: str, ext: str) ->
     return "/".join(parts)
 
 
-def resolve_asset_url(path: str) -> str:
-    """Return external URLs unchanged; resolve local paths via ``static()``."""
+def resolve_asset_url(*, path: str) -> str:
+    """Return external URLs unchanged; resolve local paths via ``static()``.
+
+    Args:
+        path: A static file path or external URL (``http://``, ``https://``, ``//``).
+
+    Returns:
+        The resolved asset URL string.
+    """
     if path.startswith(("http://", "https://", "//")):
         return path
     return static(path)
@@ -94,7 +101,7 @@ def build_link_tags(css_paths: list[str]) -> str:
     return format_html_join(
         "\n",
         '<link rel="stylesheet" href="{}">',
-        ((resolve_asset_url(path),) for path in css_paths),
+        ((resolve_asset_url(path=path),) for path in css_paths),
     )
 
 
@@ -107,10 +114,10 @@ def build_script_tags(js_paths: list[str], nonce: str | None = None) -> str:
         return format_html_join(
             "\n",
             f'<script src="{{}}" {nonce_attr}></script>',
-            ((resolve_asset_url(path),) for path in js_paths),
+            ((resolve_asset_url(path=path),) for path in js_paths),
         )
     return format_html_join(
         "\n",
         '<script src="{}"></script>',
-        ((resolve_asset_url(path),) for path in js_paths),
+        ((resolve_asset_url(path=path),) for path in js_paths),
     )
