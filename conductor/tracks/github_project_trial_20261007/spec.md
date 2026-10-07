@@ -17,7 +17,7 @@ Each track's issue holds its state, spec and plan, so the issue is a complete pi
 | `metadata.json` `id` | **Track ID** text field |
 | `metadata.json` `type` | **Track type** single-select field ("Type" is reserved by GitHub issue types) |
 | `metadata.json` `initiative` | **Initiative** single-select field, empty when `null` |
-| `metadata.json` `depends_on` (optional) | Native "blocked by" issue dependencies |
+| `metadata.json` `depends_on` (optional) | Native "blocked by" issue dependencies, and the items' manual order: sorted by dependency depth, then id, so blockers sit above the tracks they block in unsorted views |
 | `plan.md` phases | **Current phase** text field: the first phase with an open or in-progress task |
 | Track PRs | `Part of fukalite/dj-design-system-conductor#<issue>` in the PR body |
 

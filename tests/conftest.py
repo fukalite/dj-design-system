@@ -240,10 +240,20 @@ class FakeProjectClient:
         self.schema = schema
         self.issues = {issue.issue_id: issue for issue in issues}
         self.pull_requests = list(pull_requests)
+        self.item_order = [issue.item_id for issue in issues if issue.item_id]
         self.calls = []
 
     def fetch_open_pull_requests(self):
         return self.pull_requests
+
+    def fetch_item_order(self):
+        return list(self.item_order)
+
+    def move_item_after(self, item_id, after_id):
+        self.calls.append(("move_item_after", item_id, after_id))
+        self.item_order.remove(item_id)
+        index = self.item_order.index(after_id) + 1 if after_id else 0
+        self.item_order.insert(index, item_id)
 
     def fetch_schema(self):
         return self.schema
@@ -265,6 +275,7 @@ class FakeProjectClient:
 
     def add_to_project(self, issue_id):
         self.calls.append(("add_to_project", issue_id))
+        self.item_order.append(f"item-{issue_id}")
         return f"item-{issue_id}"
 
     def set_field_value(self, item_id, field, value):

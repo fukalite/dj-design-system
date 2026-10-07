@@ -445,9 +445,9 @@ def test_backfill_syncs_blocked_by(make_fake_project_client):
     client = make_fake_project_client(
         schema=make_schema(),
         issues=[
-            alpha_issue,
             make_synced_issue(track=beta),
             make_synced_issue(track=gamma),
+            alpha_issue,
         ],
     )
 
@@ -457,6 +457,67 @@ def test_backfill_syncs_blocked_by(make_fake_project_client):
         ("add_blocked_by", "issue-alpha_20260101", "issue-beta_20260102"),
         ("remove_blocked_by", "issue-alpha_20260101", "issue-gamma_20260103"),
     ]
+
+
+def test_order_tracks_puts_blockers_first():
+    tracks = [
+        make_track(id="c_3", depends_on=("b_2",)),
+        make_track(id="d_4"),
+        make_track(id="b_2", depends_on=("a_1", "archived_0")),
+        make_track(id="a_1"),
+    ]
+
+    ordered = conductor_project.order_tracks(tracks=tracks)
+
+    assert [track.id for track in ordered] == ["a_1", "d_4", "b_2", "c_3"]
+
+
+def test_order_tracks_rejects_dependency_cycles():
+    tracks = [
+        make_track(id="a_1", depends_on=("b_2",)),
+        make_track(id="b_2", depends_on=("a_1",)),
+    ]
+
+    with pytest.raises(conductor_project.TrackParseError, match="cycle"):
+        conductor_project.order_tracks(tracks=tracks)
+
+
+def test_backfill_orders_items_so_blockers_come_first(make_fake_project_client):
+    beta = make_track(id="beta_20260102", title="Beta")
+    gamma = make_track(id="gamma_20260103", title="Gamma")
+    alpha = make_track(depends_on=("beta_20260102",))
+    client = make_fake_project_client(
+        schema=make_schema(),
+        issues=[
+            make_synced_issue(track=alpha),
+            make_synced_issue(track=gamma),
+            make_synced_issue(track=beta),
+        ],
+    )
+    client.item_order.insert(0, "untracked-item")
+
+    actions = conductor_project.backfill(client=client, tracks=[alpha, beta, gamma])
+
+    assert client.item_order == [
+        "item-beta_20260102",
+        "item-gamma_20260103",
+        "untracked-item",
+        "item-alpha_20260101",
+    ]
+    assert "beta_20260102: moved to position 1" in actions
+
+
+def test_backfill_leaves_ordered_items_alone(make_fake_project_client):
+    beta = make_track(id="beta_20260102", title="Beta")
+    alpha = make_track(depends_on=("beta_20260102",))
+    client = make_fake_project_client(
+        schema=make_schema(),
+        issues=[make_synced_issue(track=beta), make_synced_issue(track=alpha)],
+    )
+
+    conductor_project.backfill(client=client, tracks=[alpha, beta])
+
+    assert not [call for call in client.calls if call[0] == "move_item_after"]
 
 
 def test_backfill_reports_dependencies_on_untracked_tracks(make_fake_project_client):
@@ -599,6 +660,33 @@ def test_fetch_open_pull_requests_reads_the_code_repository(mocker):
     ]
     request = json.loads(run.call_args.kwargs["input"])
     assert request["variables"]["repo"] == "dj-design-system"
+
+
+def test_fetch_item_order_reads_items_by_position(mocker):
+    response = {
+        "data": {
+            "node": {
+                "items": {
+                    "pageInfo": {"hasNextPage": False, "endCursor": None},
+                    "nodes": [{"id": "item-2"}, {"id": "item-1"}],
+                }
+            }
+        }
+    }
+    mocker.patch.object(
+        conductor_project.subprocess,
+        "run",
+        return_value=mocker.Mock(stdout=json.dumps(response)),
+    )
+    client = conductor_project.GitHubProjectClient(
+        owner="fukalite",
+        issue_repo="dj-design-system-conductor",
+        code_repo="dj-design-system",
+        project_number=2,
+    )
+    client.project_id = "project-1"
+
+    assert client.fetch_item_order() == ["item-2", "item-1"]
 
 
 def test_graphql_raises_on_gh_failure(mocker):

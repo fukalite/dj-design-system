@@ -164,6 +164,10 @@ class ProjectClient(Protocol):
 
     def remove_blocked_by(self, issue_id: str, blocking_issue_id: str) -> None: ...
 
+    def fetch_item_order(self) -> list[str]: ...
+
+    def move_item_after(self, item_id: str, after_id: str | None) -> None: ...
+
 
 def load_tracks(conductor_dir: Path) -> list[Track]:
     """Read every non-archived track under a conductor directory.
@@ -430,8 +434,9 @@ def backfill(client: ProjectClient, tracks: list[Track]) -> list[str]:
     issue_ids = {track_id: issue.issue_id for track_id, issue in issues.items()}
     pull_requests = client.fetch_open_pull_requests()
     actions: list[str] = []
+    item_ids: dict[str, str] = {}
     for track in tracks:
-        issue_ids[track.id] = sync_issue(
+        synced = sync_issue(
             client=client,
             schema=schema,
             track=track,
@@ -441,6 +446,8 @@ def backfill(client: ProjectClient, tracks: list[Track]) -> list[str]:
             ),
             actions=actions,
         )
+        issue_ids[track.id] = synced.issue_id
+        item_ids[track.id] = synced.item_id
     for track in tracks:
         sync_blocked_by(
             client=client,
@@ -449,7 +456,108 @@ def backfill(client: ProjectClient, tracks: list[Track]) -> list[str]:
             issue_ids=issue_ids,
             actions=actions,
         )
+    sync_item_order(client=client, tracks=tracks, item_ids=item_ids, actions=actions)
     return actions
+
+
+def order_tracks(tracks: Sequence[Track]) -> list[Track]:
+    """Order tracks so every track comes after the tracks it depends on.
+
+    Tracks are sorted by dependency depth (the longest chain of dependencies
+    below them), then by id. Dependencies on tracks that are not in the list
+    are ignored.
+
+    Args:
+        tracks: The tracks.
+
+    Returns:
+        The tracks in order.
+
+    Raises:
+        TrackParseError: The dependencies form a cycle.
+    """
+    tracks_by_id = {track.id: track for track in tracks}
+    depths: dict[str, int] = {}
+    for track in tracks:
+        measure_depth(
+            track=track, tracks_by_id=tracks_by_id, depths=depths, visiting=set()
+        )
+    return sorted(tracks, key=lambda track: (depths[track.id], track.id))
+
+
+def measure_depth(
+    track: Track,
+    tracks_by_id: dict[str, Track],
+    depths: dict[str, int],
+    visiting: set[str],
+) -> int:
+    """Measure a track's dependency depth, caching results in depths.
+
+    Raises:
+        TrackParseError: The dependencies form a cycle.
+    """
+    if track.id in depths:
+        return depths[track.id]
+    if track.id in visiting:
+        raise TrackParseError(f"{track.id}: dependency cycle")
+    visiting.add(track.id)
+    dependencies = [
+        tracks_by_id[dependency]
+        for dependency in track.depends_on
+        if dependency in tracks_by_id
+    ]
+    depths[track.id] = 1 + max(
+        (
+            measure_depth(
+                track=dependency,
+                tracks_by_id=tracks_by_id,
+                depths=depths,
+                visiting=visiting,
+            )
+            for dependency in dependencies
+        ),
+        default=-1,
+    )
+    return depths[track.id]
+
+
+def sync_item_order(
+    client: ProjectClient,
+    tracks: Sequence[Track],
+    item_ids: dict[str, str],
+    actions: list[str],
+) -> None:
+    """Move Project items so each track sits above the tracks it blocks.
+
+    Only items out of place are moved. Items that do not mirror a track keep
+    their place relative to their neighbours.
+
+    Args:
+        client: The Project client.
+        tracks: The tracks.
+        item_ids: Project item ids keyed by track id.
+        actions: Descriptions of changes made, appended to.
+    """
+    ordered = order_tracks(tracks=tracks)
+    desired = [item_ids[track.id] for track in ordered]
+    wanted = set(desired)
+    current = [item_id for item_id in client.fetch_item_order() if item_id in wanted]
+    for index, (track, item_id) in enumerate(zip(ordered, desired, strict=True)):
+        if current[index] == item_id:
+            continue
+        after_id = desired[index - 1] if index else None
+        client.move_item_after(item_id=item_id, after_id=after_id)
+        current.remove(item_id)
+        current.insert(index, item_id)
+        actions.append(f"{track.id}: moved to position {index + 1}")
+
+
+@dataclasses.dataclass(frozen=True)
+class SyncedIssue:
+    """The ids of a track's issue and Project item after syncing."""
+
+    issue_id: str
+    item_id: str
 
 
 def sync_issue(
@@ -459,7 +567,7 @@ def sync_issue(
     issue: MirroredIssue | None,
     pull_requests: Sequence[PullRequest],
     actions: list[str],
-) -> str:
+) -> SyncedIssue:
     """Create or update a track's issue and Project item.
 
     Args:
@@ -471,7 +579,7 @@ def sync_issue(
         actions: Descriptions of changes made, appended to.
 
     Returns:
-        The issue id.
+        The issue and item ids.
     """
     body = build_issue_body(track=track)
     is_closed = track.status == COMPLETED_STATUS
@@ -504,7 +612,7 @@ def sync_issue(
         pull_requests=pull_requests,
         actions=actions,
     )
-    return issue_id
+    return SyncedIssue(issue_id=issue_id, item_id=item_id)
 
 
 def sync_field_values(
@@ -695,6 +803,27 @@ mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!) {
   clearProjectV2ItemFieldValue(input: {
     projectId: $projectId, itemId: $itemId, fieldId: $fieldId
   }) { projectV2Item { id } }
+}
+"""
+
+ITEM_ORDER_QUERY = """
+query($projectId: ID!, $cursor: String) {
+  node(id: $projectId) {
+    ... on ProjectV2 {
+      items(first: 100, after: $cursor, orderBy: {field: POSITION, direction: ASC}) {
+        pageInfo { hasNextPage endCursor }
+        nodes { id }
+      }
+    }
+  }
+}
+"""
+
+MOVE_ITEM_MUTATION = """
+mutation($projectId: ID!, $itemId: ID!, $afterId: ID) {
+  updateProjectV2ItemPosition(input: {
+    projectId: $projectId, itemId: $itemId, afterId: $afterId
+  }) { clientMutationId }
 }
 """
 
@@ -948,6 +1077,32 @@ class GitHubProjectClient:
         self.run_graphql(
             query=REMOVE_BLOCKED_BY_MUTATION,
             variables={"issueId": issue_id, "blockingIssueId": blocking_issue_id},
+        )
+
+    def fetch_item_order(self) -> list[str]:
+        """Read every Project item id in manual (position) order."""
+        item_ids: list[str] = []
+        cursor = None
+        while True:
+            data = self.run_graphql(
+                query=ITEM_ORDER_QUERY,
+                variables={"projectId": self.project_id, "cursor": cursor},
+            )
+            connection = data["node"]["items"]
+            item_ids.extend(node["id"] for node in connection["nodes"])
+            if not connection["pageInfo"]["hasNextPage"]:
+                return item_ids
+            cursor = connection["pageInfo"]["endCursor"]
+
+    def move_item_after(self, item_id: str, after_id: str | None) -> None:
+        """Move an item after another, or to the top when after_id is None."""
+        self.run_graphql(
+            query=MOVE_ITEM_MUTATION,
+            variables={
+                "projectId": self.project_id,
+                "itemId": item_id,
+                "afterId": after_id,
+            },
         )
 
 
