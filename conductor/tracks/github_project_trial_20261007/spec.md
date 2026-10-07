@@ -25,7 +25,7 @@ Archived tracks (`conductor/archive/`) are not mirrored.
 ## Functional Requirements
 
 ### 1. Backfill
-- `.github/scripts/conductor_project/backfill.py` creates or updates one issue and one Project item per track from the files.
+- `.github/scripts/conductor_project.py backfill` creates or updates one issue and one Project item per track from the files.
 - Running it repeatedly makes no further changes. Issues are matched by the hidden marker, never by title.
 - It talks to GitHub through `gh api graphql`, so no new dependencies are added.
 
@@ -35,7 +35,7 @@ Archived tracks (`conductor/archive/`) are not mirrored.
 - Track PRs reference their issue.
 
 ### 3. Drift Check
-- `.github/scripts/conductor_project/drift.py` compares the files in the local checkout with the Project and lists every difference. It is read-only.
+- `.github/scripts/conductor_project.py drift` compares the files in the local checkout with the Project and lists every difference. It is read-only.
 - It runs locally with the developer's `gh` auth. There is no CI workflow and no stored token.
 - Differences caused by unmerged branches are expected, so the report states which branch it was run from.
 
