@@ -6,18 +6,19 @@ Track state (status, current phase, dependencies) lives in `conductor/` and chan
 This track trials [GitHub Project #2](https://github.com/orgs/fukalite/projects/2) as one shared place for track state. The trial runs in parallel with the file workflow. The files stay the source of truth until the trial ends and a decision is made.
 
 ## Scope of the Mirror
-Only track state goes into the Project. `spec.md` and `plan.md` stay in the repo, so they are reviewed alongside the code they describe.
+Each track's issue holds its state, spec and plan, so the issue is a complete picture of the track. During the trial the files are still edited and reviewed in the repo; the issue is overwritten from them, so edits made on GitHub, including ticked checkboxes, are lost.
 
 | Conductor | GitHub Project |
 | --- | --- |
 | Track directory | One issue in `fukalite/dj-design-system-conductor` labelled `track`, whose body contains `<!-- conductor-track: <id> -->` |
-| Track title (`index.md` heading) | Issue title |
+| Track title (`tracks.md` entry) | Issue title |
+| `spec.md` and `plan.md` | Issue body, verbatim, after the marker. GitHub's 65,536-character body limit is enforced |
 | `metadata.json` `status` | **Status** field: `new` → Backlog or Ready, `in_progress` → In progress or In review, `completed` → Done. Each status maps to a set of columns, so cards can be moved within that set by hand without counting as drift. The backfill only moves a card when its column falls outside the set, and then uses the first option listed |
 | `metadata.json` `id` | **Track ID** text field |
 | `metadata.json` `type` | **Track type** single-select field ("Type" is reserved by GitHub issue types) |
 | `metadata.json` `initiative` | **Initiative** single-select field, empty when `null` |
 | `metadata.json` `depends_on` (optional) | Native "blocked by" issue dependencies |
-| `plan.md` phases | A phase checklist in the issue body, plus a **Current phase** text field. Individual tasks are not mirrored |
+| `plan.md` phases | **Current phase** text field: the first phase with an open or in-progress task |
 | Track PRs | `Part of fukalite/dj-design-system-conductor#<issue>` in the PR body |
 
 Archived tracks (`conductor/archive/`) are not mirrored.
@@ -30,7 +31,7 @@ Archived tracks (`conductor/archive/`) are not mirrored.
 - It talks to GitHub through `gh api graphql`, so no new dependencies are added.
 
 ### 2. Dual-Write
-- `.agents/AGENTS.md` gains a rule: any change to a track's status, current phase or dependencies is made in both the files and the Project in the same step.
+- `.agents/AGENTS.md` gains a rule: after any commit that changes a track's files, run the backfill so the Project matches. Because the issue mirrors the whole track, the Project is never edited by hand.
 - New tracks get an issue when they are created.
 - Track PRs reference their issue.
 
@@ -53,7 +54,7 @@ The trial runs for 2–3 weeks of normal track work. The outcome is recorded in 
 
 ## Out of Scope
 - Changing the file workflow or removing any Conductor files.
-- Mirroring individual tasks.
+- Syncing edits made on GitHub back into the files.
 - Making the Project the source of truth. That needs a follow-up track if the trial succeeds.
 
 ## Acceptance Criteria

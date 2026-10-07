@@ -20,6 +20,8 @@ CONDUCTOR_DIR = Path(__file__).resolve().parent.parent.parent / "conductor"
 REGISTRY_FILE = "tracks.md"
 METADATA_FILE = "metadata.json"
 PLAN_FILE = "plan.md"
+SPEC_FILE = "spec.md"
+ISSUE_BODY_LIMIT = 65_536
 
 OWNER = "fukalite"
 REPOSITORY = "dj-design-system"
@@ -82,6 +84,8 @@ class Track:
     initiative: str | None
     depends_on: tuple[str, ...]
     phases: tuple[Phase, ...]
+    spec: str
+    plan: str
 
     @property
     def current_phase(self) -> str | None:
@@ -186,8 +190,7 @@ def load_track(track_dir: Path, titles: dict[str, str]) -> Track:
         raise TrackParseError(f"{track_dir.name}: {METADATA_FILE} has no id")
     if track_id != track_dir.name:
         raise TrackParseError(f"{track_dir.name}: {METADATA_FILE} id is {track_id}")
-    plan_path = track_dir / PLAN_FILE
-    plan_text = plan_path.read_text() if plan_path.exists() else ""
+    plan_text = read_optional_file(path=track_dir / PLAN_FILE)
     return Track(
         id=track_id,
         title=titles.get(track_id, track_id),
@@ -196,7 +199,14 @@ def load_track(track_dir: Path, titles: dict[str, str]) -> Track:
         initiative=metadata.get("initiative"),
         depends_on=tuple(metadata.get("depends_on", ())),
         phases=parse_phases(text=plan_text),
+        spec=read_optional_file(path=track_dir / SPEC_FILE),
+        plan=plan_text,
     )
+
+
+def read_optional_file(path: Path) -> str:
+    """Read a file, or return an empty string when it does not exist."""
+    return path.read_text() if path.exists() else ""
 
 
 def parse_registry_titles(text: str) -> dict[str, str]:
@@ -241,26 +251,30 @@ def build_issue_body(track: Track) -> str:
     Args:
         track: The track.
 
+    The body holds the track's spec and plan verbatim, after a hidden track
+    marker and a note naming the source files.
+
     Returns:
-        The issue body, starting with the hidden track marker.
+        The issue body.
+
+    Raises:
+        TrackParseError: The body is over GitHub's issue body limit.
     """
     track_url = f"{REPOSITORY_URL}/tree/main/conductor/tracks/{track.id}"
-    lines = [
-        f"<!-- conductor-track: {track.id} -->",
+    sections = [
+        f"<!-- conductor-track: {track.id} -->\n"
         f"Mirrored from [`conductor/tracks/{track.id}`]({track_url}) by "
         "`.github/scripts/conductor_project.py`. The files are the source of "
-        "truth; edits made here are overwritten.",
-        "",
-        f"- [Specification]({track_url}/spec.md)",
-        f"- [Implementation Plan]({track_url}/plan.md)",
+        "truth; edits made here are overwritten.\n",
     ]
-    if track.phases:
-        lines.extend(["", "## Phases"])
-        lines.extend(
-            f"- [{'x' if phase.is_complete else ' '}] {phase.name}"
-            for phase in track.phases
+    sections.extend(document for document in (track.spec, track.plan) if document)
+    body = "\n---\n\n".join(section.rstrip("\n") + "\n" for section in sections)
+    if len(body) > ISSUE_BODY_LIMIT:
+        raise TrackParseError(
+            f"{track.id}: issue body is {len(body)} characters, "
+            f"over GitHub's {ISSUE_BODY_LIMIT}"
         )
-    return "\n".join(lines) + "\n"
+    return body
 
 
 def parse_track_marker(body: str) -> str | None:

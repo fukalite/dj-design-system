@@ -109,6 +109,16 @@ def test_current_phase_is_none_without_phases(conductor_dir):
     assert gamma.current_phase is None
 
 
+def test_load_tracks_reads_spec_and_plan(conductor_dir):
+    tracks = conductor_project.load_tracks(conductor_dir=conductor_dir)
+    alpha = get_track(tracks=tracks, track_id="alpha_20260101")
+    gamma = get_track(tracks=tracks, track_id="gamma_20260103")
+
+    assert alpha.spec == "# Specification: Alpha\n"
+    assert alpha.plan.startswith("# Implementation Plan\n\n## Phase 1: Setup")
+    assert gamma.spec == ""
+
+
 def test_load_tracks_rejects_metadata_without_id(conductor_dir):
     metadata_path = conductor_dir / "tracks" / "gamma_20260103" / "metadata.json"
     metadata_path.write_text(json.dumps({"type": "chore", "status": "new"}))
@@ -148,6 +158,8 @@ def make_track(**overrides):
             conductor_project.Phase(name="Phase 1: Setup", is_complete=True),
             conductor_project.Phase(name="Phase 2: Build", is_complete=False),
         ),
+        "spec": "# Specification: Alpha\n\nBuild the alpha.\n",
+        "plan": "# Implementation Plan\n\n## Phase 2: Build\n- [ ] Task: Build it\n",
     }
     values.update(overrides)
     return conductor_project.Track(**values)
@@ -199,14 +211,24 @@ def make_synced_issue(track, **overrides):
     return conductor_project.MirroredIssue(**values)
 
 
-def test_build_issue_body_has_marker_links_and_phases():
+def test_build_issue_body_holds_marker_spec_and_plan():
     body = conductor_project.build_issue_body(track=make_track())
 
-    assert "<!-- conductor-track: alpha_20260101 -->" in body
-    assert "conductor/tracks/alpha_20260101/spec.md" in body
-    assert "conductor/tracks/alpha_20260101/plan.md" in body
-    assert "- [x] Phase 1: Setup" in body
-    assert "- [ ] Phase 2: Build" in body
+    assert body.startswith("<!-- conductor-track: alpha_20260101 -->\n")
+    assert "conductor/tracks/alpha_20260101" in body
+    assert body.index("# Specification: Alpha") < body.index("# Implementation Plan")
+    assert "- [ ] Task: Build it" in body
+
+
+def test_build_issue_body_omits_missing_documents():
+    body = conductor_project.build_issue_body(track=make_track(spec="", plan=""))
+
+    assert "---" not in body
+
+
+def test_build_issue_body_rejects_bodies_over_the_issue_limit():
+    with pytest.raises(conductor_project.TrackParseError, match="alpha_20260101"):
+        conductor_project.build_issue_body(track=make_track(spec="x" * 70_000))
 
 
 def test_parse_track_marker_reads_marker():

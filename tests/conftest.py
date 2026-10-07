@@ -221,6 +221,9 @@ def conductor_dir(tmp_path: Path) -> Path:
         track_dir.mkdir()
         (track_dir / "metadata.json").write_text(json.dumps(metadata))
         (track_dir / "plan.md").write_text(plan)
+    (root / "tracks" / "alpha_20260101" / "spec.md").write_text(
+        "# Specification: Alpha\n"
+    )
     return root
 
 
