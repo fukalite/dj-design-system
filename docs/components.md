@@ -482,7 +482,7 @@ The resulting static URL would be `myapp/components/icon/icon.css`.
 
 ### Explicit Media class
 
-Add a `Media` inner class to declare additional CSS or JS files beyond those found by auto-discovery. This uses the same convention as Django form widgets. Provide full Django static URL paths:
+Add a `Media` inner class to declare additional CSS or JS files beyond those found by auto-discovery. This uses the same convention as Django form widgets. Provide full Django static URL paths, or external URLs starting with `http://`, `https://` or `//`, which are used as-is:
 
 ```python
 class IconComponent(TagComponent):
@@ -491,7 +491,10 @@ class IconComponent(TagComponent):
     name = StrParam("The icon name.")
 
     class Media:
-        css = ["myapp/components/icon/icon-extra.css"]
+        css = [
+            "myapp/components/icon/icon-extra.css",
+            "https://cdn.example.com/icon-font.css",
+        ]
         js = "myapp/components/icon/icon.js"  # single string is also accepted
 ```
 

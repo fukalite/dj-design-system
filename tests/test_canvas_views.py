@@ -204,39 +204,28 @@ class TestCanvasIframeView:
         content = response.content.decode()
         assert '<style nonce="sample-canvas-nonce-456">' in content
 
-    def test_external_urls_preserved_in_canvas_iframe_and_srcdoc(self):
-        from dj_design_system.services.canvas_renderer import build_canvas_srcdoc
-        from dj_design_system.settings import get_theme
-
-        font_url = "https://fonts.googleapis.com/css2?family=Inter"
-        theme_css_url = "https://cdn.example.com/theme.css"
-        app_css_url = "https://cdn.example.com/app.css"
+    def test_external_urls_preserved_in_canvas_iframe(self):
         with override_settings(
             DJ_DESIGN_SYSTEM={
                 "GALLERY_IS_PUBLIC": True,
-                "GLOBAL_CSS": [font_url],
+                "GLOBAL_CSS": ["https://fonts.googleapis.com/css2?family=Inter"],
                 "GALLERY_THEMES": {
                     "default": {
                         "label": "Default",
-                        "css": [theme_css_url],
+                        "css": ["https://cdn.example.com/theme.css"],
+                        "js": ["//cdn.example.com/theme.js"],
                     }
                 },
-                "APP_CSS": {"demo_components": [app_css_url]},
+                "APP_CSS": {
+                    "demo_components": ["https://cdn.example.com/app.css?v=1&min=1"]
+                },
             }
         ):
             client = Client()
             url = reverse("gallery-canvas-iframe")
             response = client.get(url, {"component": "rich_button", "label": "Test"})
-            content = response.content.decode()
-            assert f'href="{font_url}"' in content
-            assert f'href="{theme_css_url}"' in content
-            assert f'href="{app_css_url}"' in content
-
-            srcdoc = build_canvas_srcdoc(
-                "<p>Hi</p>",
-                theme_dict=get_theme("default"),
-                app_label="demo_components",
-            )
-            assert f'href="{font_url}"' in srcdoc
-            assert f'href="{theme_css_url}"' in srcdoc
-            assert f'href="{app_css_url}"' in srcdoc
+        content = response.content.decode()
+        assert 'href="https://fonts.googleapis.com/css2?family=Inter"' in content
+        assert 'href="https://cdn.example.com/theme.css"' in content
+        assert 'src="//cdn.example.com/theme.js"' in content
+        assert 'href="https://cdn.example.com/app.css?v=1&amp;min=1"' in content

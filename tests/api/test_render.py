@@ -2,9 +2,11 @@ import json
 from unittest.mock import patch
 
 import pytest
-from django.test import RequestFactory
+from django.templatetags.static import static
+from django.test import RequestFactory, override_settings
 
 from dj_design_system.api.views import ComponentRenderView
+from dj_design_system.data import ComponentMedia
 
 
 pytestmark = pytest.mark.django_db
@@ -145,3 +147,43 @@ class TestComponentRenderView:
                 "Failed to render component. Please check your parameters and template syntax."
                 in data["error"]
             )
+
+    def test_render_external_asset_urls(self, registry_with_demo_components):
+        """External asset URLs are returned as-is; local paths become absolute (#166)."""
+        media = ComponentMedia(
+            css=["https://cdn.example.com/component.css", "myapp/component.css"],
+            js=["//cdn.example.com/component.js"],
+        )
+        factory = RequestFactory()
+        payload = {
+            "name": "demo_components__alert",
+            "positional_args": ["warning"],
+            "params": {"content": "Warning message"},
+        }
+        request = factory.post(
+            "/api/render/",
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+        view = ComponentRenderView.as_view(registry=registry_with_demo_components)
+        with (
+            override_settings(
+                DJ_DESIGN_SYSTEM={
+                    "GLOBAL_CSS": ["https://fonts.googleapis.com/css2?family=Inter"],
+                    "GLOBAL_JS": ["HTTPS://cdn.example.com/vendor.js"],
+                }
+            ),
+            patch("dj_design_system.api.views.get_component_media", return_value=media),
+        ):
+            response = view(request)
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data["css"] == [
+            "https://cdn.example.com/component.css",
+            f"http://testserver{static('myapp/component.css')}",
+        ]
+        # Protocol-relative URLs take the request's scheme.
+        assert data["js"] == ["http://cdn.example.com/component.js"]
+        assert data["global_css"] == ["https://fonts.googleapis.com/css2?family=Inter"]
+        assert data["global_js"] == ["HTTPS://cdn.example.com/vendor.js"]

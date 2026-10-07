@@ -19,7 +19,6 @@ from dj_design_system.services.canvas import (
     get_component_media,
     render_component,
 )
-from dj_design_system.services.media import get_bundle_urls
 from dj_design_system.services.registry import component_registry
 from dj_design_system.settings import dds_settings
 
@@ -145,11 +144,15 @@ class ComponentRenderView(View):
             for path in media.js
         ]
 
-        global_css = get_bundle_urls(dds_settings.GLOBAL_CSS_BUNDLES, "css") + [
+        global_css = media_service.get_bundle_urls(
+            dds_settings.GLOBAL_CSS_BUNDLES, "css"
+        ) + [
             media_service.resolve_asset_url(path=path)
             for path in dds_settings.GLOBAL_CSS
         ]
-        global_js = get_bundle_urls(dds_settings.GLOBAL_JS_BUNDLES, "js") + [
+        global_js = media_service.get_bundle_urls(
+            dds_settings.GLOBAL_JS_BUNDLES, "js"
+        ) + [
             media_service.resolve_asset_url(path=path)
             for path in dds_settings.GLOBAL_JS
         ]

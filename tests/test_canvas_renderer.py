@@ -1,9 +1,11 @@
 import pytest
+from django.test import override_settings
 
 from dj_design_system.services.canvas_renderer import (
     build_canvas_srcdoc,
     render_canvas_block,
 )
+from dj_design_system.settings import get_theme
 
 
 @pytest.mark.django_db
@@ -61,3 +63,29 @@ class TestCanvasRenderer:
         assert "display: flex" not in srcdoc
         assert "justify-content" not in srcdoc
         assert "align-items" not in srcdoc
+
+    def test_srcdoc_preserves_external_urls(self):
+        with override_settings(
+            DJ_DESIGN_SYSTEM={
+                "GLOBAL_CSS": ["https://fonts.googleapis.com/css2?family=Inter"],
+                "GALLERY_THEMES": {
+                    "default": {
+                        "label": "Default",
+                        "css": ["https://cdn.example.com/theme.css"],
+                        "js": ["//cdn.example.com/theme.js"],
+                    }
+                },
+                "APP_CSS": {
+                    "demo_components": ["https://cdn.example.com/app.css?v=1&min=1"]
+                },
+            }
+        ):
+            srcdoc = build_canvas_srcdoc(
+                "<p>Hi</p>",
+                theme_dict=get_theme("default"),
+                app_label="demo_components",
+            )
+        assert 'href="https://fonts.googleapis.com/css2?family=Inter"' in srcdoc
+        assert 'href="https://cdn.example.com/theme.css"' in srcdoc
+        assert 'src="//cdn.example.com/theme.js"' in srcdoc
+        assert 'href="https://cdn.example.com/app.css?v=1&amp;min=1"' in srcdoc

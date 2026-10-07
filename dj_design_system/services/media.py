@@ -85,11 +85,12 @@ def resolve_asset_url(*, path: str) -> str:
 
     Args:
         path: A static file path or external URL (``http://``, ``https://``, ``//``).
+            The scheme is matched case-insensitively.
 
     Returns:
         The resolved asset URL string.
     """
-    if path.startswith(("http://", "https://", "//")):
+    if path.lower().startswith(("http://", "https://", "//")):
         return path
     return static(path)
 

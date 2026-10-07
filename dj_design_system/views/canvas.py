@@ -16,7 +16,6 @@ from dj_design_system.services.canvas import (
     resolve_from_get_params,
 )
 from dj_design_system.services.control_params import declares_param, get_control_param
-from dj_design_system.services.media import get_bundle_urls
 from dj_design_system.services.registry import component_registry
 from dj_design_system.settings import (
     dds_settings,
@@ -201,14 +200,14 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
 
     theme_css = theme_dict.css
     theme_js = theme_dict.js
-    theme_css_bundles = get_bundle_urls(theme_dict.css_bundles, "css")
-    theme_js_bundles = get_bundle_urls(theme_dict.js_bundles, "js")
+    theme_css_bundles = media_service.get_bundle_urls(theme_dict.css_bundles, "css")
+    theme_js_bundles = media_service.get_bundle_urls(theme_dict.js_bundles, "js")
 
     app_css, app_js = get_app_static(app_label)
-    app_css_bundles = get_bundle_urls(
+    app_css_bundles = media_service.get_bundle_urls(
         (dds_settings.APP_CSS_BUNDLES or {}).get(app_label, []), "css"
     )
-    app_js_bundles = get_bundle_urls(
+    app_js_bundles = media_service.get_bundle_urls(
         (dds_settings.APP_JS_BUNDLES or {}).get(app_label, []), "js"
     )
 
@@ -251,11 +250,11 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
         )
     )
 
-    context["component_css"] = "".join(
-        f'<link rel="stylesheet" href="{u}">' for u in all_css_urls
+    context["component_css"] = format_html_join(
+        "", '<link rel="stylesheet" href="{}">', ((u,) for u in all_css_urls)
     )
-    context["component_js"] = "".join(
-        f'<script src="{u}"></script>' for u in all_js_urls
+    context["component_js"] = format_html_join(
+        "", '<script src="{}"></script>', ((u,) for u in all_js_urls)
     )
     context["html_attrs"], context["body_attrs"] = _canvas_html_attrs(
         theme_dict, app_label

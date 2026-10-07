@@ -190,12 +190,17 @@ These tags inject CSS and JS that is _not_ tied to specific components - for exa
 
 Webpack bundle entries are tuples of `(bundle_name,)` or `(bundle_name, config_name)` passed to `webpack_loader.utils.get_files`. These are silently skipped when `webpack_loader` is not installed.
 
+`GLOBAL_CSS` and `GLOBAL_JS` entries can be static file paths or external URLs (`http://`, `https://` or `//`). External URLs are output as-is; see [External asset URLs](api/settings.md#external-asset-urls).
+
 Example settings:
 
 ```python
 dj_design_system = {
     "GLOBAL_CSS_BUNDLES": [("main",)],
-    "GLOBAL_CSS": ["myapp/extra.css"],
+    "GLOBAL_CSS": [
+        "https://fonts.googleapis.com/css2?family=Inter&display=swap",
+        "myapp/extra.css",
+    ],
     "GLOBAL_JS_BUNDLES": [("main",)],
     "GLOBAL_JS": [],
 }
