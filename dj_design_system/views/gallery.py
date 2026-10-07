@@ -17,7 +17,7 @@ from dj_design_system.services.navigation import (
     build_search_index,
     find_node,
 )
-from dj_design_system.services.registry import component_registry
+from dj_design_system.services.visibility import get_gallery_components
 from dj_design_system.settings import (
     dds_settings,
     get_default_theme,
@@ -107,7 +107,7 @@ def _render_document(request, context, node, app_label, path_parts):
 def gallery_index(request: HttpRequest) -> HttpResponse:
     """Gallery home — lists all registered components in the sidebar."""
     context = get_base_context(request)
-    context["total_components"] = len(component_registry.list_all())
+    context["total_components"] = len(get_gallery_components())
     return render(request, "dj_design_system/gallery/index.html", context)
 
 
