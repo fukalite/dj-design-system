@@ -8,6 +8,7 @@ from django import template
 
 from dj_design_system.data import NavNode
 from dj_design_system.gallery import Variant
+from dj_design_system.services import navigation as navigation_service
 from dj_design_system.services.canvas_renderer import build_canvas_srcdoc
 from dj_design_system.services.control_params import (
     SANDBOX_SUBMISSION_PARAM,
@@ -54,12 +55,14 @@ def nav_link_is_active(
 def nav_folder_is_open(node: NavNode, active_path: str) -> bool:
     """Return whether a folder nav node is expanded on initial render.
 
-    A folder starts expanded when the current page is the folder itself or
-    one of its descendants.
+    Args:
+        node: The folder or expandable navigation node to check.
+        active_path: The active gallery route path for the current request.
+
+    Returns:
+        True when the current page is the folder itself or one of its descendants.
     """
-    if not active_path:
-        return False
-    return node.active_path in active_path or node.base_active_path in active_path
+    return navigation_service.is_nav_folder_open(node=node, active_path=active_path)
 
 
 class CanvasNode(template.Node):
