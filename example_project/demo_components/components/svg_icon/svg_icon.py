@@ -5,6 +5,7 @@ from django.utils.safestring import mark_safe
 from dj_design_system.components import TagComponent
 from dj_design_system.parameters import StrParam
 
+
 ICONS_DIR = Path(__file__).parent / "icons"
 ICON_NAMES = sorted(p.stem for p in ICONS_DIR.glob("*.svg"))
 
@@ -32,5 +33,7 @@ class SvgIconComponent(TagComponent):
 
     def get_context(self):
         ctx = super().get_context()
-        ctx["svg"] = mark_safe((ICONS_DIR / f"{self.name}.svg").read_text())
+        ctx["svg"] = mark_safe(
+            (ICONS_DIR / f"{self.name}.svg").read_text(encoding="utf-8")
+        )
         return ctx
