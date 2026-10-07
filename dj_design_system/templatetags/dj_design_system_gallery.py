@@ -50,6 +50,18 @@ def nav_link_is_active(
     return active_slug == node.slug
 
 
+@register.simple_tag
+def nav_folder_is_open(node: NavNode, active_path: str) -> bool:
+    """Return whether a folder nav node is expanded on initial render.
+
+    A folder starts expanded when the current page is the folder itself or
+    one of its descendants.
+    """
+    if not active_path:
+        return False
+    return node.active_path in active_path or node.base_active_path in active_path
+
+
 class CanvasNode(template.Node):
     """Render children inside an ``<iframe srcdoc="...">``."""
 

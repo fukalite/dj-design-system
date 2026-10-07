@@ -1,3 +1,5 @@
+import re
+
 import pytest
 from django.template.loader import render_to_string
 from django.test import RequestFactory
@@ -9,8 +11,7 @@ from dj_design_system.views.gallery import get_base_context
 
 @pytest.mark.django_db
 class TestNavtreeAccessibility:
-    def test_summary_does_not_contain_nested_anchor_links(self):
-        """WCAG / HTML standard: <summary> must not contain interactive elements like <a>."""
+    def _render_folder(self, active_path):
         child = NavNode(
             label="Child Item",
             slug="child",
@@ -29,27 +30,43 @@ class TestNavtreeAccessibility:
             children=[child],
         )
 
-        html = render_to_string(
+        return render_to_string(
             "dj_design_system/gallery/navtree.html",
             {
                 "node": parent,
                 "depth": 0,
-                "active_path": "app/comp",
+                "active_path": active_path,
                 "active_variant": "",
             },
         )
 
-        assert "<summary" in html
-        # Extract <summary> contents and assert no <a ...> exists inside
-        summary_start = html.find("<summary")
-        summary_end = html.find("</summary>", summary_start)
-        assert summary_start != -1
-        assert summary_end != -1
-        summary_html = html[summary_start:summary_end]
+    def test_folder_link_and_toggle_are_separate_controls(self):
+        """WCAG: interactive elements must not nest — the folder link and its
+        expand/collapse button are siblings, and no <summary> wraps a link."""
+        html = self._render_folder(active_path="app/comp")
 
-        assert "<a " not in summary_html
-        assert "<a\n" not in summary_html
-        assert "Folder A" in summary_html
+        assert "<summary" not in html
+        assert 'href="/gallery/app/parent/"' in html
+        button_start = html.find("<button")
+        button_end = html.find("</button>", button_start)
+        assert button_start != -1
+        assert "<a" not in html[button_start:button_end]
+        assert 'aria-label="Toggle Folder A"' in html
+
+    def test_folder_toggle_reflects_collapsed_state(self):
+        html = self._render_folder(active_path="app/comp")
+
+        assert 'aria-expanded="false"' in html
+        assert 'aria-controls="gallery-nav-children-app/parent"' in html
+        assert 'id="gallery-nav-children-app/parent"' in html
+        assert re.search(r"\shidden\s*>", html)
+
+    def test_folder_toggle_reflects_expanded_state(self):
+        html = self._render_folder(active_path="app/parent/child")
+
+        assert 'aria-expanded="true"' in html
+        assert "gallery-nav__folder--open" in html
+        assert not re.search(r"\shidden\s*>", html)
 
     def test_active_nav_item_has_aria_current(self):
         """Active navigation links should have aria-current='page' for WCAG compliance."""

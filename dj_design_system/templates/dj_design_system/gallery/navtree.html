@@ -13,18 +13,32 @@ Expects: node (NavNode), depth (int), active_path (str) from parent context.{% e
         {% endfor %}
     </div>
 {% elif node.has_children %}
-    {# ── Folder / expandable node ── #}
-    <details class="gallery-nav__folder" {% if active_path %}{% if node.active_path in active_path or node.base_active_path in active_path %}open{% endif %}{% endif %}>
-        <summary class="gallery-nav__link gallery-nav__link--folder{% if active_path == node.active_path and not active_variant %} gallery-nav__link--active{% endif %}"
-                 {% if active_path == node.active_path and not active_variant %}aria-current="page"{% endif %}
-                 data-depth="{{ depth }}">
-            {% include "dj_design_system/gallery/nav_icon.html" with node=node %}
-            <span class="gallery-nav__label">{{ node.label }}</span>
-        </summary>
-        {% for child in node.children %}
-            {% include "dj_design_system/gallery/navtree.html" with node=child depth=depth|add:"1" active_path=active_path active_variant=active_variant %}
-        {% endfor %}
-    </details>
+    {# ── Folder / expandable node: link navigates, sibling button toggles ── #}
+    {% nav_link_is_active node active_path active_variant as is_active %}
+    {% nav_folder_is_open node active_path as is_open %}
+    <div class="gallery-nav__folder{% if is_open %} gallery-nav__folder--open{% endif %}">
+        <div class="gallery-nav__link gallery-nav__link--folder{% if is_active %} gallery-nav__link--active{% endif %}"
+             data-depth="{{ depth }}">
+            <a class="gallery-nav__folder-link"
+               href="{{ node.url }}"
+               {% if is_active %}aria-current="page"{% endif %}>
+                {% include "dj_design_system/gallery/nav_icon.html" with node=node %}
+                <span class="gallery-nav__label">{{ node.label }}</span>
+            </a>
+            <button type="button"
+                    class="gallery-nav__toggle"
+                    aria-expanded="{% if is_open %}true{% else %}false{% endif %}"
+                    aria-controls="gallery-nav-children-{{ node.active_path }}"
+                    aria-label="Toggle {{ node.label }}"></button>
+        </div>
+        <div class="gallery-nav__children"
+             id="gallery-nav-children-{{ node.active_path }}"
+             {% if not is_open %}hidden{% endif %}>
+            {% for child in node.children %}
+                {% include "dj_design_system/gallery/navtree.html" with node=child depth=depth|add:"1" active_path=active_path active_variant=active_variant %}
+            {% endfor %}
+        </div>
+    </div>
 {% else %}
     {# ── Leaf node (component, variant, or document) ─────────────── #}
     {% nav_link_is_active node active_path active_variant as is_active %}
