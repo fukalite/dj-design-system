@@ -173,6 +173,18 @@ class TestCanvasExtension:
         assert "```canvas" not in html
         assert "```html+django" not in html
 
+    def test_ten_or_more_canvas_blocks_each_rendered_once(self):
+        """Token 1 must not match inside token 10+ when widgets are restored."""
+        count = 12
+        text = "\n\n".join(
+            f'```canvas\n{{% button "B{i}" %}}\n```' for i in range(1, count + 1)
+        )
+        html = self._render(text)
+        assert html.count('<div class="gallery-md-canvas ">') == count
+        for i in range(1, count + 1):
+            assert html.count(f'name="mc-toggle-{i}"') == 3
+        assert "CANVAS_STASH" not in html
+
 
 # ---------------------------------------------------------------------------
 # Codehilite integration
