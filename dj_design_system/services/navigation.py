@@ -251,6 +251,23 @@ def resolve_node_base_active_path(node: NavNode) -> str:
     return resolve_node_active_path(node).split("?")[0].rstrip("/")
 
 
+def is_nav_folder_open(*, node: NavNode, active_path: str) -> bool:
+    """Return whether a folder nav node should be expanded for the given active path.
+
+    Args:
+        node: The folder or expandable navigation node to check.
+        active_path: The active gallery route path for the current request.
+
+    Returns:
+        True when the current page is the folder itself or one of its path descendants.
+    """
+    target_path = active_path.split("?")[0].strip("/")
+    folder_path = (node.base_active_path or node.active_path).strip("/")
+    if not target_path or not folder_path:
+        return False
+    return target_path == folder_path or target_path.startswith(f"{folder_path}/")
+
+
 def _annotate_paths(
     node: NavNode,
     app_label: str = "",

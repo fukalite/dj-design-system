@@ -68,6 +68,13 @@ class TestNavtreeAccessibility:
         assert "gallery-nav__folder--open" in html
         assert not re.search(r"\shidden\s*>", html)
 
+    def test_folder_toggle_does_not_expand_for_neighbouring_prefix_path(self):
+        for path in ("app/parent_other", "app/parents/child", "other_app/app/parent"):
+            html = self._render_folder(active_path=path)
+            assert 'aria-expanded="false"' in html
+            assert "gallery-nav__folder--open" not in html
+            assert re.search(r"\shidden\s*>", html)
+
     def test_active_nav_item_has_aria_current(self):
         """Active navigation links should have aria-current='page' for WCAG compliance."""
         leaf = NavNode(

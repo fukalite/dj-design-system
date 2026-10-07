@@ -21,12 +21,12 @@ Expects: node (NavNode) from context.{% endcomment %}
         <span class="gallery-nav__icon gallery-nav__icon--component"
               aria-hidden="true"></span>
     {% endif %}
-{% elif node.is_document %}
+{% elif node.is_document or node.has_index_doc and not node.has_children %}
     <span class="gallery-nav__icon gallery-nav__icon--doc" aria-hidden="true"></span>
 {% elif node.is_variant %}
     <span class="gallery-nav__icon gallery-nav__icon--variant"
           aria-hidden="true"></span>
-{% elif node.has_children %}
+{% elif node.has_children or node.node_type.value == "folder" %}
     <span class="gallery-nav__icon gallery-nav__icon--folder"
           aria-hidden="true"></span>
 {% endif %}
