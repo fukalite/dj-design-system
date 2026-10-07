@@ -13,7 +13,7 @@ Each track's issue holds its state, spec and plan, so the issue is a complete pi
 | Track directory | One issue in `fukalite/dj-design-system-conductor` labelled `track`, whose body contains `<!-- conductor-track: <id> -->` |
 | Track title (`tracks.md` entry) | Issue title |
 | `spec.md` and `plan.md` | Issue body, verbatim, after the marker. GitHub's 65,536-character body limit is enforced |
-| `metadata.json` `status` and open PRs | **Status** field. `completed` → Done. Otherwise, open PRs in `dj-design-system` whose body names the track id decide: In review when every one is ready for review, else In progress. Without PRs, `new` → Backlog or Ready and `in_progress` → In progress or In review; cards can be moved within that pair by hand, and the backfill only moves a card outside it, to the first option listed |
+| `metadata.json` `status` | **Status** field: `new` → Backlog (or Ready), `in_progress` → In progress, then In review once review starts, `completed` → Done with the issue closed |
 | `metadata.json` `id` | **Track ID** text field |
 | `metadata.json` `type` | **Track type** single-select field ("Type" is reserved by GitHub issue types) |
 | `metadata.json` `initiative` | **Initiative** single-select field, empty when `null` |
@@ -26,14 +26,11 @@ Archived tracks (`conductor/archive/`) are not mirrored.
 ## Functional Requirements
 
 ### 1. Backfill
-- `.github/scripts/conductor_project.py backfill` creates or updates one issue and one Project item per track from the files. It is a one-off and repair tool; the Conductor skills do not depend on it.
-- Running it repeatedly makes no further changes. Issues are matched by the hidden marker, never by title.
-- It talks to GitHub through `gh api graphql`, so no new dependencies are added.
+- Every existing track was mirrored once, by a script that has since been deleted. Issues are matched by their Track ID field, never by title.
 
 ### 2. Dual-Write in the Skills
-- `conductor/github-project.md` holds the mapping, identifiers and `gh` commands for each Project operation.
+- `conductor/github-project.md` holds the mapping, identifiers and `gh` commands for each Project operation. Nothing else is needed to mirror a track.
 - The Conductor skills mirror their own file changes with those commands: `conductor-new-track` creates the issue and item, `conductor-implement` moves Status to In progress and refreshes the issue as tasks complete, and `conductor-review` moves Status to In review, then Done.
-- The skills and the backfill build byte-identical issue bodies, so either can update an issue without the other seeing drift.
 
 ### 3. Drift Check
 - `conductor-status` compares the files in the local checkout with the Project and reports every difference. It never changes the Project.
@@ -50,7 +47,7 @@ The trial runs for 2–3 weeks of normal track work. The outcome is recorded in 
 ## Non-Functional Requirements
 - **Auth:** Mirroring uses `gh` with the `project` scope (`gh auth refresh -s project`).
 - **Resilience:** A failed `gh` call is reported and never blocks track work. Sessions without `gh` skip mirroring and say so.
-- **Reversible:** Removing the trial means deleting `conductor/github-project.md`, the script and the skills' mirror steps.
+- **Reversible:** Removing the trial means deleting `conductor/github-project.md` and the skills' mirror steps.
 
 ## Out of Scope
 - Changing the file workflow or removing any Conductor files.
@@ -59,7 +56,6 @@ The trial runs for 2–3 weeks of normal track work. The outcome is recorded in 
 
 ## Acceptance Criteria
 - Every non-archived track has exactly one issue on the Project, with the correct field values and dependencies.
-- Re-running the backfill makes no changes.
-- The Conductor skills keep the Project in step without the script.
+- The Conductor skills keep the Project in step.
 - `conductor-status` reports every difference between the files and the Project.
 - `evaluation.md` records a cut-over or remove decision.
