@@ -274,3 +274,30 @@ class TestComponentHtmlAttributes:
         # Should not be in attrs because they are not set and have no default
         assert "variant_attr" not in ctx2
         assert "attrs" in ctx2 and ctx2["attrs"] == ""
+
+
+class TestGetParamsCache:
+    def test_caches_params_per_class_without_inheritance_leakage(self):
+        from dj_design_system.components import TagComponent
+        from dj_design_system.parameters import StrParam
+
+        class ParentComp(TagComponent):
+            parent_param = StrParam("Parent")
+            template_format_str = "<div></div>"
+
+        class ChildComp(ParentComp):
+            child_param = StrParam("Child")
+
+        assert set(ParentComp.get_params().keys()) == {"parent_param"}
+        assert set(ChildComp.get_params().keys()) == {"parent_param", "child_param"}
+        assert "_cached_params" in ParentComp.__dict__
+        assert "_cached_params" in ChildComp.__dict__
+        assert (
+            ParentComp.__dict__["_cached_params"]
+            is not ChildComp.__dict__["_cached_params"]
+        )
+
+    def test_mutating_returned_dict_does_not_corrupt_cache(self):
+        params = TwoParamComponent.get_params()
+        params["injected"] = None
+        assert "injected" not in TwoParamComponent.get_params()
