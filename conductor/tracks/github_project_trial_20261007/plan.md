@@ -6,7 +6,7 @@
 - [x] Task: Write track parsing (metadata, title, phases) with unit tests [3323efc]
 - [x] Task: Write the `backfill` command with unit tests for the file-to-Project mapping [ec9978a]
 - [x] Task: Run the backfill, then re-run it and confirm it makes no changes (issues #194–#213; second run reported no changes)
-- [ ] Task: Move the track issues to `fukalite/dj-design-system-conductor`, so they stay out of the main repo's issue list, then re-run the backfill
+- [x] Task: Move the track issues to `fukalite/dj-design-system-conductor`, so they stay out of the main repo's issue list, then re-run the backfill [a2b6752] (now #1–#20; backfill reported no changes)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Dual-Write
