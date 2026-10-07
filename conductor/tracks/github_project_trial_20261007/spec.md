@@ -14,7 +14,7 @@ Only track state goes into the Project. `spec.md` and `plan.md` stay in the repo
 | Track title (`index.md` heading) | Issue title |
 | `metadata.json` `status` | **Status** field: `new` → Backlog or Ready, `in_progress` → In progress or In review, `completed` → Done. Each status maps to a set of columns, so cards can be moved within that set by hand without counting as drift. The backfill only moves a card when its column falls outside the set, and then uses the first option listed |
 | `metadata.json` `id` | **Track ID** text field |
-| `metadata.json` `type` | **Type** single-select field |
+| `metadata.json` `type` | **Track type** single-select field ("Type" is reserved by GitHub issue types) |
 | `metadata.json` `initiative` | **Initiative** single-select field, empty when `null` |
 | `metadata.json` `depends_on` (optional) | Native "blocked by" issue dependencies |
 | `plan.md` phases | A phase checklist in the issue body, plus a **Current phase** text field. Individual tasks are not mirrored |
