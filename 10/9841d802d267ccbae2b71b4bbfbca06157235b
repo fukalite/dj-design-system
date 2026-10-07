@@ -1,0 +1,2 @@
+Task: Hold each track's spec and plan in its issue body
+build_issue_body now writes the marker, a source note, then spec.md and plan.md verbatim separated by rules; Track gains spec and plan. Bodies over 65,536 characters raise TrackParseError. Live backfill updated all 20 issues; a second run reported no changes.
