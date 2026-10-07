@@ -2,6 +2,11 @@
   "id": "gallery_nav_layout_20260928",
   "type": "feature",
   "status": "new",
+  "initiative": "gallery_rebuild",
+  "depends_on": [
+    "gallery_foundation_20260928",
+    "gallery_primitives_20260928"
+  ],
   "created_at": "2026-09-28T00:00:00Z",
   "updated_at": "2026-09-28T00:00:00Z"
 }

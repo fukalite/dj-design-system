@@ -10,7 +10,7 @@ There are clear styleguides to follow, you can find them in `conductor/code_styl
 
 ## Conductor Phase Gating & Track Commit
 - **Strict Phase Checkpoints**: When executing Conductor tracks, complete the active phase and HALT immediately. Present a concise phase summary. Never begin work on a subsequent phase without direct, explicit permission.
-- **Pre-Flight Dependency Verification**: Never start implementing a track without first inspecting its `metadata.json` `"depends_on"` list and confirming all listed upstream tracks are marked `[x]` in `conductor/tracks.md`.
+- **Pre-Flight Dependency Verification**: Never start implementing a track without first inspecting its `metadata.json` `"depends_on"` list (optional; absent means no dependencies) and confirming all listed upstream tracks are marked `[x]` in `conductor/tracks.md`.
 - **Initiative-Scoped Archival**: Never archive a track belonging to an active initiative (`"initiative"` is set) upon individual track completion. Mark it `[x]` in `conductor/tracks/` so active phase tables and dependency links remain intact. Archive initiative tracks only at initiative closure (when all tracks in the initiative are complete and target architecture docs are promoted to `docs/`). Standalone tracks (`initiative: null`) may be archived upon completion.
 
 ## Persona: The Critical Friend
