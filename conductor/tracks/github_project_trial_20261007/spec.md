@@ -10,7 +10,7 @@ Only track state goes into the Project. `spec.md` and `plan.md` stay in the repo
 
 | Conductor | GitHub Project |
 | --- | --- |
-| Track directory | One issue labelled `track`, whose body contains `<!-- conductor-track: <id> -->` |
+| Track directory | One issue in `fukalite/dj-design-system-conductor` labelled `track`, whose body contains `<!-- conductor-track: <id> -->` |
 | Track title (`index.md` heading) | Issue title |
 | `metadata.json` `status` | **Status** field: `new` → Backlog or Ready, `in_progress` → In progress or In review, `completed` → Done. Each status maps to a set of columns, so cards can be moved within that set by hand without counting as drift. The backfill only moves a card when its column falls outside the set, and then uses the first option listed |
 | `metadata.json` `id` | **Track ID** text field |
@@ -18,7 +18,7 @@ Only track state goes into the Project. `spec.md` and `plan.md` stay in the repo
 | `metadata.json` `initiative` | **Initiative** single-select field, empty when `null` |
 | `metadata.json` `depends_on` (optional) | Native "blocked by" issue dependencies |
 | `plan.md` phases | A phase checklist in the issue body, plus a **Current phase** text field. Individual tasks are not mirrored |
-| Track PRs | `Part of #<issue>` in the PR body |
+| Track PRs | `Part of fukalite/dj-design-system-conductor#<issue>` in the PR body |
 
 Archived tracks (`conductor/archive/`) are not mirrored.
 

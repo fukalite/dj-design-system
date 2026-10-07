@@ -6,11 +6,12 @@
 - [x] Task: Write track parsing (metadata, title, phases) with unit tests [3323efc]
 - [x] Task: Write the `backfill` command with unit tests for the file-to-Project mapping [ec9978a]
 - [x] Task: Run the backfill, then re-run it and confirm it makes no changes (issues #194–#213; second run reported no changes)
+- [ ] Task: Move the track issues to `fukalite/dj-design-system-conductor`, so they stay out of the main repo's issue list, then re-run the backfill
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Dual-Write
 - [ ] Task: Add the dual-write rule and command reference to `.agents/AGENTS.md`
-- [ ] Task: Add the `Part of #<issue>` convention for track PRs
+- [ ] Task: Add the `Part of fukalite/dj-design-system-conductor#<issue>` convention for track PRs
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3: Drift Check

@@ -23,6 +23,7 @@ PLAN_FILE = "plan.md"
 
 OWNER = "fukalite"
 REPOSITORY = "dj-design-system"
+ISSUE_REPOSITORY = "dj-design-system-conductor"
 PROJECT_NUMBER = 2
 TRACK_LABEL = "track"
 REPOSITORY_URL = f"https://github.com/{OWNER}/{REPOSITORY}"
@@ -837,7 +838,7 @@ def main() -> None:
     parser.parse_args()
 
     client = GitHubProjectClient(
-        owner=OWNER, repo=REPOSITORY, project_number=PROJECT_NUMBER
+        owner=OWNER, repo=ISSUE_REPOSITORY, project_number=PROJECT_NUMBER
     )
     try:
         actions = backfill(
