@@ -11,7 +11,7 @@ import json
 import re
 import subprocess
 import sys
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -41,6 +41,8 @@ STATUS_COLUMNS = {
     "completed": ("Done",),
 }
 COMPLETED_STATUS = "completed"
+IN_PROGRESS_COLUMN = "In progress"
+IN_REVIEW_COLUMN = "In review"
 
 TRACK_MARKER_PATTERN = re.compile(r"<!-- conductor-track: (?P<id>\S+) -->")
 
@@ -126,10 +128,21 @@ class MirroredIssue:
     field_values: dict[str, str]
 
 
+@dataclasses.dataclass(frozen=True)
+class PullRequest:
+    """An open pull request in the code repository."""
+
+    number: int
+    is_draft: bool
+    body: str
+
+
 class ProjectClient(Protocol):
     """Reads and writes the issues and Project items that mirror tracks."""
 
     def fetch_schema(self) -> ProjectSchema: ...
+
+    def fetch_open_pull_requests(self) -> list[PullRequest]: ...
 
     def fetch_mirrored_issues(self) -> list[MirroredIssue]: ...
 
@@ -291,14 +304,16 @@ def parse_track_marker(body: str) -> str | None:
 
 
 def build_field_values(
-    track: Track, current_status: str | None
+    track: Track,
+    current_status: str | None,
+    pull_requests: Sequence[PullRequest],
 ) -> dict[str, str | None]:
     """Build the Project field values that mirror a track.
 
     Args:
         track: The track.
-        current_status: The item's current Status column, if any. It is kept
-            when it is one of the columns the track's status maps to.
+        current_status: The item's current Status column, if any.
+        pull_requests: Open pull requests linked to the track.
 
     Returns:
         Field values keyed by field name. None means the field is cleared.
@@ -314,8 +329,53 @@ def build_field_values(
         TRACK_TYPE_FIELD: track.type,
         INITIATIVE_FIELD: track.initiative,
         CURRENT_PHASE_FIELD: track.current_phase,
-        STATUS_FIELD: current_status if current_status in columns else columns[0],
+        STATUS_FIELD: build_status(
+            track=track,
+            columns=columns,
+            current_status=current_status,
+            pull_requests=pull_requests,
+        ),
     }
+
+
+def build_status(
+    track: Track,
+    columns: tuple[str, ...],
+    current_status: str | None,
+    pull_requests: Sequence[PullRequest],
+) -> str:
+    """Pick a track's Status column.
+
+    A completed track is always Done. Otherwise, open pull requests decide:
+    In review when every one is ready for review, else In progress. Without
+    pull requests, the current column is kept when it is one of the track
+    status's columns.
+    """
+    if track.status != COMPLETED_STATUS and pull_requests:
+        if all(not pull_request.is_draft for pull_request in pull_requests):
+            return IN_REVIEW_COLUMN
+        return IN_PROGRESS_COLUMN
+    return current_status if current_status in columns else columns[0]
+
+
+def find_linked_pull_requests(
+    track_id: str, pull_requests: Iterable[PullRequest]
+) -> tuple[PullRequest, ...]:
+    """Find the pull requests whose body names a track's id.
+
+    Args:
+        track_id: The track id.
+        pull_requests: Open pull requests.
+
+    Returns:
+        The pull requests linked to the track.
+    """
+    pattern = re.compile(rf"(?<![\w]){re.escape(track_id)}(?![\w])")
+    return tuple(
+        pull_request
+        for pull_request in pull_requests
+        if pattern.search(pull_request.body)
+    )
 
 
 def validate_schema(schema: ProjectSchema, tracks: Iterable[Track]) -> None:
@@ -368,6 +428,7 @@ def backfill(client: ProjectClient, tracks: list[Track]) -> list[str]:
     validate_schema(schema=schema, tracks=tracks)
     issues = {issue.track_id: issue for issue in client.fetch_mirrored_issues()}
     issue_ids = {track_id: issue.issue_id for track_id, issue in issues.items()}
+    pull_requests = client.fetch_open_pull_requests()
     actions: list[str] = []
     for track in tracks:
         issue_ids[track.id] = sync_issue(
@@ -375,6 +436,9 @@ def backfill(client: ProjectClient, tracks: list[Track]) -> list[str]:
             schema=schema,
             track=track,
             issue=issues.get(track.id),
+            pull_requests=find_linked_pull_requests(
+                track_id=track.id, pull_requests=pull_requests
+            ),
             actions=actions,
         )
     for track in tracks:
@@ -393,6 +457,7 @@ def sync_issue(
     schema: ProjectSchema,
     track: Track,
     issue: MirroredIssue | None,
+    pull_requests: Sequence[PullRequest],
     actions: list[str],
 ) -> str:
     """Create or update a track's issue and Project item.
@@ -402,6 +467,7 @@ def sync_issue(
         schema: The Project schema.
         track: The track.
         issue: The track's existing issue, if any.
+        pull_requests: Open pull requests linked to the track.
         actions: Descriptions of changes made, appended to.
 
     Returns:
@@ -435,6 +501,7 @@ def sync_issue(
         track=track,
         item_id=item_id,
         field_values=field_values,
+        pull_requests=pull_requests,
         actions=actions,
     )
     return issue_id
@@ -446,6 +513,7 @@ def sync_field_values(
     track: Track,
     item_id: str,
     field_values: dict[str, str],
+    pull_requests: Sequence[PullRequest],
     actions: list[str],
 ) -> None:
     """Set or clear each Project field that differs from the track.
@@ -456,10 +524,13 @@ def sync_field_values(
         track: The track.
         item_id: The track's Project item id.
         field_values: The item's current field values, keyed by field name.
+        pull_requests: Open pull requests linked to the track.
         actions: Descriptions of changes made, appended to.
     """
     desired_values = build_field_values(
-        track=track, current_status=field_values.get(STATUS_FIELD)
+        track=track,
+        current_status=field_values.get(STATUS_FIELD),
+        pull_requests=pull_requests,
     )
     for name, value in desired_values.items():
         if field_values.get(name) == value:
@@ -566,6 +637,17 @@ query($owner: String!, $repo: String!, $label: String!, $cursor: String) {
 }
 """
 
+PULL_REQUESTS_QUERY = """
+query($owner: String!, $repo: String!, $cursor: String) {
+  repository(owner: $owner, name: $repo) {
+    pullRequests(first: 50, after: $cursor, states: [OPEN]) {
+      pageInfo { hasNextPage endCursor }
+      nodes { number isDraft body }
+    }
+  }
+}
+"""
+
 CREATE_ISSUE_MUTATION = """
 mutation($repositoryId: ID!, $title: String!, $body: String!, $labelId: ID!) {
   createIssue(input: {
@@ -636,9 +718,12 @@ mutation($issueId: ID!, $blockingIssueId: ID!) {
 class GitHubProjectClient:
     """A ProjectClient that calls the GitHub GraphQL API through gh."""
 
-    def __init__(self, owner: str, repo: str, project_number: int) -> None:
+    def __init__(
+        self, owner: str, issue_repo: str, code_repo: str, project_number: int
+    ) -> None:
         self.owner = owner
-        self.repo = repo
+        self.issue_repo = issue_repo
+        self.code_repo = code_repo
         self.project_number = project_number
         self.project_id: str | None = None
         self.repository_id: str | None = None
@@ -682,7 +767,7 @@ class GitHubProjectClient:
             query=SCHEMA_QUERY,
             variables={
                 "owner": self.owner,
-                "repo": self.repo,
+                "repo": self.issue_repo,
                 "number": self.project_number,
                 "label": TRACK_LABEL,
             },
@@ -717,7 +802,7 @@ class GitHubProjectClient:
                 query=ISSUES_QUERY,
                 variables={
                     "owner": self.owner,
-                    "repo": self.repo,
+                    "repo": self.issue_repo,
                     "label": TRACK_LABEL,
                     "cursor": cursor,
                 },
@@ -729,6 +814,30 @@ class GitHubProjectClient:
                     issues.append(issue)
             if not connection["pageInfo"]["hasNextPage"]:
                 return issues
+            cursor = connection["pageInfo"]["endCursor"]
+
+    def fetch_open_pull_requests(self) -> list[PullRequest]:
+        """Read every open pull request in the code repository."""
+        pull_requests: list[PullRequest] = []
+        cursor = None
+        while True:
+            data = self.run_graphql(
+                query=PULL_REQUESTS_QUERY,
+                variables={
+                    "owner": self.owner,
+                    "repo": self.code_repo,
+                    "cursor": cursor,
+                },
+            )
+            connection = data["repository"]["pullRequests"]
+            pull_requests.extend(
+                PullRequest(
+                    number=node["number"], is_draft=node["isDraft"], body=node["body"]
+                )
+                for node in connection["nodes"]
+            )
+            if not connection["pageInfo"]["hasNextPage"]:
+                return pull_requests
             cursor = connection["pageInfo"]["endCursor"]
 
     def build_mirrored_issue(self, node: dict[str, Any]) -> MirroredIssue | None:
@@ -852,7 +961,10 @@ def main() -> None:
     parser.parse_args()
 
     client = GitHubProjectClient(
-        owner=OWNER, repo=ISSUE_REPOSITORY, project_number=PROJECT_NUMBER
+        owner=OWNER,
+        issue_repo=ISSUE_REPOSITORY,
+        code_repo=REPOSITORY,
+        project_number=PROJECT_NUMBER,
     )
     try:
         actions = backfill(

@@ -13,7 +13,7 @@ Each track's issue holds its state, spec and plan, so the issue is a complete pi
 | Track directory | One issue in `fukalite/dj-design-system-conductor` labelled `track`, whose body contains `<!-- conductor-track: <id> -->` |
 | Track title (`tracks.md` entry) | Issue title |
 | `spec.md` and `plan.md` | Issue body, verbatim, after the marker. GitHub's 65,536-character body limit is enforced |
-| `metadata.json` `status` | **Status** field: `new` → Backlog or Ready, `in_progress` → In progress or In review, `completed` → Done. Each status maps to a set of columns, so cards can be moved within that set by hand without counting as drift. The backfill only moves a card when its column falls outside the set, and then uses the first option listed |
+| `metadata.json` `status` and open PRs | **Status** field. `completed` → Done. Otherwise, open PRs in `dj-design-system` whose body names the track id decide: In review when every one is ready for review, else In progress. Without PRs, `new` → Backlog or Ready and `in_progress` → In progress or In review; cards can be moved within that pair by hand, and the backfill only moves a card outside it, to the first option listed |
 | `metadata.json` `id` | **Track ID** text field |
 | `metadata.json` `type` | **Track type** single-select field ("Type" is reserved by GitHub issue types) |
 | `metadata.json` `initiative` | **Initiative** single-select field, empty when `null` |

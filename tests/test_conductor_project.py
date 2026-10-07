@@ -193,7 +193,7 @@ def make_schema():
 
 def make_synced_issue(track, **overrides):
     field_values = conductor_project.build_field_values(
-        track=track, current_status=None
+        track=track, current_status=None, pull_requests=()
     )
     values = {
         "issue_id": f"issue-{track.id}",
@@ -243,7 +243,9 @@ def test_parse_track_marker_returns_none_without_marker():
 
 def test_build_field_values_maps_metadata():
     values = conductor_project.build_field_values(
-        track=make_track(initiative="gallery_rebuild"), current_status=None
+        track=make_track(initiative="gallery_rebuild"),
+        current_status=None,
+        pull_requests=(),
     )
 
     assert values == {
@@ -257,7 +259,7 @@ def test_build_field_values_maps_metadata():
 
 def test_build_field_values_clears_empty_values():
     values = conductor_project.build_field_values(
-        track=make_track(phases=()), current_status=None
+        track=make_track(phases=()), current_status=None, pull_requests=()
     )
 
     assert values["Initiative"] is None
@@ -278,7 +280,7 @@ def test_build_field_values_keeps_status_within_its_columns(
     status, current_status, expected
 ):
     values = conductor_project.build_field_values(
-        track=make_track(status=status), current_status=current_status
+        track=make_track(status=status), current_status=current_status, pull_requests=()
     )
 
     assert values["Status"] == expected
@@ -287,8 +289,59 @@ def test_build_field_values_keeps_status_within_its_columns(
 def test_build_field_values_rejects_unknown_status():
     with pytest.raises(conductor_project.TrackParseError, match="paused"):
         conductor_project.build_field_values(
-            track=make_track(status="paused"), current_status=None
+            track=make_track(status="paused"), current_status=None, pull_requests=()
         )
+
+
+def make_pull_request(is_draft, body="Implements alpha_20260101."):
+    return conductor_project.PullRequest(number=1, is_draft=is_draft, body=body)
+
+
+@pytest.mark.parametrize(
+    ("status", "draft_states", "expected"),
+    [
+        ("new", (True,), "In progress"),
+        ("new", (False,), "In review"),
+        ("in_progress", (False, False), "In review"),
+        ("in_progress", (False, True), "In progress"),
+        ("completed", (True,), "Done"),
+    ],
+)
+def test_build_field_values_follows_open_pull_requests(status, draft_states, expected):
+    values = conductor_project.build_field_values(
+        track=make_track(status=status),
+        current_status="Ready",
+        pull_requests=tuple(
+            make_pull_request(is_draft=is_draft) for is_draft in draft_states
+        ),
+    )
+
+    assert values["Status"] == expected
+
+
+def test_find_linked_pull_requests_matches_track_id_in_body():
+    linked = make_pull_request(is_draft=True)
+    other = make_pull_request(is_draft=True, body="Implements beta_20260102.")
+    prefixed = make_pull_request(is_draft=True, body="See xalpha_20260101.")
+
+    assert conductor_project.find_linked_pull_requests(
+        track_id="alpha_20260101", pull_requests=[linked, other, prefixed]
+    ) == (linked,)
+
+
+def test_backfill_moves_status_for_an_open_pull_request(make_fake_project_client):
+    track = make_track()
+    client = make_fake_project_client(
+        schema=make_schema(),
+        issues=[make_synced_issue(track=track)],
+        pull_requests=[make_pull_request(is_draft=False)],
+    )
+
+    conductor_project.backfill(client=client, tracks=[track])
+
+    assert client.calls == [
+        ("set_field_value", "item-alpha_20260101", "Status", "In review")
+    ]
 
 
 def test_backfill_creates_and_fills_a_missing_issue(make_fake_project_client):
@@ -492,7 +545,10 @@ def test_fetch_mirrored_issues_reads_issues_and_project_fields(mocker):
         return_value=mocker.Mock(stdout=json.dumps(ISSUES_RESPONSE)),
     )
     client = conductor_project.GitHubProjectClient(
-        owner="fukalite", repo="dj-design-system", project_number=2
+        owner="fukalite",
+        issue_repo="dj-design-system-conductor",
+        code_repo="dj-design-system",
+        project_number=2,
     )
     client.project_id = "project-1"
 
@@ -513,6 +569,38 @@ def test_fetch_mirrored_issues_reads_issues_and_project_fields(mocker):
     assert run.call_args.kwargs["args"][:3] == ["gh", "api", "graphql"]
 
 
+def test_fetch_open_pull_requests_reads_the_code_repository(mocker):
+    response = {
+        "data": {
+            "repository": {
+                "pullRequests": {
+                    "pageInfo": {"hasNextPage": False, "endCursor": None},
+                    "nodes": [{"number": 7, "isDraft": True, "body": "alpha_20260101"}],
+                }
+            }
+        }
+    }
+    run = mocker.patch.object(
+        conductor_project.subprocess,
+        "run",
+        return_value=mocker.Mock(stdout=json.dumps(response)),
+    )
+    client = conductor_project.GitHubProjectClient(
+        owner="fukalite",
+        issue_repo="dj-design-system-conductor",
+        code_repo="dj-design-system",
+        project_number=2,
+    )
+
+    pull_requests = client.fetch_open_pull_requests()
+
+    assert pull_requests == [
+        conductor_project.PullRequest(number=7, is_draft=True, body="alpha_20260101")
+    ]
+    request = json.loads(run.call_args.kwargs["input"])
+    assert request["variables"]["repo"] == "dj-design-system"
+
+
 def test_graphql_raises_on_gh_failure(mocker):
     mocker.patch.object(
         conductor_project.subprocess,
@@ -522,7 +610,10 @@ def test_graphql_raises_on_gh_failure(mocker):
         ),
     )
     client = conductor_project.GitHubProjectClient(
-        owner="fukalite", repo="dj-design-system", project_number=2
+        owner="fukalite",
+        issue_repo="dj-design-system-conductor",
+        code_repo="dj-design-system",
+        project_number=2,
     )
     client.project_id = "project-1"
 

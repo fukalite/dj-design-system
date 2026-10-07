@@ -236,10 +236,14 @@ def make_fake_project_client():
 class FakeProjectClient:
     """An in-memory stand-in for the conductor_project GitHub client."""
 
-    def __init__(self, schema, issues):
+    def __init__(self, schema, issues, pull_requests=()):
         self.schema = schema
         self.issues = {issue.issue_id: issue for issue in issues}
+        self.pull_requests = list(pull_requests)
         self.calls = []
+
+    def fetch_open_pull_requests(self):
+        return self.pull_requests
 
     def fetch_schema(self):
         return self.schema
