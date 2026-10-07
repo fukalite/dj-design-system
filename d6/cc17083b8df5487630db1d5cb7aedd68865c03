@@ -1,0 +1,2 @@
+Task: Set Status from open PRs that name the track
+Adds PullRequest, find_linked_pull_requests and build_status; GitHubProjectClient now takes issue_repo and code_repo and reads open PRs from the code repo. Live run moved the 7 gallery rebuild tracks and this trial track to In progress (all their PRs are drafts).
