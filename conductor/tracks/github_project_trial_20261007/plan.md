@@ -13,12 +13,12 @@
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Dual-Write in the Skills
-- [~] Task: Write `conductor/github-project.md` (mapping, identifiers, `gh` commands) and match the backfill's issue body to it
-- [~] Task: Mirror file changes to the Project in `conductor-new-track`, `conductor-implement` and `conductor-review`
+- [x] Task: Write `conductor/github-project.md` (mapping, identifiers, `gh` commands) and match the backfill's issue body to it [a1d39c9]
+- [x] Task: Mirror file changes to the Project in `conductor-new-track`, `conductor-implement` and `conductor-review` [a1d39c9]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3: Drift Check
-- [~] Task: Compare the Project with the files in `conductor-status`
+- [x] Task: Compare the Project with the files in `conductor-status` [a1d39c9]
 - [ ] Task: Run `conductor-status` against the board and confirm it reports no drift
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
