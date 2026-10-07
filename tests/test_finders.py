@@ -98,6 +98,13 @@ class TestFind:
         result = finder.find("demo_components/components/card/nonexistent.css")
         assert result == []
 
+    def test_finds_all_demo_components_merged_media(
+        self, finder, registry_with_demo_components
+    ):
+        media = registry_with_demo_components.get_merged_media()
+        for path in [*media.css, *media.js]:
+            assert finder.find(path), f"Missing static file for demo component: {path}"
+
 
 class TestList:
     def test_yields_css_and_js_only(self, finder):

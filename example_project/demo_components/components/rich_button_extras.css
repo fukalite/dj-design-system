@@ -1,0 +1,6 @@
+/* Extra styles declared via RichButtonComponent.Media.css — merged with rich_button.css */
+.rich-btn.ghost {
+  background: transparent;
+  border: 2px solid #b5451b;
+  color: #b5451b;
+}
