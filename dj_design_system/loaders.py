@@ -44,6 +44,21 @@ class ComponentsTemplateLoader(Loader):
         ]
     """
 
+    def get_dirs(self) -> list[str]:
+        """Return installed apps' ``components/`` directories for template autoreload.
+
+        Returns:
+            A list of existing ``<app>/components`` directory paths so Django's
+            development server watches component templates and resets
+            ``cached.Loader`` when they change.
+        """
+        dirs: list[str] = []
+        for app_config in apps.get_app_configs():
+            components_dir = os.path.join(app_config.path, "components")
+            if os.path.isdir(components_dir):
+                dirs.append(components_dir)
+        return dirs
+
     def get_template_sources(self, template_name: str):
         """
         Yield ``Origin`` objects for *template_name* if it matches our

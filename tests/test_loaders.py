@@ -98,6 +98,21 @@ class TestComponentsTemplateLoader:
         sources = list(loader.get_template_sources("button.html"))
         assert sources == []
 
+    def test_get_dirs_returns_app_components_directories(self) -> None:
+        demo_config = MagicMock(spec=AppConfig)
+        demo_config.path = str(DEMO_COMPONENTS_DIR.parent)
+        empty_config = MagicMock(spec=AppConfig)
+        empty_config.path = "/nonexistent/app"
+
+        with patch(
+            "dj_design_system.loaders.apps.get_app_configs",
+            return_value=[demo_config, empty_config],
+        ):
+            instance = ComponentsTemplateLoader(engine=None)
+            dirs = instance.get_dirs()
+
+        assert dirs == [str(DEMO_COMPONENTS_DIR)]
+
 
 # ---------------------------------------------------------------------------
 # _bind_template — error cases
