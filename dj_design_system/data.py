@@ -89,6 +89,17 @@ class ComponentInfo:
     namespace_remaining_parts: tuple[str, ...] | None = None
     flatten_strategy: FlattenStrategy = FlattenStrategy.NONE
 
+    @cached_property
+    def is_internal(self) -> bool:
+        """Return True for built-in components and those with ``Meta.internal = True``.
+
+        Internal components are registered only under their qualified name,
+        ignored by short-name lookups, and excluded from ``get_merged_media()``.
+        """
+        from dj_design_system.services.component import is_internal
+
+        return is_internal(self.component_class, self.app_label)
+
     @property
     def gallery_basic_kwargs(self) -> dict[str, Any]:
         warnings.warn(

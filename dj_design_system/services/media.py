@@ -122,3 +122,51 @@ def build_script_tags(js_paths: list[str], nonce: str | None = None) -> str:
         '<script src="{}"></script>',
         ((resolve_asset_url(path=path),) for path in js_paths),
     )
+
+
+COMPONENTS_TEMPLATE_LOADER = "dj_design_system.loaders.ComponentsTemplateLoader"
+COMPONENTS_STATIC_FINDER = "dj_design_system.finders.ComponentsStaticFinder"
+
+
+def _contains_loader(loaders: list | tuple, target: str) -> bool:
+    for entry in loaders:
+        if entry == target:
+            return True
+        if (
+            isinstance(entry, (list, tuple))
+            and len(entry) >= 2
+            and isinstance(entry[1], (list, tuple))
+            and _contains_loader(entry[1], target)
+        ):
+            return True
+    return False
+
+
+def ensure_component_loaders_and_finders() -> None:
+    """Ensure ``ComponentsTemplateLoader`` and ``ComponentsStaticFinder`` are active.
+
+    Registers the static finder in ``settings.STATICFILES_FINDERS`` and the
+    template loader on active ``DjangoTemplates`` engines if the consumer project
+    did not explicitly configure them in ``settings.py``.
+    """
+    from django.conf import settings
+    from django.contrib.staticfiles import finders as static_finders
+    from django.template import engines
+    from django.template.backends.django import DjangoTemplates
+
+    finders_list = list(getattr(settings, "STATICFILES_FINDERS", ()))
+    if COMPONENTS_STATIC_FINDER not in finders_list:
+        settings.STATICFILES_FINDERS = [*finders_list, COMPONENTS_STATIC_FINDER]
+        static_finders.get_finder.cache_clear()
+
+    for backend in engines.all():
+        if not isinstance(backend, DjangoTemplates):
+            continue
+        engine = backend.engine
+        if _contains_loader(engine.loaders, COMPONENTS_TEMPLATE_LOADER):
+            continue
+        engine.loaders = [*engine.loaders, COMPONENTS_TEMPLATE_LOADER]
+        engine.__dict__.pop("template_loaders", None)
+        if hasattr(engine.get_template, "cache_clear"):
+            engine.get_template.cache_clear()
+

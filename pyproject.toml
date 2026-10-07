@@ -141,6 +141,9 @@ ignore_missing_imports = true
 
 [tool.coverage.run]
 branch = true
+# Playwright's sync API runs on greenlets; without this, lines after a
+# Playwright call in e2e tests are reported as uncovered.
+concurrency = ["greenlet", "thread"]
 source = ["dj_design_system"]
 omit = [
   "dj_design_system/tests/*",
@@ -156,7 +159,10 @@ omit = ["dj_design_system/tests/*", "dj_design_system/migrations/*"]
 python_files = ["test_*.py", "*_test.py", "tests.py"]
 addopts = "--disable-warnings --ds=tests.settings --base-url http://localhost:8003 --liveserver=localhost:8003"
 DJANGO_SETTINGS_MODULE = "tests.settings"
-markers = ["e2e: Mark the test as using Playwright."]
+markers = [
+  "e2e: Mark the test as using Playwright.",
+  "visual: Gallery visual regression screenshots (run in the pinned Playwright container).",
+]
 
 [tool.djlint]
 extension = "html"

@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from dj_design_system.testing.engine import AssessmentPlugin
+from dj_design_system.testing.visual import ScreenshotMismatch, compare_images
 
 
 try:
@@ -109,25 +110,19 @@ class VisualRegressionPlugin(PlaywrightAssessmentPlugin):
             else:
                 raise AssertionError(f"Missing baseline snapshot for {filename}")
 
-        img_actual = Image.open(actual_path).convert("RGBA")
-        img_baseline = Image.open(baseline_path).convert("RGBA")
-
-        if img_actual.size != img_baseline.size:
-            raise AssertionError(
-                f"Snapshot sizes differ for {filename}: expected {img_baseline.size}, got {img_actual.size}"
+        try:
+            result = compare_images(
+                actual_path, baseline_path, threshold=self.threshold
             )
+        except ScreenshotMismatch as exc:
+            raise AssertionError(f"Snapshot sizes differ for {filename}: {exc}")
 
-        diff_img = Image.new("RGBA", img_actual.size)
-        mismatched_pixels = pixelmatch(
-            img_actual, img_baseline, diff_img, includeAA=True, threshold=self.threshold
-        )
-
-        if mismatched_pixels > 0:
+        if result.mismatched_pixels > 0:
             diff_path = self.diff_dir / filename
             diff_path.parent.mkdir(parents=True, exist_ok=True)
-            diff_img.save(diff_path)
+            result.diff.save(diff_path)
             raise AssertionError(
-                f"Visual regression detected for {filename}: {mismatched_pixels} pixels differ. Diff saved to {diff_path}"
+                f"Visual regression detected for {filename}: {result.mismatched_pixels} pixels differ. Diff saved to {diff_path}"
             )
 
 

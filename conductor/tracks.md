@@ -35,26 +35,32 @@
 - [x] **Track: Architecture & Performance Refactoring**
   *Link: [conductor/tracks/arch_perf_refactor_20260928/index.md](conductor/tracks/arch_perf_refactor_20260928/index.md)*
 
-- [ ] **Track: Gallery Rebuild 0 — Visual Baseline & CI Visual Regression**
-  *Link: [tracks/gallery_visual_baseline_20260928/index.md](tracks/gallery_visual_baseline_20260928/index.md)*
-
-- [ ] **Track: Gallery Rebuild 1 — Internal Component Foundation**
-  *Link: [tracks/gallery_foundation_20260928/index.md](tracks/gallery_foundation_20260928/index.md)*
-
-- [ ] **Track: Gallery Rebuild 2 — Primitive Components**
-  *Link: [tracks/gallery_primitives_20260928/index.md](tracks/gallery_primitives_20260928/index.md)*
-
-- [ ] **Track: Gallery Rebuild 3 — Navigation & Layout Components**
-  *Link: [tracks/gallery_nav_layout_20260928/index.md](tracks/gallery_nav_layout_20260928/index.md)*
-
-- [ ] **Track: Gallery Rebuild 4 — Sandbox & Canvas Components**
-  *Link: [tracks/gallery_sandbox_20260928/index.md](tracks/gallery_sandbox_20260928/index.md)*
-
-- [ ] **Track: Gallery Rebuild 5 — Page Composition & Legacy Asset Removal**
-  *Link: [tracks/gallery_pages_20260928/index.md](tracks/gallery_pages_20260928/index.md)*
-
-- [ ] **Track: Gallery Rebuild 6 — Example Project Showcase & Documentation**
-  *Link: [tracks/gallery_example_docs_20260928/index.md](tracks/gallery_example_docs_20260928/index.md)*
-
 - [x] **Track: Usage Example Block Content**
   *Link: [tracks/usage_example_content_20261005/index.md](tracks/usage_example_content_20261005/index.md)*
+
+---
+
+## Initiative: Gallery Rebuild (`gallery_rebuild`)
+*Overview: [initiatives/gallery_rebuild/index.md](initiatives/gallery_rebuild/index.md)*
+
+- [x] **Track: Gallery Rebuild 1 — Visual Regression Harness & `dds` Component Foundation**
+  *Link: [tracks/gallery_rebuild_01_foundation_20261007/index.md](tracks/gallery_rebuild_01_foundation_20261007/index.md)*
+
+- [ ] **Track: Gallery Rebuild 2 — CSS Architecture, 3-Tier Design Tokens & TypeScript Pipeline**
+  *Link: [tracks/gallery_rebuild_02_tokens_layout_ts_20261007/index.md](tracks/gallery_rebuild_02_tokens_layout_ts_20261007/index.md)*
+
+- [ ] **Track: Gallery Rebuild 3 — Built-in `elements` Collection**
+  *Link: [tracks/gallery_rebuild_03_elements_20261007/index.md](tracks/gallery_rebuild_03_elements_20261007/index.md)*
+
+- [ ] **Track: Gallery Rebuild 4 — Built-in `domain` Collection: Shell, Navigation & Docs**
+  *Link: [tracks/gallery_rebuild_04_domain_shell_nav_docs_20261007/index.md](tracks/gallery_rebuild_04_domain_shell_nav_docs_20261007/index.md)*
+
+- [ ] **Track: Gallery Rebuild 5 — Built-in `domain` Collection: Sandbox, Controls & Canvas**
+  *Link: [tracks/gallery_rebuild_05_domain_sandbox_canvas_20261007/index.md](tracks/gallery_rebuild_05_domain_sandbox_canvas_20261007/index.md)*
+
+- [ ] **Track: Gallery Rebuild 6 — Gallery Page Composition, Legacy Asset Removal & Visual Baselines**
+  *Link: [tracks/gallery_rebuild_06_pages_20261007/index.md](tracks/gallery_rebuild_06_pages_20261007/index.md)*
+
+- [ ] **Track: Gallery Rebuild 7 — `example_project/` Rework & Consumer Shadowing Showcase**
+  *Link: [tracks/gallery_rebuild_07_example_docs_20261007/index.md](tracks/gallery_rebuild_07_example_docs_20261007/index.md)*
+
