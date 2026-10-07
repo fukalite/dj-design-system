@@ -3,7 +3,8 @@
 ## Overview
 Rebuild the `dj-design-system` component gallery UI cleanly on top of `main` using 100% co-located `dds` components (`elements/` and `domain/` collections flattened as `{% dds__<name> %}`), Every Layout + CUBE CSS (`@layer reset, tokens, global, composition, blocks, utilities`), the 3-Tier Design Token System (`--_dds-*`, `--dds-*`, `--_<component>-*`), and Light DOM `<dds-*>` TypeScript web components.
 
-## Governing Styleguides
+## Governing Styleguides & Orchestration
+- [Subagent Orchestration Strategy & Prompt Templates](./subagents.md)
 - [Built-in `dds` Gallery Component Styleguide](../../code_styleguides/dds-components.md)
 - [Example Project Component Styleguide](../../code_styleguides/example-project.md)
 - [Python & Django Layered Architecture](../../code_styleguides/layered-architecture.md)
