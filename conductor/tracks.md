@@ -27,13 +27,13 @@
   *Link: [tracks/param_data_factories_20261006/index.md](tracks/param_data_factories_20261006/index.md)*
 
 - [x] **Track: Security & Canvas Hardening**
-  *Link: [conductor/tracks/security_canvas_hardening_20260928/index.md](conductor/tracks/security_canvas_hardening_20260928/index.md)*
+  *Link: [tracks/security_canvas_hardening_20260928/index.md](tracks/security_canvas_hardening_20260928/index.md)*
 
 - [x] **Track: Accessibility & UI Polish**
-  *Link: [conductor/tracks/a11y_ui_polish_20260928/index.md](conductor/tracks/a11y_ui_polish_20260928/index.md)*
+  *Link: [tracks/a11y_ui_polish_20260928/index.md](tracks/a11y_ui_polish_20260928/index.md)*
 
 - [x] **Track: Architecture & Performance Refactoring**
-  *Link: [conductor/tracks/arch_perf_refactor_20260928/index.md](conductor/tracks/arch_perf_refactor_20260928/index.md)*
+  *Link: [tracks/arch_perf_refactor_20260928/index.md](tracks/arch_perf_refactor_20260928/index.md)*
 
 - [ ] **Track: Gallery Rebuild 0 — Visual Baseline & CI Visual Regression**
   *Link: [tracks/gallery_visual_baseline_20260928/index.md](tracks/gallery_visual_baseline_20260928/index.md)*
@@ -58,3 +58,6 @@
 
 - [x] **Track: Usage Example Block Content**
   *Link: [tracks/usage_example_content_20261005/index.md](tracks/usage_example_content_20261005/index.md)*
+
+- [ ] **Track: GitHub Project Trial for Track State**
+  *Link: [tracks/github_project_trial_20261007/index.md](tracks/github_project_trial_20261007/index.md)*
