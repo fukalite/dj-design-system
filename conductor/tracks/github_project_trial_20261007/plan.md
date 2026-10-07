@@ -4,8 +4,8 @@
 - [x] Task: Confirm access: `gh` with the `project` scope locally, and GitHub MCP Project support in remote sessions (local confirmed, including `addBlockedBy`; remote MCP still unverified)
 - [x] Task: Configure Project #2 fields (Status options, Track ID, Track type, Initiative, Current phase) and the `track` label
 - [x] Task: Write track parsing (metadata, title, phases) with unit tests [3323efc]
-- [~] Task: Write the `backfill` command with unit tests for the file-to-Project mapping
-- [ ] Task: Run the backfill, then re-run it and confirm it makes no changes
+- [x] Task: Write the `backfill` command with unit tests for the file-to-Project mapping [ec9978a]
+- [x] Task: Run the backfill, then re-run it and confirm it makes no changes (issues #194–#213; second run reported no changes)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Dual-Write
