@@ -1,7 +1,6 @@
 import html
 
 from django import template
-from django.templatetags.static import static
 from django.utils.html import format_html_join
 from django.utils.safestring import mark_safe
 
@@ -10,6 +9,7 @@ from dj_design_system.services.media import (
     build_link_tags,
     build_script_tags,
     get_bundle_urls,
+    resolve_asset_url,
 )
 from dj_design_system.services.slot_node import do_slot
 from dj_design_system.settings import dds_settings, get_app_static, get_theme
@@ -47,7 +47,7 @@ def _extend_theme_css(urls: list[str], theme: str) -> None:
     theme_css_bundles = get_bundle_urls(theme_dict.css_bundles, "css")
     theme_css = theme_dict.css
     urls.extend(theme_css_bundles)
-    urls.extend(static(path) for path in theme_css)
+    urls.extend(resolve_asset_url(path) for path in theme_css)
 
 
 def _extend_app_css(urls: list[str], app_label: str) -> None:
@@ -56,14 +56,14 @@ def _extend_app_css(urls: list[str], app_label: str) -> None:
         (dds_settings.APP_CSS_BUNDLES or {}).get(app_label, []), "css"
     )
     urls.extend(app_css_bundles)
-    urls.extend(static(path) for path in app_css)
+    urls.extend(resolve_asset_url(path) for path in app_css)
 
 
 @register.simple_tag
 def global_stylesheets(app_label: str | None = None, theme: str | None = None) -> str:
     """Render ``<link>`` tags for global, theme, and app-specific CSS bundles and static paths."""
     urls = get_bundle_urls(dds_settings.GLOBAL_CSS_BUNDLES, "css") + [
-        static(path) for path in dds_settings.GLOBAL_CSS
+        resolve_asset_url(path) for path in dds_settings.GLOBAL_CSS
     ]
 
     if theme:
@@ -86,7 +86,7 @@ def _extend_theme_js(urls: list[str], theme: str) -> None:
     theme_js_bundles = get_bundle_urls(theme_dict.js_bundles, "js")
     theme_js = theme_dict.js
     urls.extend(theme_js_bundles)
-    urls.extend(static(path) for path in theme_js)
+    urls.extend(resolve_asset_url(path) for path in theme_js)
 
 
 def _extend_app_js(urls: list[str], app_label: str) -> None:
@@ -95,7 +95,7 @@ def _extend_app_js(urls: list[str], app_label: str) -> None:
         (dds_settings.APP_JS_BUNDLES or {}).get(app_label, []), "js"
     )
     urls.extend(app_js_bundles)
-    urls.extend(static(path) for path in app_js)
+    urls.extend(resolve_asset_url(path) for path in app_js)
 
 
 @register.simple_tag(takes_context=True)
@@ -106,7 +106,7 @@ def global_scripts(
 ) -> str:
     """Render ``<script>`` tags for global, theme, and app-specific JS bundles and static paths."""
     urls = get_bundle_urls(dds_settings.GLOBAL_JS_BUNDLES, "js") + [
-        static(path) for path in dds_settings.GLOBAL_JS
+        resolve_asset_url(path) for path in dds_settings.GLOBAL_JS
     ]
 
     if theme:

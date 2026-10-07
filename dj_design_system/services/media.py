@@ -80,19 +80,26 @@ def build_static_url(app_label: str, relative_path: str, name: str, ext: str) ->
     return "/".join(parts)
 
 
+def resolve_asset_url(path: str) -> str:
+    """Return external URLs unchanged; resolve local paths via ``static()``."""
+    if path.startswith(("http://", "https://", "//")):
+        return path
+    return static(path)
+
+
 def build_link_tags(css_paths: list[str]) -> str:
-    """Build ``<link>`` tags for a list of static CSS paths."""
+    """Build ``<link>`` tags for a list of static or external CSS paths."""
     if not css_paths:
         return ""
     return format_html_join(
         "\n",
         '<link rel="stylesheet" href="{}">',
-        ((static(path),) for path in css_paths),
+        ((resolve_asset_url(path),) for path in css_paths),
     )
 
 
 def build_script_tags(js_paths: list[str], nonce: str | None = None) -> str:
-    """Build ``<script>`` tags for a list of static JS paths."""
+    """Build ``<script>`` tags for a list of static or external JS paths."""
     if not js_paths:
         return ""
     if nonce:
@@ -100,10 +107,10 @@ def build_script_tags(js_paths: list[str], nonce: str | None = None) -> str:
         return format_html_join(
             "\n",
             f'<script src="{{}}" {nonce_attr}></script>',
-            ((static(path),) for path in js_paths),
+            ((resolve_asset_url(path),) for path in js_paths),
         )
     return format_html_join(
         "\n",
         '<script src="{}"></script>',
-        ((static(path),) for path in js_paths),
+        ((resolve_asset_url(path),) for path in js_paths),
     )

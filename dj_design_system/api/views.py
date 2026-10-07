@@ -2,7 +2,6 @@ import json
 import logging
 
 from django.http import JsonResponse
-from django.templatetags.static import static
 from django.urls import reverse
 from django.urls.exceptions import NoReverseMatch
 from django.utils.decorators import method_decorator
@@ -19,7 +18,7 @@ from dj_design_system.services.canvas import (
     get_component_media,
     render_component,
 )
-from dj_design_system.services.media import get_bundle_urls
+from dj_design_system.services.media import get_bundle_urls, resolve_asset_url
 from dj_design_system.services.registry import component_registry
 from dj_design_system.settings import dds_settings
 
@@ -137,16 +136,16 @@ class ComponentRenderView(View):
         )
 
         def to_absolute_static(path: str) -> str:
-            return request.build_absolute_uri(static(path))
+            return request.build_absolute_uri(resolve_asset_url(path))
 
         absolute_css = [to_absolute_static(path) for path in media.css]
         absolute_js = [to_absolute_static(path) for path in media.js]
 
         global_css = get_bundle_urls(dds_settings.GLOBAL_CSS_BUNDLES, "css") + [
-            static(path) for path in dds_settings.GLOBAL_CSS
+            resolve_asset_url(path) for path in dds_settings.GLOBAL_CSS
         ]
         global_js = get_bundle_urls(dds_settings.GLOBAL_JS_BUNDLES, "js") + [
-            static(path) for path in dds_settings.GLOBAL_JS
+            resolve_asset_url(path) for path in dds_settings.GLOBAL_JS
         ]
 
         absolute_global_css = [request.build_absolute_uri(url) for url in global_css]
