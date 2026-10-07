@@ -12,7 +12,7 @@ Only track state goes into the Project. `spec.md` and `plan.md` stay in the repo
 | --- | --- |
 | Track directory | One issue labelled `track`, whose body contains `<!-- conductor-track: <id> -->` |
 | Track title (`index.md` heading) | Issue title |
-| `metadata.json` `status` | Built-in **Status** field: `new` → Todo, `in_progress` → In Progress, `completed` → Done |
+| `metadata.json` `status` | **Status** field: `new` → Backlog or Ready, `in_progress` → In progress or In review, `completed` → Done. Each status maps to a set of columns, so cards can be moved within that set by hand without counting as drift. The backfill only moves a card when its column falls outside the set, and then uses the first option listed |
 | `metadata.json` `id` | **Track ID** text field |
 | `metadata.json` `type` | **Type** single-select field |
 | `metadata.json` `initiative` | **Initiative** single-select field, empty when `null` |
@@ -35,9 +35,9 @@ Archived tracks (`conductor/archive/`) are not mirrored.
 - Track PRs reference their issue.
 
 ### 3. Drift Check
-- `.github/scripts/conductor_project/drift.py` compares the files on the checked-out ref with the Project and lists every difference. It is read-only.
-- `.github/workflows/conductor-drift.yml` runs it on push to `main` and on `workflow_dispatch`. It writes the report to the job summary and never fails the build.
-- Differences caused by unmerged branches are expected. The report notes the branch-ahead case rather than treating it as an error.
+- `.github/scripts/conductor_project/drift.py` compares the files in the local checkout with the Project and lists every difference. It is read-only.
+- It runs locally with the developer's `gh` auth. There is no CI workflow and no stored token.
+- Differences caused by unmerged branches are expected, so the report states which branch it was run from.
 
 ### 4. Evaluation
 The trial runs for 2–3 weeks of normal track work. The outcome is recorded in `evaluation.md` in this track, against these criteria:
@@ -47,9 +47,9 @@ The trial runs for 2–3 weeks of normal track work. The outcome is recorded in 
 - Dual-write does not noticeably slow track work.
 
 ## Non-Functional Requirements
-- **Auth:** Locally, `gh` needs the `project` scope (`gh auth refresh -s project`). The workflow uses a fine-grained token or GitHub App token stored as `CONDUCTOR_PROJECT_TOKEN`, because `GITHUB_TOKEN` cannot access organisation Projects.
+- **Auth:** All scripts run locally and use `gh` with the `project` scope (`gh auth refresh -s project`).
 - **Remote sessions:** Confirm the GitHub MCP tools can edit Project fields before relying on dual-write from remote sessions.
-- **Reversible:** Removing the trial means deleting the scripts, the workflow and the `AGENTS.md` rule. Nothing else depends on them.
+- **Reversible:** Removing the trial means deleting the scripts and the `AGENTS.md` rule. Nothing else depends on them.
 
 ## Out of Scope
 - Changing the file workflow or removing any Conductor files.
@@ -59,5 +59,5 @@ The trial runs for 2–3 weeks of normal track work. The outcome is recorded in 
 ## Acceptance Criteria
 - Every non-archived track has exactly one issue on the Project, with the correct field values and dependencies.
 - Re-running the backfill makes no changes.
-- The drift check runs on `main` and reports differences in the job summary.
+- The drift check runs locally and reports every difference between the files and the Project.
 - `evaluation.md` records a cut-over or remove decision.

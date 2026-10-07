@@ -15,7 +15,7 @@
 
 ## Phase 3: Drift Check
 - [ ] Task: Write `drift.py` with unit tests, reusing the Phase 1 parsing
-- [ ] Task: Add the `conductor-drift.yml` workflow and the `CONDUCTOR_PROJECT_TOKEN` secret
+- [ ] Task: Document running the drift check locally in `.agents/AGENTS.md`
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4: Evaluation & Decision
