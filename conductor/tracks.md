@@ -35,7 +35,7 @@
 - [x] **Track: Architecture & Performance Refactoring**
   *Link: [conductor/tracks/arch_perf_refactor_20260928/index.md](conductor/tracks/arch_perf_refactor_20260928/index.md)*
 
-- [ ] **Track: Gallery Rebuild 0 — Visual Baseline & CI Visual Regression**
+- [x] **Track: Gallery Rebuild 0 — Visual Baseline & CI Visual Regression**
   *Link: [tracks/gallery_visual_baseline_20260928/index.md](tracks/gallery_visual_baseline_20260928/index.md)*
 
 - [ ] **Track: Gallery Rebuild 1 — Internal Component Foundation**
