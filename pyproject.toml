@@ -39,7 +39,7 @@ Homepage = "https://fukalite.github.io/dj-design-system/"
 Repository = "https://github.com/fukalite/dj-design-system"
 Documentation = "https://fukalite.github.io/dj-design-system/"
 "Bug Tracker" = "https://github.com/fukalite/dj-design-system/issues"
-Changelog = "https://github.com/fukalite/dj-design-system/blob/main/CHANGELOG.md"
+Changelog = "https://fukalite.github.io/dj-design-system/changelog/"
 
 [project.optional-dependencies]
 dev = [
