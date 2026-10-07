@@ -1,0 +1,2 @@
+Task: Write the backfill command with unit tests
+Adds desired-state builders (build_issue_body, build_field_values, validate_schema), the backfill/sync functions and a gh-backed GitHubProjectClient to .github/scripts/conductor_project.py. Tests use a FakeProjectClient fixture in tests/conftest.py. Run: python3 .github/scripts/conductor_project.py backfill
