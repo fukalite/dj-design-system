@@ -159,14 +159,14 @@ class BaseComponent:
     @classmethod
     def get_params(cls) -> dict[str, "BaseParam"]:
         """Get the parameters for this component, cached per class."""
-        cached = cls.__dict__.get("_cached_params")
+        cached: dict[str, BaseParam] | None = cls.__dict__.get("_cached_params")
         if cached is None:
             cached = {}
             for klass in cls.__mro__:
                 for attr_name, attr_value in vars(klass).items():
                     if isinstance(attr_value, BaseParam) and attr_name not in cached:
                         cached[attr_name] = attr_value
-            cls._cached_params = cached
+            setattr(cls, "_cached_params", cached)
         return dict(cached)
 
     @classmethod
