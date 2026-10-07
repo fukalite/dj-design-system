@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from django.apps import AppConfig
 
+from dj_design_system.data import ComponentMedia
 from dj_design_system.finders import (
     ALLOWED_EXTENSIONS,
     ComponentsStaticFinder,
@@ -99,11 +100,13 @@ class TestFind:
         assert result == []
 
     def test_finds_all_demo_components_merged_media(
-        self, finder, registry_with_demo_components
-    ):
-        media = registry_with_demo_components.get_merged_media()
+        self, finder: ComponentsStaticFinder, registry_with_demo_components
+    ) -> None:
+        media: ComponentMedia = registry_with_demo_components.get_merged_media()
         for path in [*media.css, *media.js]:
-            assert finder.find(path), f"Missing static file for demo component: {path}"
+            assert finder.find(path=path), (
+                f"Missing static file for demo component: {path}"
+            )
 
 
 class TestList:
