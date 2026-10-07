@@ -4,18 +4,23 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from django.apps import AppConfig
+from django.contrib.staticfiles import finders as staticfiles_finders
+from django.test import override_settings
 
-from dj_design_system.data import ComponentMedia
 from dj_design_system.finders import (
     ALLOWED_EXTENSIONS,
     ComponentsStaticFinder,
 )
+from dj_design_system.services.registry import component_registry
 
 
 # The demo_components' components directory — used to construct expected paths.
 DEMO_COMPONENTS_DIR = (
     Path(__file__).parent.parent / "example_project" / "demo_components" / "components"
 )
+
+# Mirrors ``STATICFILES_DIRS`` in ``example_project/settings.py``.
+EXAMPLE_PROJECT_STATIC_DIR = Path(__file__).parent.parent / "example_project" / "static"
 
 
 @pytest.fixture()
@@ -99,14 +104,36 @@ class TestFind:
         result = finder.find("demo_components/components/card/nonexistent.css")
         assert result == []
 
-    def test_finds_all_demo_components_merged_media(
-        self, finder: ComponentsStaticFinder, registry_with_demo_components
+
+@pytest.fixture()
+def example_project_staticfiles():
+    """Resolve static files with the example project's ``STATICFILES_DIRS``."""
+    staticfiles_finders.get_finder.cache_clear()
+    with override_settings(STATICFILES_DIRS=[EXAMPLE_PROJECT_STATIC_DIR]):
+        yield
+    staticfiles_finders.get_finder.cache_clear()
+
+
+class TestExampleProjectMedia:
+    """Every media file an example component declares exists on disk (#131)."""
+
+    @pytest.mark.parametrize(
+        "app_label", ["demo_components", "demo_extra", "demo_nav", "demo_single"]
+    )
+    def test_declared_media_files_exist(
+        self, app_label: str, example_project_staticfiles
     ) -> None:
-        media: ComponentMedia = registry_with_demo_components.get_merged_media()
-        for path in [*media.css, *media.js]:
-            assert finder.find(path=path), (
-                f"Missing static file for demo component: {path}"
-            )
+        components = component_registry.list_by_app(app_label)
+        assert components, f"No components registered for {app_label}"
+
+        missing = [
+            f"{info.name}: {path}"
+            for info in components
+            for path in [*info.media.css, *info.media.js]
+            if not staticfiles_finders.find(path)
+        ]
+
+        assert not missing, f"Missing static files in {app_label}: {missing}"
 
 
 class TestList:
