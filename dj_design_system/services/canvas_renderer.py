@@ -75,15 +75,6 @@ def build_theme_app_media(
     return theme_app_css_tags, theme_app_js_tags
 
 
-def build_bg_styles() -> str:
-    """Build CSS rules for all configured canvas backgrounds."""
-    bg_rules = "".join(
-        f".canvas-bg-{bg['value']},body:has(.canvas-bg-{bg['value']}){{background:{bg['color']};}}"
-        for bg in get_backgrounds()
-    )
-    return f"<style>{bg_rules}</style>"
-
-
 def build_canvas_bg_styles(
     *,
     theme_dict: Optional[Theme] = None,
@@ -96,15 +87,12 @@ def build_canvas_bg_styles(
         csp_nonce: Optional CSP nonce string for the ``<style>`` tag.
 
     Returns:
-        A ``<style>`` HTML string defining background and chip colour rules.
+        A ``<style>`` HTML string defining background colour rules.
     """
     rules = []
     for bg in get_backgrounds():
         rules.append(
             f".canvas-bg-{bg['value']}, body:has(.canvas-bg-{bg['value']}) {{ background: {bg['color']}; }}"
-        )
-        rules.append(
-            f".gallery-sandbox-toolbar__bg-chip--{bg['value']}, .gallery-bg-chip-{bg['value']} {{ background: {bg['color']}; }}"
         )
 
     if theme_dict and isinstance(theme_dict.canvas_background, dict):
@@ -206,7 +194,7 @@ def build_canvas_srcdoc(
         bg_class = f"canvas-bg-{get_default_background()['value']}"
 
     theme_app_css_tags, theme_app_js_tags = build_theme_app_media(theme_dict, app_label)
-    bg_styles = build_bg_styles()
+    bg_styles = build_canvas_bg_styles(theme_dict=theme_dict)
     resize_script = build_resize_script(iframe_id=iframe_id)
     html_attrs_str, body_attrs_str = build_html_attrs(theme_dict, app_label)
 
