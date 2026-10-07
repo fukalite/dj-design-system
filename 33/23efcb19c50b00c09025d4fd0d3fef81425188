@@ -1,0 +1,2 @@
+Task: Write track parsing (metadata, title, phases) with unit tests
+Adds load_tracks/parse_phases/parse_registry_titles to .github/scripts/conductor_project.py with tests in tests/test_conductor_project.py and a conductor_dir fixture in tests/conftest.py. Titles come from tracks.md because some index.md files are empty.
