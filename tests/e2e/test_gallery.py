@@ -274,3 +274,45 @@ class TestToolbarStatePersistence:
             '[data-zoom="150"].gallery-sandbox-toolbar__popout-option--active'
         )
         assert active.count() == 1
+
+
+# ---------------------------------------------------------------------------
+# Basic-mode auto-height
+# ---------------------------------------------------------------------------
+
+
+# Samples the iframe's height over several animation frames and measures its
+# viewport against the canvas wrapper inside it.
+_MEASURE_PREVIEW_JS = """async (selector) => {
+    const iframe = document.querySelector(selector);
+    const heights = [];
+    for (let i = 0; i < 20; i++) {
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        heights.push(iframe.offsetHeight);
+    }
+    const wrapper = iframe.contentDocument.querySelector(".canvas-wrapper");
+    return {
+        heights: heights,
+        viewport: iframe.clientHeight,
+        content: wrapper.offsetHeight,
+    };
+}"""
+
+
+class TestBasicCanvasAutoHeight:
+    """Basic-mode preview iframes size to their content and stay put (#111)."""
+
+    def test_preview_iframe_settles_at_content_height(self, page, live_server):
+        # user_card renders taller than the iframe's 60px min-height, so a
+        # shrink loop would not be masked by the CSS floor.
+        selector = 'iframe[data-canvas-id="minimal"]'
+        page.goto(f"{live_server.url}/dds/demo_components/user_card/")
+        page.wait_for_function(
+            f"document.querySelector('{selector}').style.height !== ''"
+        )
+
+        result = page.evaluate(_MEASURE_PREVIEW_JS, selector)
+
+        assert result["content"] > 60
+        assert len(set(result["heights"])) == 1
+        assert result["viewport"] == result["content"]
