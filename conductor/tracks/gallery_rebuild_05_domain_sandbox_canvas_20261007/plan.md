@@ -16,7 +16,7 @@
 
 ## Phase 2: Isolated Canvas Widget (`canvas_widget`)
 - [x] **Orchestrator Pre-Dispatch Contract Lock:** Lock iframe `postMessage` resize protocol, toolbar coordination events, and code drawer toggle hooks for `canvas_widget`
-- [ ] **Delegate to `dds-component-builder` (Template B):** Implement `dj_design_system/components/domain/canvas_widget/` (`.py`, `.html`, `.css`, `gallery.py`, `index.md`) + `tests/components/test_canvas_widget.py`
-- [ ] **Delegate to `dds-ts-specialist` (Template C):** Implement `dj_design_system/components/domain/canvas_widget/canvas_widget.ts` (`<dds-canvas-widget>`) and E2E/DOM resize & toolbar interaction tests
-- [ ] **Delegate to `dds-reviewer` (Template D):** Run `just build-ts`, audit `canvas_widget` against all styleguides, and run `just test` & `just check`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] **Delegate to `dds-component-builder` (Template B):** Implement `dj_design_system/components/domain/canvas_widget/` (`.py`, `.html`, `.css`, `gallery.py`, `index.md`) + `tests/components/test_canvas_widget.py`
+- [x] **Delegate to `dds-ts-specialist` (Template C):** Implement `dj_design_system/components/domain/canvas_widget/canvas_widget.ts` (`<dds-canvas-widget>`) and E2E/DOM resize & toolbar interaction tests
+- [x] **Delegate to `dds-reviewer` (Template D):** Run `just build-ts`, audit `canvas_widget` against all styleguides, and run `just test` & `just check`
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)

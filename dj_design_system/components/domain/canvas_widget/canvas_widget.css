@@ -1,0 +1,177 @@
+@layer blocks {
+  dds-canvas-widget,
+  .dds-canvas-widget {
+    --_canvas-widget-border-color: var(--dds-surface-stage-border-color);
+    --_canvas-widget-border-radius: var(--dds-control-border-radius);
+    --_canvas-widget-border-style: var(--dds-surface-stage-border-style);
+    --_canvas-widget-border-width: var(--dds-surface-stage-border-width);
+    --_canvas-widget-code-bg-color: var(--dds-surface-code-bg-color);
+    --_canvas-widget-code-border-color: var(--dds-surface-code-border-color);
+    --_canvas-widget-code-text-color: var(--dds-surface-code-text-default-color);
+    --_canvas-widget-control-bg-color: var(--dds-control-bg-color);
+    --_canvas-widget-control-border-color: var(--dds-control-border-color);
+    --_canvas-widget-control-border-radius: var(--dds-control-border-radius);
+    --_canvas-widget-control-border-style: var(--dds-control-border-style);
+    --_canvas-widget-control-border-width: var(--dds-control-border-width);
+    --_canvas-widget-control-font: var(--dds-text-control-font);
+    --_canvas-widget-control-font-size: var(--dds-text-control-size);
+    --_canvas-widget-control-font-weight: var(--dds-text-control-weight);
+    --_canvas-widget-control-letter-spacing: var(--dds-text-control-letter-spacing);
+    --_canvas-widget-control-line-height: var(--dds-text-control-line-height);
+    --_canvas-widget-focus-outline-color: var(--dds-state-focus-outline-color);
+    --_canvas-widget-focus-outline-offset: var(--dds-state-focus-outline-offset);
+    --_canvas-widget-focus-outline-style: var(--dds-state-focus-outline-style);
+    --_canvas-widget-focus-outline-width: var(--dds-state-focus-outline-width);
+    --_canvas-widget-hover-bg-color: var(--dds-state-hover-bg-color);
+    --_canvas-widget-hover-border-color: var(--dds-state-hover-border-color);
+    --_canvas-widget-hover-text-color: var(--dds-state-hover-text-color);
+    --_canvas-widget-selected-bg-color: var(--dds-state-selected-bg-color);
+    --_canvas-widget-selected-border-color: var(--dds-state-selected-border-color);
+    --_canvas-widget-selected-text-color: var(--dds-state-selected-text-color);
+    --_canvas-widget-stage-bg-color: var(--dds-surface-stage-bg-color);
+    --_canvas-widget-stage-dark-bg-color: var(--dds-surface-code-bg-color);
+    --_canvas-widget-stage-light-bg-color: var(--dds-surface-stage-bg-color);
+    --_canvas-widget-stage-padding: var(--dds-space-inset-default);
+    --_canvas-widget-stage-white-bg-color: var(--dds-control-bg-color);
+    --_canvas-widget-text-color: var(--dds-text-default-color);
+    --_canvas-widget-toggle-gap: var(--dds-space-gap-tight);
+    --_canvas-widget-toggle-padding-block: var(--dds-space-2xs);
+    --_canvas-widget-toggle-padding-inline: var(--dds-space-sm);
+    --_canvas-widget-toggles-bg-color: var(--dds-surface-stage-bg-color);
+    --_canvas-widget-toggles-padding-block: var(--dds-space-xs);
+    --_canvas-widget-toggles-padding-inline: var(--dds-space-inset-compact);
+    --_canvas-widget-transition-duration: var(--dds-state-entry-duration);
+    --_canvas-widget-transition-easing: var(--dds-state-entry-easing);
+    border-color: var(--_canvas-widget-border-color);
+    border-radius: var(--_canvas-widget-border-radius);
+    border-style: var(--_canvas-widget-border-style);
+    border-width: var(--_canvas-widget-border-width);
+    box-sizing: border-box;
+    color: var(--_canvas-widget-text-color);
+    display: block;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  dds-canvas-widget [data-canvas-toggles],
+  .dds-canvas-widget [data-canvas-toggles] {
+    --space: var(--_canvas-widget-toggle-gap);
+    align-items: center;
+    background-color: var(--_canvas-widget-toggles-bg-color);
+    border-block-end-color: var(--_canvas-widget-border-color);
+    border-block-end-style: var(--_canvas-widget-border-style);
+    border-block-end-width: var(--_canvas-widget-border-width);
+    justify-content: flex-end;
+    margin: 0;
+    padding-block: var(--_canvas-widget-toggles-padding-block);
+    padding-inline: var(--_canvas-widget-toggles-padding-inline);
+  }
+
+  dds-canvas-widget [data-canvas-mode],
+  .dds-canvas-widget [data-canvas-mode] {
+    align-items: center;
+    background-color: var(--_canvas-widget-control-bg-color);
+    border-color: var(--_canvas-widget-control-border-color);
+    border-radius: var(--_canvas-widget-control-border-radius);
+    border-style: var(--_canvas-widget-control-border-style);
+    border-width: var(--_canvas-widget-control-border-width);
+    color: var(--_canvas-widget-text-color);
+    cursor: pointer;
+    display: inline-flex;
+    font-family: var(--_canvas-widget-control-font);
+    font-size: var(--_canvas-widget-control-font-size);
+    font-weight: var(--_canvas-widget-control-font-weight);
+    gap: var(--_canvas-widget-toggle-gap);
+    letter-spacing: var(--_canvas-widget-control-letter-spacing);
+    line-height: var(--_canvas-widget-control-line-height);
+    margin: 0;
+    padding-block: var(--_canvas-widget-toggle-padding-block);
+    padding-inline: var(--_canvas-widget-toggle-padding-inline);
+    transition-duration: var(--_canvas-widget-transition-duration);
+    transition-property: background-color, border-color, color;
+    transition-timing-function: var(--_canvas-widget-transition-easing);
+  }
+
+  dds-canvas-widget [data-canvas-mode]:hover,
+  .dds-canvas-widget [data-canvas-mode]:hover {
+    background-color: var(--_canvas-widget-hover-bg-color);
+    border-color: var(--_canvas-widget-hover-border-color);
+    color: var(--_canvas-widget-hover-text-color);
+  }
+
+  dds-canvas-widget [data-canvas-mode][aria-pressed='true'],
+  .dds-canvas-widget [data-canvas-mode][aria-pressed='true'] {
+    background-color: var(--_canvas-widget-selected-bg-color);
+    border-color: var(--_canvas-widget-selected-border-color);
+    color: var(--_canvas-widget-selected-text-color);
+  }
+
+  dds-canvas-widget [data-canvas-mode]:focus-visible,
+  .dds-canvas-widget [data-canvas-mode]:focus-visible {
+    outline-color: var(--_canvas-widget-focus-outline-color);
+    outline-offset: var(--_canvas-widget-focus-outline-offset);
+    outline-style: var(--_canvas-widget-focus-outline-style);
+    outline-width: var(--_canvas-widget-focus-outline-width);
+  }
+
+  dds-canvas-widget [data-canvas-stage],
+  .dds-canvas-widget [data-canvas-stage] {
+    background-color: var(--_canvas-widget-stage-bg-color);
+    box-sizing: border-box;
+    margin: 0;
+    overflow-x: auto;
+    padding: var(--_canvas-widget-stage-padding);
+  }
+
+  dds-canvas-widget[data-background='white'] [data-canvas-stage],
+  .dds-canvas-widget[data-background='white'] [data-canvas-stage] {
+    background-color: var(--_canvas-widget-stage-white-bg-color);
+  }
+
+  dds-canvas-widget[data-background='light'] [data-canvas-stage],
+  .dds-canvas-widget[data-background='light'] [data-canvas-stage] {
+    background-color: var(--_canvas-widget-stage-light-bg-color);
+  }
+
+  dds-canvas-widget[data-background='dark'] [data-canvas-stage],
+  .dds-canvas-widget[data-background='dark'] [data-canvas-stage] {
+    background-color: var(--_canvas-widget-stage-dark-bg-color);
+  }
+
+  dds-canvas-widget [data-canvas-viewport],
+  .dds-canvas-widget [data-canvas-viewport] {
+    box-sizing: border-box;
+    inline-size: var(--_canvas-widget-viewport-width, 100%);
+    margin-inline: auto;
+    max-inline-size: 100%;
+    transition-duration: var(--_canvas-widget-transition-duration);
+    transition-property: inline-size;
+    transition-timing-function: var(--_canvas-widget-transition-easing);
+  }
+
+  dds-canvas-widget [data-canvas-iframe],
+  .dds-canvas-widget [data-canvas-iframe] {
+    block-size: var(--_canvas-widget-iframe-height, 10rem);
+    border: 0;
+    display: block;
+    inline-size: 100%;
+    margin: 0;
+  }
+
+  dds-canvas-widget [data-canvas-panel],
+  .dds-canvas-widget [data-canvas-panel] {
+    background-color: var(--_canvas-widget-code-bg-color);
+    border-block-start-color: var(--_canvas-widget-code-border-color);
+    border-block-start-style: var(--_canvas-widget-border-style);
+    border-block-start-width: var(--_canvas-widget-border-width);
+    color: var(--_canvas-widget-code-text-color);
+    margin: 0;
+  }
+
+  dds-canvas-widget [data-canvas-stage][hidden],
+  dds-canvas-widget [data-canvas-panel][hidden],
+  .dds-canvas-widget [data-canvas-stage][hidden],
+  .dds-canvas-widget [data-canvas-panel][hidden] {
+    display: none;
+  }
+}
