@@ -113,7 +113,7 @@ class Popout(components.BlockComponent):
         super().__init__(content=content, slots=slots, **kwargs)
         self.slots = {
             name: safestring.SafeString(val) if val else val
-            for name, val in self.slots.items()
+            for name, val in (self.slots or {}).items()
         }
         if content is not None:
             self.content = safestring.SafeString(content)

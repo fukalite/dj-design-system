@@ -82,7 +82,7 @@ class FormField(components.BlockComponent):
         super().__init__(content=content, slots=slots, **kwargs)
         self.slots = {
             name: safestring.mark_safe(s=val) if val else val
-            for name, val in self.slots.items()
+            for name, val in (self.slots or {}).items()
         }
         if content is not None:
             self.content = safestring.mark_safe(s=content)
