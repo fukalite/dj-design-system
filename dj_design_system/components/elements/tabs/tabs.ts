@@ -2,7 +2,7 @@
  * @fileoverview Light DOM <dds-tabs> custom element for WAI-ARIA tab switching.
  */
 
-import type { DDSCustomElement } from "../../types";
+import type { DDSCustomElement } from "../../types.js";
 
 /**
  * Light DOM custom element enhancing `<dds-tabs>` with click activation

@@ -1,15 +1,15 @@
 """Gallery configuration and variants for the built-in dds__notice component."""
 
-from dj_design_system.gallery import GalleryConfig, Variant
+from dj_design_system import gallery
 
 
-config = GalleryConfig(
+config = gallery.GalleryConfig(
     group="Elements",
     param_defaults={
         "content": "Component changes are reflected automatically in the preview canvas.",
     },
     variants=[
-        Variant(
+        gallery.Variant(
             name="basic",
             label="Info",
             description="Default informational notice with automatic status icon.",
@@ -19,7 +19,7 @@ config = GalleryConfig(
                 "content": "Component changes are reflected automatically in the preview canvas.",
             },
         ),
-        Variant(
+        gallery.Variant(
             name="success",
             label="Success",
             description="Positive status notice for completed actions or verified states.",
@@ -29,7 +29,7 @@ config = GalleryConfig(
                 "content": "All discovered components passed parameter and template validation.",
             },
         ),
-        Variant(
+        gallery.Variant(
             name="warning",
             label="Warning",
             description="Caution notice rendered with role='alert' for attention-required states.",
@@ -39,7 +39,7 @@ config = GalleryConfig(
                 "content": "Support for legacy CSS class parameters will be removed in a future release.",
             },
         ),
-        Variant(
+        gallery.Variant(
             name="error",
             label="Error",
             description="Critical alert notice rendered with role='alert' for error conditions.",
@@ -49,7 +49,7 @@ config = GalleryConfig(
                 "content": "Required slot content was omitted when invoking the block component.",
             },
         ),
-        Variant(
+        gallery.Variant(
             name="maximal",
             label="Custom Icon Override",
             description="Notice with explicit title and custom icon override.",

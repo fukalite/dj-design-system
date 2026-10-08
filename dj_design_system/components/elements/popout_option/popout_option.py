@@ -1,13 +1,12 @@
 """Built-in interactive option item for dds__popout menus."""
 
-from typing import Any
+import typing
 
-from dj_design_system.components import TagComponent
-from dj_design_system.components.elements.icon import ICON_NAMES
-from dj_design_system.parameters import BoolParam, StrParam
+from dj_design_system import components, parameters
+from dj_design_system.components.elements import icon as icon_element
 
 
-class PopoutOption(TagComponent):
+class PopoutOption(components.TagComponent):
     """Polymorphic menu item or selectable radio option inside a ``dds__popout`` menu.
 
     Renders an ``<a class="dds-popout-option" role="menuitem">`` link when
@@ -36,29 +35,29 @@ class PopoutOption(TagComponent):
     )
     _template_name = template_name
 
-    label = StrParam(description="Option text label.")
-    value = StrParam(
+    label = parameters.StrParam(description="Option text label.")
+    value = parameters.StrParam(
         description="Option value payload.",
         default="",
         required=False,
     )
-    icon = StrParam(
+    icon = parameters.StrParam(
         description="Optional leading icon name.",
         default="",
         required=False,
-        choices=["", *ICON_NAMES],
+        choices=["", *icon_element.ICON_NAMES],
     )
-    selected = BoolParam(
+    selected = parameters.BoolParam(
         description="Whether this option is currently selected.",
         default=False,
         required=False,
     )
-    disabled = BoolParam(
+    disabled = parameters.BoolParam(
         description="Whether this option is disabled.",
         default=False,
         required=False,
     )
-    href = StrParam(
+    href = parameters.StrParam(
         description="Optional link URL.",
         default="",
         required=False,
@@ -70,7 +69,7 @@ class PopoutOption(TagComponent):
     class Media:
         css = "dj_design_system/components/elements/popout_option/popout_option.css"
 
-    def get_context(self) -> dict[str, Any]:
+    def get_context(self) -> dict[str, typing.Any]:
         """Compute normalized template context for button or link option rendering.
 
         Returns:

@@ -7,15 +7,19 @@ import pytest
 from django import template
 from django.utils import safestring
 
-from dj_design_system import data
+from dj_design_system import data, gallery
 from dj_design_system.components import base as components_base
+from dj_design_system.components.elements import icon as icon_package
 from dj_design_system.components.elements import notice as notice_package
-from dj_design_system.components.elements.icon import ICON_NAMES
 from dj_design_system.components.elements.notice import notice as notice_module
-from dj_design_system.gallery import GalleryConfig, load_gallery_config
 from dj_design_system.services import canvas as canvas_service
 from dj_design_system.services import registry as registry_service
 from tests import conftest
+
+
+GalleryConfig = gallery.GalleryConfig
+ICON_NAMES = icon_package.ICON_NAMES
+load_gallery_config = gallery.load_gallery_config
 
 
 APP_LABEL = "dj_design_system"

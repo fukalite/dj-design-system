@@ -1,26 +1,25 @@
 """Gallery configuration and variants for the built-in dds__code_block component."""
 
-from dj_design_system.gallery import GalleryConfig, Variant
+from dj_design_system import gallery
 
 
 DJANGO_SNIPPET = """{% load design_components %}
 {% dds__button "Save changes" variant="primary" icon="check" %}"""
 
-PYTHON_SNIPPET = """from dj_design_system.components import TagComponent
-from dj_design_system.parameters import StrParam
+PYTHON_SNIPPET = """from dj_design_system import components, parameters
 
 
-class Greeting(TagComponent):
-    name = StrParam("Recipient name.", default="World")"""
+class Greeting(components.TagComponent):
+    name = parameters.StrParam("Recipient name.", default="World")"""
 
 
-config = GalleryConfig(
+config = gallery.GalleryConfig(
     group="Elements",
     param_defaults={
         "code": DJANGO_SNIPPET,
     },
     variants=[
-        Variant(
+        gallery.Variant(
             name="basic",
             label="Default Django Snippet",
             description="Code block with default language header label and copy trigger.",
@@ -28,7 +27,7 @@ config = GalleryConfig(
                 "code": DJANGO_SNIPPET,
             },
         ),
-        Variant(
+        gallery.Variant(
             name="titled",
             label="With Filename Title",
             description="Python snippet displaying an explicit filename in the header.",
@@ -38,7 +37,7 @@ config = GalleryConfig(
                 "title": "components/greeting.py",
             },
         ),
-        Variant(
+        gallery.Variant(
             name="non_copyable",
             label="Without Copy Button",
             description="Read-only code block with copy button hidden and header label visible.",
@@ -49,7 +48,7 @@ config = GalleryConfig(
                 "copyable": False,
             },
         ),
-        Variant(
+        gallery.Variant(
             name="minimal",
             label="Headerless Minimal",
             description="Code block with empty language, no title, and copyable disabled.",

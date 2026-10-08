@@ -1,10 +1,9 @@
 """Polymorphic button and link control primitive for the built-in dds gallery."""
 
-from typing import Any
+import typing
 
-from dj_design_system.components import TagComponent
-from dj_design_system.components.elements.icon import ICON_NAMES
-from dj_design_system.parameters import BoolParam, StrParam
+from dj_design_system import components, parameters
+from dj_design_system.components.elements import icon as icon_element
 
 
 BUTTON_VARIANTS: tuple[str, ...] = ("default", "primary", "ghost", "danger")
@@ -19,7 +18,7 @@ BLANK_TARGET = "_blank"
 NOOPENER_NOREFERRER = "noopener noreferrer"
 
 
-class Button(TagComponent):
+class Button(components.TagComponent):
     """Polymorphic interactive button or link control with icon and toggle states.
 
     Renders a semantic button element (``.dds-button``) by default, or an anchor
@@ -52,67 +51,67 @@ class Button(TagComponent):
     template_name = "dj_design_system/components/elements/button/button.html"
     _template_name = template_name
 
-    label = StrParam(
+    label = parameters.StrParam(
         description="Button text label (or accessible aria-label when icon_only=True).",
         default="",
         required=False,
     )
-    variant = StrParam(
+    variant = parameters.StrParam(
         description="Visual button style.",
         default=DEFAULT_VARIANT,
         required=False,
         choices=list(BUTTON_VARIANTS),
     )
-    size = StrParam(
+    size = parameters.StrParam(
         description="Button size.",
         default=DEFAULT_SIZE,
         required=False,
         choices=list(BUTTON_SIZES),
     )
-    icon = StrParam(
+    icon = parameters.StrParam(
         description="Optional leading or standalone icon name.",
         default="",
         required=False,
-        choices=["", *ICON_NAMES],
+        choices=["", *icon_element.ICON_NAMES],
     )
-    icon_trailing = StrParam(
+    icon_trailing = parameters.StrParam(
         description="Optional trailing icon name.",
         default="",
         required=False,
-        choices=["", *ICON_NAMES],
+        choices=["", *icon_element.ICON_NAMES],
     )
-    icon_only = BoolParam(
+    icon_only = parameters.BoolParam(
         description="Render only the icon and use label as aria-label.",
         default=False,
         required=False,
     )
-    href = StrParam(
+    href = parameters.StrParam(
         description="Optional link URL; renders an <a> element when provided and not disabled.",
         default="",
         required=False,
     )
-    target = StrParam(
+    target = parameters.StrParam(
         description="Optional link target (e.g. _blank).",
         default="",
         required=False,
     )
-    button_type = StrParam(
+    button_type = parameters.StrParam(
         description="HTML button type attribute.",
         default=DEFAULT_BUTTON_TYPE,
         required=False,
         choices=list(BUTTON_TYPES),
     )
-    disabled = BoolParam(
+    disabled = parameters.BoolParam(
         description="Whether interaction is disabled.",
         default=False,
         required=False,
     )
-    pressed = BoolParam(
+    pressed = parameters.BoolParam(
         description="Optional toggle state for aria-pressed ('true'/'false').",
         default=None,
         required=False,
     )
-    action = StrParam(
+    action = parameters.StrParam(
         description="Optional data-action hook for parent web components.",
         default="",
         required=False,
@@ -138,7 +137,7 @@ class Button(TagComponent):
         if not self.icon_only and not self.label and not self.icon:
             raise ValueError("Button requires at least a 'label' or an 'icon'.")
 
-    def get_context(self) -> dict[str, Any]:
+    def get_context(self) -> dict[str, typing.Any]:
         """Compute normalized template context for polymorphic button or link rendering.
 
         Returns:

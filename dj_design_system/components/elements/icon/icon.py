@@ -1,9 +1,8 @@
 """Inline SVG icon primitive for the built-in dds gallery."""
 
-from typing import Any
+import typing
 
-from dj_design_system.components import TagComponent
-from dj_design_system.parameters import StrParam
+from dj_design_system import components, parameters
 
 
 ICON_NAMES: tuple[str, ...] = (
@@ -39,7 +38,7 @@ ICON_SIZES: tuple[str, ...] = ("xs", "sm", "md", "lg")
 DEFAULT_ICON_SIZE = "md"
 
 
-class Icon(TagComponent):
+class Icon(components.TagComponent):
     """Inline SVG icon primitive with semantic sizing and accessibility support.
 
     Renders a single 24x24 stroke-based SVG icon from the built-in gallery icon
@@ -56,17 +55,17 @@ class Icon(TagComponent):
 
     template_name = "dj_design_system/components/elements/icon/icon.html"
 
-    name = StrParam(
+    name = parameters.StrParam(
         description="Icon identifier.",
         choices=list(ICON_NAMES),
     )
-    size = StrParam(
+    size = parameters.StrParam(
         description="Semantic icon size.",
         default=DEFAULT_ICON_SIZE,
         required=False,
         choices=list(ICON_SIZES),
     )
-    label = StrParam(
+    label = parameters.StrParam(
         description="Accessible label; when omitted, the icon is decorative (aria-hidden).",
         default="",
         required=False,
@@ -78,7 +77,7 @@ class Icon(TagComponent):
     class Media:
         css = "dj_design_system/components/elements/icon/icon.css"
 
-    def get_context(self) -> dict[str, Any]:
+    def get_context(self) -> dict[str, typing.Any]:
         """Build the template context with resolved accessibility attributes.
 
         Returns:

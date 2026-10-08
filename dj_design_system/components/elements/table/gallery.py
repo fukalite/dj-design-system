@@ -1,11 +1,11 @@
 """Gallery configuration and variants for the built-in table component."""
 
-from django.utils.safestring import mark_safe
+from django.utils import safestring
 
-from dj_design_system.gallery import GalleryConfig, Variant
+from dj_design_system import gallery
 
 
-DEFAULT_HEAD = mark_safe(
+DEFAULT_HEAD = safestring.mark_safe(
     s=(
         "<tr>"
         '<th scope="col">Parameter</th>'
@@ -15,7 +15,7 @@ DEFAULT_HEAD = mark_safe(
     )
 )
 
-DEFAULT_BODY = mark_safe(
+DEFAULT_BODY = safestring.mark_safe(
     s=(
         "<tr>"
         "<td>caption</td>"
@@ -30,9 +30,9 @@ DEFAULT_BODY = mark_safe(
     )
 )
 
-config = GalleryConfig(
+config = gallery.GalleryConfig(
     variants=[
-        Variant(
+        gallery.Variant(
             name="basic",
             label="Default Table",
             description="Standard table with header and body rows.",
@@ -41,7 +41,7 @@ config = GalleryConfig(
                 "slot__body": DEFAULT_BODY,
             },
         ),
-        Variant(
+        gallery.Variant(
             name="compact",
             label="Compact Density with Caption",
             description="Dense row padding with an accessible table caption.",
@@ -52,7 +52,7 @@ config = GalleryConfig(
                 "slot__body": DEFAULT_BODY,
             },
         ),
-        Variant(
+        gallery.Variant(
             name="body_only",
             label="Body Only",
             description="Table rendered without the optional head slot.",

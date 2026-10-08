@@ -1,48 +1,48 @@
 """Gallery configuration and variants for the built-in dds__badge component."""
 
-from dj_design_system.gallery import GalleryConfig, Variant
+from dj_design_system import gallery
 
 
-config = GalleryConfig(
+config = gallery.GalleryConfig(
     group="Elements",
     variants=[
-        Variant(
+        gallery.Variant(
             name="basic",
             label="Neutral",
             description="Default neutral badge for general metadata and optional labels.",
             kwargs={"label": "Optional", "variant": "neutral"},
         ),
-        Variant(
+        gallery.Variant(
             name="info",
             label="Info",
             description="Informational badge for neutral status highlights.",
             kwargs={"label": "Beta", "variant": "info"},
         ),
-        Variant(
+        gallery.Variant(
             name="success",
             label="Success",
             description="Positive status badge for active or verified states.",
             kwargs={"label": "Active", "variant": "success"},
         ),
-        Variant(
+        gallery.Variant(
             name="warning",
             label="Warning",
             description="Caution badge for deprecated or attention-needed states.",
             kwargs={"label": "Deprecated", "variant": "warning"},
         ),
-        Variant(
+        gallery.Variant(
             name="error",
             label="Error",
             description="High-emphasis badge for required parameters or error states.",
             kwargs={"label": "Required", "variant": "error"},
         ),
-        Variant(
+        gallery.Variant(
             name="code",
             label="Code",
             description="Monospace badge for parameter types and technical identifiers.",
             kwargs={"label": "str", "variant": "code"},
         ),
-        Variant(
+        gallery.Variant(
             name="maximal",
             label="Maximal",
             description="Badge with explicit semantic variant.",

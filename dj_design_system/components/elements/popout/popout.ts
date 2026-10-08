@@ -3,7 +3,7 @@
  * toggling, keyboard/outside-click dismissal, and option selection events.
  */
 
-import type { DDSCustomElement } from "../../types";
+import type { DDSCustomElement } from "../../types.js";
 
 /**
  * Light DOM custom element enhancing `<dds-popout>` with trigger toggling,

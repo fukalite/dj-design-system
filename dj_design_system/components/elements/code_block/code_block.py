@@ -1,15 +1,14 @@
 """Built-in code block element component with copy-to-clipboard support."""
 
-from typing import Any
+import typing
 
-from dj_design_system.components import TagComponent
-from dj_design_system.parameters import BoolParam, StrParam
+from dj_design_system import components, parameters
 
 
 DEFAULT_LANGUAGE = "django"
 
 
-class CodeBlock(TagComponent):
+class CodeBlock(components.TagComponent):
     """Formatted code snippet viewer with optional header label and copy button.
 
     Use ``CodeBlock`` (``{% dds__code_block %}``) to render source code snippets,
@@ -34,18 +33,18 @@ class CodeBlock(TagComponent):
     template_name = "dj_design_system/components/elements/code_block/code_block.html"
     _template_name = template_name
 
-    code = StrParam(description="Source code snippet to render.")
-    language = StrParam(
+    code = parameters.StrParam(description="Source code snippet to render.")
+    language = parameters.StrParam(
         description="Code language identifier.",
         default=DEFAULT_LANGUAGE,
         required=False,
     )
-    title = StrParam(
+    title = parameters.StrParam(
         description="Optional header title or filename.",
         default="",
         required=False,
     )
-    copyable = BoolParam(
+    copyable = parameters.BoolParam(
         description="Whether to display the copy-to-clipboard button.",
         default=True,
         required=False,
@@ -58,7 +57,7 @@ class CodeBlock(TagComponent):
         css = "dj_design_system/components/elements/code_block/code_block.css"
         js = "dj_design_system/components/elements/code_block/code_block.js"
 
-    def get_context(self) -> dict[str, Any]:
+    def get_context(self) -> dict[str, typing.Any]:
         """Compute normalized template context for code formatting and header state.
 
         Returns:

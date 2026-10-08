@@ -1,9 +1,8 @@
 """Built-in badge element component."""
 
-from typing import Any
+import typing
 
-from dj_design_system.components.base import TagComponent
-from dj_design_system.parameters.base import StrParam
+from dj_design_system import components, parameters
 
 
 DEFAULT_VARIANT = "neutral"
@@ -17,7 +16,7 @@ BADGE_VARIANTS = [
 ]
 
 
-class Badge(TagComponent):
+class Badge(components.TagComponent):
     """A compact inline badge element for status labels, metadata, and type pills.
 
     Use ``Badge`` to display concise, non-interactive categorical labels,
@@ -42,8 +41,8 @@ class Badge(TagComponent):
     template_name = "dj_design_system/components/elements/badge/badge.html"
     _template_name = template_name
 
-    label = StrParam(description="Badge text content.")
-    variant = StrParam(
+    label = parameters.StrParam(description="Badge text content.")
+    variant = parameters.StrParam(
         description="Semantic badge style.",
         default=DEFAULT_VARIANT,
         required=False,
@@ -56,7 +55,7 @@ class Badge(TagComponent):
     class Media:
         css = "dj_design_system/components/elements/badge/badge.css"
 
-    def get_context(self) -> dict[str, Any]:
+    def get_context(self) -> dict[str, typing.Any]:
         """Return the normalized template context for rendering the badge.
 
         Returns:

@@ -9,9 +9,12 @@ from django import template
 import dj_design_system.components.elements.icon as icon_package
 import dj_design_system.components.elements.icon.icon as icon_module
 from dj_design_system import gallery
-from dj_design_system.components.elements.icon import ICON_NAMES, Icon
 from dj_design_system.services import registry as registry_service
 from tests import conftest
+
+
+ICON_NAMES = icon_package.ICON_NAMES
+Icon = icon_package.Icon
 
 
 ICON_DIR = (

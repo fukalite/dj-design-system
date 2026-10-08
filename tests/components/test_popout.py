@@ -492,7 +492,7 @@ class TestPopoutStylesheetsAndTypeScriptContract:
         """Verify popout.ts defines DDSPopoutElement with AbortController and dds:popout-select."""
         assert POPOUT_TS_PATH.is_file()
         ts_source = POPOUT_TS_PATH.read_text(encoding="utf-8")
-        assert 'import type { DDSCustomElement } from "../../types";' in ts_source
+        assert 'import type { DDSCustomElement } from "../../types.js";' in ts_source
         assert (
             "export class DDSPopoutElement extends HTMLElement implements DDSCustomElement"
             in ts_source

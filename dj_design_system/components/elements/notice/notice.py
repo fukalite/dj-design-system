@@ -1,10 +1,9 @@
 """Built-in semantic notice / callout element component."""
 
-from typing import Any
+import typing
 
-from dj_design_system.components import BlockComponent
-from dj_design_system.components.elements.icon import ICON_NAMES
-from dj_design_system.parameters import StrParam
+from dj_design_system import components, parameters
+from dj_design_system.components.elements import icon as icon_element
 
 
 DEFAULT_VARIANT = "info"
@@ -12,7 +11,7 @@ NOTICE_VARIANTS = ["info", "success", "warning", "error"]
 ALERT_VARIANTS = ("warning", "error")
 
 
-class Notice(BlockComponent):
+class Notice(components.BlockComponent):
     """A semantic callout banner for informational notes, confirmations, warnings, and errors.
 
     Use ``Notice`` (``{% dds__notice %}``) to surface contextual feedback,
@@ -40,28 +39,28 @@ class Notice(BlockComponent):
     template_name = "dj_design_system/components/elements/notice/notice.html"
     _template_name = template_name
 
-    variant = StrParam(
+    variant = parameters.StrParam(
         description="Semantic status level.",
         default=DEFAULT_VARIANT,
         required=False,
         choices=NOTICE_VARIANTS,
     )
-    title = StrParam(
+    title = parameters.StrParam(
         description="Optional notice heading.",
         default="",
         required=False,
     )
-    icon = StrParam(
+    icon = parameters.StrParam(
         description="Optional icon override; defaults to variant status icon.",
         default="",
         required=False,
-        choices=["", *ICON_NAMES],
+        choices=["", *icon_element.ICON_NAMES],
     )
 
     class Media:
         css = "dj_design_system/components/elements/notice/notice.css"
 
-    def get_context(self) -> dict[str, Any]:
+    def get_context(self) -> dict[str, typing.Any]:
         """Compute template context with resolved icon, ARIA role, and title state.
 
         Returns:

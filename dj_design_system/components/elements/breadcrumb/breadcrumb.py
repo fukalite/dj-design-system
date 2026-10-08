@@ -1,17 +1,16 @@
 """Built-in breadcrumb navigation trail element component."""
 
-from typing import Any
+import typing
 
-from dj_design_system.components import TagComponent
-from dj_design_system.components.elements.icon import ICON_NAMES
-from dj_design_system.parameters import ListParam, StrParam
+from dj_design_system import components, parameters
+from dj_design_system.components.elements import icon as icon_element
 
 
 DEFAULT_ARIA_LABEL = "Breadcrumb"
 DEFAULT_SEPARATOR_ICON = "chevron-right"
 
 
-class Breadcrumb(TagComponent):
+class Breadcrumb(components.TagComponent):
     """Hierarchical breadcrumb trail navigation primitive.
 
     Renders an accessible ``<nav class="dds-breadcrumb">`` landmark wrapping an
@@ -34,7 +33,7 @@ class Breadcrumb(TagComponent):
     template_name = "dj_design_system/components/elements/breadcrumb/breadcrumb.html"
     _template_name = template_name
 
-    items = ListParam(
+    items = parameters.ListParam(
         description=(
             "Ordered list of trail items (dicts with 'label' and optional "
             "'url'/'href' and 'icon')."
@@ -42,16 +41,16 @@ class Breadcrumb(TagComponent):
         default=[],
         required=False,
     )
-    aria_label = StrParam(
+    aria_label = parameters.StrParam(
         description="Accessible landmark label.",
         default=DEFAULT_ARIA_LABEL,
         required=False,
     )
-    separator_icon = StrParam(
+    separator_icon = parameters.StrParam(
         description="Icon name rendered between trail items.",
         default=DEFAULT_SEPARATOR_ICON,
         required=False,
-        choices=list(ICON_NAMES),
+        choices=list(icon_element.ICON_NAMES),
     )
 
     class Meta:
@@ -61,7 +60,9 @@ class Breadcrumb(TagComponent):
         css = "dj_design_system/components/elements/breadcrumb/breadcrumb.css"
 
     @staticmethod
-    def _normalize_item(raw_item: Any, *, is_current: bool) -> dict[str, Any]:
+    def _normalize_item(
+        raw_item: typing.Any, *, is_current: bool
+    ) -> dict[str, typing.Any]:
         """Normalize a single trail entry into a structured template dictionary.
 
         Args:
@@ -74,9 +75,9 @@ class Breadcrumb(TagComponent):
             ``has_url``, and ``has_icon``.
         """
         if isinstance(raw_item, str):
-            raw_label: Any = raw_item
-            raw_url: Any = None
-            raw_icon: Any = None
+            raw_label: typing.Any = raw_item
+            raw_url: typing.Any = None
+            raw_icon: typing.Any = None
         elif isinstance(raw_item, dict):
             raw_label = raw_item.get("label")
             if raw_label is None:
@@ -104,7 +105,7 @@ class Breadcrumb(TagComponent):
             "has_icon": bool(icon),
         }
 
-    def get_context(self) -> dict[str, Any]:
+    def get_context(self) -> dict[str, typing.Any]:
         """Build the normalized template context for the breadcrumb trail.
 
         Returns:

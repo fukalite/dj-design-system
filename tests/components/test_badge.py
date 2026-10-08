@@ -6,12 +6,16 @@ import re
 import pytest
 from django import template
 
+from dj_design_system import gallery
 from dj_design_system.components import base as components_base
 from dj_design_system.components.elements import badge as badge_package
 from dj_design_system.components.elements.badge import badge as badge_module
-from dj_design_system.gallery import GalleryConfig, load_gallery_config
 from dj_design_system.services import registry as registry_service
 from tests import conftest
+
+
+GalleryConfig = gallery.GalleryConfig
+load_gallery_config = gallery.load_gallery_config
 
 
 APP_LABEL = "dj_design_system"

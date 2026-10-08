@@ -425,7 +425,7 @@ class TestTabsTypeScriptCustomElement:
     def test_tabs_ts_implements_contract_and_keyboard_navigation(self) -> None:
         """Verify tabs.ts defines DDSTabsElement, AbortController, ARIA queries, and events."""
         ts_text = _read_text(path=TABS_TS_PATH)
-        assert 'import type { DDSCustomElement } from "../../types";' in ts_text
+        assert 'import type { DDSCustomElement } from "../../types.js";' in ts_text
         assert (
             "export class DDSTabsElement extends HTMLElement implements DDSCustomElement"
             in ts_text

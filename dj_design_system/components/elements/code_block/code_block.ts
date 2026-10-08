@@ -3,7 +3,7 @@
  * copying and `dds:copy` event dispatching.
  */
 
-import type { DDSCustomElement } from "../../types";
+import type { DDSCustomElement } from "../../types.js";
 
 const COPY_RESET_DELAY_MS = 2000;
 

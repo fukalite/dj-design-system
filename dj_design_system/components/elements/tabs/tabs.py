@@ -1,9 +1,8 @@
 """Built-in accessible tabs and tabpanel switcher element component."""
 
-from typing import Any
+import typing
 
-from dj_design_system.components import BlockComponent
-from dj_design_system.parameters import ListParam, StrParam
+from dj_design_system import components, parameters
 
 
 DEFAULT_ARIA_LABEL = "Tabs"
@@ -11,7 +10,7 @@ TAB_DOM_ID_PREFIX = "dds-tab-"
 PANEL_DOM_ID_PREFIX = "dds-panel-"
 
 
-class Tabs(BlockComponent):
+class Tabs(components.BlockComponent):
     """Accessible WAI-ARIA tablist and tabpanel switcher primitive.
 
     Renders a ``<dds-tabs class="dds-tabs">`` Light DOM custom element containing
@@ -39,17 +38,17 @@ class Tabs(BlockComponent):
     template_name = "dj_design_system/components/elements/tabs/tabs.html"
     _template_name = template_name
 
-    tabs = ListParam(
+    tabs = parameters.ListParam(
         description="List of tab items (dicts with 'id', 'label', and optional 'icon', 'badge', 'content').",
         default=[],
         required=False,
     )
-    active_tab = StrParam(
+    active_tab = parameters.StrParam(
         description="ID of the initially active tab; defaults to the first tab.",
         default="",
         required=False,
     )
-    aria_label = StrParam(
+    aria_label = parameters.StrParam(
         description="Accessible label for the tablist.",
         default=DEFAULT_ARIA_LABEL,
         required=False,
@@ -63,7 +62,7 @@ class Tabs(BlockComponent):
         js = "dj_design_system/components/elements/tabs/tabs.js"
 
     @staticmethod
-    def _extract_raw_tab(raw_item: Any) -> dict[str, Any]:
+    def _extract_raw_tab(raw_item: typing.Any) -> dict[str, typing.Any]:
         """Extract raw string fields from a dict or object tab item.
 
         Args:
@@ -108,10 +107,10 @@ class Tabs(BlockComponent):
     @classmethod
     def _build_normalized_tab(
         cls,
-        extracted: dict[str, Any],
+        extracted: dict[str, typing.Any],
         *,
         resolved_active: str,
-    ) -> dict[str, Any]:
+    ) -> dict[str, typing.Any]:
         """Build a complete normalized tab dictionary for template rendering.
 
         Args:
@@ -143,7 +142,7 @@ class Tabs(BlockComponent):
             "tabindex": "0" if is_active else "-1",
         }
 
-    def get_context(self) -> dict[str, Any]:
+    def get_context(self) -> dict[str, typing.Any]:
         """Compute normalized tabs, active tab state, and panel flags.
 
         Returns:

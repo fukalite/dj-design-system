@@ -6,16 +6,19 @@ import re
 import pytest
 from django import template
 
-from dj_design_system import data
+from dj_design_system import data, gallery
 from dj_design_system.components import base as components_base
 from dj_design_system.components.elements import code_block as code_block_package
 from dj_design_system.components.elements.code_block import (
     code_block as code_block_module,
 )
-from dj_design_system.gallery import GalleryConfig, load_gallery_config
 from dj_design_system.services import canvas as canvas_service
 from dj_design_system.services import registry as registry_service
 from tests import conftest
+
+
+GalleryConfig = gallery.GalleryConfig
+load_gallery_config = gallery.load_gallery_config
 
 
 APP_LABEL = "dj_design_system"
@@ -324,7 +327,7 @@ class TestCodeBlockCustomElementTypeScript:
     def test_ts_implements_custom_element_contract(self) -> None:
         """Verify code_block.ts defines DDSCodeBlockElement, AbortController, DOM queries, and dds:copy event."""
         ts_text = _read_text(path=CODE_BLOCK_TS_PATH)
-        assert 'import type { DDSCustomElement } from "../../types";' in ts_text
+        assert 'import type { DDSCustomElement } from "../../types.js";' in ts_text
         assert (
             "export class DDSCodeBlockElement" in ts_text
             and "extends HTMLElement" in ts_text

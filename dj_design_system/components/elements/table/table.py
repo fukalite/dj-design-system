@@ -1,17 +1,15 @@
 """Built-in table component for structured tabular data."""
 
-from typing import Any
+import typing
 
-from dj_design_system.components import BlockComponent
-from dj_design_system.parameters import StrParam
-from dj_design_system.slots import Slot
+from dj_design_system import components, parameters, slots
 
 
 DENSITY_COMPACT = "compact"
 DENSITY_DEFAULT = "default"
 
 
-class Table(BlockComponent):
+class Table(components.BlockComponent):
     """A responsive table component with named slots for header and body rows.
 
     Wraps a semantic HTML ``<table>`` inside a horizontally scrollable container
@@ -41,12 +39,12 @@ class Table(BlockComponent):
     template_name = "dj_design_system/components/elements/table/table.html"
     _template_name = template_name
 
-    caption = StrParam(
+    caption = parameters.StrParam(
         description="Optional accessible table caption.",
         default="",
         required=False,
     )
-    density = StrParam(
+    density = parameters.StrParam(
         description="Row padding density.",
         default=DENSITY_DEFAULT,
         required=False,
@@ -55,11 +53,11 @@ class Table(BlockComponent):
 
     class Meta:
         slots = {
-            "head": Slot(
+            "head": slots.Slot(
                 required=False,
                 description="Table header rows (<tr> with <th> cells).",
             ),
-            "body": Slot(
+            "body": slots.Slot(
                 required=True,
                 description="Table body rows (<tr> with <td> cells).",
             ),
@@ -68,7 +66,7 @@ class Table(BlockComponent):
     class Media:
         css = "dj_design_system/components/elements/table/table.css"
 
-    def get_context(self) -> dict[str, Any]:
+    def get_context(self) -> dict[str, typing.Any]:
         """Compute template context including caption flag and slot mapping.
 
         Returns:

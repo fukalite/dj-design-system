@@ -4,20 +4,27 @@ import pathlib
 import re
 
 import pytest
-from django.template import Context, Template, TemplateSyntaxError
-from django.utils.safestring import mark_safe
+from django import template as django_template
+from django.utils import safestring
 
-from dj_design_system.components import BlockComponent
-from dj_design_system.components.elements.table import Table
-from dj_design_system.components.elements.table.table import (
-    DENSITY_COMPACT,
-    DENSITY_DEFAULT,
-)
-from dj_design_system.components.elements.table.table import (
-    Table as DirectTable,
-)
-from dj_design_system.services.registry import ComponentRegistry
-from tests.conftest import discover_app_into_registry
+from dj_design_system import components
+from dj_design_system.components.elements import table as table_package
+from dj_design_system.components.elements.table import table as table_module
+from dj_design_system.services import registry as registry_service
+from tests import conftest
+
+
+BlockComponent = components.BlockComponent
+ComponentRegistry = registry_service.ComponentRegistry
+Context = django_template.Context
+DENSITY_COMPACT = table_module.DENSITY_COMPACT
+DENSITY_DEFAULT = table_module.DENSITY_DEFAULT
+DirectTable = table_module.Table
+Table = table_package.Table
+Template = django_template.Template
+TemplateSyntaxError = django_template.TemplateSyntaxError
+discover_app_into_registry = conftest.discover_app_into_registry
+mark_safe = safestring.mark_safe
 
 
 APP_LABEL = "dj_design_system"

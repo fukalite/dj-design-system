@@ -6,15 +6,18 @@ import re
 import pytest
 from django import template
 
-from dj_design_system import gallery
-from dj_design_system.components import TagComponent
+from dj_design_system import components, gallery
 from dj_design_system.components.elements import button as button_package
-from dj_design_system.components.elements.button import Button
+from dj_design_system.components.elements import icon as icon_package
 from dj_design_system.components.elements.button import button as button_module
-from dj_design_system.components.elements.icon import ICON_NAMES
 from dj_design_system.services import registry as registry_service
 from dj_design_system.templatetags import design_components
 from tests import conftest
+
+
+Button = button_package.Button
+ICON_NAMES = icon_package.ICON_NAMES
+TagComponent = components.TagComponent
 
 
 BUTTON_DIR = (

@@ -105,8 +105,10 @@ Build the co-located `dds__<name>` component in `dj_design_system/components/<co
 
 ## [DRIFT & CONTEXT NOTES]
 - Read `conductor/code_styleguides/dds-components.md`, `conductor/code_styleguides/python.md`, and `conductor/code_styleguides/html-css.md` before writing code.
+- **Python Imports (`python.md`):** Never import classes, functions, or constants directly (e.g. `from dj_design_system.components import TagComponent` is forbidden). Always import modules/submodules (`import typing`, `from dj_design_system import components, gallery, parameters, slots`, `from dj_design_system.components.elements import icon as icon_element`) and reference `components.TagComponent`, `parameters.StrParam`, `icon_element.ICON_NAMES`, etc. Never import the same module with both `import x` and `from x import y`.
+- **TypeScript Imports (`javascript.md`):** Always include the `.js` extension in relative TypeScript imports (`import type { DDSCustomElement } from "../../types.js";`).
 - Never define `@pytest.fixture` inside `tests/components/test_<name>.py`; use module-level helper functions.
-- Run `uv run --no-sync pytest tests/components/test_<name>.py` and `uv run --no-sync ruff check dj_design_system/components/<collection>/<name> tests/components/test_<name>.py`.
+- Run `just test-file tests/components/test_<name>.py` and `just check`.
 - <Insert any additional drift notes from earlier phases>
 ```
 
@@ -129,6 +131,7 @@ Build the co-located `dds__<name>` component in `dj_design_system/components/<co
 
 ## [DRIFT & CONTEXT NOTES]
 - Read `conductor/code_styleguides/dds-components.md` (Section 7) and `conductor/code_styleguides/javascript.md`.
+- Always include the `.js` extension in relative TypeScript imports (`import type { DDSCustomElement } from "../../types.js";`).
 - Compiled `<name>.js` files in `dj_design_system/components/**/*.js` are gitignored; verify compilation via `just build-ts`.
 - <Insert any additional drift notes from earlier phases>
 ```
@@ -149,9 +152,10 @@ Execute the `/code-review` audit on all files created or modified in the current
    - Check 100% co-location (`<name>.py`, `<name>.html`, `<name>.css`, `<name>.ts`, `gallery.py`, `index.md`).
    - Check zero BEM (`__` or `--`), `@layer blocks` wrapping, `margin: 0` on component roots, and Tier 3 `--_<component>-*` tokens mapped exclusively from Tier 2 `--dds-*` tokens.
    - Check Python-biased `get_context()` (no template filters for value computation, no `.render()` in Python, no `services/` imports in components).
+   - Check Python module-only imports (`from dj_design_system import components, gallery, parameters, slots`; zero direct class/constant imports; zero duplicate `import` + `from ... import` of the same module) and TypeScript `.js` import extensions (`from "../../types.js"`).
    - Check test files for zero inline `@pytest.fixture` decorators and module-level imports.
 3. Immediately fix any violations found using IDE edit tools.
-4. Run `just test`, `just check`, and `uv run --no-sync mypy dj_design_system`.
+4. Run `just test`, `just check`, and `just typecheck`.
 5. Return a <=25-line summary of fixes applied and verification output. Do NOT run any `git` stage/commit commands.
 
 ## [DRIFT & CONTEXT NOTES]

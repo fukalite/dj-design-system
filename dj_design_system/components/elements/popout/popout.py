@@ -1,13 +1,11 @@
 """Built-in interactive popout dropdown menu element component."""
 
-from typing import Any
+import typing
 
 from django.utils import safestring
 
-from dj_design_system.components import BlockComponent
-from dj_design_system.components.elements.icon import ICON_NAMES
-from dj_design_system.parameters import BoolParam, StrParam
-from dj_design_system.slots import Slot
+from dj_design_system import components, parameters, slots
+from dj_design_system.components.elements import icon as icon_element
 
 
 ALIGN_START = "start"
@@ -16,7 +14,7 @@ ALIGN_CHOICES: tuple[str, ...] = (ALIGN_START, ALIGN_END)
 DEFAULT_ALIGN = ALIGN_START
 
 
-class Popout(BlockComponent):
+class Popout(components.BlockComponent):
     """Accessible dropdown menu and popover primitive backed by ``<dds-popout>``.
 
     Renders a ``<dds-popout class="dds-popout">`` Light DOM custom element with
@@ -49,34 +47,34 @@ class Popout(BlockComponent):
     template_name = "dj_design_system/components/elements/popout/popout.html"
     _template_name = template_name
 
-    label = StrParam(
+    label = parameters.StrParam(
         description="Trigger button label.",
         default="",
         required=False,
     )
-    icon = StrParam(
+    icon = parameters.StrParam(
         description="Optional leading trigger icon name.",
         default="",
         required=False,
-        choices=["", *ICON_NAMES],
+        choices=["", *icon_element.ICON_NAMES],
     )
-    icon_only = BoolParam(
+    icon_only = parameters.BoolParam(
         description="Render icon-only trigger button.",
         default=False,
         required=False,
     )
-    align = StrParam(
+    align = parameters.StrParam(
         description="Menu horizontal alignment.",
         default=DEFAULT_ALIGN,
         required=False,
         choices=list(ALIGN_CHOICES),
     )
-    open = BoolParam(
+    open = parameters.BoolParam(
         description="Whether the popout menu is initially open.",
         default=False,
         required=False,
     )
-    menu_label = StrParam(
+    menu_label = parameters.StrParam(
         description="Accessible label for the floating menu.",
         default="",
         required=False,
@@ -85,7 +83,7 @@ class Popout(BlockComponent):
     class Meta:
         positional_args = ["label"]
         slots = {
-            "trigger": Slot(
+            "trigger": slots.Slot(
                 required=False,
                 description=(
                     "Optional custom trigger markup; when omitted, renders a "
@@ -103,7 +101,7 @@ class Popout(BlockComponent):
         content: safestring.SafeString | str | None = None,
         *,
         slots: dict[str, safestring.SafeString] | None = None,
-        **kwargs: Any,
+        **kwargs: typing.Any,
     ) -> None:
         """Initialise the popout component and preserve menu block content.
 
@@ -120,7 +118,7 @@ class Popout(BlockComponent):
         if content is not None:
             self.content = safestring.SafeString(content)
 
-    def get_context(self) -> dict[str, Any]:
+    def get_context(self) -> dict[str, typing.Any]:
         """Compute normalized template context for trigger, menu, and slots.
 
         Returns:
