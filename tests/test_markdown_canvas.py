@@ -67,6 +67,13 @@ class TestCanvasPreprocessor:
         result = self._process(text)
         assert 'loading="lazy"' in result
 
+    def test_iframe_does_not_force_opaque_origin_sandbox(self):
+        """Markdown canvas iframes must not set sandbox='allow-scripts' without same-origin (#185)."""
+        text = '```canvas\n{% button "Click" %}\n```'
+        result = self._process(text)
+        assert 'sandbox="allow-scripts"' not in result
+        assert "sandbox=" not in result
+
     def test_canvas_block_with_kwargs(self):
         text = '```canvas\n{% button "Click" %}\n```'
         result = self._process(text)
@@ -191,6 +198,18 @@ class TestCanvasExtension:
         assert html.count("gallery-md-canvas") >= 2
         assert "```canvas" not in html
         assert "```html+django" not in html
+
+    def test_ten_or_more_canvas_blocks_each_rendered_once(self):
+        """Token 1 must not match inside token 10+ when widgets are restored."""
+        count = 12
+        text = "\n\n".join(
+            f'```canvas\n{{% button "B{i}" %}}\n```' for i in range(1, count + 1)
+        )
+        html = self._render(text)
+        assert html.count('<div class="gallery-md-canvas ">') == count
+        for i in range(1, count + 1):
+            assert html.count(f'name="mc-toggle-{i}"') == 3
+        assert "CANVAS_STASH" not in html
 
 
 # ---------------------------------------------------------------------------

@@ -373,11 +373,10 @@ class TestNavTreeTemplate:
             in html
             or "gallery-nav__link--active" in html
         )
-        # Parent details should be open
+        # Parent folder should be expanded
         assert (
-            '<details class="gallery-nav__folder"\n             open>' in html
-            or '<details class="gallery-nav__folder" open>' in html
-            or " open>" in html
+            '<div class="gallery-nav__folder gallery-nav__folder--open">' in html
+            and 'aria-expanded="true"' in html
         )
 
     def test_component_with_variants_icon_renders(self):

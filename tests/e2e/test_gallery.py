@@ -166,6 +166,40 @@ class TestAppNavigation:
         page.wait_for_load_state("networkidle")
         assert "rich_button" in page.url
 
+    def test_folder_link_navigates_and_expands(self, page, gallery_url, live_server):
+        """Clicking a component-with-variants label opens its page, expanded."""
+        page.goto(gallery_url)
+        folder = page.locator(".gallery-nav__folder").filter(
+            has=page.get_by_role("link", name="Button", exact=True)
+        )
+        folder.get_by_role("link", name="Button", exact=True).click()
+        page.wait_for_load_state("networkidle")
+        assert page.url.rstrip("/").endswith("demo_components/button")
+        assert folder.get_by_role("button").get_attribute("aria-expanded") == "true"
+        assert folder.locator(".gallery-nav__link--variant").first.is_visible()
+
+    def test_folder_toggle_expands_without_navigating(
+        self, page, gallery_url, live_server
+    ):
+        """The toggle button shows/hides children without leaving the page."""
+        page.goto(gallery_url)
+        toggle = page.get_by_role("button", name="Toggle Button", exact=True)
+        variants = page.locator(
+            ".gallery-nav__folder:has(> div > button[aria-label='Toggle Button'])"
+            " .gallery-nav__link--variant"
+        ).first
+        assert toggle.get_attribute("aria-expanded") == "false"
+        assert not variants.is_visible()
+
+        toggle.click()
+        assert toggle.get_attribute("aria-expanded") == "true"
+        assert variants.is_visible()
+        assert page.url == gallery_url
+
+        toggle.click()
+        assert toggle.get_attribute("aria-expanded") == "false"
+        assert not variants.is_visible()
+
 
 # ---------------------------------------------------------------------------
 # Markdown documentation pages
@@ -240,3 +274,45 @@ class TestToolbarStatePersistence:
             '[data-zoom="150"].gallery-sandbox-toolbar__popout-option--active'
         )
         assert active.count() == 1
+
+
+# ---------------------------------------------------------------------------
+# Basic-mode auto-height
+# ---------------------------------------------------------------------------
+
+
+# Samples the iframe's height over several animation frames and measures its
+# viewport against the canvas wrapper inside it.
+_MEASURE_PREVIEW_JS = """async (selector) => {
+    const iframe = document.querySelector(selector);
+    const heights = [];
+    for (let i = 0; i < 20; i++) {
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        heights.push(iframe.offsetHeight);
+    }
+    const wrapper = iframe.contentDocument.querySelector(".canvas-wrapper");
+    return {
+        heights: heights,
+        viewport: iframe.clientHeight,
+        content: wrapper.offsetHeight,
+    };
+}"""
+
+
+class TestBasicCanvasAutoHeight:
+    """Basic-mode preview iframes size to their content and stay put (#111)."""
+
+    def test_preview_iframe_settles_at_content_height(self, page, live_server):
+        # user_card renders taller than the iframe's 60px min-height, so a
+        # shrink loop would not be masked by the CSS floor.
+        selector = 'iframe[data-canvas-id="minimal"]'
+        page.goto(f"{live_server.url}/dds/demo_components/user_card/")
+        page.wait_for_function(
+            f"document.querySelector('{selector}').style.height !== ''"
+        )
+
+        result = page.evaluate(_MEASURE_PREVIEW_JS, selector)
+
+        assert result["content"] > 60
+        assert len(set(result["heights"])) == 1
+        assert result["viewport"] == result["content"]

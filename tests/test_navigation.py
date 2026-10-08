@@ -948,9 +948,63 @@ def test_promote_to_app_integration(registry_with_two_apps):
 
     promoted_node = next(n for n in tree if n.slug == "promoted")
     assert promoted_node.node_type == NodeType.APP
+    assert promoted_node.app_label == "demo_components"
 
     # Verify children of promoted app receive re-annotated _app_label, _path_parts and correct URLs
+    # while preserving their owning Django app_label (#187)
     for child in promoted_node.children:
+        assert child.app_label == "demo_components"
         assert child._app_label == "promoted"
         assert child._path_parts == [child.slug]
         assert "/promoted/" in child.url
+
+
+def test_is_nav_folder_open_matches_only_self_or_descendants() -> None:
+    from dj_design_system.services import navigation as navigation_service
+
+    folder = NavNode(
+        label="Card",
+        slug="card",
+        node_type=NodeType.FOLDER,
+        active_path="demo_components/card",
+        base_active_path="demo_components/card",
+    )
+
+    assert navigation_service.is_nav_folder_open(
+        node=folder, active_path="demo_components/card"
+    )
+    assert navigation_service.is_nav_folder_open(
+        node=folder, active_path="demo_components/card/info_card"
+    )
+    assert not navigation_service.is_nav_folder_open(
+        node=folder, active_path="demo_components/cards"
+    )
+    assert not navigation_service.is_nav_folder_open(
+        node=folder, active_path="demo_components/card_header"
+    )
+    assert not navigation_service.is_nav_folder_open(
+        node=folder, active_path="other_app/demo_components/card"
+    )
+    assert not navigation_service.is_nav_folder_open(node=folder, active_path="")
+
+
+def test_leaf_index_doc_folder_renders_doc_icon(tmp_path) -> None:
+    from django.template.loader import render_to_string
+
+    index_md = tmp_path / "index.md"
+    index_md.write_text("# Quote One-Up", encoding="utf-8")
+    node = NavNode(
+        label="Quote oneup",
+        slug="quote_oneup",
+        node_type=NodeType.FOLDER,
+        index_doc_path=index_md,
+        url="/gallery/demo_nav/elements/quote_oneup/",
+        active_path="demo_nav/elements/quote_oneup",
+        base_active_path="demo_nav/elements/quote_oneup",
+    )
+    html = render_to_string(
+        "dj_design_system/gallery/navtree.html",
+        context={"node": node, "depth": 2, "active_path": "", "active_variant": ""},
+    )
+    assert "gallery-nav__icon--doc" in html
+    assert 'data-depth="2"' in html

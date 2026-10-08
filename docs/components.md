@@ -393,7 +393,7 @@ In addition to explicitly declared parameters, components automatically receive 
 - `{attrs}`: The compiled string of all `attr` and `data_attr` HTML attributes securely escaped.
 - `{param_name}_attr`: Individual string representation of the HTML attribute mapped from `param_name`.
 
-> **Installation required.** The `ComponentsTemplateLoader` must be added to your `TEMPLATES` loader list. See the [quickstart](quickstart.md#template-loader-html-templates) for the exact configuration.
+> **Installation required.** The `ComponentsTemplateLoader` must be added to your `TEMPLATES` loader list. See the [quickstart](quickstart.md#templates) for the exact configuration.
 
 ### Explicit `template_name`
 

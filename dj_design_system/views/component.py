@@ -15,6 +15,7 @@ from dj_design_system.forms import build_component_form
 from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.parameters.base import _get_type_name
 from dj_design_system.parameters.model import ModelParam
+from dj_design_system.services import markdown as markdown_service
 from dj_design_system.services.canvas import (
     build_canvas_url,
     merge_variant_params,
@@ -435,6 +436,7 @@ def _render_component(request, context, node, app_label, path_parts):
     # active_theme and available_themes are already provided by get_base_context,
     # but we override active_theme with the resolved component-specific one for the UI overrides.
     # Note: the global available_themes from base context shouldn't be overwritten.
+    context["active_theme"] = active_theme
     context["sandbox_active_theme"] = active_theme
     component_label = to_display_label(info.name, component=info)
     crumbs = build_breadcrumbs(
@@ -448,11 +450,11 @@ def _render_component(request, context, node, app_label, path_parts):
     context["breadcrumbs"] = crumbs
 
     if node.has_index_doc:
-        from dj_design_system.services.markdown import render_markdown_doc
-
-        theme_dict = get_theme(context.get("active_theme"))
-        context["doc_html"] = render_markdown_doc(
-            node.index_doc_path, app_label, theme_dict=theme_dict
+        theme_dict = get_theme(identifier=active_theme) or get_default_theme()
+        context["doc_html"] = markdown_service.render_markdown_doc(
+            file_path=node.index_doc_path,
+            app_label=info.app_label,
+            theme_dict=theme_dict,
         )
 
     if request.headers.get("HX-Request"):

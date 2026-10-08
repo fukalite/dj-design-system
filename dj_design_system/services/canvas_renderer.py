@@ -90,13 +90,38 @@ def build_theme_app_media(
     return theme_app_css_tags, theme_app_js_tags
 
 
-def build_bg_styles() -> str:
-    """Build CSS rules for all configured canvas backgrounds."""
-    bg_rules = "".join(
-        f".canvas-bg-{bg['value']}{{background:{bg['color']};}}"
-        for bg in get_backgrounds()
-    )
-    return f"<style>{bg_rules}</style>"
+def build_canvas_bg_styles(
+    *,
+    theme_dict: Optional[Theme] = None,
+    csp_nonce: Optional[str] = None,
+) -> str:
+    """Generate ``<style>`` CSS rules for all configured canvas backgrounds.
+
+    Args:
+        theme_dict: Optional active theme containing custom canvas background rules.
+        csp_nonce: Optional CSP nonce string for the ``<style>`` tag.
+
+    Returns:
+        A ``<style>`` HTML string defining background colour rules.
+    """
+    rules = []
+    for bg in get_backgrounds():
+        rules.append(
+            f".canvas-bg-{bg['value']}, body:has(.canvas-bg-{bg['value']}) {{ background: {bg['color']}; }}"
+        )
+
+    if theme_dict and isinstance(theme_dict.canvas_background, dict):
+        bg = theme_dict.canvas_background
+        if "color" in bg:
+            rules.append(
+                f".canvas-bg-theme-{theme_dict.value}, body:has(.canvas-bg-theme-{theme_dict.value}) {{ background: {bg['color']}; }}"
+            )
+
+    nonce_attr = ""
+    if csp_nonce:
+        nonce_attr = f' nonce="{html.escape(str(csp_nonce))}"'
+
+    return f"<style{nonce_attr}>\n" + "\n".join(rules) + "\n</style>"
 
 
 def build_resize_script(iframe_id: str = "") -> str:
@@ -105,11 +130,11 @@ def build_resize_script(iframe_id: str = "") -> str:
     return (
         "<script>"
         "(function(){"
-        'var w=document.querySelector(".canvas-wrapper");'
+        'const w=document.querySelector(".canvas-wrapper");'
         "if(!w||!window.parent||window.parent===window)return;"
         "new ResizeObserver(function(){"
         "window.parent.postMessage({"
-        f'type:"canvas-resize",{id_field}height:document.documentElement.scrollHeight'
+        f'type:"canvas-resize",{id_field}height:Math.max(w.scrollHeight,w.offsetHeight)'
         '},"*");'
         "}).observe(w);"
         "})();"
@@ -184,7 +209,7 @@ def build_canvas_srcdoc(
         bg_class = f"canvas-bg-{get_default_background()['value']}"
 
     theme_app_css_tags, theme_app_js_tags = build_theme_app_media(theme_dict, app_label)
-    bg_styles = build_bg_styles()
+    bg_styles = build_canvas_bg_styles(theme_dict=theme_dict)
     resize_script = build_resize_script(iframe_id=iframe_id)
     html_attrs_str, body_attrs_str = build_html_attrs(theme_dict, app_label)
 

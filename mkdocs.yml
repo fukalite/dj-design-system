@@ -45,6 +45,9 @@ plugins:
             docstring_style: google
             merge_init_into_class: true
 
+markdown_extensions:
+  - attr_list
+
 nav:
   - Home: index.md
   - Quick Start: quickstart.md

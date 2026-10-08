@@ -74,7 +74,6 @@ def _build_widget_html(
         "source_html": code_markup,
         "rendered_output_html": html_markup,
         "iframe_srcdoc": srcdoc,
-        "sandbox_attrs": "allow-scripts",
     }
     return render_to_string("dj_design_system/canvas_widget.html", context)
 
@@ -186,6 +185,11 @@ class CanvasPreprocessor(Preprocessor):
 # ---------------------------------------------------------------------------
 
 
+# Matches a whole stash token, optionally wrapped in a paragraph. ``\d+`` is
+# greedy, so ``CANVAS_STASH_1`` never matches inside ``CANVAS_STASH_10``.
+_STASH_TOKEN_RE = re.compile(r"<p>(CANVAS_STASH_\d+)</p>|(CANVAS_STASH_\d+)")
+
+
 class CanvasPostprocessor(Postprocessor):
     """Postprocessor to restore canvas widget HTML."""
 
@@ -194,11 +198,12 @@ class CanvasPostprocessor(Postprocessor):
         self.stash = stash
 
     def run(self, text: str) -> str:
-        for token, html_str in self.stash.items():
-            # Paragraph processor might have wrapped our token
-            text = text.replace(f"<p>{token}</p>", html_str)
-            text = text.replace(token, html_str)
-        return text
+        # Single pass, so restored widget HTML is never rescanned for tokens.
+        return _STASH_TOKEN_RE.sub(self._restore, text)
+
+    def _restore(self, match: re.Match) -> str:
+        token = match.group(1) or match.group(2)
+        return self.stash.get(token, match.group(0))
 
 
 class CanvasExtension(Extension):

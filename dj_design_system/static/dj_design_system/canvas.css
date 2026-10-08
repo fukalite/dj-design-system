@@ -65,6 +65,7 @@ body {
 }
 
 .canvas-wrapper--basic {
+  min-height: 0;
   padding: 16px;
 }
 
