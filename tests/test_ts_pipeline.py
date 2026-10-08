@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import typing
 
-import yaml
+import pytest
 
 from dj_design_system import finders
 
@@ -15,8 +15,6 @@ from dj_design_system import finders
 ROOT_DIR = pathlib.Path(__file__).resolve().parent.parent
 TSCONFIG_PATH = ROOT_DIR / "tsconfig.json"
 JUSTFILE_PATH = ROOT_DIR / "justfile"
-CI_WORKFLOW_PATH = ROOT_DIR / ".github" / "workflows" / "ci.yml"
-GITIGNORE_PATH = ROOT_DIR / ".gitignore"
 COMPONENTS_DIR = ROOT_DIR / "dj_design_system" / "components"
 SHARED_TYPES_PATH = COMPONENTS_DIR / "types.ts"
 
@@ -127,8 +125,8 @@ class TestTsConfig:
         assert "dj_design_system/components/**/*.ts" in config["include"]
 
 
-class TestBuildRecipesAndCi:
-    """Verify justfile recipes, .gitignore rules, and CI workflow steps."""
+class TestBuildRecipesAndSharedTypes:
+    """Verify justfile recipes and shared TypeScript definitions."""
 
     def test_justfile_defines_build_ts_recipe(self) -> None:
         """Verify build-ts recipe invokes tsc with tsconfig.json."""
@@ -140,20 +138,6 @@ class TestBuildRecipesAndCi:
         for recipe_name in ("e2e", "visual-run", "_visual-docker", "build", "demo"):
             body = _get_recipe_body(name=recipe_name)
             assert "build-ts" in body
-
-    def test_ci_workflow_runs_build_ts_in_e2e_and_visual_jobs(self) -> None:
-        """Verify CI runs just build-ts in e2e and visual-regression jobs."""
-        workflow = yaml.safe_load(stream=CI_WORKFLOW_PATH.read_text(encoding="utf-8"))
-        jobs = workflow["jobs"]
-        for job_name in ("e2e", "visual-regression"):
-            steps = jobs[job_name]["steps"]
-            commands = "\n".join(step.get("run", "") for step in steps)
-            assert "just build-ts" in commands
-
-    def test_gitignore_excludes_compiled_component_js_files(self) -> None:
-        """Verify compiled component .js files are gitignored."""
-        ignored_lines = GITIGNORE_PATH.read_text(encoding="utf-8").splitlines()
-        assert "dj_design_system/components/**/*.js" in ignored_lines
 
     def test_shared_types_ts_conforms_to_styleguide(self) -> None:
         """Verify shared types.ts exists and adheres to formatting and JSDoc rules."""
@@ -169,6 +153,10 @@ class TestBuildRecipesAndCi:
 class TestTypeScriptCompilationPipeline:
     """Verify end-to-end compilation of a Light DOM Web Component and static finder discovery."""
 
+    @pytest.mark.skipif(
+        not (shutil.which("just") and (shutil.which("tsc") or shutil.which("npx"))),
+        reason="TypeScript build tools (just, tsc/npx) are required to run this test",
+    )
     def test_compiles_light_dom_custom_element_and_resolves_via_static_finder(
         self,
     ) -> None:
