@@ -40,7 +40,7 @@ class Tabs(components.BlockComponent):
 
     tabs = parameters.ListParam(
         description="List of tab items (dicts with 'id', 'label', and optional 'icon', 'badge', 'content').",
-        default=[],
+        default=None,
         required=False,
     )
     active_tab = parameters.StrParam(

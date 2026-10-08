@@ -38,7 +38,7 @@ class Breadcrumb(components.TagComponent):
             "Ordered list of trail items (dicts with 'label' and optional "
             "'url'/'href' and 'icon')."
         ),
-        default=[],
+        default=None,
         required=False,
     )
     aria_label = parameters.StrParam(

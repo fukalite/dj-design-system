@@ -37,8 +37,8 @@ To prevent context window exhaustion across Tracks 2–7, the main session acts 
      4. **Run Phase Review & Commit:** Run `dds-reviewer` (`/code-review`), `just build-ts`, `just test`, `just check`, and `just typecheck`, then create a dedicated phase commit.
 
 ### Canonical Shared Contracts & Drift Ledger
-- **`dj_design_system/components/types.ts`:** Exports `DdsCustomEventDetail` and `DDSCustomElement` (`connectedCallback(): void; disconnectedCallback(): void`). Subagents must import `type { DDSCustomElement } from "../../types";` directly—never add `declare module` augmentations in `<name>.ts`.
-- **`ListParam` Defaults:** `ListParam` validates `isinstance(default, list)` at class definition time; always pass `default=[]` (never `default=list`) and copy/normalise the list inside `get_context()`.
+- **`dj_design_system/components/types.ts`:** Exports `DdsCustomEventDetail` and `DDSCustomElement` (`connectedCallback(): void; disconnectedCallback(): void`). Subagents must import `type { DDSCustomElement } from '../../types.js';` directly—never add `declare module` augmentations in `<name>.ts`.
+- **`ListParam` / `DictParam` Defaults (`python.md`):** Never pass a mutable default (`default=[]` or `default={}`) or `default=list`; when `required=False`, pass `default=None` and normalise `list(self.items) if self.items else []` inside `get_context()`.
 - **`dds__icon` Contract (`dj_design_system/components/elements/icon/`):** Exports `Icon` and `ICON_NAMES` (26 icons: `external-link`, `eye`, `code`, `file-code`, `monitor`, `box-model`, `ruler`, `rtl`, `component`, `doc`, `folder`, `folder-open`, `search`, `menu`, `close`, `chevron-right`, `chevron-down`, `copy`, `check`, `sun`, `moon`, `reset`, `info`, `success`, `warning`, `error`). Accepts `name` (positional), `size` (`xs`, `sm`, `md`, `lg`), `label`.
 
 ---
@@ -105,9 +105,9 @@ Build the co-located `dds__<name>` component in `dj_design_system/components/<co
 
 ## [DRIFT & CONTEXT NOTES]
 - Read `conductor/code_styleguides/dds-components.md`, `conductor/code_styleguides/python.md`, and `conductor/code_styleguides/html-css.md` before writing code.
-- **Python Imports (`python.md`):** Never import classes, functions, or constants directly (e.g. `from dj_design_system.components import TagComponent` is forbidden). Always import modules/submodules (`import typing`, `from dj_design_system import components, gallery, parameters, slots`, `from dj_design_system.components.elements import icon as icon_element`) and reference `components.TagComponent`, `parameters.StrParam`, `icon_element.ICON_NAMES`, etc. Never import the same module with both `import x` and `from x import y`.
+- **Python Imports & Defaults (`python.md`):** Never import classes, functions, or constants directly (e.g. `from dj_design_system.components import TagComponent` is forbidden). Always import modules/submodules (`import typing`, `from dj_design_system import components, gallery, parameters, slots`, `from dj_design_system.components.elements import icon as icon_element`) and reference `components.TagComponent`, `parameters.StrParam`, `icon_element.ICON_NAMES`, etc. Never import the same module with both `import x` and `from x import y`. Never use mutable defaults (`default=[]` or `default={}`) on `ListParam` or `DictParam`—use `default=None` when `required=False`. Always use keyword arguments when calling functions (`safestring.mark_safe(s=val)`).
 - **Component Methods & Booleans (`layered-architecture.md` & `python.md`):** Do not define private helper methods (`def _foo(...)`) on Component classes (Gemini Code Review flags private methods on interface layer classes). Keep `get_context()` self-contained. Use implicit boolean evaluation (`not self.label`) instead of `not bool(self.label)`.
-- **TypeScript Imports & Strings (`javascript.md`):** Always include the `.js` extension in relative TypeScript imports and use single quotes (`'`) for all string literals (`import type { DDSCustomElement } from '../../types.js';`).
+- **TypeScript Imports, Strings & JSDoc (`javascript.md`):** Always include the `.js` extension in relative TypeScript imports, use single quotes (`'`) for all string literals (`import type { DDSCustomElement } from '../../types.js';`), and include JSDoc comments on all classes, fields (including private fields), and methods.
 - Never define `@pytest.fixture` inside `tests/components/test_<name>.py`; use module-level helper functions.
 - Run `just test-file tests/components/test_<name>.py` and `just check`.
 - <Insert any additional drift notes from earlier phases>
@@ -132,7 +132,7 @@ Build the co-located `dds__<name>` component in `dj_design_system/components/<co
 
 ## [DRIFT & CONTEXT NOTES]
 - Read `conductor/code_styleguides/dds-components.md` (Section 7) and `conductor/code_styleguides/javascript.md`.
-- Always include the `.js` extension in relative TypeScript imports and use single quotes (`'`) for all string literals (`import type { DDSCustomElement } from '../../types.js';`).
+- Always include the `.js` extension in relative TypeScript imports, use single quotes (`'`) for all string literals (`import type { DDSCustomElement } from '../../types.js';`), and include JSDoc comments on all classes, fields (including private fields), and methods.
 - Compiled `<name>.js` files in `dj_design_system/components/**/*.js` are gitignored; verify compilation via `just build-ts`.
 - <Insert any additional drift notes from earlier phases>
 ```

@@ -15,7 +15,14 @@ export class DDSCodeBlockElement
   extends HTMLElement
   implements DDSCustomElement
 {
+  /**
+   * Instance AbortController used to clean up event listeners on disconnect.
+   */
   private abortController: AbortController | null = null;
+
+  /**
+   * Active window timeout identifier for resetting the copied status indicator.
+   */
   private copyResetTimer: number | null = null;
 
   /**

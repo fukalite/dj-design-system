@@ -10,6 +10,9 @@ import type { DDSCustomElement } from '../../types.js';
  * Escape and outside-click dismissal, and `dds:popout-select` dispatching.
  */
 export class DDSPopoutElement extends HTMLElement implements DDSCustomElement {
+  /**
+   * Instance AbortController used to clean up event listeners on disconnect.
+   */
   private abortController: AbortController | null = null;
 
   /**

@@ -129,7 +129,7 @@ class TestBreadcrumbParametersAndContext:
         """Verify default parameters produce empty normalized_items and has_items=False."""
         comp = breadcrumb_module.Breadcrumb()
         ctx = comp.get_context()
-        assert comp.items == []
+        assert comp.items is None
         assert ctx["aria_label"] == "Breadcrumb"
         assert ctx["separator_icon"] == "chevron-right"
         assert ctx["normalized_items"] == []

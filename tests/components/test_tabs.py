@@ -137,7 +137,7 @@ class TestTabsParametersAndContext:
         """Verify default parameters produce empty normalized_tabs and resolved_active=''."""
         comp = tabs_module.Tabs()
         ctx = comp.get_context()
-        assert comp.tabs == []
+        assert comp.tabs is None
         assert comp.active_tab == ""
         assert ctx["aria_label"] == "Tabs"
         assert ctx["resolved_active"] == ""
