@@ -81,11 +81,10 @@ class FormField(components.BlockComponent):
         """
         super().__init__(content=content, slots=slots, **kwargs)
         self.slots = {
-            name: safestring.mark_safe(s=val) if val else val
+            name: safestring.mark_safe(val) if val else val
             for name, val in (self.slots or {}).items()
         }
-        if content is not None:
-            self.content = safestring.mark_safe(s=content)
+        self.content = safestring.mark_safe(content) if content is not None else ""
 
     def get_context(self) -> dict[str, typing.Any]:
         """Build template context with pre-computed boolean flags and slot fallbacks.

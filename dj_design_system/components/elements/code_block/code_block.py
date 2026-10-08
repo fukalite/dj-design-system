@@ -68,7 +68,7 @@ class CodeBlock(components.TagComponent):
         context = super().get_context()
         title = "" if self.title is None else str(self.title)
         language = "" if self.language is None else str(self.language)
-        stripped_code = str(self.code).strip("\r\n")
+        stripped_code = str(self.code).strip("\r\n") if self.code is not None else ""
         has_title = bool(title)
         has_language = bool(language)
         header_label = title if title else language
