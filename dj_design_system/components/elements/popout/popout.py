@@ -132,7 +132,7 @@ class Popout(components.BlockComponent):
             str(self.menu_label) if self.menu_label else str(self.label)
         )
         has_icon = bool(self.icon)
-        show_label = bool(self.label) and not bool(self.icon_only)
+        show_label = bool(self.label) and not self.icon_only
         aria_label = str(self.label) if self.icon_only else None
 
         context["align"] = self.align or DEFAULT_ALIGN

@@ -147,7 +147,7 @@ class Button(components.TagComponent):
         variant = self.variant or DEFAULT_VARIANT
         size = self.size or DEFAULT_SIZE
         button_type = self.button_type or DEFAULT_BUTTON_TYPE
-        is_link = bool(self.href) and not bool(self.disabled)
+        is_link = bool(self.href) and not self.disabled
         resolved_href = self.href if is_link else None
         resolved_target = self.target if (is_link and self.target) else None
         resolved_rel = (
@@ -158,8 +158,8 @@ class Button(components.TagComponent):
         )
         aria_label = self.label if self.icon_only else None
         has_icon = bool(self.icon)
-        has_trailing_icon = bool(self.icon_trailing) and not bool(self.icon_only)
-        show_label = bool(self.label) and not bool(self.icon_only)
+        has_trailing_icon = bool(self.icon_trailing) and not self.icon_only
+        show_label = bool(self.label) and not self.icon_only
         icon_size = SMALL_SIZE if size == SMALL_SIZE else MEDIUM_SIZE
         has_action = bool(self.action)
 

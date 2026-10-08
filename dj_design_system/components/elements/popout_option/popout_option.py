@@ -78,7 +78,7 @@ class PopoutOption(components.TagComponent):
             values.
         """
         context = super().get_context()
-        is_link = bool(self.href) and not bool(self.disabled)
+        is_link = bool(self.href) and not self.disabled
         resolved_value = str(self.value) if self.value else str(self.label)
         aria_checked = "true" if self.selected else "false"
         has_icon = bool(self.icon)
