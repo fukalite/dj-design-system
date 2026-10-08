@@ -135,6 +135,8 @@ class DjangoLangPreprocessor(Preprocessor):
 class CanvasPreprocessor(Preprocessor):
     """Preprocessor that extracts ```canvas blocks and replaces them with iframe widgets."""
 
+    app_label: str
+
     def __init__(self, md: Markdown, app_label: str, debug: bool, theme_dict=None):
         super().__init__(md)
         self.app_label = app_label
@@ -160,7 +162,7 @@ class CanvasPreprocessor(Preprocessor):
             media = component_registry.get_merged_media()
             css_paths = list(media.css)
             js_paths = list(media.js)
-            if getattr(self, "app_label", None) == "dj_design_system":
+            if self.app_label == "dj_design_system":
                 internal_media = component_registry.get_internal_media()
                 css_paths = list(
                     dict.fromkeys(

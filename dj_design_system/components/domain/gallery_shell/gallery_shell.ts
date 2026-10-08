@@ -225,7 +225,7 @@ export class DDSGalleryShellElement
       try {
         const iframeUrl = new URL(rawSrc, window.location.origin);
         iframeUrl.searchParams.set('_dds_theme', theme);
-        iframe.src = `${iframeUrl.pathname}${iframeUrl.search}`;
+        iframe.src = iframeUrl.toString();
       } catch {
         // Ignore invalid iframe URLs.
       }
