@@ -122,14 +122,19 @@ class Sidebar(components.BlockComponent):
                     kwargs["active_variant"],
                 )
             )
-        super().__init__(content=content, slots=slots, **kwargs)
-        self.slots = {
+        normalized_slots = {
             name: safestring.SafeString(val) if val else val
-            for name, val in (self.slots or {}).items()
+            for name, val in (slots or {}).items()
         }
-        self.content = (
+        normalized_content = (
             safestring.SafeString(content) if content is not None else ""
         )
+        super().__init__(
+            content=normalized_content,
+            slots=normalized_slots,
+            **kwargs,
+        )
+        self.content = normalized_content
 
     def get_context(self) -> dict[str, typing.Any]:
         """Compute normalized template context for the sidebar landmark and slots.
@@ -142,8 +147,10 @@ class Sidebar(components.BlockComponent):
         brand_name = self.brand_name or DEFAULT_BRAND_NAME
         brand_url = self.brand_url or DEFAULT_BRAND_URL
         aria_label = self.aria_label or DEFAULT_ARIA_LABEL
-        nodes = list(self.nodes) if self.nodes else []
-        search_index = list(self.search_index) if self.search_index else []
+        nodes = list(self.nodes) if self.nodes is not None else []
+        search_index = (
+            list(self.search_index) if self.search_index is not None else []
+        )
         has_header_slot = bool(self.slots and self.slots.get("header"))
         has_footer_slot = bool(self.slots and self.slots.get("footer"))
         has_content = bool(self.content and str(self.content).strip())

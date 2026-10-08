@@ -76,7 +76,7 @@ class FolderListing(components.TagComponent):
             ``show_debug_hint``.
         """
         context = super().get_context()
-        raw_items = list(self.items) if self.items else []
+        raw_items = list(self.items) if self.items is not None else []
         normalized_items: list[dict[str, typing.Any]] = []
 
         for raw_item in raw_items:
@@ -154,8 +154,14 @@ class FolderListing(components.TagComponent):
                 child_count = max(0, raw_child_count)
             elif raw_has_children is False:
                 child_count = 0
+            elif isinstance(raw_children, (list, tuple, set)):
+                child_count = len(raw_children)
             elif raw_children is not None:
-                child_count = len(list(raw_children))
+                child_count = (
+                    raw_children.count()
+                    if hasattr(raw_children, "count")
+                    else len(list(raw_children))
+                )
             else:
                 child_count = 0
 

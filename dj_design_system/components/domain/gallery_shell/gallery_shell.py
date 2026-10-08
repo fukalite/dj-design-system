@@ -145,14 +145,19 @@ class GalleryShell(components.BlockComponent):
                     kwargs["active_variant"],
                 )
             )
-        super().__init__(content=content, slots=slots, **kwargs)
-        self.slots = {
+        normalized_slots = {
             name: safestring.SafeString(val) if val else val
-            for name, val in (self.slots or {}).items()
+            for name, val in (slots or {}).items()
         }
-        self.content = (
+        normalized_content = (
             safestring.SafeString(content) if content is not None else ""
         )
+        super().__init__(
+            content=normalized_content,
+            slots=normalized_slots,
+            **kwargs,
+        )
+        self.content = normalized_content
 
     def get_context(self) -> dict[str, typing.Any]:
         """Compute normalized template context for the gallery shell regions and child components.
@@ -164,10 +169,14 @@ class GalleryShell(components.BlockComponent):
         brand_name = self.brand_name or DEFAULT_BRAND_NAME
         brand_url = self.brand_url or DEFAULT_BRAND_URL
         resolved_theme = self.active_theme or DEFAULT_ACTIVE_THEME
-        nodes = list(self.nodes) if self.nodes else []
-        breadcrumbs = list(self.breadcrumbs) if self.breadcrumbs else []
-        themes = list(self.themes) if self.themes else []
-        search_index = list(self.search_index) if self.search_index else []
+        nodes = list(self.nodes) if self.nodes is not None else []
+        breadcrumbs = (
+            list(self.breadcrumbs) if self.breadcrumbs is not None else []
+        )
+        themes = list(self.themes) if self.themes is not None else []
+        search_index = (
+            list(self.search_index) if self.search_index is not None else []
+        )
         has_topbar_slot = bool(self.slots and self.slots.get("topbar"))
         has_sidebar_slot = bool(self.slots and self.slots.get("sidebar"))
         has_toolbar_actions_slot = bool(

@@ -105,7 +105,9 @@ class SearchBox(components.TagComponent):
             ``search_index_json``.
         """
         context = super().get_context()
-        raw_index = list(self.search_index) if self.search_index else []
+        raw_index = (
+            list(self.search_index) if self.search_index is not None else []
+        )
         normalized_index: list[dict[str, str]] = []
 
         for raw_entry in raw_index:

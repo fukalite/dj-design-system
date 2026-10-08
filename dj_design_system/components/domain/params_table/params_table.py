@@ -77,7 +77,7 @@ class ParamsTable(components.TagComponent):
             ``title``, ``has_title``, and ``empty_message``.
         """
         context = super().get_context()
-        raw_params = list(self.params) if self.params else []
+        raw_params = list(self.params) if self.params is not None else []
         normalized_params: list[dict[str, typing.Any]] = []
 
         for raw_item in raw_params:
@@ -131,7 +131,11 @@ class ParamsTable(components.TagComponent):
             default_display = (
                 str(raw_default) if has_default else EMPTY_CELL_PLACEHOLDER
             )
-            choices = [str(choice) for choice in raw_choices] if raw_choices else []
+            choices = (
+                [str(choice) for choice in raw_choices]
+                if raw_choices is not None
+                else []
+            )
             has_choices = bool(choices)
             description = (
                 str(raw_description)
@@ -155,7 +159,7 @@ class ParamsTable(components.TagComponent):
                 }
             )
 
-        raw_slots = list(self.slots_list) if self.slots_list else []
+        raw_slots = list(self.slots_list) if self.slots_list is not None else []
         normalized_slots: list[dict[str, typing.Any]] = []
 
         for raw_slot in raw_slots:

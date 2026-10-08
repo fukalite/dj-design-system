@@ -73,10 +73,11 @@ class Prose(components.BlockComponent):
             slots: Optional slot dictionary.
             **kwargs: Component parameter keyword arguments.
         """
-        super().__init__(content=content, slots=slots, **kwargs)
-        self.content = (
+        normalized_content = (
             safestring.SafeString(content) if content is not None else ""
         )
+        super().__init__(content=normalized_content, slots=slots, **kwargs)
+        self.content = normalized_content
 
     def get_context(self) -> dict[str, typing.Any]:
         """Compute template context with resolved prose HTML, title, and measure state.

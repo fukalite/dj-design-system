@@ -77,7 +77,7 @@ class ThemeSelect(components.TagComponent):
             ``has_multiple_themes``.
         """
         context = super().get_context()
-        raw_themes = list(self.themes) if self.themes else []
+        raw_themes = list(self.themes) if self.themes is not None else []
         extracted_themes: list[tuple[str, str]] = []
 
         for raw_item in raw_themes:

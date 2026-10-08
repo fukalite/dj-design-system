@@ -109,7 +109,7 @@ class NavTree(components.TagComponent):
         )
         raw_active_path = (self.active_path or "").split("?")[0].strip("/")
 
-        raw_root_nodes = list(self.nodes) if self.nodes else []
+        raw_root_nodes = list(self.nodes) if self.nodes is not None else []
         normalized_nodes: list[dict[str, typing.Any]] = []
         work_stack: list[
             tuple[typing.Any, int, list[dict[str, typing.Any]], str]
@@ -170,7 +170,7 @@ class NavTree(components.TagComponent):
 
             raw_children = (
                 list(raw_children_val)
-                if raw_children_val and depth < MAX_TREE_DEPTH
+                if raw_children_val is not None and depth < MAX_TREE_DEPTH
                 else []
             )
             has_children = bool(raw_children) or bool(raw_has_children)
