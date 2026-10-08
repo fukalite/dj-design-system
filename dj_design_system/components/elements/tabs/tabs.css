@@ -1,0 +1,109 @@
+@layer blocks {
+  dds-tabs {
+    --_tabs-border-color: var(--dds-surface-border-color);
+    --_tabs-border-radius: var(--dds-control-border-radius);
+    --_tabs-border-style: var(--dds-control-border-style);
+    --_tabs-border-width: var(--dds-control-border-width);
+    --_tabs-focus-outline-color: var(--dds-state-focus-outline-color);
+    --_tabs-focus-outline-offset: var(--dds-state-focus-outline-offset);
+    --_tabs-focus-outline-style: var(--dds-state-focus-outline-style);
+    --_tabs-focus-outline-width: var(--dds-state-focus-outline-width);
+    --_tabs-font: var(--dds-text-control-font);
+    --_tabs-font-size: var(--dds-text-control-size);
+    --_tabs-font-weight: var(--dds-text-control-weight);
+    --_tabs-gap: var(--dds-space-2xs);
+    --_tabs-hover-bg-color: var(--dds-state-hover-bg-color);
+    --_tabs-hover-text-color: var(--dds-state-hover-text-color);
+    --_tabs-letter-spacing: var(--dds-text-control-letter-spacing);
+    --_tabs-line-height: var(--dds-text-control-line-height);
+    --_tabs-panel-bg-color: var(--dds-surface-bg-color);
+    --_tabs-panel-font: var(--dds-text-body-font);
+    --_tabs-panel-font-size: var(--dds-text-body-size);
+    --_tabs-panel-line-height: var(--dds-text-body-line-height);
+    --_tabs-panel-padding-block: var(--dds-space-md);
+    --_tabs-panel-text-color: var(--dds-text-default-color);
+    --_tabs-selected-bg-color: var(--dds-state-selected-bg-color);
+    --_tabs-selected-border-color: var(--dds-state-selected-border-color);
+    --_tabs-selected-text-color: var(--dds-state-selected-text-color);
+    --_tabs-tab-bg-color: var(--dds-state-interactive-bg-color);
+    --_tabs-tab-border-color: var(--dds-state-interactive-bg-color);
+    --_tabs-tab-gap: var(--dds-space-2xs);
+    --_tabs-tab-padding-block: var(--dds-space-xs);
+    --_tabs-tab-padding-inline: var(--dds-space-md);
+    --_tabs-tab-text-color: var(--dds-text-muted-color);
+    --_tabs-transition-duration: var(--dds-state-entry-duration);
+    --_tabs-transition-easing: var(--dds-state-entry-easing);
+    display: block;
+    margin: 0;
+  }
+
+  dds-tabs [role='tablist'] {
+    --space: var(--_tabs-gap);
+    border-bottom-color: var(--_tabs-border-color);
+    border-bottom-style: var(--_tabs-border-style);
+    border-bottom-width: var(--_tabs-border-width);
+    margin: 0;
+  }
+
+  dds-tabs [role='tab'] {
+    align-items: center;
+    appearance: none;
+    background-color: var(--_tabs-tab-bg-color);
+    border-bottom-color: var(--_tabs-tab-border-color);
+    border-bottom-style: var(--_tabs-border-style);
+    border-bottom-width: var(--_tabs-border-width);
+    border-left-width: 0;
+    border-right-width: 0;
+    border-top-left-radius: var(--_tabs-border-radius);
+    border-top-right-radius: var(--_tabs-border-radius);
+    border-top-width: 0;
+    color: var(--_tabs-tab-text-color);
+    cursor: pointer;
+    display: inline-flex;
+    font-family: var(--_tabs-font);
+    font-size: var(--_tabs-font-size);
+    font-weight: var(--_tabs-font-weight);
+    gap: var(--_tabs-tab-gap);
+    letter-spacing: var(--_tabs-letter-spacing);
+    line-height: var(--_tabs-line-height);
+    margin: 0;
+    padding-block: var(--_tabs-tab-padding-block);
+    padding-inline: var(--_tabs-tab-padding-inline);
+    transition-duration: var(--_tabs-transition-duration);
+    transition-property: background-color, border-color, color;
+    transition-timing-function: var(--_tabs-transition-easing);
+    white-space: nowrap;
+  }
+
+  dds-tabs [role='tab']:hover {
+    background-color: var(--_tabs-hover-bg-color);
+    color: var(--_tabs-hover-text-color);
+  }
+
+  dds-tabs [role='tab'][aria-selected='true'] {
+    background-color: var(--_tabs-selected-bg-color);
+    border-bottom-color: var(--_tabs-selected-border-color);
+    color: var(--_tabs-selected-text-color);
+  }
+
+  dds-tabs [role='tab']:focus-visible {
+    outline-color: var(--_tabs-focus-outline-color);
+    outline-offset: var(--_tabs-focus-outline-offset);
+    outline-style: var(--_tabs-focus-outline-style);
+    outline-width: var(--_tabs-focus-outline-width);
+  }
+
+  dds-tabs [role='tabpanel'] {
+    background-color: var(--_tabs-panel-bg-color);
+    color: var(--_tabs-panel-text-color);
+    font-family: var(--_tabs-panel-font);
+    font-size: var(--_tabs-panel-font-size);
+    line-height: var(--_tabs-panel-line-height);
+    margin: 0;
+    padding-block: var(--_tabs-panel-padding-block);
+  }
+
+  dds-tabs [role='tabpanel'][hidden] {
+    display: none;
+  }
+}

@@ -75,9 +75,7 @@ def _render_template_tag(source: str) -> str:
     reg.register_templatetags(library=library)
     engine = template.Engine()
     engine.template_builtins.append(library)
-    return engine.from_string(template_code=source).render(
-        context=template.Context()
-    )
+    return engine.from_string(template_code=source).render(context=template.Context())
 
 
 def _extract_rule_blocks(css_text: str, selector: str) -> list[str]:
@@ -117,12 +115,9 @@ class TestIconExportsAndDiscovery:
         assert info.qualified_name == "dds__icon"
         assert info.is_internal is True
         assert (
-            info.template_name
-            == "dj_design_system/components/elements/icon/icon.html"
+            info.template_name == "dj_design_system/components/elements/icon/icon.html"
         )
-        assert info.media.css == [
-            "dj_design_system/components/elements/icon/icon.css"
-        ]
+        assert info.media.css == ["dj_design_system/components/elements/icon/icon.css"]
 
 
 class TestIconParametersAndContext:
@@ -173,9 +168,7 @@ class TestIconRendering:
     """Verify HTML rendering across all 26 icons, sizes, and template tag calls."""
 
     @pytest.mark.parametrize("icon_name", EXPECTED_ICON_NAMES)
-    def test_renders_every_supported_icon_with_svg_shapes(
-        self, icon_name: str
-    ) -> None:
+    def test_renders_every_supported_icon_with_svg_shapes(self, icon_name: str) -> None:
         """Verify each icon in ICON_NAMES renders an <svg> with child shape elements."""
         _build_builtin_registry()
         html = Icon(name=icon_name).render()

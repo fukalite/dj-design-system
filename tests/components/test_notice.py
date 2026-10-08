@@ -3,9 +3,9 @@
 import pathlib
 import re
 
+import pytest
 from django import template
 from django.utils import safestring
-import pytest
 
 from dj_design_system import data
 from dj_design_system.components import base as components_base
@@ -182,9 +182,7 @@ class TestNoticeRenderingAndTemplate:
         html = _render_template(
             source="{% dds__notice %}Body message.{% enddds__notice %}"
         ).strip()
-        assert (
-            '<aside class="dds-notice" data-variant="info" role="note">' in html
-        )
+        assert '<aside class="dds-notice" data-variant="info" role="note">' in html
         assert 'class="dds-icon"' in html
         assert 'data-icon="info"' in html
         assert 'data-size="md"' in html
@@ -200,9 +198,7 @@ class TestNoticeRenderingAndTemplate:
                 "{% enddds__notice %}"
             )
         ).strip()
-        assert (
-            '<aside class="dds-notice" data-variant="error" role="alert">' in html
-        )
+        assert '<aside class="dds-notice" data-variant="error" role="alert">' in html
         assert 'data-icon="code"' in html
         assert "<strong>Fatal Error</strong>" in html
         assert "<div>Stack trace details.</div>" in html

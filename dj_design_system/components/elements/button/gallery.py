@@ -38,7 +38,12 @@ config = gallery.GalleryConfig(
             name="ghost",
             label="Ghost",
             description="Low-emphasis borderless toolbar button.",
-            kwargs={"label": "Copy code", "variant": "ghost", "icon": "copy", "size": "sm"},
+            kwargs={
+                "label": "Copy code",
+                "variant": "ghost",
+                "icon": "copy",
+                "size": "sm",
+            },
         ),
         gallery.Variant(
             name="danger",

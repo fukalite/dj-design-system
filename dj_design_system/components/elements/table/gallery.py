@@ -6,24 +6,28 @@ from dj_design_system.gallery import GalleryConfig, Variant
 
 
 DEFAULT_HEAD = mark_safe(
-    "<tr>"
-    '<th scope="col">Parameter</th>'
-    '<th scope="col">Type</th>'
-    '<th scope="col">Description</th>'
-    "</tr>"
+    s=(
+        "<tr>"
+        '<th scope="col">Parameter</th>'
+        '<th scope="col">Type</th>'
+        '<th scope="col">Description</th>'
+        "</tr>"
+    )
 )
 
 DEFAULT_BODY = mark_safe(
-    "<tr>"
-    "<td>caption</td>"
-    "<td>str</td>"
-    "<td>Optional accessible table caption.</td>"
-    "</tr>"
-    "<tr>"
-    "<td>density</td>"
-    "<td>str</td>"
-    "<td>Row padding density (compact or default).</td>"
-    "</tr>"
+    s=(
+        "<tr>"
+        "<td>caption</td>"
+        "<td>str</td>"
+        "<td>Optional accessible table caption.</td>"
+        "</tr>"
+        "<tr>"
+        "<td>density</td>"
+        "<td>str</td>"
+        "<td>Row padding density (compact or default).</td>"
+        "</tr>"
+    )
 )
 
 config = GalleryConfig(

@@ -87,9 +87,7 @@ class Breadcrumb(TagComponent):
             raw_label = getattr(raw_item, "label", None)
             if raw_label is None:
                 raw_label = getattr(raw_item, "name", str(raw_item))
-            raw_url = getattr(raw_item, "url", None) or getattr(
-                raw_item, "href", None
-            )
+            raw_url = getattr(raw_item, "url", None) or getattr(raw_item, "href", None)
             raw_icon = getattr(raw_item, "icon", None)
 
         label = str(raw_label) if raw_label is not None else ""

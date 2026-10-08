@@ -28,9 +28,18 @@ To prevent context window exhaustion across Tracks 2–7, the main session acts 
    - Leaf components (e.g. `icon`, `badge`, `notice`, `table`, `breadcrumb`, `form_field`) have zero dependencies on each other. Spawn up to 3–4 `dds-component-builder` subagents in a **single `invoke_subagent` call** with `Workspace="inherit"`.
    - Because each `dds-component-builder` is restricted to `dj_design_system/components/<collection>/<name>/` and `tests/components/test_<name>.py`, parallel subagents never edit the same file.
    - Composite components that invoke a child component (e.g. `toolbar` invoking `{% dds__search_box %}` and `{% dds__theme_select %}`) are dispatched **after** their child components exist, or with the child's exact tag signature locked in the prompt.
-4. **Handling Drift (`[DRIFT & CONTEXT NOTES]`):**
-   - Each prompt template below includes a `[DRIFT & CONTEXT NOTES]` block.
-   - Whenever a subagent reports back a nuance (e.g. a new Tier 2 token name, a helper in `tests/conftest.py`, or a specific parameter name on `dds__button`), the orchestrator records that one-liner and pastes it into `[DRIFT & CONTEXT NOTES]` for subsequent subagent calls.
+4. **End-of-Phase Drift Consolidation & Workaround Cleanup:**
+   - Because parallel subagents operate within strict file boundaries, they may introduce local workarounds when a shared file (`types.ts`, `tokens.css`, `conftest.py`) needs an export or token outside their boundary, reporting it back under **Drift Notes**.
+   - At the end of **every phase** (before committing the phase):
+     1. **Consolidate Reported Drift:** Collect all drift notes and workarounds reported by the phase's subagents.
+     2. **Fix Root Causes & Strip Workarounds:** Apply the canonical fix in the shared module (e.g. exporting `DDSCustomElement` in `dj_design_system/components/types.ts`) and remove any local shims/workarounds (e.g. `declare module` blocks) from the subagent-authored files.
+     3. **Update Specs, Plans & `[DRIFT & CONTEXT NOTES]`:** Update `subagents.md` and relevant track `spec.md` / `plan.md` files so downstream phases inherit the clean contract, and mark completed phase tasks `[x]` in `plan.md`.
+     4. **Run Phase Review & Commit:** Run `dds-reviewer` (`/code-review`), `just build-ts`, `just test`, `just check`, and `just typecheck`, then create a dedicated phase commit.
+
+### Canonical Shared Contracts & Drift Ledger
+- **`dj_design_system/components/types.ts`:** Exports `DdsCustomEventDetail` and `DDSCustomElement` (`connectedCallback(): void; disconnectedCallback(): void`). Subagents must import `type { DDSCustomElement } from "../../types";` directly—never add `declare module` augmentations in `<name>.ts`.
+- **`ListParam` Defaults:** `ListParam` validates `isinstance(default, list)` at class definition time; always pass `default=[]` (never `default=list`) and copy/normalise the list inside `get_context()`.
+- **`dds__icon` Contract (`dj_design_system/components/elements/icon/`):** Exports `Icon` and `ICON_NAMES` (26 icons: `external-link`, `eye`, `code`, `file-code`, `monitor`, `box-model`, `ruler`, `rtl`, `component`, `doc`, `folder`, `folder-open`, `search`, `menu`, `close`, `chevron-right`, `chevron-down`, `copy`, `check`, `sun`, `moon`, `reset`, `info`, `success`, `warning`, `error`). Accepts `name` (positional), `size` (`xs`, `sm`, `md`, `lg`), `label`.
 
 ---
 

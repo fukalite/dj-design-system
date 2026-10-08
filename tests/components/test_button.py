@@ -59,7 +59,9 @@ def _render_template_tag(
             "dj_design_system.loaders.ComponentsTemplateLoader",
             "django.template.loaders.app_directories.Loader",
         ],
-        libraries={"design_components": "dj_design_system.templatetags.design_components"},
+        libraries={
+            "design_components": "dj_design_system.templatetags.design_components"
+        },
     )
     engine.template_builtins.append(library)
     return engine.from_string(template_code=source).render(

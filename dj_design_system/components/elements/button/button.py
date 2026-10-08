@@ -53,67 +53,67 @@ class Button(TagComponent):
     _template_name = template_name
 
     label = StrParam(
-        "Button text label (or accessible aria-label when icon_only=True).",
+        description="Button text label (or accessible aria-label when icon_only=True).",
         default="",
         required=False,
     )
     variant = StrParam(
-        "Visual button style.",
+        description="Visual button style.",
         default=DEFAULT_VARIANT,
         required=False,
         choices=list(BUTTON_VARIANTS),
     )
     size = StrParam(
-        "Button size.",
+        description="Button size.",
         default=DEFAULT_SIZE,
         required=False,
         choices=list(BUTTON_SIZES),
     )
     icon = StrParam(
-        "Optional leading or standalone icon name.",
+        description="Optional leading or standalone icon name.",
         default="",
         required=False,
         choices=["", *ICON_NAMES],
     )
     icon_trailing = StrParam(
-        "Optional trailing icon name.",
+        description="Optional trailing icon name.",
         default="",
         required=False,
         choices=["", *ICON_NAMES],
     )
     icon_only = BoolParam(
-        "Render only the icon and use label as aria-label.",
+        description="Render only the icon and use label as aria-label.",
         default=False,
         required=False,
     )
     href = StrParam(
-        "Optional link URL; renders an <a> element when provided and not disabled.",
+        description="Optional link URL; renders an <a> element when provided and not disabled.",
         default="",
         required=False,
     )
     target = StrParam(
-        "Optional link target (e.g. _blank).",
+        description="Optional link target (e.g. _blank).",
         default="",
         required=False,
     )
     button_type = StrParam(
-        "HTML button type attribute.",
+        description="HTML button type attribute.",
         default=DEFAULT_BUTTON_TYPE,
         required=False,
         choices=list(BUTTON_TYPES),
     )
     disabled = BoolParam(
-        "Whether interaction is disabled.",
+        description="Whether interaction is disabled.",
         default=False,
         required=False,
     )
     pressed = BoolParam(
-        "Optional toggle state for aria-pressed ('true'/'false').",
+        description="Optional toggle state for aria-pressed ('true'/'false').",
         default=None,
         required=False,
     )
     action = StrParam(
-        "Optional data-action hook for parent web components.",
+        description="Optional data-action hook for parent web components.",
         default="",
         required=False,
     )
@@ -152,9 +152,7 @@ class Button(TagComponent):
         resolved_href = self.href if is_link else None
         resolved_target = self.target if (is_link and self.target) else None
         resolved_rel = (
-            NOOPENER_NOREFERRER
-            if (is_link and self.target == BLANK_TARGET)
-            else None
+            NOOPENER_NOREFERRER if (is_link and self.target == BLANK_TARGET) else None
         )
         aria_pressed = (
             None if self.pressed is None else ("true" if self.pressed else "false")

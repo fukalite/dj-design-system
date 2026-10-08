@@ -4,8 +4,8 @@ import dataclasses
 import pathlib
 import re
 
-from django import template
 import pytest
+from django import template
 
 from dj_design_system import gallery
 from dj_design_system.components import base as components_base
@@ -66,7 +66,9 @@ def _render_template(source: str, context: dict[str, object] | None = None) -> s
     reg.register_templatetags(library=library)
     engine = template.Engine(
         loaders=["dj_design_system.loaders.ComponentsTemplateLoader"],
-        libraries={"design_components": "dj_design_system.templatetags.design_components"},
+        libraries={
+            "design_components": "dj_design_system.templatetags.design_components"
+        },
     )
     engine.template_builtins.append(library)
     compiled = engine.from_string(template_code=source)
@@ -100,9 +102,7 @@ class TestBreadcrumbDiscoveryAndMetadata:
     def test_exported_from_package_init(self) -> None:
         """Verify Breadcrumb is exported in dj_design_system.components.elements.breadcrumb."""
         assert breadcrumb_package.Breadcrumb is breadcrumb_module.Breadcrumb
-        assert issubclass(
-            breadcrumb_module.Breadcrumb, components_base.TagComponent
-        )
+        assert issubclass(breadcrumb_module.Breadcrumb, components_base.TagComponent)
 
     def test_template_media_and_positional_args(self) -> None:
         """Verify Breadcrumb declares co-located template_name, Media.css, and positional_args."""
@@ -252,7 +252,7 @@ class TestBreadcrumbRenderingAndTemplate:
             {"label": "Breadcrumb", "url": "/components/breadcrumb/"},
         ]
         html = _render_template(
-            source='{% dds__breadcrumb items %}',
+            source="{% dds__breadcrumb items %}",
             context={"items": trail},
         )
         assert '<nav class="dds-breadcrumb" aria-label="Breadcrumb">' in html
@@ -296,7 +296,7 @@ class TestBreadcrumbRenderingAndTemplate:
     def test_escapes_html_in_labels_and_aria_label(self) -> None:
         """Verify untrusted HTML in item labels and aria_label is escaped."""
         html = _render_template(
-            source='{% dds__breadcrumb items=trail aria_label=label %}',
+            source="{% dds__breadcrumb items=trail aria_label=label %}",
             context={
                 "trail": [{"label": "<script>alert(1)</script>"}],
                 "label": 'Nav "unsafe"',
@@ -394,8 +394,8 @@ class TestBreadcrumbGalleryAndDocs:
             assert 'class="dds-breadcrumb"' in direct_html
             rendered = _render_template(
                 source=(
-                    '{% dds__breadcrumb items=items aria_label=aria_label '
-                    'separator_icon=separator_icon %}'
+                    "{% dds__breadcrumb items=items aria_label=aria_label "
+                    "separator_icon=separator_icon %}"
                 ),
                 context={
                     "items": variant.kwargs.get("items", []),

@@ -3,8 +3,8 @@
 import pathlib
 import re
 
-from django import template
 import pytest
+from django import template
 
 from dj_design_system.components import base as components_base
 from dj_design_system.components.elements import badge as badge_package
@@ -134,9 +134,7 @@ class TestBadgeParametersAndContext:
         """Verify all 6 semantic badge variants are accepted and rendered."""
         comp = badge_module.Badge(label="Status", variant=variant)
         html = comp.render().strip()
-        assert (
-            html == f'<span class="dds-badge" data-variant="{variant}">Status</span>'
-        )
+        assert html == f'<span class="dds-badge" data-variant="{variant}">Status</span>'
 
     def test_invalid_variant_raises_value_error(self) -> None:
         """Verify an unsupported variant raises ValueError."""
@@ -218,8 +216,7 @@ class TestBadgeStylesheet:
         props = _extract_defined_properties(block_text="\n".join(blocks))
         assert props["--_badge-bg-color"] == f"var(--dds-status-{status}-bg-color)"
         assert (
-            props["--_badge-border-color"]
-            == f"var(--dds-status-{status}-border-color)"
+            props["--_badge-border-color"] == f"var(--dds-status-{status}-border-color)"
         )
         assert props["--_badge-text-color"] == f"var(--dds-status-{status}-text-color)"
 

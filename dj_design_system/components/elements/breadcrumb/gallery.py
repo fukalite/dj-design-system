@@ -12,7 +12,11 @@ BASIC_ITEMS = [
 ICON_ITEMS = [
     {"label": "Gallery", "url": "/gallery/", "icon": "folder"},
     {"label": "Elements", "url": "/gallery/elements/", "icon": "folder-open"},
-    {"label": "Breadcrumb", "url": "/gallery/elements/breadcrumb/", "icon": "component"},
+    {
+        "label": "Breadcrumb",
+        "url": "/gallery/elements/breadcrumb/",
+        "icon": "component",
+    },
 ]
 
 STATIC_PARENT_ITEMS = [

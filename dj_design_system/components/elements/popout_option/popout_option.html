@@ -1,0 +1,6 @@
+{% load design_components %}
+{% if is_link %}
+  <a class="dds-popout-option" role="menuitem" data-popout-option data-value="{{ resolved_value }}" href="{{ href }}">{% if has_icon %}{% dds__icon name=icon size="sm" %}{% endif %}<span>{{ label }}</span></a>
+{% else %}
+  <button type="button" class="dds-popout-option" role="menuitemradio" data-popout-option data-value="{{ resolved_value }}" aria-checked="{{ aria_checked }}"{% if disabled %} disabled{% endif %}>{% if has_icon %}{% dds__icon name=icon size="sm" %}{% endif %}<span>{{ label }}</span></button>
+{% endif %}

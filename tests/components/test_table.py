@@ -12,6 +12,8 @@ from dj_design_system.components.elements.table import Table
 from dj_design_system.components.elements.table.table import (
     DENSITY_COMPACT,
     DENSITY_DEFAULT,
+)
+from dj_design_system.components.elements.table.table import (
     Table as DirectTable,
 )
 from dj_design_system.services.registry import ComponentRegistry
