@@ -3,7 +3,6 @@
 import pytest
 
 from dj_design_system.components import BlockComponent, TagComponent
-from dj_design_system.data import BLOCK_CONTENT_PLACEHOLDER
 from dj_design_system.parameters import (
     BoolCSSClassParam,
     BoolParam,
@@ -209,10 +208,7 @@ class TestGenerateTagSignature:
     def test_simple_block_component_minimal(self):
         """Test minimal usage for a block component without positional args."""
         sig = generate_tag_signature(SimpleBlockComponent)
-        assert (
-            sig.minimal
-            == f"{{% simple_block %}}{BLOCK_CONTENT_PLACEHOLDER}{{% endsimple_block %}}"
-        )
+        assert sig.minimal == "{% simple_block %}{% endsimple_block %}"
 
     def test_simple_block_component_maximal(self):
         """Test maximal usage for a block component."""
@@ -220,7 +216,6 @@ class TestGenerateTagSignature:
         # heading is optional, so maximal should show it
         assert "{% simple_block" in sig.maximal
         assert 'heading="foo"' in sig.maximal
-        assert BLOCK_CONTENT_PLACEHOLDER in sig.maximal
         assert "{% endsimple_block %}" in sig.maximal
 
     def test_block_with_positional_args_minimal(self):
@@ -284,11 +279,11 @@ class TestGenerateCurrentTagSignature:
         assert "content=" not in sig.minimal
         assert "{% endsimple_block %}" in sig.minimal
 
-    def test_block_component_uses_placeholder_when_content_missing(self):
-        """Current signature should fall back to BLOCK_CONTENT_PLACEHOLDER."""
+    def test_block_component_is_empty_when_content_missing(self):
+        """Current signature should leave block content empty."""
         sig = generate_current_tag_signature(SimpleBlockComponent, {})
 
-        assert BLOCK_CONTENT_PLACEHOLDER in sig.minimal
+        assert "{% simple_block %}{% endsimple_block %}" in sig.minimal
         assert "...content..." not in sig.minimal
 
     def test_tag_component_current_signature(self):
@@ -426,10 +421,11 @@ class TestSlottedTagSignature:
         sig = generate_tag_signature(SlottedBlockComponent)
         assert "Default footer" in sig.maximal
 
-    def test_required_slot_sample_placeholder(self):
-        """Required slots without defaults get 'Sample <name> content'."""
+    def test_required_slot_without_default_is_empty(self):
+        """Required slots without defaults are left empty."""
         sig = generate_tag_signature(SlottedBlockComponent)
-        assert "Sample body content" in sig.minimal
+        assert '{% slot "body" %}{% endslot %}' in sig.minimal
+        assert "Sample" not in sig.minimal
 
     def test_slotted_has_end_tag(self):
         """Slotted signature includes endtag."""

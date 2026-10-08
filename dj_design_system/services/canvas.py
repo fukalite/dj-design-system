@@ -18,7 +18,6 @@ from django.utils.safestring import SafeData, SafeString, mark_safe
 
 from dj_design_system.components import BaseComponent, BlockComponent
 from dj_design_system.data import (
-    BLOCK_CONTENT_PLACEHOLDER,
     CanvasSpec,
     ComponentMedia,
     GalleryParameter,
@@ -256,7 +255,7 @@ def _render_block_component(
             slots[slot_name] = val
         for name, slot in component_class.get_slots().items():
             if name not in slots and slot.required:
-                default_val = slot.default or f"Sample {name} content"
+                default_val = slot.default or ""
                 if isinstance(default_val, str) and not isinstance(
                     default_val, _SanitizedBlockStr
                 ):
@@ -266,7 +265,7 @@ def _render_block_component(
                 slots[name] = default_val
         return _render_instance(component_class(slots=slots, **kw))
 
-    content = kw.pop("content", BLOCK_CONTENT_PLACEHOLDER)
+    content = kw.pop("content", "")
     if isinstance(content, str) and not isinstance(content, _SanitizedBlockStr):
         content = _render_trusted_block_value(content, extra_context)
     return _render_instance(component_class(content=content, **kw))

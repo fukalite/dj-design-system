@@ -182,7 +182,7 @@ Default parameter values are chosen automatically:
 - If the parameter has `choices`, the first choice is used.
 - For required string parameters without a default, the parameter name is
   used as placeholder text.
-- `BlockComponent` subclasses receive `"Sample content"` as their content.
+- Slots and block content are left empty unless the slot defines a `default`.
 
 #### Canvas backgrounds
 
