@@ -22,7 +22,7 @@
     <body {{ body_attrs }}>
         <div class="canvas-wrapper {{ canvas_mode_class }} {{ canvas_bg_class }}">{{ rendered_html }}</div>
 
-        {# Component-specific JS #}
+        {# Global, theme, app and component JS #}
         {{ component_js|safe }}
 
         {# Notify parent frame of content height changes (basic mode only) #}
