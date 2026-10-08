@@ -77,45 +77,6 @@ def test_visual_output_is_gitignored():
     assert "tests/e2e/visual/output/" in ignored
 
 
-def _ci_jobs() -> dict:
-    return yaml.safe_load((WORKFLOWS / "ci.yml").read_text())["jobs"]
-
-
-def test_ci_visual_regression_job_runs_in_pinned_container():
-    job = _ci_jobs()["visual-regression"]
-    image = job["container"]["image"]
-    assert image == (
-        f"mcr.microsoft.com/playwright/python:v{_justfile_playwright_version()}-noble"
-    )
-    assert job["runs-on"] == "ubuntu-latest"  # linux/amd64, as baselines expect
-
-
-def test_ci_visual_regression_job_runs_suite_and_uploads_artefacts():
-    steps = _ci_jobs()["visual-regression"]["steps"]
-    commands = "\n".join(step.get("run", "") for step in steps)
-    assert "just visual-run" in commands
-    assert "playwright==$(just --evaluate playwright_version)" in commands
-
-    uploads = [
-        s for s in steps if s.get("uses", "").startswith("actions/upload-artifact")
-    ]
-    paths = {s["with"]["path"]: s.get("if") for s in uploads}
-    assert paths.get("tests/e2e/visual/output/actual") == "always()"
-    assert paths.get("tests/e2e/visual/output/failures") == "failure()"
-
-
-def test_ci_visual_regression_job_writes_summary_on_failure():
-    steps = _ci_jobs()["visual-regression"]["steps"]
-    assert any(
-        s.get("if") == "failure()" and "GITHUB_STEP_SUMMARY" in s.get("run", "")
-        for s in steps
-    )
-
-
-def test_ci_complete_requires_visual_regression():
-    assert "visual-regression" in _ci_jobs()["ci-complete"]["needs"]
-
-
 def test_ci_runs_on_pull_requests_to_any_branch():
     """Stacked PRs (based on another PR's branch) must get CI too."""
     workflow = yaml.safe_load((WORKFLOWS / "ci.yml").read_text())

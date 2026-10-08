@@ -94,7 +94,6 @@ def builtin_modules(tmp_path):
             del sys.modules[name]
 
 
-
 # ---------------------------------------------------------------------------
 # Registry fixtures
 #

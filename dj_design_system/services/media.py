@@ -1,5 +1,6 @@
+from collections.abc import Sequence
 import html
-from typing import Type
+from typing import Any, Type
 
 from django.templatetags.static import static
 from django.utils.html import format_html_join
@@ -128,7 +129,7 @@ COMPONENTS_TEMPLATE_LOADER = "dj_design_system.loaders.ComponentsTemplateLoader"
 COMPONENTS_STATIC_FINDER = "dj_design_system.finders.ComponentsStaticFinder"
 
 
-def _contains_loader(loaders: list | tuple, target: str) -> bool:
+def _contains_loader(loaders: Sequence[Any], target: str) -> bool:
     for entry in loaders:
         if entry == target:
             return True
@@ -169,4 +170,3 @@ def ensure_component_loaders_and_finders() -> None:
         engine.__dict__.pop("template_loaders", None)
         if hasattr(engine.get_template, "cache_clear"):
             engine.get_template.cache_clear()
-

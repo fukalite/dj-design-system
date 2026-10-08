@@ -127,9 +127,7 @@ class TestNavigationAndSearch:
             )
         assert "dj_design_system" in _nav_apps(nav)
 
-    def test_nav_excludes_hidden_app_markdown_docs(
-        self, visibility_registry, tmp_path
-    ):
+    def test_nav_excludes_hidden_app_markdown_docs(self, visibility_registry, tmp_path):
         (tmp_path / "readme.md").write_text("# Docs only\n")
         with dds(GALLERY_EXCLUDE_APPS=["docs_app"]):
             nav = _build_navigation(

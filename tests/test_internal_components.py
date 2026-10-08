@@ -237,7 +237,9 @@ class TestLookups:
             resolve_component("crumb", internal_registry)
 
     def test_resolve_component_short_name_is_not_ambiguous(self, internal_registry):
-        assert resolve_component("button", internal_registry).app_label == "consumer_app"
+        assert (
+            resolve_component("button", internal_registry).app_label == "consumer_app"
+        )
 
     @pytest.mark.parametrize(
         ("name", "app_label"),
@@ -247,9 +249,7 @@ class TestLookups:
             ("consumer_app__secret", "consumer_app"),
         ],
     )
-    def test_resolve_component_qualified_name(
-        self, internal_registry, name, app_label
-    ):
+    def test_resolve_component_qualified_name(self, internal_registry, name, app_label):
         info = resolve_component(name, internal_registry)
         assert info.qualified_name == name
         assert info.app_label == app_label

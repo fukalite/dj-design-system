@@ -500,11 +500,9 @@ def build_canvas_url(
 def resolve_component(name: str, registry: ComponentRegistry) -> ComponentInfo:
     """Look up a component by name, raising ``ValueError`` on failure."""
     try:
-        matched_qualified = [
-            i for i in registry.list_ordered() if i.qualified_name == name
-        ]
-        if matched_qualified:
-            return matched_qualified[-1]
+        for info in reversed(registry.list_ordered()):
+            if info.qualified_name == name:
+                return info
 
         if "__" in name:
             parts = name.split("__")
