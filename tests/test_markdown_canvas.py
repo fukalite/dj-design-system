@@ -1,13 +1,18 @@
 """Tests for the markdown canvas preprocessor and extension."""
 
+from unittest.mock import patch
+
 import pytest
+from django.templatetags.static import static
 from django.test import override_settings
 
+from dj_design_system.data import ComponentMedia
 from dj_design_system.services.markdown_canvas import (
     CanvasExtension,
     CanvasPreprocessor,
     DjangoLangPreprocessor,
 )
+from dj_design_system.services.registry import component_registry
 
 
 # ---------------------------------------------------------------------------
@@ -41,6 +46,20 @@ class TestCanvasPreprocessor:
         assert "gallery-md-canvas__iframe" in result
         assert "gallery-md-canvas__code" in result
         assert "srcdoc=" in result
+
+    def test_component_media_external_urls_preserved(self):
+        """External component media URLs are not passed through ``static()`` (#166)."""
+        media = ComponentMedia(
+            css=["https://cdn.example.com/component.css", "myapp/component.css"],
+            js=["//cdn.example.com/component.js"],
+        )
+        text = '```canvas\n{% button "Click" %}\n```'
+        with patch.object(component_registry, "get_merged_media", return_value=media):
+            result = self._process(text)
+        assert "https://cdn.example.com/component.css" in result
+        assert "//cdn.example.com/component.js" in result
+        assert static("myapp/component.css") in result
+        assert "%3A" not in result
 
     def test_iframe_has_lazy_loading(self):
         """Iframes should defer loading until near the viewport for performance."""

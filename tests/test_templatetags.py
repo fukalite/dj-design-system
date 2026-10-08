@@ -347,3 +347,52 @@ class TestBundleUrls:
         ):
             get_bundle_urls([("main", "MY_CONFIG")], "js")
         mock_get.assert_called_once_with("main", extension="js", config="MY_CONFIG")
+
+
+class TestExternalAssetUrls:
+    """Tests for external http/https/protocol-relative asset URLs (#166)."""
+
+    def test_global_stylesheets_preserves_external_urls(self):
+        font_url = "https://fonts.googleapis.com/css2?family=Inter&display=swap"
+        proto_rel = "//cdn.example.com/icons.css"
+        with override_settings(
+            DJ_DESIGN_SYSTEM={
+                "GLOBAL_CSS": [font_url, proto_rel, "myapp/local.css"],
+                "GALLERY_THEMES": {
+                    "default": {
+                        "label": "Default",
+                        "css": ["https://cdn.example.com/theme.css"],
+                    }
+                },
+                "APP_CSS": {"myapp": ["http://cdn.example.com/app.css"]},
+            }
+        ):
+            result = str(global_stylesheets(app_label="myapp", theme="default"))
+        assert (
+            'href="https://fonts.googleapis.com/css2?family=Inter&amp;display=swap"'
+            in result
+        )
+        assert f'href="{proto_rel}"' in result
+        assert 'href="https://cdn.example.com/theme.css"' in result
+        assert 'href="http://cdn.example.com/app.css"' in result
+        assert f'href="{static("myapp/local.css")}"' in result
+
+    def test_global_scripts_preserves_external_urls(self):
+        cdn_js = "https://cdn.example.com/vendor.js"
+        with override_settings(
+            DJ_DESIGN_SYSTEM={
+                "GLOBAL_JS": [cdn_js, "myapp/local.js"],
+                "GALLERY_THEMES": {
+                    "default": {
+                        "label": "Default",
+                        "js": ["//cdn.example.com/theme.js"],
+                    }
+                },
+                "APP_JS": {"myapp": ["http://cdn.example.com/app.js"]},
+            }
+        ):
+            result = str(global_scripts(app_label="myapp", theme="default"))
+        assert f'src="{cdn_js}"' in result
+        assert 'src="//cdn.example.com/theme.js"' in result
+        assert 'src="http://cdn.example.com/app.js"' in result
+        assert f'src="{static("myapp/local.js")}"' in result

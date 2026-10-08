@@ -2,7 +2,6 @@ import json
 import logging
 
 from django.http import JsonResponse
-from django.templatetags.static import static
 from django.urls import reverse
 from django.urls.exceptions import NoReverseMatch
 from django.utils.decorators import method_decorator
@@ -14,12 +13,12 @@ from dj_design_system.api.serializers import (
     ComponentRenderRequestSerializer,
 )
 from dj_design_system.exceptions import ComponentValidationError
+from dj_design_system.services import media as media_service
 from dj_design_system.services.canvas import (
     build_canvas_url,
     get_component_media,
     render_component,
 )
-from dj_design_system.services.media import get_bundle_urls
 from dj_design_system.services.registry import component_registry
 from dj_design_system.settings import dds_settings
 
@@ -136,17 +135,26 @@ class ComponentRenderView(View):
             spec, request.build_absolute_uri(canvas_path), registry=self.registry
         )
 
-        def to_absolute_static(path: str) -> str:
-            return request.build_absolute_uri(static(path))
-
-        absolute_css = [to_absolute_static(path) for path in media.css]
-        absolute_js = [to_absolute_static(path) for path in media.js]
-
-        global_css = get_bundle_urls(dds_settings.GLOBAL_CSS_BUNDLES, "css") + [
-            static(path) for path in dds_settings.GLOBAL_CSS
+        absolute_css = [
+            request.build_absolute_uri(media_service.resolve_asset_url(path=path))
+            for path in media.css
         ]
-        global_js = get_bundle_urls(dds_settings.GLOBAL_JS_BUNDLES, "js") + [
-            static(path) for path in dds_settings.GLOBAL_JS
+        absolute_js = [
+            request.build_absolute_uri(media_service.resolve_asset_url(path=path))
+            for path in media.js
+        ]
+
+        global_css = media_service.get_bundle_urls(
+            dds_settings.GLOBAL_CSS_BUNDLES, "css"
+        ) + [
+            media_service.resolve_asset_url(path=path)
+            for path in dds_settings.GLOBAL_CSS
+        ]
+        global_js = media_service.get_bundle_urls(
+            dds_settings.GLOBAL_JS_BUNDLES, "js"
+        ) + [
+            media_service.resolve_asset_url(path=path)
+            for path in dds_settings.GLOBAL_JS
         ]
 
         absolute_global_css = [request.build_absolute_uri(url) for url in global_css]

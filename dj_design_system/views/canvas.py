@@ -2,12 +2,12 @@
 
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
-from django.templatetags.static import static
 from django.utils.html import format_html, format_html_join
 from django.utils.safestring import SafeData
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from dj_design_system.services import canvas_renderer as canvas_renderer_service
+from dj_design_system.services import media as media_service
 from dj_design_system.services.canvas import (
     get_component_media,
     render_component,
@@ -15,7 +15,6 @@ from dj_design_system.services.canvas import (
     resolve_from_get_params,
 )
 from dj_design_system.services.control_params import declares_param, get_control_param
-from dj_design_system.services.media import get_bundle_urls
 from dj_design_system.services.registry import component_registry
 from dj_design_system.settings import (
     dds_settings,
@@ -173,14 +172,14 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
 
     theme_css = theme_dict.css
     theme_js = theme_dict.js
-    theme_css_bundles = get_bundle_urls(theme_dict.css_bundles, "css")
-    theme_js_bundles = get_bundle_urls(theme_dict.js_bundles, "js")
+    theme_css_bundles = media_service.get_bundle_urls(theme_dict.css_bundles, "css")
+    theme_js_bundles = media_service.get_bundle_urls(theme_dict.js_bundles, "js")
 
     app_css, app_js = get_app_static(app_label)
-    app_css_bundles = get_bundle_urls(
+    app_css_bundles = media_service.get_bundle_urls(
         (dds_settings.APP_CSS_BUNDLES or {}).get(app_label, []), "css"
     )
-    app_js_bundles = get_bundle_urls(
+    app_js_bundles = media_service.get_bundle_urls(
         (dds_settings.APP_JS_BUNDLES or {}).get(app_label, []), "js"
     )
 
@@ -207,27 +206,27 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
     all_css_urls = list(
         dict.fromkeys(
             theme_css_bundles
-            + [static(p) for p in theme_css]
+            + [media_service.resolve_asset_url(path=p) for p in theme_css]
             + app_css_bundles
-            + [static(p) for p in app_css]
-            + [static(p) for p in media.css]
+            + [media_service.resolve_asset_url(path=p) for p in app_css]
+            + [media_service.resolve_asset_url(path=p) for p in media.css]
         )
     )
     all_js_urls = list(
         dict.fromkeys(
             theme_js_bundles
-            + [static(p) for p in theme_js]
+            + [media_service.resolve_asset_url(path=p) for p in theme_js]
             + app_js_bundles
-            + [static(p) for p in app_js]
-            + [static(p) for p in media.js]
+            + [media_service.resolve_asset_url(path=p) for p in app_js]
+            + [media_service.resolve_asset_url(path=p) for p in media.js]
         )
     )
 
-    context["component_css"] = "".join(
-        f'<link rel="stylesheet" href="{u}">' for u in all_css_urls
+    context["component_css"] = format_html_join(
+        "", '<link rel="stylesheet" href="{}">', ((u,) for u in all_css_urls)
     )
-    context["component_js"] = "".join(
-        f'<script src="{u}"></script>' for u in all_js_urls
+    context["component_js"] = format_html_join(
+        "", '<script src="{}"></script>', ((u,) for u in all_js_urls)
     )
     context["html_attrs"], context["body_attrs"] = _canvas_html_attrs(
         theme_dict, app_label

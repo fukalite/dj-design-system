@@ -3,8 +3,9 @@ from typing import Optional
 
 from django.template import Context, Template
 from django.templatetags.static import static
+from django.utils.html import format_html_join
 
-from dj_design_system.services.media import get_bundle_urls
+from dj_design_system.services import media as media_service
 from dj_design_system.settings import (
     dds_settings,
     get_app_html_attrs,
@@ -28,10 +29,12 @@ def render_canvas_block(source: str) -> str:
 
 def build_global_css_tags() -> str:
     """Build ``<link>`` tags for global CSS (webpack bundles + static)."""
-    all_hrefs = [
-        url for url in get_bundle_urls(dds_settings.GLOBAL_CSS_BUNDLES, "css")
-    ] + [static(path) for path in dds_settings.GLOBAL_CSS]
-    return "".join(f'<link rel="stylesheet" href="{href}">' for href in all_hrefs)
+    all_hrefs = media_service.get_bundle_urls(
+        dds_settings.GLOBAL_CSS_BUNDLES, "css"
+    ) + [media_service.resolve_asset_url(path=path) for path in dds_settings.GLOBAL_CSS]
+    return format_html_join(
+        "", '<link rel="stylesheet" href="{}">', ((href,) for href in all_hrefs)
+    )
 
 
 def build_theme_app_media(
@@ -41,10 +44,12 @@ def build_theme_app_media(
     theme_css = theme_dict.css if theme_dict else []
     theme_js = theme_dict.js if theme_dict else []
     theme_css_bundles = (
-        get_bundle_urls(theme_dict.css_bundles, "css") if theme_dict else []
+        media_service.get_bundle_urls(theme_dict.css_bundles, "css")
+        if theme_dict
+        else []
     )
     theme_js_bundles = (
-        get_bundle_urls(theme_dict.js_bundles, "js") if theme_dict else []
+        media_service.get_bundle_urls(theme_dict.js_bundles, "js") if theme_dict else []
     )
 
     app_css: list[str] = []
@@ -53,25 +58,35 @@ def build_theme_app_media(
     app_js_bundles: list[str] = []
     if app_label:
         app_css, app_js = get_app_static(app_label)
-        app_css_bundles = get_bundle_urls(
+        app_css_bundles = media_service.get_bundle_urls(
             dds_settings.APP_CSS_BUNDLES.get(app_label, []), "css"
         )
-        app_js_bundles = get_bundle_urls(
+        app_js_bundles = media_service.get_bundle_urls(
             dds_settings.APP_JS_BUNDLES.get(app_label, []), "js"
         )
 
-    theme_css_urls = theme_css_bundles + [static(p) for p in theme_css]
-    app_css_urls = app_css_bundles + [static(p) for p in app_css]
+    theme_css_urls = theme_css_bundles + [
+        media_service.resolve_asset_url(path=p) for p in theme_css
+    ]
+    app_css_urls = app_css_bundles + [
+        media_service.resolve_asset_url(path=p) for p in app_css
+    ]
     css_urls = list(dict.fromkeys(theme_css_urls + app_css_urls))
 
-    theme_js_urls = theme_js_bundles + [static(p) for p in theme_js]
-    app_js_urls = app_js_bundles + [static(p) for p in app_js]
+    theme_js_urls = theme_js_bundles + [
+        media_service.resolve_asset_url(path=p) for p in theme_js
+    ]
+    app_js_urls = app_js_bundles + [
+        media_service.resolve_asset_url(path=p) for p in app_js
+    ]
     js_urls = list(dict.fromkeys(theme_js_urls + app_js_urls))
 
-    theme_app_css_tags = "".join(
-        f'<link rel="stylesheet" href="{u}">' for u in css_urls
+    theme_app_css_tags = format_html_join(
+        "", '<link rel="stylesheet" href="{}">', ((u,) for u in css_urls)
     )
-    theme_app_js_tags = "".join(f'<script src="{u}"></script>' for u in js_urls)
+    theme_app_js_tags = format_html_join(
+        "", '<script src="{}"></script>', ((u,) for u in js_urls)
+    )
     return theme_app_css_tags, theme_app_js_tags
 
 

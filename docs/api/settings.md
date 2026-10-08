@@ -39,12 +39,12 @@ Controls the sorting order of the gallery sidebar navigation. Can specify the or
 ### `GLOBAL_CSS`
 **Type:** `list[str]`  
 **Default:** `[]`  
-A list of global CSS static file paths to include in the gallery canvas and when using `{% global_stylesheets %}`.
+A list of global CSS static file paths or external URLs to include in the gallery canvas and when using `{% global_stylesheets %}`. See [External asset URLs](#external-asset-urls).
 
 ### `GLOBAL_JS`
 **Type:** `list[str]`  
 **Default:** `[]`  
-A list of global JavaScript static file paths to include in the gallery canvas and when using `{% global_scripts %}`.
+A list of global JavaScript static file paths or external URLs to include in the gallery canvas and when using `{% global_scripts %}`. See [External asset URLs](#external-asset-urls).
 
 ### `GLOBAL_CSS_BUNDLES`
 **Type:** `list[tuple[str, ...]]`  
@@ -55,6 +55,18 @@ A list of Webpack CSS bundles to load globally. Ignored if `django-webpack-loade
 **Type:** `list[tuple[str, ...]]`  
 **Default:** `[]`  
 A list of Webpack JavaScript bundles to load globally.
+
+### External asset URLs
+`GLOBAL_CSS`, `GLOBAL_JS`, `APP_CSS`, `APP_JS`, a theme's `css` and `js`, and component `Media` entries accept external URLs as well as static file paths. Entries starting with `http://`, `https://` or `//` (case-insensitive) are used as-is; anything else is resolved with Django's `static()`.
+
+```python
+"GLOBAL_CSS": [
+    "https://fonts.googleapis.com/css2?family=Inter&display=swap",
+    "myapp/base.css",
+],
+```
+
+The [REST API](../rest-api.md) returns external URLs unchanged, except that protocol-relative (`//`) URLs take the request's scheme.
 
 ## Canvas Backgrounds
 
@@ -83,7 +95,7 @@ Extra HTML attributes applied to the `<html>` and `<body>` tags of the canvas if
 ### `GALLERY_THEMES`
 **Type:** `dict[str, dict]`  
 **Default:** `{"default": {"label": "Default", "html_attrs": {}, "css": [], "js": [], "css_bundles": [], "js_bundles": []}}`  
-A dictionary of available themes. See the [Themes](../themes.md) documentation for more details.
+A dictionary of available themes. See the [Themes](../themes.md) documentation for more details. A theme's `css` and `js` lists accept [external URLs](#external-asset-urls).
 
 Themes can also include an optional `canvas_background` setting to specify a dedicated background colour for the preview iframe when that theme is active. This is highly recommended for dark themes. You can use a built-in slug or a custom dictionary.
 
@@ -116,7 +128,7 @@ Restrict the available themes for components in specific apps. Keys are app labe
 ### `APP_CSS`
 **Type:** `dict[str, list[str] | str]`  
 **Default:** `{}`  
-App-specific CSS static file paths loaded when rendering components from that app.
+App-specific CSS static file paths or [external URLs](#external-asset-urls) loaded when rendering components from that app.
 
 ### `APP_CSS_BUNDLES`
 **Type:** `dict[str, list[tuple[str, ...]]]`  
@@ -126,7 +138,7 @@ App-specific Webpack CSS bundles loaded when rendering components from that app.
 ### `APP_JS`
 **Type:** `dict[str, list[str] | str]`  
 **Default:** `{}`  
-App-specific JavaScript static file paths loaded when rendering components from that app.
+App-specific JavaScript static file paths or [external URLs](#external-asset-urls) loaded when rendering components from that app.
 
 ### `APP_JS_BUNDLES`
 **Type:** `dict[str, list[tuple[str, ...]]]`  

@@ -34,6 +34,7 @@ from markdown import Extension
 from markdown.postprocessors import Postprocessor
 from markdown.preprocessors import Preprocessor
 
+from dj_design_system.services import media as media_service
 from dj_design_system.services.canvas_renderer import (
     build_canvas_srcdoc,
     render_canvas_block,
@@ -155,16 +156,10 @@ class CanvasPreprocessor(Preprocessor):
         unique_id = str(self._counter)
 
         try:
-            from django.templatetags.static import static
-
             rendered_html = render_canvas_block(source)
             media = component_registry.get_merged_media()
-            component_css = "".join(
-                f'<link rel="stylesheet" href="{static(u)}">' for u in media.css
-            )
-            component_js = "".join(
-                f'<script src="{static(u)}"></script>' for u in media.js
-            )
+            component_css = media_service.build_link_tags(media.css)
+            component_js = media_service.build_script_tags(media.js)
             srcdoc = build_canvas_srcdoc(
                 rendered_html=rendered_html,
                 component_css=component_css,

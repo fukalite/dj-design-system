@@ -39,7 +39,13 @@ class TestCanvasIframeView:
         """canvas.css must style .gallery-canvas-error without parent tokens."""
         from pathlib import Path
 
-        css_path = Path(__file__).resolve().parents[1] / "dj_design_system" / "static" / "dj_design_system" / "canvas.css"
+        css_path = (
+            Path(__file__).resolve().parents[1]
+            / "dj_design_system"
+            / "static"
+            / "dj_design_system"
+            / "canvas.css"
+        )
         content = css_path.read_text(encoding="utf-8")
 
         assert ".gallery-canvas-error" in content
@@ -197,3 +203,29 @@ class TestCanvasIframeView:
         response = canvas_iframe_view(request)
         content = response.content.decode()
         assert '<style nonce="sample-canvas-nonce-456">' in content
+
+    def test_external_urls_preserved_in_canvas_iframe(self):
+        with override_settings(
+            DJ_DESIGN_SYSTEM={
+                "GALLERY_IS_PUBLIC": True,
+                "GLOBAL_CSS": ["https://fonts.googleapis.com/css2?family=Inter"],
+                "GALLERY_THEMES": {
+                    "default": {
+                        "label": "Default",
+                        "css": ["https://cdn.example.com/theme.css"],
+                        "js": ["//cdn.example.com/theme.js"],
+                    }
+                },
+                "APP_CSS": {
+                    "demo_components": ["https://cdn.example.com/app.css?v=1&min=1"]
+                },
+            }
+        ):
+            client = Client()
+            url = reverse("gallery-canvas-iframe")
+            response = client.get(url, {"component": "rich_button", "label": "Test"})
+        content = response.content.decode()
+        assert 'href="https://fonts.googleapis.com/css2?family=Inter"' in content
+        assert 'href="https://cdn.example.com/theme.css"' in content
+        assert 'src="//cdn.example.com/theme.js"' in content
+        assert 'href="https://cdn.example.com/app.css?v=1&amp;min=1"' in content
