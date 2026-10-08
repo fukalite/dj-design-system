@@ -6,8 +6,8 @@ from django.utils.html import format_html, format_html_join
 from django.utils.safestring import SafeData
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
-from dj_design_system.services import media as media_service
 from dj_design_system.services import canvas_renderer as canvas_renderer_service
+from dj_design_system.services import media as media_service
 from dj_design_system.services.canvas import (
     get_component_media,
     render_component,
