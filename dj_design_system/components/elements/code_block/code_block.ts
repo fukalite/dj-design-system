@@ -3,7 +3,7 @@
  * copying and `dds:copy` event dispatching.
  */
 
-import type { DDSCustomElement } from "../../types.js";
+import type { DDSCustomElement } from '../../types.js';
 
 const COPY_RESET_DELAY_MS = 2000;
 
@@ -26,14 +26,14 @@ export class DDSCodeBlockElement
     this.abortController = new AbortController();
 
     const triggerEl = this.querySelector<HTMLButtonElement>(
-      "[data-copy-trigger]",
+      '[data-copy-trigger]',
     );
     if (!triggerEl) {
       return;
     }
 
     triggerEl.addEventListener(
-      "click",
+      'click',
       () => {
         void this.handleCopyClick();
       },
@@ -65,9 +65,9 @@ export class DDSCodeBlockElement
    * a bubbling `dds:copy` CustomEvent.
    */
   private async handleCopyClick(): Promise<void> {
-    const codeEl = this.querySelector<HTMLElement>("[data-code-content]");
-    const statusEl = this.querySelector<HTMLElement>("[data-copy-status]");
-    const code = codeEl?.textContent ?? "";
+    const codeEl = this.querySelector<HTMLElement>('[data-code-content]');
+    const statusEl = this.querySelector<HTMLElement>('[data-copy-status]');
+    const code = codeEl?.textContent ?? '';
 
     try {
       await navigator.clipboard?.writeText(code);
@@ -75,22 +75,22 @@ export class DDSCodeBlockElement
       // Clipboard API may reject in restricted contexts; proceed with event.
     }
 
-    this.setAttribute("data-copied", "true");
+    this.setAttribute('data-copied', 'true');
     if (statusEl) {
-      statusEl.textContent = "Copied";
+      statusEl.textContent = 'Copied';
     }
 
     this.clearCopyResetTimer();
     this.copyResetTimer = window.setTimeout(() => {
-      this.removeAttribute("data-copied");
+      this.removeAttribute('data-copied');
       if (statusEl) {
-        statusEl.textContent = "Copy";
+        statusEl.textContent = 'Copy';
       }
       this.copyResetTimer = null;
     }, COPY_RESET_DELAY_MS);
 
     this.dispatchEvent(
-      new CustomEvent("dds:copy", {
+      new CustomEvent('dds:copy', {
         bubbles: true,
         detail: { code },
       }),
@@ -98,6 +98,6 @@ export class DDSCodeBlockElement
   }
 }
 
-if (!customElements.get("dds-code-block")) {
-  customElements.define("dds-code-block", DDSCodeBlockElement);
+if (!customElements.get('dds-code-block')) {
+  customElements.define('dds-code-block', DDSCodeBlockElement);
 }

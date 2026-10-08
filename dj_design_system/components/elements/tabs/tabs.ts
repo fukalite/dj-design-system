@@ -2,7 +2,7 @@
  * @fileoverview Light DOM <dds-tabs> custom element for WAI-ARIA tab switching.
  */
 
-import type { DDSCustomElement } from "../../types.js";
+import type { DDSCustomElement } from '../../types.js';
 
 /**
  * Light DOM custom element enhancing `<dds-tabs>` with click activation
@@ -21,14 +21,14 @@ export class DDSTabsElement extends HTMLElement implements DDSCustomElement {
     const { signal } = this.abortController;
 
     this.addEventListener(
-      "click",
+      'click',
       (event: MouseEvent) => {
         this.handleClick(event);
       },
       { signal },
     );
     this.addEventListener(
-      "keydown",
+      'keydown',
       (event: KeyboardEvent) => {
         this.handleKeydown(event);
       },
@@ -106,13 +106,13 @@ export class DDSTabsElement extends HTMLElement implements DDSCustomElement {
     }
 
     let nextIndex = -1;
-    if (event.key === "ArrowRight") {
+    if (event.key === 'ArrowRight') {
       nextIndex = (currentIndex + 1) % tabs.length;
-    } else if (event.key === "ArrowLeft") {
+    } else if (event.key === 'ArrowLeft') {
       nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
-    } else if (event.key === "Home") {
+    } else if (event.key === 'Home') {
       nextIndex = 0;
-    } else if (event.key === "End") {
+    } else if (event.key === 'End') {
       nextIndex = tabs.length - 1;
     } else {
       return;
@@ -136,8 +136,8 @@ export class DDSTabsElement extends HTMLElement implements DDSCustomElement {
   activateTab(tabId: string): void {
     for (const tab of this.getTabs()) {
       const isMatch = tab.dataset.tabTrigger === tabId;
-      tab.setAttribute("aria-selected", isMatch ? "true" : "false");
-      tab.setAttribute("tabindex", isMatch ? "0" : "-1");
+      tab.setAttribute('aria-selected', isMatch ? 'true' : 'false');
+      tab.setAttribute('tabindex', isMatch ? '0' : '-1');
     }
 
     for (const panel of this.getPanels()) {
@@ -147,11 +147,11 @@ export class DDSTabsElement extends HTMLElement implements DDSCustomElement {
 
     this.dataset.activeTab = tabId;
     this.dispatchEvent(
-      new CustomEvent("dds:tab-change", { bubbles: true, detail: { tabId } }),
+      new CustomEvent('dds:tab-change', { bubbles: true, detail: { tabId } }),
     );
   }
 }
 
-if (!customElements.get("dds-tabs")) {
-  customElements.define("dds-tabs", DDSTabsElement);
+if (!customElements.get('dds-tabs')) {
+  customElements.define('dds-tabs', DDSTabsElement);
 }

@@ -327,7 +327,7 @@ class TestCodeBlockCustomElementTypeScript:
     def test_ts_implements_custom_element_contract(self) -> None:
         """Verify code_block.ts defines DDSCodeBlockElement, AbortController, DOM queries, and dds:copy event."""
         ts_text = _read_text(path=CODE_BLOCK_TS_PATH)
-        assert 'import type { DDSCustomElement } from "../../types.js";' in ts_text
+        assert "import type { DDSCustomElement } from '../../types.js';" in ts_text
         assert (
             "export class DDSCodeBlockElement" in ts_text
             and "extends HTMLElement" in ts_text
@@ -339,10 +339,10 @@ class TestCodeBlockCustomElementTypeScript:
         assert "[data-code-content]" in ts_text
         assert "[data-copy-status]" in ts_text
         assert "navigator.clipboard?.writeText(code)" in ts_text
-        assert 'this.setAttribute("data-copied", "true")' in ts_text
-        assert 'statusEl.textContent = "Copied"' in ts_text
-        assert 'new CustomEvent("dds:copy"' in ts_text
-        assert 'customElements.define("dds-code-block", DDSCodeBlockElement)' in ts_text
+        assert "this.setAttribute('data-copied', 'true')" in ts_text
+        assert "statusEl.textContent = 'Copied'" in ts_text
+        assert "new CustomEvent('dds:copy'" in ts_text
+        assert "customElements.define('dds-code-block', DDSCodeBlockElement)" in ts_text
         assert "attachShadow" not in ts_text
         assert "document.querySelector" not in ts_text
 

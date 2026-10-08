@@ -107,7 +107,7 @@ Build the co-located `dds__<name>` component in `dj_design_system/components/<co
 - Read `conductor/code_styleguides/dds-components.md`, `conductor/code_styleguides/python.md`, and `conductor/code_styleguides/html-css.md` before writing code.
 - **Python Imports (`python.md`):** Never import classes, functions, or constants directly (e.g. `from dj_design_system.components import TagComponent` is forbidden). Always import modules/submodules (`import typing`, `from dj_design_system import components, gallery, parameters, slots`, `from dj_design_system.components.elements import icon as icon_element`) and reference `components.TagComponent`, `parameters.StrParam`, `icon_element.ICON_NAMES`, etc. Never import the same module with both `import x` and `from x import y`.
 - **Component Methods & Booleans (`layered-architecture.md` & `python.md`):** Do not define private helper methods (`def _foo(...)`) on Component classes (Gemini Code Review flags private methods on interface layer classes). Keep `get_context()` self-contained. Use implicit boolean evaluation (`not self.label`) instead of `not bool(self.label)`.
-- **TypeScript Imports (`javascript.md`):** Always include the `.js` extension in relative TypeScript imports (`import type { DDSCustomElement } from "../../types.js";`).
+- **TypeScript Imports & Strings (`javascript.md`):** Always include the `.js` extension in relative TypeScript imports and use single quotes (`'`) for all string literals (`import type { DDSCustomElement } from '../../types.js';`).
 - Never define `@pytest.fixture` inside `tests/components/test_<name>.py`; use module-level helper functions.
 - Run `just test-file tests/components/test_<name>.py` and `just check`.
 - <Insert any additional drift notes from earlier phases>
@@ -132,7 +132,7 @@ Build the co-located `dds__<name>` component in `dj_design_system/components/<co
 
 ## [DRIFT & CONTEXT NOTES]
 - Read `conductor/code_styleguides/dds-components.md` (Section 7) and `conductor/code_styleguides/javascript.md`.
-- Always include the `.js` extension in relative TypeScript imports (`import type { DDSCustomElement } from "../../types.js";`).
+- Always include the `.js` extension in relative TypeScript imports and use single quotes (`'`) for all string literals (`import type { DDSCustomElement } from '../../types.js';`).
 - Compiled `<name>.js` files in `dj_design_system/components/**/*.js` are gitignored; verify compilation via `just build-ts`.
 - <Insert any additional drift notes from earlier phases>
 ```

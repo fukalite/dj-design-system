@@ -492,21 +492,21 @@ class TestPopoutStylesheetsAndTypeScriptContract:
         """Verify popout.ts defines DDSPopoutElement with AbortController and dds:popout-select."""
         assert POPOUT_TS_PATH.is_file()
         ts_source = POPOUT_TS_PATH.read_text(encoding="utf-8")
-        assert 'import type { DDSCustomElement } from "../../types.js";' in ts_source
+        assert "import type { DDSCustomElement } from '../../types.js';" in ts_source
         assert (
             "export class DDSPopoutElement extends HTMLElement implements DDSCustomElement"
             in ts_source
         )
         assert "new AbortController()" in ts_source
         assert "this.abortController?.abort()" in ts_source
-        assert 'this.dataset.state = isOpen ? "open" : "closed"' in ts_source
-        assert 'trigger.setAttribute("aria-expanded", String(isOpen))' in ts_source
+        assert "this.dataset.state = isOpen ? 'open' : 'closed'" in ts_source
+        assert "trigger.setAttribute('aria-expanded', String(isOpen))" in ts_source
         assert "menu.hidden = !isOpen" in ts_source
-        assert 'event.key === "Escape"' in ts_source
+        assert "event.key === 'Escape'" in ts_source
         assert "!this.contains(event.target as Node)" in ts_source
-        assert '"dds:popout-select"' in ts_source
-        assert 'customElements.get("dds-popout")' in ts_source
-        assert 'customElements.define("dds-popout", DDSPopoutElement)' in ts_source
+        assert "'dds:popout-select'" in ts_source
+        assert "customElements.get('dds-popout')" in ts_source
+        assert "customElements.define('dds-popout', DDSPopoutElement)" in ts_source
         assert "\t" not in ts_source
         for line in ts_source.splitlines():
             assert len(line) <= 80

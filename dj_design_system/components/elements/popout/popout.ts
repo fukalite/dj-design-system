@@ -3,7 +3,7 @@
  * toggling, keyboard/outside-click dismissal, and option selection events.
  */
 
-import type { DDSCustomElement } from "../../types.js";
+import type { DDSCustomElement } from '../../types.js';
 
 /**
  * Light DOM custom element enhancing `<dds-popout>` with trigger toggling,
@@ -20,14 +20,14 @@ export class DDSPopoutElement extends HTMLElement implements DDSCustomElement {
     this.abortController = new AbortController();
     const { signal } = this.abortController;
 
-    const trigger = this.querySelector<HTMLElement>("[data-popout-trigger]");
-    const menu = this.querySelector<HTMLElement>("[data-popout-menu]");
+    const trigger = this.querySelector<HTMLElement>('[data-popout-trigger]');
+    const menu = this.querySelector<HTMLElement>('[data-popout-menu]');
 
     if (trigger) {
       trigger.addEventListener(
-        "click",
+        'click',
         () => {
-          const isOpen = this.dataset.state !== "open";
+          const isOpen = this.dataset.state !== 'open';
           this.setOpenState(isOpen);
         },
         { signal },
@@ -36,7 +36,7 @@ export class DDSPopoutElement extends HTMLElement implements DDSCustomElement {
 
     if (menu) {
       menu.addEventListener(
-        "click",
+        'click',
         (event: MouseEvent) => {
           this.handleMenuClick(event, menu);
         },
@@ -45,9 +45,9 @@ export class DDSPopoutElement extends HTMLElement implements DDSCustomElement {
     }
 
     document.addEventListener(
-      "keydown",
+      'keydown',
       (event: KeyboardEvent) => {
-        if (event.key === "Escape" && this.dataset.state === "open") {
+        if (event.key === 'Escape' && this.dataset.state === 'open') {
           this.setOpenState(false);
           trigger?.focus();
         }
@@ -56,10 +56,10 @@ export class DDSPopoutElement extends HTMLElement implements DDSCustomElement {
     );
 
     document.addEventListener(
-      "click",
+      'click',
       (event: MouseEvent) => {
         if (
-          this.dataset.state === "open" &&
+          this.dataset.state === 'open' &&
           !this.contains(event.target as Node)
         ) {
           this.setOpenState(false);
@@ -83,11 +83,11 @@ export class DDSPopoutElement extends HTMLElement implements DDSCustomElement {
    * @param {boolean} isOpen Whether the popout menu should be open.
    */
   private setOpenState(isOpen: boolean): void {
-    this.dataset.state = isOpen ? "open" : "closed";
-    const trigger = this.querySelector<HTMLElement>("[data-popout-trigger]");
-    const menu = this.querySelector<HTMLElement>("[data-popout-menu]");
+    this.dataset.state = isOpen ? 'open' : 'closed';
+    const trigger = this.querySelector<HTMLElement>('[data-popout-trigger]');
+    const menu = this.querySelector<HTMLElement>('[data-popout-menu]');
     if (trigger) {
-      trigger.setAttribute("aria-expanded", String(isOpen));
+      trigger.setAttribute('aria-expanded', String(isOpen));
     }
     if (menu) {
       menu.hidden = !isOpen;
@@ -102,32 +102,32 @@ export class DDSPopoutElement extends HTMLElement implements DDSCustomElement {
    */
   private handleMenuClick(event: MouseEvent, menu: HTMLElement): void {
     const target = event.target as Element | null;
-    const optionEl = target?.closest<HTMLElement>("[data-popout-option]");
+    const optionEl = target?.closest<HTMLElement>('[data-popout-option]');
     if (!optionEl || !menu.contains(optionEl)) {
       return;
     }
     if (
-      optionEl.hasAttribute("disabled") ||
-      optionEl.getAttribute("aria-disabled") === "true"
+      optionEl.hasAttribute('disabled') ||
+      optionEl.getAttribute('aria-disabled') === 'true'
     ) {
       return;
     }
 
-    const options = menu.querySelectorAll<HTMLElement>("[data-popout-option]");
+    const options = menu.querySelectorAll<HTMLElement>('[data-popout-option]');
     for (const item of options) {
-      item.setAttribute("aria-checked", item === optionEl ? "true" : "false");
+      item.setAttribute('aria-checked', item === optionEl ? 'true' : 'false');
     }
 
     this.dispatchEvent(
-      new CustomEvent("dds:popout-select", {
+      new CustomEvent('dds:popout-select', {
         bubbles: true,
-        detail: { value: optionEl.dataset.value ?? "" },
+        detail: { value: optionEl.dataset.value ?? '' },
       }),
     );
     this.setOpenState(false);
   }
 }
 
-if (!customElements.get("dds-popout")) {
-  customElements.define("dds-popout", DDSPopoutElement);
+if (!customElements.get('dds-popout')) {
+  customElements.define('dds-popout', DDSPopoutElement);
 }

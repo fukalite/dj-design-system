@@ -425,7 +425,7 @@ class TestTabsTypeScriptCustomElement:
     def test_tabs_ts_implements_contract_and_keyboard_navigation(self) -> None:
         """Verify tabs.ts defines DDSTabsElement, AbortController, ARIA queries, and events."""
         ts_text = _read_text(path=TABS_TS_PATH)
-        assert 'import type { DDSCustomElement } from "../../types.js";' in ts_text
+        assert "import type { DDSCustomElement } from '../../types.js';" in ts_text
         assert (
             "export class DDSTabsElement extends HTMLElement implements DDSCustomElement"
             in ts_text
@@ -436,19 +436,19 @@ class TestTabsTypeScriptCustomElement:
         assert '[role="tab"][data-tab-trigger]' in ts_text
         assert '[role="tabpanel"][data-tab-panel]' in ts_text
         for key in ("ArrowRight", "ArrowLeft", "Home", "End"):
-            assert f'"{key}"' in ts_text
+            assert f"'{key}'" in ts_text
         assert "aria-selected" in ts_text
         assert "tabindex" in ts_text
         assert "panel.hidden = !isMatch;" in ts_text
         assert "this.dataset.activeTab = tabId;" in ts_text
         assert (
-            'this.dispatchEvent(\n      new CustomEvent("dds:tab-change", { bubbles: true, detail: { tabId } }),\n    );'
+            "this.dispatchEvent(\n      new CustomEvent('dds:tab-change', { bubbles: true, detail: { tabId } }),\n    );"
             in ts_text
-            or 'this.dispatchEvent(new CustomEvent("dds:tab-change", { bubbles: true, detail: { tabId } }))'
+            or "this.dispatchEvent(new CustomEvent('dds:tab-change', { bubbles: true, detail: { tabId } }))"
             in ts_text
         )
-        assert 'if (!customElements.get("dds-tabs"))' in ts_text
-        assert 'customElements.define("dds-tabs", DDSTabsElement);' in ts_text
+        assert "if (!customElements.get('dds-tabs'))" in ts_text
+        assert "customElements.define('dds-tabs', DDSTabsElement);" in ts_text
         assert "attachShadow" not in ts_text
         assert "document.querySelector" not in ts_text
         for line in ts_text.splitlines():
