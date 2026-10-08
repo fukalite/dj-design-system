@@ -127,14 +127,15 @@ class TestStabilise:
             """() => {
                 const srcdoc = `<!DOCTYPE html><html><head><style>
                     html, body { margin: 0; height: 100%; }
-                    .canvas-wrapper { min-height: 100%; box-sizing: border-box; padding: 16px; }
+                    .canvas-wrapper { min-height: 0; box-sizing: border-box; padding: 16px; }
                 </style></head><body>
                 <div class="canvas-wrapper canvas-wrapper--basic">hi</div>
                 <script>
+                    const w = document.querySelector(".canvas-wrapper");
                     setTimeout(() => new ResizeObserver(() => parent.postMessage({
                         type: "canvas-resize", id: "delayed",
-                        height: document.documentElement.scrollHeight,
-                    }, "*")).observe(document.querySelector(".canvas-wrapper")), 800);
+                        height: Math.max(w.scrollHeight, w.offsetHeight),
+                    }, "*")).observe(w), 800);
                 </scr` + `ipt></body></html>`;
                 const f = document.createElement("iframe");
                 f.className = "gallery-canvas gallery-doc-preview__iframe";
@@ -147,7 +148,9 @@ class TestStabilise:
         state = page.evaluate(
             """() => {
                 const f = document.querySelector("iframe[data-canvas-id='delayed']");
-                return [f.style.height, f.contentDocument.documentElement.scrollHeight];
+                const w = f.contentDocument.querySelector(".canvas-wrapper");
+                const border = Math.max(0, f.offsetHeight - f.clientHeight);
+                return [f.style.height, Math.max(w.scrollHeight, w.offsetHeight) + border];
             }"""
         )
         assert state[0] == f"{state[1]}px"
@@ -161,9 +164,14 @@ class TestStabilise:
         stabilise(page)
         heights = page.evaluate(
             """() => [...document.querySelectorAll("iframe.gallery-doc-preview__iframe")]
-                .map(f => [f.style.height, f.contentDocument.documentElement.scrollHeight])"""
+                .map(f => {
+                    const w = f.contentDocument.querySelector(".canvas-wrapper");
+                    const border = Math.max(0, f.offsetHeight - f.clientHeight);
+                    return [f.style.height, (Math.max(w.scrollHeight, w.offsetHeight) + border) + "px"];
+                })"""
         )
-        assert heights == [["58px", 58], ["58px", 58]]
+        assert len(heights) == 2
+        assert all(applied and applied == expected for applied, expected in heights)
 
     def test_does_not_hang_on_a_lost_report_without_the_recorder(
         self, page, live_server

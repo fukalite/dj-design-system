@@ -47,7 +47,8 @@ async () => {
     }
     const converged = f => {
         const doc = f.contentDocument;
-        if (!f.getClientRects().length || !doc || !doc.querySelector(".canvas-wrapper--basic")) return true;
+        const wrapper = doc && doc.querySelector(".canvas-wrapper--basic");
+        if (!f.getClientRects().length || !wrapper) return true;
         if (reports) {
             if (!reports.has(f.contentWindow)) return false;  // first report not sent yet
             if (!f.style.height) return true;  // this page never applies heights
@@ -56,7 +57,12 @@ async () => {
             // replayed, so the height may never be applied: don't wait for it.
             return true;
         }
-        return f.style.height === doc.documentElement.scrollHeight + "px";
+        const border = Math.max(0, f.offsetHeight - f.clientHeight);
+        const wrapperHeight = Math.max(wrapper.scrollHeight, wrapper.offsetHeight);
+        return (
+            f.style.height === (wrapperHeight + border) + "px" ||
+            f.style.height === wrapperHeight + "px"
+        );
     };
     const deadline = Date.now() + 15000;
     while (!frames.every(converged)) {

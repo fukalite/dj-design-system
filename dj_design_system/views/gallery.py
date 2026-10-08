@@ -7,6 +7,7 @@ from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import render
 
 from dj_design_system.services import markdown as markdown_service
+from dj_design_system.services import visibility as visibility_service
 from dj_design_system.services.control_params import (
     SANDBOX_SUBMISSION_PARAM,
     get_control_param,
@@ -18,7 +19,6 @@ from dj_design_system.services.navigation import (
     find_node,
 )
 from dj_design_system.services.registry import component_registry
-from dj_design_system.services.visibility import get_gallery_components
 from dj_design_system.settings import (
     dds_settings,
     get_default_theme,
@@ -119,7 +119,7 @@ def gallery_index(request: HttpRequest) -> HttpResponse:
     """Gallery home — lists all registered components in the sidebar."""
     context = get_base_context(request)
     context["total_components"] = len(
-        get_gallery_components(registry=component_registry)
+        visibility_service.get_gallery_components(registry=component_registry)
     )
     return render(request, "dj_design_system/gallery/index.html", context)
 

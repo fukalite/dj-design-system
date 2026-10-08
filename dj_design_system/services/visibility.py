@@ -7,8 +7,8 @@ affects the gallery: hidden components still render as template tags.
 """
 
 from dj_design_system.data import ComponentInfo
-from dj_design_system.services.component import BUILTIN_APP_LABEL
-from dj_design_system.services.registry import ComponentRegistry, component_registry
+from dj_design_system.services import component as component_service
+from dj_design_system.services import registry as registry_service
 from dj_design_system.settings import dds_settings
 
 
@@ -20,7 +20,7 @@ def get_hidden_apps() -> set[str]:
     """
     hidden = set(dds_settings.GALLERY_EXCLUDE_APPS or [])
     if not dds_settings.GALLERY_SHOW_DDS_COMPONENTS:
-        hidden.add(BUILTIN_APP_LABEL)
+        hidden.add(component_service.BUILTIN_APP_LABEL)
     return hidden
 
 
@@ -31,7 +31,7 @@ def is_app_visible(*, app_label: str) -> bool:
 
 def get_gallery_components(
     *,
-    registry: ComponentRegistry = component_registry,
+    registry: registry_service.ComponentRegistry = registry_service.component_registry,
 ) -> list[ComponentInfo]:
     """Return the registered components the gallery shows."""
     hidden = get_hidden_apps()
