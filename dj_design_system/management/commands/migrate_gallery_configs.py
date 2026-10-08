@@ -143,17 +143,24 @@ def migrate_source(source: str, keep_legacy: bool = False) -> tuple[str, bool]:
             )
         )
 
+    config_keywords = [
+        ast.keyword(arg="variants", value=ast.List(elts=variants, ctx=ast.Load()))
+    ]
+    if basic_val is not None:
+        config_keywords.append(
+            ast.keyword(arg="smaller_variant", value=ast.Constant(value="basic"))
+        )
+    if max_val is not None:
+        config_keywords.append(
+            ast.keyword(arg="bigger_variant", value=ast.Constant(value="maximal"))
+        )
+
     config_assign = ast.Assign(
         targets=[ast.Name(id="config", ctx=ast.Store())],
         value=ast.Call(
             func=ast.Name(id="GalleryConfig", ctx=ast.Load()),
             args=[],
-            keywords=[
-                ast.keyword(
-                    arg="variants",
-                    value=ast.List(elts=variants, ctx=ast.Load()),
-                )
-            ],
+            keywords=config_keywords,
         ),
     )
 

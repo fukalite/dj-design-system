@@ -212,27 +212,30 @@ class TestNavigationVariants:
         assert danger_node.label == "Danger Button"
         assert danger_node.icon == "alert-icon"
 
-    def test_default_variants_hidden_by_default(self):
+    def test_example_variants_hidden_by_default(self):
         config = GalleryConfig(
             variants=[
                 Variant(name="basic"),
                 Variant(name="maximal"),
                 Variant(name="custom"),
-            ]
+            ],
+            smaller_variant="basic",
+            bigger_variant="maximal",
         )
         info = make_info_with_config("button", config)
 
         tree = _build_navigation([info])
         btn_node = tree[0].children[0]
-        # Only "custom" should be in nav because basic/maximal have show_in_nav=False
+        # Only "custom" should be in nav because the example variants are hidden
         assert len(btn_node.children) == 1
         assert btn_node.children[0].slug == "custom"
 
-    def test_default_variant_included_if_show_in_nav_explicitly_true(self):
+    def test_example_variant_included_if_show_in_nav_explicitly_true(self):
         config = GalleryConfig(
             variants=[
                 Variant(name="basic", show_in_nav=True),
-            ]
+            ],
+            smaller_variant="basic",
         )
         info = make_info_with_config("button", config)
 

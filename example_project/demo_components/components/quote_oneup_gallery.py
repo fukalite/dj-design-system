@@ -3,6 +3,8 @@ from dj_design_system.gallery import GalleryConfig, Variant
 
 
 config = GalleryConfig(
+    smaller_variant="basic",
+    bigger_variant="maximal",
     order=5,
     variants=[
         Variant(

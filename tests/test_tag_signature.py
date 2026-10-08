@@ -539,6 +539,7 @@ class TestBlockContentFromGalleryConfig:
             variants=[
                 Variant(name="maximal", kwargs={"content": "<p>Maximal body</p>"}),
             ],
+            bigger_variant="maximal",
         )
         info = ComponentInfo(
             component_class=RichBlock,
@@ -584,6 +585,7 @@ class TestBlockContentFromGalleryConfig:
                     },
                 ),
             ],
+            smaller_variant="basic",
         )
         info = ComponentInfo(
             component_class=CodeBlock,

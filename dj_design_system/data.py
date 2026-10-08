@@ -93,7 +93,7 @@ class ComponentInfo:
     def gallery_basic_kwargs(self) -> dict[str, Any]:
         warnings.warn(
             f"ComponentInfo.gallery_basic_kwargs for '{self.name}' is deprecated and will be removed "
-            "in a future release. Use ComponentInfo.gallery_config.get_variant('basic').kwargs instead.",
+            "in a future release. Use ComponentInfo.gallery_config.get_smaller_variant().kwargs instead.",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -103,7 +103,7 @@ class ComponentInfo:
     def gallery_maximal_kwargs(self) -> dict[str, Any]:
         warnings.warn(
             f"ComponentInfo.gallery_maximal_kwargs for '{self.name}' is deprecated and will be removed "
-            "in a future release. Use ComponentInfo.gallery_config.get_variant('maximal').kwargs instead.",
+            "in a future release. Use ComponentInfo.gallery_config.get_bigger_variant().kwargs instead.",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -112,8 +112,8 @@ class ComponentInfo:
     @cached_property
     def _gallery_kwargs(self) -> tuple[dict, dict]:
         cfg = self.gallery_config
-        basic_v = cfg.get_variant("basic")
-        maximal_v = cfg.get_variant("maximal")
+        basic_v = cfg.get_smaller_variant()
+        maximal_v = cfg.get_bigger_variant()
         return (
             dict(basic_v.kwargs) if basic_v else {},
             dict(maximal_v.kwargs) if maximal_v else {},
