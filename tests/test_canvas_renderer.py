@@ -92,6 +92,17 @@ class TestCanvasRenderer:
         assert 'src="//cdn.example.com/theme.js"' in srcdoc
         assert 'href="https://cdn.example.com/app.css?v=1&amp;min=1"' in srcdoc
         
+    def test_srcdoc_loads_global_js_before_component_js(self):
+        with override_settings(
+            DJ_DESIGN_SYSTEM={"GLOBAL_JS": ["https://cdn.example.com/global.js"]}
+        ):
+            srcdoc = build_canvas_srcdoc(
+                "<p>Hi</p>",
+                component_js='<script src="/static/component.js"></script>',
+            )
+        assert 'src="https://cdn.example.com/global.js"' in srcdoc
+        assert srcdoc.index("global.js") < srcdoc.index("component.js")
+
     def test_srcdoc_styles_theme_background(self):
         """A theme's custom canvas background is styled in srcdoc canvases too."""
         theme = Theme(
