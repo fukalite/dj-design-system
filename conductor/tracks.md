@@ -61,6 +61,7 @@
 - [x] **Track: Gallery Rebuild 6 — Gallery Page Composition, Legacy Asset Removal & Visual Baselines**
   *Link: [tracks/gallery_rebuild_06_pages_20261007/index.md](tracks/gallery_rebuild_06_pages_20261007/index.md)*
 
-- [ ] **Track: Gallery Rebuild 7 — `example_project/` Rework & Consumer Shadowing Showcase**
+- [~] **Track: Gallery Rebuild 7 — `example_project/` Rework & Consumer Shadowing Showcase**
   *Link: [tracks/gallery_rebuild_07_example_docs_20261007/index.md](tracks/gallery_rebuild_07_example_docs_20261007/index.md)*
+
 

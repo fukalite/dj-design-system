@@ -1,10 +1,10 @@
-from dj_design_system.parameters import BoolParam, StrParam
-from example_project.demo_components.components.card.abstract_card import (
-    AbstractCardComponent,
-)
+"""Informational card component for example_project.demo_components."""
+
+from dj_design_system import parameters
+from example_project.demo_components.components.card import abstract_card
 
 
-class InfoCardComponent(AbstractCardComponent):
+class InfoCardComponent(abstract_card.AbstractCardComponent):
     """A simple informational card with a title, body text, and optional footer.
 
     Demonstrates:
@@ -24,9 +24,11 @@ class InfoCardComponent(AbstractCardComponent):
         "<p class='card__body'>{body}</p>"
         "</div>"
     )
-    title = StrParam("The card heading.")
-    body = StrParam("The card body text.")
-    show_footer = BoolParam("Show a decorative footer rule.", required=False)
+    title = parameters.StrParam("The card heading.")
+    body = parameters.StrParam("The card body text.")
+    show_footer = parameters.BoolParam(
+        "Show a decorative footer rule.", required=False
+    )
 
     class Meta:
         positional_args = ["title", "body"]

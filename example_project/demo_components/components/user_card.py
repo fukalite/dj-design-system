@@ -1,8 +1,11 @@
-from dj_design_system.components import TagComponent
-from dj_design_system.parameters import UserParam
+"""User profile card component for example_project.demo_components."""
+
+import typing
+
+from dj_design_system import components, parameters
 
 
-class UserCardComponent(TagComponent):
+class UserCardComponent(components.TagComponent):
     """Renders a card displaying a user's name, email, and active status.
 
     Demonstrates ``UserParam`` — the ``user`` object is automatically
@@ -21,12 +24,13 @@ class UserCardComponent(TagComponent):
         "<p class='user-card__email'>{user_email}</p>"
         "</div>"
     )
-    user = UserParam("The user to display.", required=False)
+    user = parameters.UserParam("The user to display.", required=False)
 
     class Meta:
         positional_args = ["user"]
 
-    def get_context(self):
+    def get_context(self) -> dict[str, typing.Any]:
+        """Populate default user attributes when no user instance is provided."""
         context = super().get_context()
         context.setdefault("user_first_name", "Jane")
         context.setdefault("user_last_name", "Smith")

@@ -1,40 +1,53 @@
-from dj_design_system.gallery import GalleryConfig, Variant
+"""Gallery configuration and variants for ButtonComponent."""
+
+from dj_design_system import gallery
 
 
-config = GalleryConfig(
+config = gallery.GalleryConfig(
     order=1,
     variants=[
-        Variant(
+        gallery.Variant(
             name="basic",
             label="Primary Button",
             kwargs={"label": "Click Me", "variant": "primary"},
         ),
-        Variant(
+        gallery.Variant(
             name="danger",
             label="Destructive Action",
-            description="Use danger buttons for actions that cannot be undone, such as deleting a record.",
+            description=(
+                "Use danger buttons for actions that cannot be undone, "
+                "such as deleting a record."
+            ),
             kwargs={"label": "Delete Item", "variant": "danger"},
             show_in_nav=True,
         ),
-        Variant(
+        gallery.Variant(
             name="disabled",
             label="Disabled State",
-            description="Buttons in a disabled state ignore user interaction and indicate unavailability.",
+            description=(
+                "Buttons in a disabled state ignore user interaction "
+                "and indicate unavailability."
+            ),
             kwargs={"label": "Unavailable Action", "disabled": True},
             show_in_nav=True,
         ),
-        Variant(
+        gallery.Variant(
             name="dark_preview",
             label="Dark Theme Preview",
-            description="Demonstrates variant-level theme override previewing in dark mode.",
+            description=(
+                "Demonstrates variant-level theme override previewing in dark mode."
+            ),
             kwargs={"label": "Secondary Dark", "variant": "secondary"},
             theme="dark",
             show_in_nav=True,
         ),
-        Variant(
+        gallery.Variant(
             name="wrapper_canvas",
             label="Dialog Action Layout",
-            description="Demonstrates Smart Hybrid canvas template wrapping the button in a realistic dialog mockup.",
+            description=(
+                "Demonstrates Smart Hybrid canvas template wrapping the button "
+                "in a realistic dialog mockup."
+            ),
             kwargs={"label": "Confirm & Proceed"},
             canvas_template="""
 <div style="max-width: 400px; margin: 2rem auto; padding: 1.5rem; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); font-family: sans-serif;">

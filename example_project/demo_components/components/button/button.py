@@ -1,11 +1,11 @@
-from dj_design_system.components import TagComponent
-from dj_design_system.parameters import (
-    BoolParam,
-    StrParam,
-)
+"""Configurable button component for example_project.demo_components."""
+
+import typing
+
+from dj_design_system import components, parameters
 
 
-class ButtonComponent(TagComponent):
+class ButtonComponent(components.TagComponent):
     """A configurable button with size and variant modifiers.
 
     Demonstrates:
@@ -21,22 +21,23 @@ class ButtonComponent(TagComponent):
         {% button "Delete" variant="danger" disabled=True %}
     """
 
-    label = StrParam("The button label.")
-    variant = StrParam(
+    label = parameters.StrParam("The button label.")
+    variant = parameters.StrParam(
         "Variant modifier",
         required=False,
         default="primary",
         choices=["primary", "secondary", "danger"],
         css_class=True,
     )
-    disabled = BoolParam(
+    disabled = parameters.BoolParam(
         "Renders the button as disabled.", required=False, css_class=True
     )
 
     class Meta:
         positional_args = ["label"]
 
-    def get_context(self):
+    def get_context(self) -> dict[str, typing.Any]:
+        """Populate ``disabled_attr`` for the co-located button template."""
         ctx = super().get_context()
         ctx["disabled_attr"] = "disabled" if self.disabled else ""
         return ctx

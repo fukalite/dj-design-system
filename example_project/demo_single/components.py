@@ -4,11 +4,10 @@ All components for this app live in this one file rather than a ``components/``
 package. This is useful for small apps with only a handful of components.
 """
 
-from dj_design_system.components import TagComponent
-from dj_design_system.parameters import StrParam
+from dj_design_system import components, parameters
 
 
-class PillComponent(TagComponent):
+class PillComponent(components.TagComponent):
     """A pill-shaped label, typically used for tags or categories.
 
     Demonstrates the single-file ``components.py`` discovery pattern: define
@@ -21,13 +20,13 @@ class PillComponent(TagComponent):
     """
 
     template_format_str = "<span class='pill {classes}'>{text}</span>"
-    text = StrParam("The pill text.")
+    text = parameters.StrParam("The pill text.")
 
     class Meta:
         positional_args = ["text"]
 
 
-class ChipComponent(TagComponent):
+class ChipComponent(components.TagComponent):
     """A compact chip label, similar to a pill but smaller.
 
     Example usage::
@@ -36,7 +35,7 @@ class ChipComponent(TagComponent):
     """
 
     template_format_str = "<span class='chip {classes}'>{text}</span>"
-    text = StrParam("The chip text.")
+    text = parameters.StrParam("The chip text.")
 
     class Meta:
         positional_args = ["text"]
