@@ -140,11 +140,18 @@ jobs:
           python-version: "3.13"
           activate-environment: true
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
       - name: Install testing dependencies
         run: uv pip install -e ".[dev]"
 
       - name: Install Playwright browsers
         run: just install-playwright
+
+      - name: Compile TypeScript components
+        run: just build-ts
 
       - name: Run E2E tests
         run: just e2e

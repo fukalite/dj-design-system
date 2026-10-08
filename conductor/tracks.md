@@ -46,7 +46,7 @@
 - [x] **Track: Gallery Rebuild 1 — Visual Regression Harness & `dds` Component Foundation**
   *Link: [tracks/gallery_rebuild_01_foundation_20261007/index.md](tracks/gallery_rebuild_01_foundation_20261007/index.md)*
 
-- [ ] **Track: Gallery Rebuild 2 — CSS Architecture, 3-Tier Design Tokens & TypeScript Pipeline**
+- [x] **Track: Gallery Rebuild 2 — CSS Architecture, 3-Tier Design Tokens & TypeScript Pipeline**
   *Link: [tracks/gallery_rebuild_02_tokens_layout_ts_20261007/index.md](tracks/gallery_rebuild_02_tokens_layout_ts_20261007/index.md)*
 
 - [ ] **Track: Gallery Rebuild 3 — Built-in `elements` Collection**
