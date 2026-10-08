@@ -774,7 +774,7 @@ class TestPublicBuildNavigation:
                 return_value=[],
             ),
             patch(
-                "dj_design_system.services.navigation.get_app_component_paths",
+                "dj_design_system.services.component_dirs.get_components_dirs",
                 return_value={},
             ),
         ):

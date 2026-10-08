@@ -1,8 +1,9 @@
 import os
 
-from django.apps import apps
 from django.contrib.staticfiles.finders import BaseFinder
 from django.contrib.staticfiles.storage import FileSystemStorage
+
+from dj_design_system.services import component_dirs as component_dirs_service
 
 
 ALLOWED_EXTENSIONS = {".css", ".js"}
@@ -31,15 +32,13 @@ class ComponentsStaticFinder(BaseFinder):
         # Build a mapping of app_label -> (components_dir, FileSystemStorage)
         # for every installed app that has a components/ directory.
         self._storages: dict[str, tuple[str, FileSystemStorage]] = {}
-        for app_config in apps.get_app_configs():
-            components_dir = os.path.join(app_config.path, "components")
-            if os.path.isdir(components_dir):
-                storage = FileSystemStorage(location=components_dir)
-                storage.prefix = f"{app_config.label}/components"
-                self._storages[app_config.label] = (
-                    components_dir,
-                    storage,
-                )
+        for (
+            app_label,
+            components_dir,
+        ) in component_dirs_service.get_components_dirs().items():
+            storage = FileSystemStorage(location=str(components_dir))
+            storage.prefix = f"{app_label}/components"
+            self._storages[app_label] = (str(components_dir), storage)
 
     def find(self, path: str, find_all: bool = False) -> str | list[str]:
         """

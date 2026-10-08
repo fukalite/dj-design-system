@@ -1,8 +1,8 @@
-import os
-
 from django.apps import apps
 from django.template import Origin, TemplateDoesNotExist
 from django.template.loaders.base import Loader
+
+from dj_design_system.services import component_dirs as component_dirs_service
 
 
 class ComponentsTemplateLoader(Loader):
@@ -29,15 +29,33 @@ class ComponentsTemplateLoader(Loader):
                 "APP_DIRS": False,
                 "OPTIONS": {
                     "loaders": [
-                        "django.template.loaders.filesystem.Loader",
-                        "django.template.loaders.app_directories.Loader",
-                        "dj_design_system.loaders.ComponentsTemplateLoader",
+                        (
+                            "django.template.loaders.cached.Loader",
+                            [
+                                "django.template.loaders.filesystem.Loader",
+                                "django.template.loaders.app_directories.Loader",
+                                "dj_design_system.loaders.ComponentsTemplateLoader",
+                            ],
+                        ),
                     ],
                     "context_processors": [...],
                 },
             },
         ]
     """
+
+    def get_dirs(self) -> list[str]:
+        """Return installed apps' ``components/`` directories for template autoreload.
+
+        Returns:
+            A list of existing ``<app>/components`` directory paths so Django's
+            development server watches component templates and resets
+            ``cached.Loader`` when they change.
+        """
+        return [
+            str(components_dir)
+            for components_dir in component_dirs_service.get_components_dirs().values()
+        ]
 
     def get_template_sources(self, template_name: str):
         """
@@ -58,13 +76,14 @@ class ComponentsTemplateLoader(Loader):
         except LookupError:
             return
 
-        components_dir = os.path.join(app_config.path, "components")
-        if not os.path.isdir(components_dir):
+        components_dir = component_dirs_service.get_components_dir(
+            app_config=app_config
+        )
+        if components_dir is None:
             return
 
-        full_path = os.path.join(components_dir, sub_path)
         yield Origin(
-            name=full_path,
+            name=str(components_dir / sub_path),
             template_name=template_name,
             loader=self,
         )

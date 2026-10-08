@@ -5,7 +5,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 from django.apps import AppConfig
 from django.core.exceptions import ImproperlyConfigured
-from django.template import TemplateDoesNotExist
+from django.template import TemplateDoesNotExist, engines
+from django.template.autoreload import get_template_directories, template_changed
 
 from dj_design_system.components import TagComponent
 from dj_design_system.loaders import ComponentsTemplateLoader
@@ -97,6 +98,67 @@ class TestComponentsTemplateLoader:
     def test_ignores_path_with_too_few_parts(self, loader):
         sources = list(loader.get_template_sources("button.html"))
         assert sources == []
+
+    def test_get_dirs_returns_app_components_directories(self) -> None:
+        demo_config = MagicMock(spec=AppConfig)
+        demo_config.label = "demo_components"
+        demo_config.path = str(DEMO_COMPONENTS_DIR.parent)
+        empty_config = MagicMock(spec=AppConfig)
+        empty_config.label = "empty"
+        empty_config.path = "/nonexistent/app"
+
+        with patch(
+            "dj_design_system.services.component_dirs.apps.get_app_configs",
+            return_value=[demo_config, empty_config],
+        ):
+            instance = ComponentsTemplateLoader(engine=None)
+            dirs = instance.get_dirs()
+
+        assert dirs == [str(DEMO_COMPONENTS_DIR)]
+
+
+# ---------------------------------------------------------------------------
+# Cached loader and dev-server autoreload
+# ---------------------------------------------------------------------------
+
+
+class TestCachedLoaderAutoreload:
+    """The cached loader caches component templates and the dev server resets it (#126)."""
+
+    def test_components_dirs_are_watched_through_cached_loader(self) -> None:
+        directories = get_template_directories()
+        assert DEMO_COMPONENTS_DIR in directories
+
+    def test_component_template_is_cached(self) -> None:
+        engine = engines["django"].engine
+        cached_loader = engine.template_loaders[0]
+        cached_loader.reset()
+
+        engine.get_template("demo_components/components/quote_oneup.html")
+
+        assert any(
+            key.startswith("demo_components/components/quote_oneup.html")
+            for key in cached_loader.get_template_cache
+        )
+
+    def test_component_template_change_resets_cache(self) -> None:
+        engine = engines["django"].engine
+        cached_loader = engine.template_loaders[0]
+        engine.get_template("demo_components/components/quote_oneup.html")
+        assert cached_loader.get_template_cache
+
+        handled = template_changed(
+            sender=None, file_path=DEMO_COMPONENTS_DIR / "quote_oneup.html"
+        )
+
+        assert handled is True
+        assert not cached_loader.get_template_cache
+
+    def test_component_python_change_is_left_to_the_reloader(self) -> None:
+        handled = template_changed(
+            sender=None, file_path=DEMO_COMPONENTS_DIR / "quote_oneup.py"
+        )
+        assert handled is None
 
 
 # ---------------------------------------------------------------------------
