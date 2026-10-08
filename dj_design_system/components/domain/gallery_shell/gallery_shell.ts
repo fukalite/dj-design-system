@@ -287,7 +287,9 @@ export class DDSGalleryShellElement
     }
     if (hash.startsWith('#param-')) {
       this.activateComponentPane('docs');
-      const target = this.querySelector<HTMLElement>(hash);
+      const target = this.querySelector<HTMLElement>(
+        `#${CSS.escape(hash.slice(1))}`,
+      );
       target?.scrollIntoView({ block: 'start' });
       return;
     }

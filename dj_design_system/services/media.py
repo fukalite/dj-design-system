@@ -1,9 +1,8 @@
 from collections.abc import Sequence
-import html
 from typing import Any, Type
 
 from django.templatetags.static import static
-from django.utils.html import format_html_join
+from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
 
 from dj_design_system.data import ComponentMedia
@@ -127,19 +126,25 @@ def build_script_tags(
     """Build ``<script>`` tags for a list of static or external JS paths."""
     if not js_paths:
         return ""
-    nonce_attr = mark_safe(f' nonce="{html.escape(str(nonce))}"') if nonce else ""
     tags: list[str] = []
     for path in js_paths:
-        url = html.escape(resolve_asset_url(path=path))
+        url = resolve_asset_url(path=path)
         type_attr = (
-            ' type="module"' if _is_module_script(path, is_module=is_module) else ""
+            mark_safe(' type="module"')
+            if _is_module_script(path, is_module=is_module)
+            else ""
         )
-        if nonce_attr:
+        if nonce:
             tags.append(
-                f'<script{type_attr} src="{url}" {nonce_attr.strip()}></script>'
+                format_html(
+                    '<script{} src="{}" nonce="{}"></script>',
+                    type_attr,
+                    url,
+                    nonce,
+                )
             )
         else:
-            tags.append(f'<script{type_attr} src="{url}"></script>')
+            tags.append(format_html('<script{} src="{}"></script>', type_attr, url))
     return mark_safe("\n".join(tags))
 
 

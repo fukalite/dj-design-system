@@ -160,7 +160,7 @@ class CanvasPreprocessor(Preprocessor):
             media = component_registry.get_merged_media()
             css_paths = list(media.css)
             js_paths = list(media.js)
-            if self.app_label == "dj_design_system":
+            if getattr(self, "app_label", None) == "dj_design_system":
                 internal_media = component_registry.get_internal_media()
                 css_paths = list(
                     dict.fromkeys(
