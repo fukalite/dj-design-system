@@ -121,6 +121,8 @@ class ParamsTable(components.TagComponent):
                 type_name = " | ".join(
                     getattr(item, "__name__", str(item)) for item in raw_type
                 )
+            elif raw_type is not None:
+                type_name = str(raw_type)
             else:
                 type_name = FALLBACK_TYPE_NAME
 

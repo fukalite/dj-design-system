@@ -156,12 +156,6 @@ class FolderListing(components.TagComponent):
                 child_count = 0
             elif isinstance(raw_children, (list, tuple, set)):
                 child_count = len(raw_children)
-            elif raw_children is not None:
-                child_count = (
-                    raw_children.count()
-                    if hasattr(raw_children, "count")
-                    else len(list(raw_children))
-                )
             else:
                 child_count = 0
 
