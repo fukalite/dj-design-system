@@ -1,237 +1,65 @@
 {% extends "dj_design_system/gallery/base.html" %}
-{% load static %}
+{% load design_components %}
 
-{% block title %}{{ component_info.name }} — {{ design_system_name }}{% endblock %}
-
-{% block extra_css %}
-    <link rel="stylesheet"
-          href="{% static 'dj_design_system/gallery-toolbar.css' %}">
-{% endblock %}
-
-{% block breadcrumb %}
-    {% include "dj_design_system/gallery/breadcrumb.html" %}
-{% endblock %}
+{% block title %}{% if active_variant %}{{ active_variant.label }} — {% endif %}{{ component_info.name }} — {{ design_system_name }}{% endblock %}
 
 {% block toolbar_actions %}
-    {# Tab switcher — visible only on narrow viewports #}
-    <div class="gallery-tabs"
-         role="radiogroup"
-         aria-label="Documentation and Sandbox view switcher">
-        <input type="radio"
-               name="gallery-tab"
-               id="gallery-tab-docs"
-               class="gallery-tabs__input"
-               checked>
-        <label for="gallery-tab-docs" class="gallery-tabs__label">Documentation</label>
-        <input type="radio"
-               name="gallery-tab"
-               id="gallery-tab-sandbox"
-               class="gallery-tabs__input">
-        <label for="gallery-tab-sandbox" class="gallery-tabs__label">Sandbox</label>
-    </div>
+    {% dds__tabs tabs=component_tabs active_tab="docs" aria_label="Documentation and Sandbox view switcher" %}{% enddds__tabs %}
 {% endblock %}
 
 {% block content %}
-    {# ── Documentation + Sandbox split ── #}
-    <div class="gallery-split">
-
-        {# ── Documentation pane ──────────────────────────────────── #}
-        <div class="gallery-documentation gallery-split__pane" id="pane-docs">
-            <div class="gallery-split__pane-header">Documentation</div>
-            <div class="gallery-docs gallery-split__pane-body">
-
-                {% if active_variant %}
-                    {# ── Focused Variant View ── #}
-                    <div class="gallery-variant-view">
-                        <div class="gallery-variant-view__header">
-                            <span class="gallery-variant-view__badge">Variant</span>
-                            <h2 class="gallery-variant-view__title">{{ active_variant.label }}</h2>
-                        </div>
-                        {% if variant_description %}
-                            <div class="gallery-markdown gallery-variant-view__description">{{ variant_description|safe }}</div>
-                        {% endif %}
-
-                        <div class="gallery-usage__block">
-                            <h4 class="gallery-usage__heading">Preview</h4>
-                            {% if variant_preview_url %}
-                                <div class="gallery-doc-preview">
-                                    <iframe class="gallery-canvas gallery-doc-preview__iframe"
-                                            src="{{ variant_preview_url }}"
-                                            name="variant"
-                                            data-canvas-id="variant"
-                                            title="{{ active_variant.label }} preview"></iframe>
-                                    <a class="gallery-doc-preview__sandbox-link"
-                                       href="#pane-sandbox"
-                                       title="Open in sandbox">
-                                        <svg width="14"
-                                             height="14"
-                                             viewBox="0 0 24 24"
-                                             fill="none"
-                                             stroke="currentColor"
-                                             stroke-width="2"
-                                             stroke-linecap="round"
-                                             stroke-linejoin="round">
-                                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                                            <polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
-                                        </svg>
-                                    </a>
-                                </div>
-                            {% endif %}
-                            <pre class="gallery-usage__pre"><code class="gallery-usage__code">{% if variant_signature.minimal_html %}{{ variant_signature.minimal_html|safe }}{% else %}{{ variant_signature.minimal }}{% endif %}</code></pre>
-                        </div>
-                    </div>
+    {% dds__split_pane orientation="horizontal" initial_ratio=55 primary_surface="docs" secondary_surface="sandbox" primary_label="Documentation" secondary_label="Sandbox" %}
+    {% slot "primary" %}
+    <div id="pane-docs">
+        <div id="dds-panel-docs">
+            {% if active_variant %}
+                {% dds__variant_view variant_label=active_variant.label description_html=variant_description preview_url=variant_preview_url code=variant_signature.minimal %}
+            {% else %}
+                <l-stack data-docs-stack>
+                {% dds__prose title=component_info.name %}
+                {% if component_description %}
+                    {{ component_description }}
                 {% else %}
-                    {# 1. Component docstring (class-level description) #}
-                    {% if component_description %}
-                        <h3 class="gallery-docs__section-heading">Description</h3>
-                        <div class="gallery-markdown">{{ component_description|safe }}</div>
-                    {% endif %}
-
-                    {# 2. Tag usage examples with live previews #}
-                    {% if tag_signature %}
-                        <hr class="gallery-docs__divider">
-                        <h3 class="gallery-docs__section-heading">Usage</h3>
-                        <div class="gallery-usage">
-                            <div class="gallery-usage__block">
-                                <h4 class="gallery-usage__heading">Minimal example</h4>
-                                {% if minimal_preview_url %}
-                                    <div class="gallery-doc-preview">
-                                        <iframe class="gallery-canvas gallery-doc-preview__iframe"
-                                                src="{{ minimal_preview_url }}"
-                                                name="minimal"
-                                                data-canvas-id="minimal"
-                                                title="Minimal example preview"></iframe>
-                                        <a class="gallery-doc-preview__sandbox-link"
-                                           href="#pane-sandbox"
-                                           title="Open in sandbox">
-                                            <svg width="14"
-                                                 height="14"
-                                                 viewBox="0 0 24 24"
-                                                 fill="none"
-                                                 stroke="currentColor"
-                                                 stroke-width="2"
-                                                 stroke-linecap="round"
-                                                 stroke-linejoin="round">
-                                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                                                <polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
-                                            </svg>
-                                        </a>
-                                    </div>
-                                {% endif %}
-                                <pre class="gallery-usage__pre"><code class="gallery-usage__code">{% if tag_signature.minimal_html %}{{ tag_signature.minimal_html|safe }}{% else %}{{ tag_signature.minimal }}{% endif %}</code></pre>
-                            </div>
-                            <div class="gallery-usage__block">
-                                <h4 class="gallery-usage__heading">Bigger example</h4>
-                                {% if maximal_preview_url %}
-                                    <div class="gallery-doc-preview">
-                                        <iframe class="gallery-canvas gallery-doc-preview__iframe"
-                                                src="{{ maximal_preview_url }}"
-                                                name="maximal"
-                                                data-canvas-id="maximal"
-                                                title="Bigger example preview"></iframe>
-                                        <a class="gallery-doc-preview__sandbox-link"
-                                           href="#pane-sandbox"
-                                           title="Open in sandbox">
-                                            <svg width="14"
-                                                 height="14"
-                                                 viewBox="0 0 24 24"
-                                                 fill="none"
-                                                 stroke="currentColor"
-                                                 stroke-width="2"
-                                                 stroke-linecap="round"
-                                                 stroke-linejoin="round">
-                                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                                                <polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
-                                            </svg>
-                                        </a>
-                                    </div>
-                                {% endif %}
-                                <pre class="gallery-usage__pre"><code class="gallery-usage__code">{% if tag_signature.maximal_html %}{{ tag_signature.maximal_html|safe }}{% else %}{{ tag_signature.maximal }}{% endif %}</code></pre>
-                            </div>
-                            <div class="gallery-usage__block">
-                                <h4 class="gallery-usage__heading">Qualified tag usage</h4>
-                                <pre class="gallery-usage__pre"><code class="gallery-usage__code">{% if tag_signature_long.minimal_html %}{{ tag_signature_long.minimal_html|safe }}{% else %}{{ tag_signature_long.minimal }}{% endif %}</code></pre>
-                            </div>
-                        </div>
-                    {% endif %}
+                    <p data-docs-empty>No description provided. Add a docstring to the component class.</p>
                 {% endif %}
+            {% enddds__prose %}
 
-                {# 3. Parameters table (read-only — interactive form is in the Sandbox) #}
-                {% if params %}
-                    <hr class="gallery-docs__divider">
-                    <h3 class="gallery-docs__section-heading">Parameters</h3>
-                    <table class="gallery-params">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Type</th>
-                                <th>Required</th>
-                                <th>Default</th>
-                                <th>Choices</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for name, spec in params %}
-                                <tr>
-                                    <td>
-                                        <code>{{ name }}</code>
-                                    </td>
-                                    <td>
-                                        <code>{{ spec.type_name }}</code>
-                                    </td>
-                                    <td>{{ spec.required|yesno:"Yes,No" }}</td>
-                                    <td>
-                                        {% if spec.default is not None %}
-                                            <code>{{ spec.default }}</code>
-                                        {% else %}
-                                            —
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if spec.choices %}
-                                            {% for choice in spec.choices %}
-                                                <code>{{ choice }}</code>
-                                                {% if not forloop.last %},{% endif %}
-                                            {% endfor %}
-                                        {% else %}
-                                            —
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ spec.description|default:"—" }}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                {% else %}
-                    <p>This component has no parameters.</p>
+            <section data-docs-section="usage">
+                <l-stack>
+                <h2>Usage</h2>
+                {% dds__usage_example title="Minimal example" code=tag_signature.minimal preview_url=minimal_preview_url canvas_id="minimal" show_sandbox_link=True %}
+                {% if tag_signature.maximal != tag_signature.minimal %}
+                    {% dds__usage_example title="All parameters" code=tag_signature.maximal preview_url=maximal_preview_url canvas_id="maximal" show_sandbox_link=True %}
                 {% endif %}
-
-                {# 4. Markdown content (index.md) rendered last #}
-                {% if doc_html %}
-                    <hr class="gallery-docs__divider">
-                    <h3 class="gallery-docs__section-heading">Further documentation</h3>
-                    <div class="gallery-markdown">{{ doc_html|safe }}</div>
+                {% if component_info.qualified_name != component_info.name %}
+                    {% dds__usage_example title="Qualified name (disambiguated)" code=tag_signature_long.minimal canvas_id="qualified" show_sandbox_link=False %}
                 {% endif %}
-            </div>
-        </div>
+                </l-stack>
+            </section>
 
-        {# ── Sandbox pane ────────────────────────────────────────── #}
-        <div class="gallery-sandbox gallery-split__pane" id="pane-sandbox">
-            <div class="gallery-split__pane-header">Sandbox</div>
-            <div class="gallery-split__pane-body" data-gallery-sandbox-body>
-                {% include "dj_design_system/gallery/sandbox_fragment.html" %}
-            </div>
-        </div>
+            <section data-docs-section="parameters">
+                <l-stack>
+                <h2>Parameters</h2>
+                {% dds__params_table params=params slots_list=declared_slots title="" %}
+                </l-stack>
+            </section>
 
+            {% if doc_html %}
+                <section data-docs-section="documentation">
+                    {% dds__prose html=doc_html %}{% enddds__prose %}
+            </section>
+{% endif %}
+</l-stack>
+{% endif %}
+</div>
+</div>
+{% endslot %}
+{% slot "secondary" %}
+<div id="pane-sandbox">
+    <div id="dds-panel-sandbox" data-gallery-sandbox-body>
+        {% include "dj_design_system/gallery/sandbox_fragment.html" %}
     </div>
-{% endblock %}
-
-{% block extra_js %}
-    <script src="{% static 'dj_design_system/gallery-tabs.js' %}"
-            {% if request.csp_nonce %}nonce="{{ request.csp_nonce }}"{% endif %}></script>
-    <script src="{% static 'dj_design_system/gallery-toolbar.js' %}"
-            {% if request.csp_nonce %}nonce="{{ request.csp_nonce }}"{% endif %}></script>
-    <script src="{% static 'dj_design_system/htmx.min.js' %}"
-            {% if request.csp_nonce %}nonce="{{ request.csp_nonce }}"{% endif %}></script>
+</div>
+{% endslot %}
+{% enddds__split_pane %}
 {% endblock %}

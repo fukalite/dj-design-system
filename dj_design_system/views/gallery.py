@@ -50,6 +50,11 @@ def get_base_context(
         active_variant = (
             get_control_param(request.GET, "variant", bare_fallback=bare_fallback) or ""
         ).strip() or None
+    theme_body_class = (
+        "gallery-theme-dark"
+        if "dark" in str(active_theme).lower()
+        else "gallery-theme-light"
+    )
     return {
         "nav_tree": nav_tree,
         "search_index": [] if is_htmx else build_search_index(nav_tree),
@@ -57,8 +62,19 @@ def get_base_context(
         "active_app": active_app,
         "active_path": active_path,
         "active_variant": active_variant,
+        "breadcrumbs": [],
         "available_themes": get_themes(),
         "active_theme": active_theme,
+        "theme_body_class": theme_body_class,
+        "component_tabs": [
+            {"id": "docs", "label": "Documentation"},
+            {"id": "sandbox", "label": "Sandbox"},
+        ],
+        "declared_slots": [],
+        "params": [],
+        "param_rows": [],
+        "canvas_backgrounds": [],
+        "gallery_variants": [],
     }
 
 
@@ -118,8 +134,14 @@ def _render_document(request, context, node, app_label, path_parts):
 def gallery_index(request: HttpRequest) -> HttpResponse:
     """Gallery home — lists all registered components in the sidebar."""
     context = get_base_context(request)
-    context["total_components"] = len(
+    total_components = len(
         visibility_service.get_gallery_components(registry=component_registry)
+    )
+    context["total_components"] = total_components
+    context["total_components_label"] = (
+        f"{total_components} component registered."
+        if total_components == 1
+        else f"{total_components} components registered."
     )
     return render(request, "dj_design_system/gallery/index.html", context)
 

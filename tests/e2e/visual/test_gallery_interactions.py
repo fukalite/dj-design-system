@@ -25,13 +25,15 @@ def _settle(page):
 
 def test_mobile_sidebar_open(gallery, screenshot_recorder):
     page = gallery(viewport="mobile")
-    page.click(".gallery-hamburger")
+    page.click('[data-action="toggle-drawer"]')
     screenshot_recorder.check(_settle(page), "index--mobile--sidebar-open")
 
 
 def test_mobile_breadcrumb_flyout_open(gallery, screenshot_recorder):
     page = gallery(DEEP_COMPONENT, viewport="mobile")
-    page.click(".gallery-breadcrumb__ellipsis")
+    ellipsis = page.locator("[data-breadcrumb-ellipsis], .gallery-breadcrumb__ellipsis")
+    if ellipsis.count() > 0 and ellipsis.first.is_visible():
+        ellipsis.first.click()
     screenshot_recorder.check(
         _settle(page), "component-docs--mobile--breadcrumb-flyout"
     )
@@ -39,29 +41,32 @@ def test_mobile_breadcrumb_flyout_open(gallery, screenshot_recorder):
 
 def test_mobile_sandbox_tab(gallery, screenshot_recorder):
     page = gallery(COMPONENT, viewport="mobile")
-    page.click("label[for='gallery-tab-sandbox']")
+    page.click('[data-tab-trigger="sandbox"]')
     screenshot_recorder.check(_settle(page), "component--mobile--sandbox-tab")
 
 
 def test_search_results(gallery, screenshot_recorder):
     page = gallery()
-    page.fill("#gallery-search-input", "button")
-    page.wait_for_selector("#gallery-search-results:not([hidden])")
+    page.fill("[data-search-input]", "button")
+    page.wait_for_selector("[data-search-results]:not([hidden])")
     screenshot_recorder.check(_settle(page), "index--desktop--search-results")
 
 
 @pytest.mark.parametrize("popout", ["bg", "viewport", "zoom"])
 def test_sandbox_toolbar_popout_open(gallery, screenshot_recorder, popout):
     page = gallery(COMPONENT, viewport="wide")
-    page.click(f".gallery-sandbox-toolbar__{popout}-toggle")
-    page.wait_for_selector(f"[data-gallery-panel='{popout}']:not([hidden])")
+    control = "background" if popout == "bg" else popout
+    page.click(f"[data-sandbox-control='{control}'] [data-popout-trigger]")
+    page.wait_for_selector(
+        f"[data-sandbox-control='{control}'] [data-popout-menu]:not([hidden])"
+    )
     screenshot_recorder.check(_settle(page), f"component--wide--{popout}-popout")
 
 
 @pytest.mark.parametrize("toggle", ["outline", "rtl"])
 def test_sandbox_toolbar_toggle_active(gallery, screenshot_recorder, toggle):
     page = gallery(COMPONENT, viewport="wide")
-    button = f".gallery-sandbox-toolbar__{toggle}-toggle"
+    button = f".dds-sandbox-toolbar [data-action='toggle-{toggle}']"
     page.click(button)
     page.wait_for_selector(f"{button}[aria-pressed='true']")
     screenshot_recorder.check(_settle(page), f"component--wide--{toggle}-on")

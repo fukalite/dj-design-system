@@ -121,4 +121,47 @@
       padding: var(--_gallery-shell-main-padding-compact);
     }
   }
+
+  @media (min-width: 48.0625rem) {
+    dds-gallery-shell [data-action='toggle-drawer'],
+    .dds-gallery-shell [data-action='toggle-drawer'] {
+      display: none;
+    }
+  }
+
+  @media (max-width: 112.499rem) {
+    dds-gallery-shell dds-split-pane[data-active-pane] [data-split-resizer],
+    .dds-gallery-shell dds-split-pane[data-active-pane] [data-split-resizer] {
+      display: none;
+    }
+
+    dds-gallery-shell dds-split-pane[data-active-pane='docs'] [data-split-pane='primary'],
+    .dds-gallery-shell dds-split-pane[data-active-pane='docs'] [data-split-pane='primary'] {
+      flex: 1 1 100%;
+    }
+
+    dds-gallery-shell dds-split-pane[data-active-pane='docs'] [data-split-pane='secondary'],
+    .dds-gallery-shell dds-split-pane[data-active-pane='docs'] [data-split-pane='secondary'] {
+      display: none;
+    }
+
+    dds-gallery-shell dds-split-pane[data-active-pane='sandbox'] [data-split-pane='primary'],
+    .dds-gallery-shell dds-split-pane[data-active-pane='sandbox'] [data-split-pane='primary'] {
+      display: none;
+    }
+
+    dds-gallery-shell dds-split-pane[data-active-pane='sandbox'] [data-split-pane='secondary'],
+    .dds-gallery-shell dds-split-pane[data-active-pane='sandbox'] [data-split-pane='secondary'] {
+      flex: 1 1 100%;
+    }
+  }
+
+  @media (min-width: 112.5rem) {
+    dds-gallery-shell [data-toolbar-actions] .dds-tabs,
+    dds-gallery-shell [data-toolbar-actions] dds-tabs,
+    .dds-gallery-shell [data-toolbar-actions] .dds-tabs,
+    .dds-gallery-shell [data-toolbar-actions] dds-tabs {
+      display: none;
+    }
+  }
 }

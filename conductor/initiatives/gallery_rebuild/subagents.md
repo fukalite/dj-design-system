@@ -164,5 +164,9 @@ Execute the `/code-review` audit on all files created or modified in the current
 5. Return a <=25-line summary of fixes applied and verification output. Do NOT run any `git` stage/commit commands.
 
 ## [DRIFT & CONTEXT NOTES]
-- <Insert any phase-specific nuances>
+- **Track 6 Phase 1 Consolidation:**
+  - `build_script_tags()` in `dj_design_system/services/media.py` emits `type="module"` when `is_module=True` or when a script path starts with `dj_design_system/components/`.
+  - `dj_design_system_gallery` template tag library exposes `{% internal_component_stylesheets %}`, `{% internal_component_scripts %}`, and `{% gallery_search_index_script %}` (`id="gallery-search-index"`, matching `dds__search_box` default `index_id`).
+  - Gallery views (`dj_design_system/views/gallery.py` and `dj_design_system/views/component.py`) pre-compute `theme_body_class`, `total_components_label`, `component_tabs`, `declared_slots`, and `sandbox_reset_url` (`f"{node.url}#pane-sandbox"`) in Python so all 7 page templates remain 100% free of template filters (`|`) and BEM classes (`__` / `--`).
+  - `<dds-gallery-shell>` (`gallery_shell.ts`) coordinates `#pane-sandbox` / `#param-*` hash navigation, `[data-tab-trigger]` pane switching, `dds:theme-change` iframe/cookie/URL sync, `[data-sandbox-control]` popout selection/restoration (`sessionStorage['dds_toolbar_state']`), `[data-action]` sandbox toggles, and `canvas-resize` message resizing.
 ```

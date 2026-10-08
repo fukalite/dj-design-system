@@ -124,7 +124,7 @@ class TestNavtreeAccessibility:
         assert "gallery-nav__link--active" not in html
 
     def test_component_tab_switcher_accessibility(self):
-        """Tab switcher radio buttons must not have aria-hidden='true' and must have radiogroup role."""
+        """Tab switcher buttons must have role='tablist' and role='tab' and not be aria-hidden='true'."""
         rf = RequestFactory()
         request = rf.get("/gallery/test_app/button/")
         context = get_base_context(request)
@@ -133,7 +133,7 @@ class TestNavtreeAccessibility:
                 "component_info": type("Info", (), {"name": "button"})(),
                 "design_system_name": "Test DS",
                 "active_variant": None,
-                "params": {},
+                "params": [],
             }
         )
 
@@ -141,20 +141,15 @@ class TestNavtreeAccessibility:
             "dj_design_system/gallery/component.html", context, request=request
         )
 
-        assert 'class="gallery-tabs"' in html
-        assert 'role="radiogroup"' in html
-        # Both radio inputs must NOT be aria-hidden="true"
-        assert 'id="gallery-tab-docs"' in html
-        assert 'id="gallery-tab-sandbox"' in html
-        assert (
-            'id="gallery-tab-docs"\n               class="gallery-tabs__input"\n               checked\n               aria-hidden="true"'
-            not in html
-        )
-        assert 'aria-hidden="true"\n        <label for="gallery-tab-docs"' not in html
-        # Ensure no input inside gallery-tabs has aria-hidden
-        tabs_start = html.find('class="gallery-tabs"')
-        tabs_end = html.find("</div>", tabs_start)
+        assert '<dds-tabs class="dds-tabs"' in html
+        assert 'role="tablist"' in html
+        assert 'data-tab-trigger="docs"' in html
+        assert 'data-tab-trigger="sandbox"' in html
+        tabs_start = html.find('<dds-tabs class="dds-tabs"')
+        tabs_end = html.find("</dds-tabs>", tabs_start)
         tabs_html = html[tabs_start:tabs_end]
+        assert 'role="tab"' in tabs_html
+        assert 'aria-selected="true"' in tabs_html
         assert 'aria-hidden="true"' not in tabs_html
 
     def test_variant_select_keyboard_navigation_guard(self):
@@ -180,19 +175,30 @@ class TestNavtreeAccessibility:
         assert "toggle.focus()" in content
 
     def test_drawer_resizer_accessibility(self):
-        """Drawer resizer must have role='separator', tabindex='0', and not be aria-hidden."""
+        """Split pane resizer must have role='separator', tabindex='0', and not be aria-hidden."""
+        rf = RequestFactory()
+        request = rf.get("/gallery/test_app/button/")
+        context = get_base_context(request)
+        context.update(
+            {
+                "component_info": type("Info", (), {"name": "button"})(),
+                "design_system_name": "Test DS",
+                "active_variant": None,
+                "params": [],
+            }
+        )
         html = render_to_string(
-            "dj_design_system/gallery/sandbox_fragment.html",
-            {"param_rows": [{"name": "test"}]},
+            "dj_design_system/gallery/component.html",
+            context,
+            request=request,
         )
 
-        assert "data-gallery-resizer" in html
+        assert "data-split-resizer" in html
         assert 'role="separator"' in html
         assert 'tabindex="0"' in html
-        assert 'aria-orientation="horizontal"' in html
+        assert 'aria-orientation="vertical"' in html
         assert "aria-label=" in html
-        # Must not be aria-hidden
-        resizer_idx = html.find("data-gallery-resizer")
+        resizer_idx = html.find("data-split-resizer")
         resizer_start = html.rfind("<div", 0, resizer_idx)
         resizer_end = html.find(">", resizer_idx)
         resizer_tag = html[resizer_start : resizer_end + 1]
@@ -302,44 +308,29 @@ class TestNavtreeAccessibility:
         assert htmx_path.exists()
         assert htmx_path.stat().st_size > 10000
 
-        component_template = Path(
-            "dj_design_system/templates/dj_design_system/gallery/component.html"
-        ).read_text(encoding="utf-8")
-        assert "unpkg.com/htmx" not in component_template
-        assert "{% static 'dj_design_system/htmx.min.js' %}" in component_template
-
-    def test_bem_naming_consistency(self):
-        """BEM naming conventions should be followed consistently across templates and CSS."""
-        from pathlib import Path
-
-        # 1. Base template search input and results include BEM classes
-        base_html = Path(
+        base_template = Path(
             "dj_design_system/templates/dj_design_system/gallery/base.html"
         ).read_text(encoding="utf-8")
-        assert "gallery-sidebar__search-input" in base_html
-        assert "gallery-sidebar__search-results" in base_html
+        assert "unpkg.com/htmx" not in base_template
+        assert "{% static 'dj_design_system/htmx.min.js' %}" in base_template
 
-        # 2. Toolbar background chips include BEM modifier classes
-        toolbar_html = Path(
-            "dj_design_system/templates/dj_design_system/gallery/toolbar.html"
-        ).read_text(encoding="utf-8")
-        assert "gallery-sandbox-toolbar__bg-chip--" in toolbar_html
+    def test_bem_naming_consistency(self):
+        """Rebuilt page templates should compose dds__* components with zero BEM classes or template filters."""
+        from pathlib import Path
 
-        # 3. Sandbox fragment error list includes BEM element class
-        sandbox_html = Path(
-            "dj_design_system/templates/dj_design_system/gallery/sandbox_fragment.html"
-        ).read_text(encoding="utf-8")
-        assert "gallery-params-form__errors" in sandbox_html
-
-        # 4. CSS contains corresponding BEM selectors
-        gallery_css = Path(
-            "dj_design_system/static/dj_design_system/gallery.css"
-        ).read_text(encoding="utf-8")
-        assert ".gallery-sidebar__search-input" in gallery_css
-        assert ".gallery-sidebar__search-results" in gallery_css
-        assert ".gallery-params-form__errors" in gallery_css
-
-        toolbar_css = Path(
-            "dj_design_system/static/dj_design_system/gallery-toolbar.css"
-        ).read_text(encoding="utf-8")
-        assert ".gallery-sandbox-toolbar__bg-chip--white" in toolbar_css
+        for rel_path in (
+            "dj_design_system/templates/dj_design_system/gallery/base.html",
+            "dj_design_system/templates/dj_design_system/gallery/index.html",
+            "dj_design_system/templates/dj_design_system/gallery/documentation.html",
+            "dj_design_system/templates/dj_design_system/gallery/folder.html",
+            "dj_design_system/templates/dj_design_system/gallery/component.html",
+            "dj_design_system/templates/dj_design_system/gallery/sandbox_fragment.html",
+            "dj_design_system/templates/dj_design_system/canvas_widget.html",
+        ):
+            content = Path(rel_path).read_text(encoding="utf-8")
+            assert "|" not in content
+            bem_matches = re.findall(
+                r'class="[^"]*(?:__|--)[a-z0-9-]+',
+                content,
+            )
+            assert not bem_matches

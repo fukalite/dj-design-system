@@ -5,15 +5,18 @@ from __future__ import annotations
 import html
 
 from django import template
+from django.utils.html import json_script
 
 from dj_design_system.data import NavNode
 from dj_design_system.gallery import Variant
+from dj_design_system.services import media as media_service
 from dj_design_system.services import navigation as navigation_service
 from dj_design_system.services.canvas_renderer import build_canvas_srcdoc
 from dj_design_system.services.control_params import (
     SANDBOX_SUBMISSION_PARAM,
     get_control_param,
 )
+from dj_design_system.services.registry import component_registry
 from dj_design_system.settings import get_default_theme, get_theme
 from dj_design_system.types import Theme
 
@@ -22,6 +25,33 @@ register = template.Library()
 
 BASE_INDENT_PX = 0
 INDENT_PER_LEVEL_PX = 16
+
+
+@register.simple_tag
+def internal_component_stylesheets() -> str:
+    """Output ``<link>`` tags for all built-in ``dds`` component stylesheets."""
+    media = component_registry.get_internal_media()
+    return media_service.build_link_tags(media.css)
+
+
+@register.simple_tag(takes_context=True)
+def internal_component_scripts(
+    context: template.Context | dict | None = None,
+) -> str:
+    """Output ``<script type="module">`` tags for all built-in ``dds`` component scripts."""
+    media = component_registry.get_internal_media()
+    request = context.get("request") if context else None
+    nonce = getattr(request, "csp_nonce", None) if request else None
+    return media_service.build_script_tags(media.js, nonce=nonce, is_module=True)
+
+
+@register.simple_tag(takes_context=True)
+def gallery_search_index_script(
+    context: template.Context | dict | None = None,
+) -> str:
+    """Output a ``<script id="gallery-search-index" type="application/json">`` tag."""
+    search_index = context.get("search_index", []) if context else []
+    return json_script(search_index, "gallery-search-index")
 
 
 @register.filter

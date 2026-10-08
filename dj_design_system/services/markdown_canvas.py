@@ -158,8 +158,22 @@ class CanvasPreprocessor(Preprocessor):
         try:
             rendered_html = render_canvas_block(source)
             media = component_registry.get_merged_media()
-            component_css = media_service.build_link_tags(media.css)
-            component_js = media_service.build_script_tags(media.js)
+            css_paths = list(media.css)
+            js_paths = list(media.js)
+            if self.app_label == "dj_design_system":
+                internal_media = component_registry.get_internal_media()
+                css_paths = list(
+                    dict.fromkeys(
+                        [
+                            "dj_design_system/gallery.css",
+                            *internal_media.css,
+                            *css_paths,
+                        ]
+                    )
+                )
+                js_paths = list(dict.fromkeys([*internal_media.js, *js_paths]))
+            component_css = media_service.build_link_tags(css_paths)
+            component_js = media_service.build_script_tags(js_paths)
             srcdoc = build_canvas_srcdoc(
                 rendered_html=rendered_html,
                 component_css=component_css,

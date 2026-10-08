@@ -107,22 +107,40 @@ def build_link_tags(css_paths: list[str]) -> str:
     )
 
 
-def build_script_tags(js_paths: list[str], nonce: str | None = None) -> str:
+def _is_module_script(path: str, *, is_module: bool = False) -> bool:
+    """Return True when a script path should be emitted as an ES module."""
+    if is_module:
+        return True
+    normalised = path.lstrip("/")
+    return (
+        normalised.startswith("dj_design_system/components/")
+        or "/dj_design_system/components/" in normalised
+    )
+
+
+def build_script_tags(
+    js_paths: list[str],
+    nonce: str | None = None,
+    *,
+    is_module: bool = False,
+) -> str:
     """Build ``<script>`` tags for a list of static or external JS paths."""
     if not js_paths:
         return ""
-    if nonce:
-        nonce_attr = mark_safe(f' nonce="{html.escape(str(nonce))}"')
-        return format_html_join(
-            "\n",
-            f'<script src="{{}}" {nonce_attr}></script>',
-            ((resolve_asset_url(path=path),) for path in js_paths),
+    nonce_attr = mark_safe(f' nonce="{html.escape(str(nonce))}"') if nonce else ""
+    tags: list[str] = []
+    for path in js_paths:
+        url = html.escape(resolve_asset_url(path=path))
+        type_attr = (
+            ' type="module"' if _is_module_script(path, is_module=is_module) else ""
         )
-    return format_html_join(
-        "\n",
-        '<script src="{}"></script>',
-        ((resolve_asset_url(path=path),) for path in js_paths),
-    )
+        if nonce_attr:
+            tags.append(
+                f'<script{type_attr} src="{url}" {nonce_attr.strip()}></script>'
+            )
+        else:
+            tags.append(f'<script{type_attr} src="{url}"></script>')
+    return mark_safe("\n".join(tags))
 
 
 COMPONENTS_TEMPLATE_LOADER = "dj_design_system.loaders.ComponentsTemplateLoader"
