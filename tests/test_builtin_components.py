@@ -5,6 +5,7 @@ from django.template import engines
 from django.test import override_settings
 
 import dj_design_system.components as components_package
+import dj_design_system.components.base as components_base
 from dj_design_system.services.media import (
     COMPONENTS_STATIC_FINDER,
     COMPONENTS_TEMPLATE_LOADER,
@@ -32,24 +33,20 @@ def _register_crumb_subpackage(builtin_modules) -> str:
 
 class TestComponentsPackage:
     def test_public_imports_still_work(self):
-        from dj_design_system.components import (
-            BaseComponent,
-            BlockComponent,
-            TagComponent,
+        assert issubclass(
+            components_package.TagComponent, components_package.BaseComponent
         )
-
-        assert issubclass(TagComponent, BaseComponent)
-        assert issubclass(BlockComponent, BaseComponent)
+        assert issubclass(
+            components_package.BlockComponent, components_package.BaseComponent
+        )
 
     def test_is_a_package(self):
         assert hasattr(components_package, "__path__")
 
     def test_base_classes_live_in_base_module(self):
-        from dj_design_system.components import base
-
-        assert components_package.BaseComponent is base.BaseComponent
-        assert components_package.TagComponent is base.TagComponent
-        assert components_package.BlockComponent is base.BlockComponent
+        assert components_package.BaseComponent is components_base.BaseComponent
+        assert components_package.TagComponent is components_base.TagComponent
+        assert components_package.BlockComponent is components_base.BlockComponent
 
     def test_discovers_builtin_subpackage_component(self, builtin_modules):
         expected_module = _register_crumb_subpackage(builtin_modules)

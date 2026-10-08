@@ -123,7 +123,7 @@ def assert_matches_baseline(
 
     if not baseline.exists():
         if update:
-            _copy(actual, baseline)
+            _copy(src=actual, dest=baseline)
             return
         raise ScreenshotMismatch(
             f"Missing baseline {baseline}. Run `just update-visual-baselines` "
@@ -131,27 +131,27 @@ def assert_matches_baseline(
         )
 
     try:
-        result = compare_images(actual, baseline, threshold=threshold)
+        result = compare_images(actual=actual, expected=baseline, threshold=threshold)
     except ScreenshotMismatch as exc:
         if update:
-            _copy(actual, baseline)
+            _copy(src=actual, dest=baseline)
             return
-        _copy(baseline, out_dir / "expected.png")
-        _copy(actual, out_dir / "actual.png")
+        _copy(src=baseline, dest=out_dir / "expected.png")
+        _copy(src=actual, dest=out_dir / "actual.png")
         raise ScreenshotMismatch(f"{baseline.name}: {exc}. See {out_dir}") from exc
 
     if result.mismatched_pixels == 0:
         return
 
     if update:
-        _copy(actual, baseline)
+        _copy(src=actual, dest=baseline)
         return
 
     if result.mismatch_ratio <= max_mismatch_ratio:
         return
 
-    _copy(baseline, out_dir / "expected.png")
-    _copy(actual, out_dir / "actual.png")
+    _copy(src=baseline, dest=out_dir / "expected.png")
+    _copy(src=actual, dest=out_dir / "actual.png")
     result.diff.save(out_dir / "diff.png")
     noun = "pixel" if result.mismatched_pixels == 1 else "pixels"
     raise ScreenshotMismatch(

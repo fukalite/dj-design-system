@@ -1,12 +1,19 @@
 import re
 from typing import Type
 
+from dj_design_system.data import BUILTIN_APP_LABEL, BUILTIN_PREFIX
 
-BUILTIN_APP_LABEL = "dj_design_system"
-"""App label of the package itself; its components are built-ins."""
 
-BUILTIN_PREFIX = "dds"
-"""Qualified-name prefix for built-in components, e.g. ``dds__button``."""
+__all__ = [
+    "BUILTIN_APP_LABEL",
+    "BUILTIN_PREFIX",
+    "EmptyMeta",
+    "derive_name",
+    "get_meta_name",
+    "get_own_meta",
+    "is_abstract",
+    "is_internal",
+]
 
 
 class EmptyMeta:
