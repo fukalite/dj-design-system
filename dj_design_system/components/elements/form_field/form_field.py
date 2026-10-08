@@ -9,7 +9,7 @@ from dj_design_system import components, parameters, slots
 
 LAYOUT_STACKED = "stacked"
 LAYOUT_INLINE = "inline"
-LAYOUT_CHOICES = [LAYOUT_STACKED, LAYOUT_INLINE]
+LAYOUT_CHOICES: tuple[str, ...] = (LAYOUT_STACKED, LAYOUT_INLINE)
 
 
 class FormField(components.BlockComponent):
@@ -50,7 +50,7 @@ class FormField(components.BlockComponent):
         description="Label/control layout.",
         default=LAYOUT_STACKED,
         required=False,
-        choices=LAYOUT_CHOICES,
+        choices=list(LAYOUT_CHOICES),
     )
 
     class Meta:

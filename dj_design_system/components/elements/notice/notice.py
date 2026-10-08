@@ -7,8 +7,8 @@ from dj_design_system.components.elements import icon as icon_element
 
 
 DEFAULT_VARIANT = "info"
-NOTICE_VARIANTS = ["info", "success", "warning", "error"]
-ALERT_VARIANTS = ("warning", "error")
+NOTICE_VARIANTS: tuple[str, ...] = ("info", "success", "warning", "error")
+ALERT_VARIANTS: tuple[str, ...] = ("warning", "error")
 
 
 class Notice(components.BlockComponent):
@@ -43,7 +43,7 @@ class Notice(components.BlockComponent):
         description="Semantic status level.",
         default=DEFAULT_VARIANT,
         required=False,
-        choices=NOTICE_VARIANTS,
+        choices=list(NOTICE_VARIANTS),
     )
     title = parameters.StrParam(
         description="Optional notice heading.",

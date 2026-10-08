@@ -126,6 +126,8 @@ class Button(components.TagComponent):
     def validate_params(self) -> None:
         """Validate accessibility and content invariants across button parameters.
 
+        Invoked automatically by ``BaseComponent.__init__`` and ``get_context()``.
+
         Raises:
             ValueError: If an ``icon_only`` button omits ``label`` or ``icon``,
                 or if a standard button provides neither ``label`` nor ``icon``.
@@ -143,6 +145,7 @@ class Button(components.TagComponent):
         Returns:
             Dictionary containing component parameters and pre-computed state flags.
         """
+        self.validate_params()
         context = super().get_context()
         variant = self.variant or DEFAULT_VARIANT
         size = self.size or DEFAULT_SIZE

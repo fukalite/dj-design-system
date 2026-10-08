@@ -115,8 +115,7 @@ class Popout(components.BlockComponent):
             name: safestring.SafeString(val) if val else val
             for name, val in (self.slots or {}).items()
         }
-        if content is not None:
-            self.content = safestring.SafeString(content)
+        self.content = safestring.SafeString(content) if content is not None else ""
 
     def get_context(self) -> dict[str, typing.Any]:
         """Compute normalized template context for trigger, menu, and slots.

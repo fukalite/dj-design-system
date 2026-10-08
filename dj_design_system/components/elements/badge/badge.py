@@ -6,14 +6,14 @@ from dj_design_system import components, parameters
 
 
 DEFAULT_VARIANT = "neutral"
-BADGE_VARIANTS = [
+BADGE_VARIANTS: tuple[str, ...] = (
     "neutral",
     "info",
     "success",
     "warning",
     "error",
     "code",
-]
+)
 
 
 class Badge(components.TagComponent):
@@ -46,7 +46,7 @@ class Badge(components.TagComponent):
         description="Semantic badge style.",
         default=DEFAULT_VARIANT,
         required=False,
-        choices=BADGE_VARIANTS,
+        choices=list(BADGE_VARIANTS),
     )
 
     class Meta:
