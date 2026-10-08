@@ -191,12 +191,12 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
         # reflected XSS through components that don't escape their params.
         rendered_html = format_html(
             '<div class="gallery-canvas-warning">'
-            '<p class="gallery-canvas-warning__message">'
+            "<p data-canvas-warning-message>"
             "<code>{}.render()</code> returned a plain <code>str</code>, so its "
             "HTML is shown escaped. Return <code>format_html(...)</code> or "
             "<code>mark_safe(...)</code> from <code>render()</code> to render it."
             "</p>"
-            '<pre class="gallery-canvas-warning__output">{}</pre>'
+            "<pre data-canvas-warning-output>{}</pre>"
             "</div>",
             component_class.__qualname__,
             rendered_html,

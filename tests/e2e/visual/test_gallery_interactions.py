@@ -31,7 +31,7 @@ def test_mobile_sidebar_open(gallery, screenshot_recorder):
 
 def test_mobile_breadcrumb_flyout_open(gallery, screenshot_recorder):
     page = gallery(DEEP_COMPONENT, viewport="mobile")
-    ellipsis = page.locator("[data-breadcrumb-ellipsis], .gallery-breadcrumb__ellipsis")
+    ellipsis = page.locator("[data-breadcrumb-ellipsis]")
     if ellipsis.count() > 0 and ellipsis.first.is_visible():
         ellipsis.first.click()
     screenshot_recorder.check(

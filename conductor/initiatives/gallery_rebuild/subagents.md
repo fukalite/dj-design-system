@@ -169,4 +169,10 @@ Execute the `/code-review` audit on all files created or modified in the current
   - `dj_design_system_gallery` template tag library exposes `{% internal_component_stylesheets %}`, `{% internal_component_scripts %}`, and `{% gallery_search_index_script %}` (`id="gallery-search-index"`, matching `dds__search_box` default `index_id`).
   - Gallery views (`dj_design_system/views/gallery.py` and `dj_design_system/views/component.py`) pre-compute `theme_body_class`, `total_components_label`, `component_tabs`, `declared_slots`, and `sandbox_reset_url` (`f"{node.url}#pane-sandbox"`) in Python so all 7 page templates remain 100% free of template filters (`|`) and BEM classes (`__` / `--`).
   - `<dds-gallery-shell>` (`gallery_shell.ts`) coordinates `#pane-sandbox` / `#param-*` hash navigation, `[data-tab-trigger]` pane switching, `dds:theme-change` iframe/cookie/URL sync, `[data-sandbox-control]` popout selection/restoration (`sessionStorage['dds_toolbar_state']`), `[data-action]` sandbox toggles, and `canvas-resize` message resizing.
+- **Track 6 Phase 2 Consolidation:**
+  - Removed all 12 obsolete legacy template partials (`breadcrumb.html`, `nav_icon.html`, `navtree.html`, `toolbar.html`) and static files (`gallery-toolbar.css`, `gallery-markdown.css`, `gallery-measure.js`, `gallery-nav.js`, `gallery-search.js`, `gallery-tabs.js`, `gallery-theme.js`, `gallery-toolbar.js`).
+  - Stripped all legacy BEM rules and `--gallery-*` variables from `gallery.css` and `gallery-highlight.css`.
+  - Updated `gallery_shell.css`, `sidebar.css`, and `nav_tree.css` so `<dds-gallery-shell>` is constrained to `100vh` with internal vertical scrolling on `nav.dds-nav-tree-nav` and `main.dds-gallery-shell-main`.
+  - Fixed leaf `index.md` folder icon precedence in `NavTree.get_context()` (`nav_tree.py`) so leaf folders with `has_index_doc=True` and `has_children=False` resolve to `doc`.
 ```
+
