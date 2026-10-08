@@ -90,6 +90,10 @@ class Popout(components.BlockComponent):
                     "default trigger button."
                 ),
             ),
+            "menu": slots.Slot(
+                required=False,
+                description="Optional floating menu content markup.",
+            ),
         }
 
     class Media:
@@ -107,15 +111,22 @@ class Popout(components.BlockComponent):
 
         Args:
             content: Optional floating menu inner markup.
-            slots: Optional mapping of named slot values (e.g. ``"trigger"``).
+            slots: Optional mapping of named slot values (e.g. ``"trigger"``, ``"menu"``).
             **kwargs: Component parameter keyword arguments.
         """
-        super().__init__(content=content, slots=slots, **kwargs)
-        self.slots = {
+        normalized_slots = {
             name: safestring.SafeString(val) if val else val
-            for name, val in (self.slots or {}).items()
+            for name, val in (slots or {}).items()
         }
-        self.content = safestring.SafeString(content) if content is not None else ""
+        normalized_content = (
+            safestring.SafeString(content) if content is not None else ""
+        )
+        super().__init__(
+            content=normalized_content,
+            slots=normalized_slots,
+            **kwargs,
+        )
+        self.content = normalized_content
 
     def get_context(self) -> dict[str, typing.Any]:
         """Compute normalized template context for trigger, menu, and slots.

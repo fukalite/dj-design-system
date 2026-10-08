@@ -1,0 +1,54 @@
+{% load design_components %}
+<div class="dds-sandbox-toolbar" data-surface="sandbox" role="toolbar" aria-label="{{ resolved_aria_label }}">
+  <l-cluster data-sandbox-controls>
+    {% if has_variants %}
+      <div data-sandbox-control="variant">
+        {% dds__popout label=active_variant_label menu_label="Select variant preset" %}
+          {% slot "menu" %}
+            {% for item in normalized_variants %}
+              {% dds__popout_option label=item.label value=item.name href=item.href selected=item.is_selected %}
+            {% endfor %}
+          {% endslot %}
+        {% enddds__popout %}
+      </div>
+    {% endif %}
+    <div data-sandbox-control="background">
+      {% dds__popout label=active_background_label menu_label="Background colour" %}
+        {% slot "menu" %}
+          {% for item in normalized_backgrounds %}
+            {% dds__popout_option label=item.label value=item.value selected=item.is_selected %}
+          {% endfor %}
+        {% endslot %}
+      {% enddds__popout %}
+    </div>
+    <div data-sandbox-control="viewport">
+      {% dds__popout label=active_viewport_label icon="monitor" menu_label="Viewport width" %}
+        {% slot "menu" %}
+          {% for item in normalized_viewports %}
+            {% dds__popout_option label=item.label value=item.value selected=item.is_selected %}
+          {% endfor %}
+        {% endslot %}
+      {% enddds__popout %}
+    </div>
+    <div data-sandbox-control="zoom">
+      {% dds__popout label=active_zoom_label menu_label="Zoom level" %}
+        {% slot "menu" %}
+          {% for item in normalized_zoom_levels %}
+            {% dds__popout_option label=item.label value=item.value selected=item.is_selected %}
+          {% endfor %}
+        {% endslot %}
+      {% enddds__popout %}
+    </div>
+    <div data-sandbox-toggles class="l-cluster">
+      {% dds__button label="Toggle box model outline" icon="box-model" icon_only=True variant="ghost" size="sm" pressed=outline_active action="toggle-outline" %}
+      {% dds__button label="Toggle measurement overlay" icon="ruler" icon_only=True variant="ghost" size="sm" pressed=measure_active action="toggle-measure" %}
+      {% dds__button label="Toggle right-to-left direction" icon="rtl" icon_only=True variant="ghost" size="sm" pressed=rtl_active action="toggle-rtl" %}
+      {% if has_reset_url %}
+        {% dds__button label="Reset parameters" icon="reset" icon_only=True variant="ghost" size="sm" href=reset_url action="reset-params" %}
+      {% endif %}
+      {% if has_canvas_url %}
+        {% dds__button label="Open canvas in new tab" icon="external-link" icon_only=True variant="ghost" size="sm" href=canvas_url target="_blank" %}
+      {% endif %}
+    </div>
+  </l-cluster>
+</div>

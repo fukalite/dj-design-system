@@ -1,0 +1,158 @@
+@layer blocks {
+  dds-split-pane,
+  .dds-split-pane {
+    --_split-pane-bg-color: var(--dds-surface-bg-color);
+    --_split-pane-body-padding: var(--dds-space-inset-default);
+    --_split-pane-border-color: var(--dds-surface-border-color);
+    --_split-pane-border-radius: var(--dds-control-border-radius);
+    --_split-pane-border-style: var(--dds-control-border-style);
+    --_split-pane-border-width: var(--dds-control-border-width);
+    --_split-pane-focus-outline-color: var(--dds-state-focus-outline-color);
+    --_split-pane-focus-outline-offset: var(--dds-state-focus-outline-offset);
+    --_split-pane-focus-outline-style: var(--dds-state-focus-outline-style);
+    --_split-pane-focus-outline-width: var(--dds-state-focus-outline-width);
+    --_split-pane-font: var(--dds-text-body-font);
+    --_split-pane-font-size: var(--dds-text-body-size);
+    --_split-pane-font-weight: var(--dds-text-body-weight);
+    --_split-pane-header-bg-color: var(--dds-surface-topbar-bg-color);
+    --_split-pane-header-border-color: var(--dds-surface-topbar-border-color);
+    --_split-pane-header-font: var(--dds-text-overline-font);
+    --_split-pane-header-font-size: var(--dds-text-overline-size);
+    --_split-pane-header-font-weight: var(--dds-text-overline-weight);
+    --_split-pane-header-letter-spacing: var(--dds-text-overline-letter-spacing);
+    --_split-pane-header-line-height: var(--dds-text-overline-line-height);
+    --_split-pane-header-padding-block: var(--dds-space-xs);
+    --_split-pane-header-padding-inline: var(--dds-space-md);
+    --_split-pane-header-text-color: var(--dds-text-muted-color);
+    --_split-pane-letter-spacing: var(--dds-text-body-letter-spacing);
+    --_split-pane-line-height: var(--dds-text-body-line-height);
+    --_split-pane-resizer-active-bg-color: var(--dds-control-accent-color);
+    --_split-pane-resizer-bg-color: var(--dds-surface-border-color);
+    --_split-pane-resizer-hover-bg-color: var(--dds-state-hover-border-color);
+    --_split-pane-resizer-size: var(--dds-space-2xs);
+    --_split-pane-text-color: var(--dds-text-default-color);
+    --_split-pane-transition-duration: var(--dds-state-entry-duration);
+    --_split-pane-transition-easing: var(--dds-state-entry-easing);
+    align-items: stretch;
+    background-color: var(--_split-pane-bg-color);
+    border-color: var(--_split-pane-border-color);
+    border-radius: var(--_split-pane-border-radius);
+    border-style: var(--_split-pane-border-style);
+    border-width: var(--_split-pane-border-width);
+    box-sizing: border-box;
+    color: var(--_split-pane-text-color);
+    display: flex;
+    flex-direction: row;
+    font-family: var(--_split-pane-font);
+    font-size: var(--_split-pane-font-size);
+    font-weight: var(--_split-pane-font-weight);
+    inline-size: 100%;
+    letter-spacing: var(--_split-pane-letter-spacing);
+    line-height: var(--_split-pane-line-height);
+    margin: 0;
+    min-block-size: 0;
+    min-inline-size: 0;
+    overflow: hidden;
+  }
+
+  dds-split-pane[data-orientation='vertical'],
+  .dds-split-pane[data-orientation='vertical'] {
+    flex-direction: column;
+  }
+
+  dds-split-pane [data-split-pane],
+  .dds-split-pane [data-split-pane] {
+    background-color: var(--_split-pane-bg-color);
+    box-sizing: border-box;
+    color: var(--_split-pane-text-color);
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    min-block-size: 0;
+    min-inline-size: 0;
+    overflow: hidden;
+  }
+
+  dds-split-pane [data-split-pane='primary'],
+  .dds-split-pane [data-split-pane='primary'] {
+    flex: 0 0 var(--_split-pane-ratio);
+  }
+
+  dds-split-pane [data-split-pane='secondary'],
+  .dds-split-pane [data-split-pane='secondary'] {
+    flex: 1 1 0;
+  }
+
+  dds-split-pane [data-split-pane-header],
+  .dds-split-pane [data-split-pane-header] {
+    background-color: var(--_split-pane-header-bg-color);
+    border-block-end-color: var(--_split-pane-header-border-color);
+    border-block-end-style: var(--_split-pane-border-style);
+    border-block-end-width: var(--_split-pane-border-width);
+    color: var(--_split-pane-header-text-color);
+    flex-shrink: 0;
+    font-family: var(--_split-pane-header-font);
+    font-size: var(--_split-pane-header-font-size);
+    font-weight: var(--_split-pane-header-font-weight);
+    letter-spacing: var(--_split-pane-header-letter-spacing);
+    line-height: var(--_split-pane-header-line-height);
+    margin: 0;
+    padding-block: var(--_split-pane-header-padding-block);
+    padding-inline: var(--_split-pane-header-padding-inline);
+    text-transform: uppercase;
+  }
+
+  dds-split-pane [data-split-pane-body],
+  .dds-split-pane [data-split-pane-body] {
+    box-sizing: border-box;
+    flex: 1 1 auto;
+    margin: 0;
+    min-block-size: 0;
+    min-inline-size: 0;
+    overflow: auto;
+    padding: var(--_split-pane-body-padding);
+  }
+
+  dds-split-pane [data-split-resizer],
+  .dds-split-pane [data-split-resizer] {
+    background-color: var(--_split-pane-resizer-bg-color);
+    cursor: col-resize;
+    flex: 0 0 var(--_split-pane-resizer-size);
+    inline-size: var(--_split-pane-resizer-size);
+    margin: 0;
+    position: relative;
+    touch-action: none;
+    transition-duration: var(--_split-pane-transition-duration);
+    transition-property: background-color;
+    transition-timing-function: var(--_split-pane-transition-easing);
+    user-select: none;
+  }
+
+  dds-split-pane[data-orientation='vertical'] [data-split-resizer],
+  .dds-split-pane[data-orientation='vertical'] [data-split-resizer] {
+    block-size: var(--_split-pane-resizer-size);
+    cursor: row-resize;
+    inline-size: 100%;
+  }
+
+  dds-split-pane [data-split-resizer]:hover,
+  .dds-split-pane [data-split-resizer]:hover {
+    background-color: var(--_split-pane-resizer-hover-bg-color);
+  }
+
+  dds-split-pane [data-split-resizer]:active,
+  dds-split-pane[data-dragging='true'] [data-split-resizer],
+  .dds-split-pane [data-split-resizer]:active,
+  .dds-split-pane[data-dragging='true'] [data-split-resizer] {
+    background-color: var(--_split-pane-resizer-active-bg-color);
+  }
+
+  dds-split-pane [data-split-resizer]:focus-visible,
+  .dds-split-pane [data-split-resizer]:focus-visible {
+    background-color: var(--_split-pane-resizer-active-bg-color);
+    outline-color: var(--_split-pane-focus-outline-color);
+    outline-offset: var(--_split-pane-focus-outline-offset);
+    outline-style: var(--_split-pane-focus-outline-style);
+    outline-width: var(--_split-pane-focus-outline-width);
+  }
+}
