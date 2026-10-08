@@ -575,6 +575,8 @@ DJ_DESIGN_SYSTEM = {
 | `ENABLE_GALLERY`                    | `bool`                    | `True`                                                     | Enable or disable the gallery entirely.                     |
 | `GALLERY_IS_PUBLIC`                 | `bool`                    | `True`                                                     | When `False`, requires the `can_view_gallery` perm.         |
 | `DESIGN_SYSTEM_NAME`                | `str`                     | `"Django Design System"`                                   | Display name shown in the gallery header.                   |
+| `GALLERY_SHOW_DDS_COMPONENTS`       | `bool`                    | `False`                                                    | When `True`, includes built-in `dds__*` gallery components. |
+| `GALLERY_EXCLUDE_APPS`              | `list[str]`               | `[]`                                                       | App labels excluded from gallery navigation and search.     |
 | `GALLERY_NAV_ORDER`                 | `list[NodeType]` or `str` | `[NodeType.FOLDER, NodeType.COMPONENT, NodeType.DOCUMENT]` | Controls the sort order of nodes in the sidebar.            |
 | `GALLERY_CANVAS_DEFAULT_BACKGROUND` | `str`                     | `"light-grey"`                                             | Default background for the sandbox canvas.                  |
 | `GALLERY_CANVAS_BACKGROUNDS`        | `dict`                    | `BUILTIN_CANVAS_BACKGROUNDS`                               | Dict of canvas backgrounds (replaces built-ins).            |
@@ -618,6 +620,60 @@ By default, the gallery is public. To restrict access, set
 `GALLERY_IS_PUBLIC = False` and assign the
 `dj_design_system.can_view_gallery` permission to appropriate users.
 
+---
+
+## Built-in `dds` Gallery Architecture & Visibility
+
+The gallery UI itself is built entirely from self-contained `dj_design_system` components located under `dj_design_system/components/` in two collections:
+
+- **`elements/`** (`badge`, `breadcrumb`, `button`, `code_block`, `form_field`, `icon`, `notice`, `popout`, `table`, `tabs`, `theme_select`, `toolbar`) — reusable UI primitives registered with `FlattenStrategy.ALL` as `{% dds__<name> %}`.
+- **`domain/`** (`canvas_widget`, `folder_listing`, `gallery_shell`, `nav_tree`, `params_form`, `params_table`, `prose`, `sandbox`, `sandbox_toolbar`, `search_box`, `sidebar`, `split_pane`, `usage_example`, `variant_view`) — gallery shell, navigation, documentation, and sandbox components also registered as `{% dds__<name> %}`.
+
+Interactive gallery behaviours are implemented as Light DOM Custom Elements (`<dds-gallery-shell>`, `<dds-nav-tree>`, `<dds-search-box>`, `<dds-theme-select>`, `<dds-tabs>`, `<dds-popout>`, `<dds-code-block>`, `<dds-canvas-widget>`, `<dds-sandbox>`, `<dds-sandbox-toolbar>`, `<dds-params-form>`), while structural layout is composed with **Every Layout** primitives (`<l-stack>`, `<l-cluster>`, `<l-sidebar>`, `<l-switcher>`, `<l-box>`, `<l-center>`, `<l-cover>`, `<l-frame>`, `<l-grid>`, `<l-reel>`, `<l-imposter>`) in `@layer composition`.
+
+### Inspecting Built-in `dds` Components (`GALLERY_SHOW_DDS_COMPONENTS` & `GALLERY_EXCLUDE_APPS`)
+
+By default, `GALLERY_SHOW_DDS_COMPONENTS = False`, so the gallery sidebar and search index display only your project's own Django apps.
+
+To browse and inspect the built-in `dj_design_system` component library inside the gallery—or to hide specific apps from the gallery—configure `GALLERY_SHOW_DDS_COMPONENTS` and `GALLERY_EXCLUDE_APPS` (see [`example_project/settings_dds_gallery.py`](../example_project/settings_dds_gallery.py)):
+
+```python
+DJ_DESIGN_SYSTEM = {
+    "DESIGN_SYSTEM_NAME": "dj-design-system Internal Component Library",
+    "GALLERY_SHOW_DDS_COMPONENTS": True,
+    "GALLERY_EXCLUDE_APPS": [
+        "demo_components",
+        "demo_extra",
+        "demo_nav",
+        "demo_single",
+        "broken_components",
+    ],
+}
+```
+
+### Shadowing Built-in `dds__*` Components
+
+Because gallery page templates render all chrome via `{% dds__<name> %}` template tags, consumer projects can override (shadow) any built-in gallery component by mapping a directory to `"prefix": "dds"` with `"flatten": FlattenStrategy.ALL` in `COMPONENT_DIRECTORIES`:
+
+```python
+from dj_design_system.types import FlattenStrategy
+
+DJ_DESIGN_SYSTEM = {
+    "COMPONENT_DIRECTORIES": {
+        "myapp": {
+            "dds_overrides": {
+                "prefix": "dds",
+                "flatten": FlattenStrategy.ALL,
+            },
+        },
+    },
+}
+```
+
+Any component defined inside `myapp/components/dds_overrides/` (for example, `BadgeComponent` in `badge.py`) registers as `dds__badge` and takes precedence over the built-in `dj_design_system` implementation across both `{% dds__badge %}` template tags and gallery canvas resolution. For visual customisation without replacing markup, prefer [Tier 2 `--dds-*` token theming](themes.md#theming-the-gallery-ui-with-tier-2---dds--tokens).
+
+---
+
 ## Content Security Policy (CSP)
 
 The gallery UI and component canvas are fully compatible with strict Content Security Policies (`script-src` and `style-src` without `unsafe-inline`).
@@ -630,3 +686,4 @@ If your application uses CSP nonces (e.g. via `django-csp` middleware setting `r
 - Static script tags in gallery templates (`{% if request.csp_nonce %}nonce="{{ request.csp_nonce }}"{% endif %}`)
 - Dynamic `<script>` tags generated by `{% global_scripts %}` and `{% component_scripts %}`
 - Dynamic `<style>` tags for canvas background rules generated by `build_canvas_bg_styles`
+

@@ -1,6 +1,7 @@
 """Tests for example_project showcase breadth, DDS gallery settings, and shadowing."""
 
 import pathlib
+import re
 import types
 
 from django import template, test, urls
@@ -17,7 +18,9 @@ from example_project import settings_dds_gallery
 from tests import conftest
 
 
-EXAMPLE_PROJECT_DIR = pathlib.Path(base_settings.BASE_DIR) / "example_project"
+REPO_ROOT = pathlib.Path(base_settings.BASE_DIR)
+DOCS_DIR = REPO_ROOT / "docs"
+EXAMPLE_PROJECT_DIR = REPO_ROOT / "example_project"
 CONSUMER_THEME_CSS = (
     EXAMPLE_PROJECT_DIR / "static" / "example_project" / "theme-dds-consumer.css"
 )
@@ -168,61 +171,125 @@ class TestConsumerTier2TokenTheming:
         assert "--_dds-" not in css_text
 
 
+class BadgeComponent(components.TagComponent):
+    """Consumer override for dds__badge."""
+
+    template_format_str = "<span class='consumer-dds-badge'>{label}</span>"
+    label = parameters.StrParam(
+        default="Custom",
+        description="Badge label.",
+    )
+
+
 class TestConsumerDdsComponentShadowing:
     """Verify a consumer component with prefix 'dds' shadows a built-in component."""
 
     def test_consumer_dds_prefix_shadows_builtin_badge_component(self) -> None:
         """Registering a consumer badge under 'dds' shadows built-in dds__badge."""
         override_module = types.ModuleType("demo_single.components.dds_overrides")
-
-        class BadgeComponent(components.TagComponent):
-            """Consumer override for dds__badge."""
-
-            template_format_str = (
-                "<span class='consumer-dds-badge'>{label}</span>"
-            )
-            label = parameters.StrParam(
-                default="Custom",
-                description="Badge label.",
-            )
-
+        original_module = BadgeComponent.__module__
         BadgeComponent.__module__ = override_module.__name__
-        override_module.BadgeComponent = BadgeComponent  # type: ignore[attr-defined]
+        setattr(override_module, "BadgeComponent", BadgeComponent)
 
-        with test.override_settings(
-            DJ_DESIGN_SYSTEM={
-                "COMPONENT_DIRECTORIES": {
-                    "demo_single": {
-                        "dds_overrides": {
-                            "prefix": "dds",
-                            "flatten": dds_types.FlattenStrategy.ALL,
+        try:
+            with test.override_settings(
+                DJ_DESIGN_SYSTEM={
+                    "COMPONENT_DIRECTORIES": {
+                        "demo_single": {
+                            "dds_overrides": {
+                                "prefix": "dds",
+                                "flatten": dds_types.FlattenStrategy.ALL,
+                            }
                         }
                     }
                 }
-            }
+            ):
+                reg = registry_service.ComponentRegistry()
+                conftest.discover_app_into_registry(
+                    reg=reg,
+                    app_name="dj_design_system",
+                    app_label="dj_design_system",
+                )
+                reg._discover_module(
+                    module=override_module,
+                    app_label="demo_single",
+                    relative_path="dds_overrides",
+                )
+
+                library = template.Library()
+                reg.register_templatetags(library=library)
+
+                rendered = _render_template(
+                    library=library,
+                    source='{% dds__badge label="Shadowed" %}',
+                )
+                assert "<span class='consumer-dds-badge'>Shadowed</span>" in rendered
+                resolved = canvas_service.resolve_component(
+                    name="dds__badge",
+                    registry=reg,
+                )
+                assert resolved.app_label == "demo_single"
+        finally:
+            BadgeComponent.__module__ = original_module
+
+
+
+
+class TestUserFacingDocumentation:
+    """Verify user-facing docs cover DDS architecture, tokens, and shadowing."""
+
+    def test_docs_cover_dds_architecture_tokens_and_shadowing(self) -> None:
+        """Verify docs/gallery.md, docs/themes.md, and docs/api/settings.md."""
+        gallery_md = (DOCS_DIR / "gallery.md").read_text(encoding="utf-8")
+        themes_md = (DOCS_DIR / "themes.md").read_text(encoding="utf-8")
+        settings_md = (DOCS_DIR / "api" / "settings.md").read_text(encoding="utf-8")
+
+        for term in (
+            "GALLERY_SHOW_DDS_COMPONENTS",
+            "GALLERY_EXCLUDE_APPS",
+            "settings_dds_gallery.py",
+            '"prefix": "dds"',
+            "FlattenStrategy.ALL",
+            "<dds-gallery-shell>",
+            "<l-stack>",
         ):
-            reg = registry_service.ComponentRegistry()
-            conftest.discover_app_into_registry(
-                reg=reg,
-                app_name="dj_design_system",
-                app_label="dj_design_system",
-            )
-            reg._discover_module(
-                module=override_module,
-                app_label="demo_single",
-                relative_path="dds_overrides",
-            )
+            assert term in gallery_md
 
-            library = template.Library()
-            reg.register_templatetags(library=library)
+        for term in (
+            "--dds-color-accent",
+            "theme-dds-consumer.css",
+            "<l-stack>",
+            "<l-sidebar>",
+            "<l-switcher>",
+            "<l-grid>",
+        ):
+            assert term in themes_md
 
-            rendered = _render_template(
-                library=library,
-                source='{% dds__badge label="Shadowed" %}',
-            )
-            assert "<span class='consumer-dds-badge'>Shadowed</span>" in rendered
-            resolved = canvas_service.resolve_component(
-                name="dds__badge",
-                registry=reg,
-            )
-            assert resolved.app_label == "demo_single"
+        assert "GALLERY_SHOW_DDS_COMPONENTS" in settings_md
+        assert "GALLERY_EXCLUDE_APPS" in settings_md
+
+    def test_relative_markdown_links_resolve_in_updated_docs(self) -> None:
+        """Ensure all relative file links outside fenced code blocks resolve."""
+        fenced_code_pattern = re.compile(
+            pattern=r"```[\s\S]*?```",
+            flags=re.MULTILINE,
+        )
+        link_pattern = re.compile(pattern=r"\[[^\]]+\]\(([^)#]+)(?:#[^)]+)?\)")
+        doc_files = (
+            DOCS_DIR / "gallery.md",
+            DOCS_DIR / "themes.md",
+            DOCS_DIR / "api" / "settings.md",
+        )
+        for doc_file in doc_files:
+            raw_text = doc_file.read_text(encoding="utf-8")
+            prose_text = fenced_code_pattern.sub(repl="", string=raw_text)
+            for match in link_pattern.finditer(string=prose_text):
+                raw_target = match.group(1).strip()
+                if not raw_target or raw_target.startswith(("http://", "https://")):
+                    continue
+                resolved = (doc_file.parent / raw_target).resolve()
+                assert resolved.exists(), (
+                    f"Broken link {raw_target!r} in {doc_file.relative_to(REPO_ROOT)}"
+                )
+
+

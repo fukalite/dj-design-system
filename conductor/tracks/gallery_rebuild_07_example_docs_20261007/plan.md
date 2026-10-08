@@ -11,6 +11,7 @@
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: User-Facing Documentation & Initiative Closure
-- [ ] **Orchestrator / Documentation Subagent:** Author user-facing documentation in `docs/` covering `GALLERY_SHOW_DDS_COMPONENTS`, `GALLERY_EXCLUDE_APPS`, Tier 2 `--dds-*` token theming, Every Layout `<l-*>` primitives, and `dds__*` component shadowing
-- [ ] **Delegate to `dds-reviewer` (Template D):** Run full test and lint verification (`just test`, `just check`, `mypy`) and verify all documentation links
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] **Orchestrator / Documentation Subagent:** Author user-facing documentation in `docs/` covering `GALLERY_SHOW_DDS_COMPONENTS`, `GALLERY_EXCLUDE_APPS`, Tier 2 `--dds-*` token theming, Every Layout `<l-*>` primitives, and `dds__*` component shadowing
+- [x] **Delegate to `dds-reviewer` (Template D):** Run full test and lint verification (`just test`, `just check`, `mypy`) and verify all documentation links
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
