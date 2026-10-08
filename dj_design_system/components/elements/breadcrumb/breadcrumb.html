@@ -1,0 +1,34 @@
+{% load design_components %}
+<nav class="dds-breadcrumb" aria-label="{{ aria_label }}">
+  <ol class="l-cluster">
+    {% for item in normalized_items %}
+      <li>
+        {% if not forloop.first %}
+          {% dds__icon name=separator_icon size="xs" %}
+        {% endif %}
+        {% if item.is_current %}
+          <span aria-current="page">
+            {% if item.has_icon %}
+              {% dds__icon name=item.icon size="xs" %}
+            {% endif %}
+            {{ item.label }}
+          </span>
+        {% elif item.has_url %}
+          <a href="{{ item.url }}">
+            {% if item.has_icon %}
+              {% dds__icon name=item.icon size="xs" %}
+            {% endif %}
+            {{ item.label }}
+          </a>
+        {% else %}
+          <span>
+            {% if item.has_icon %}
+              {% dds__icon name=item.icon size="xs" %}
+            {% endif %}
+            {{ item.label }}
+          </span>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ol>
+</nav>

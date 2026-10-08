@@ -72,7 +72,8 @@ def builtin_modules(tmp_path):
 
     root = tmp_path / "builtins"
     root.mkdir()
-    components_package.__path__.append(str(root))
+    orig_path = list(components_package.__path__)
+    components_package.__path__[:] = [str(root)]
     before = set(sys.modules)
 
     def add(files: dict[str, str]) -> Path:
@@ -88,7 +89,7 @@ def builtin_modules(tmp_path):
 
     yield add
 
-    components_package.__path__.remove(str(root))
+    components_package.__path__[:] = orig_path
     for name in set(sys.modules) - before:
         if name.startswith("dj_design_system.components."):
             del sys.modules[name]
@@ -209,6 +210,9 @@ def global_builtins(builtin_modules):
 
     builtin_modules(BUILTINS)
     before = list(component_registry._components)
+    component_registry._components[:] = [
+        c for c in before if c.app_label != "dj_design_system"
+    ]
     discover_app_into_registry(
         component_registry, "dj_design_system", "dj_design_system"
     )

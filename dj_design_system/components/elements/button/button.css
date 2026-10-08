@@ -1,0 +1,160 @@
+@layer reset, tokens, global, composition, blocks, utilities;
+
+@layer blocks {
+  .dds-button {
+    --_button-active-bg-color: var(--dds-state-active-bg-color);
+    --_button-active-border-color: var(--dds-state-active-border-color);
+    --_button-active-text-color: var(--dds-state-active-text-color);
+    --_button-bg-color: var(--dds-control-bg-color);
+    --_button-border-color: var(--dds-control-border-color);
+    --_button-border-radius: var(--dds-control-border-radius);
+    --_button-border-style: var(--dds-control-border-style);
+    --_button-border-width: var(--dds-control-border-width);
+    --_button-danger-bg-color: var(--dds-status-error-bg-color);
+    --_button-danger-border-color: var(--dds-status-error-border-color);
+    --_button-danger-text-color: var(--dds-status-error-text-color);
+    --_button-disabled-bg-color: var(--dds-state-disabled-bg-color);
+    --_button-disabled-border-color: var(--dds-state-disabled-border-color);
+    --_button-disabled-opacity: var(--dds-state-disabled-opacity);
+    --_button-disabled-text-color: var(--dds-state-disabled-text-color);
+    --_button-focus-border-color: var(--dds-state-focus-border-color);
+    --_button-focus-outline-color: var(--dds-state-focus-outline-color);
+    --_button-focus-outline-offset: var(--dds-state-focus-outline-offset);
+    --_button-focus-outline-style: var(--dds-state-focus-outline-style);
+    --_button-focus-outline-width: var(--dds-state-focus-outline-width);
+    --_button-font: var(--dds-text-control-font);
+    --_button-font-size: var(--dds-text-control-size);
+    --_button-font-weight: var(--dds-text-control-weight);
+    --_button-gap: var(--dds-space-gap-tight);
+    --_button-hover-bg-color: var(--dds-state-hover-bg-color);
+    --_button-hover-border-color: var(--dds-state-hover-border-color);
+    --_button-hover-shadow-color: var(--dds-state-hover-shadow-color);
+    --_button-hover-shadow-shape: var(--dds-state-hover-shadow-shape);
+    --_button-hover-text-color: var(--dds-state-hover-text-color);
+    --_button-letter-spacing: var(--dds-text-control-letter-spacing);
+    --_button-line-height: var(--dds-text-control-line-height);
+    --_button-padding-block: var(--dds-space-xs);
+    --_button-padding-inline: var(--dds-space-md);
+    --_button-pressed-bg-color: var(--dds-state-selected-bg-color);
+    --_button-pressed-border-color: var(--dds-state-selected-border-color);
+    --_button-pressed-text-color: var(--dds-state-selected-text-color);
+    --_button-shadow-color: var(--dds-control-shadow-color);
+    --_button-shadow-shape: var(--dds-control-shadow-shape);
+    --_button-text-color: var(--dds-state-interactive-text-color);
+    --_button-transition-duration: var(--dds-state-entry-duration);
+    --_button-transition-easing: var(--dds-state-entry-easing);
+    align-items: center;
+    appearance: none;
+    background-color: var(--_button-bg-color);
+    border-color: var(--_button-border-color);
+    border-radius: var(--_button-border-radius);
+    border-style: var(--_button-border-style);
+    border-width: var(--_button-border-width);
+    box-shadow: var(--_button-shadow-shape) var(--_button-shadow-color);
+    box-sizing: border-box;
+    color: var(--_button-text-color);
+    cursor: pointer;
+    display: inline-flex;
+    font-family: var(--_button-font);
+    font-size: var(--_button-font-size);
+    font-weight: var(--_button-font-weight);
+    gap: var(--_button-gap);
+    justify-content: center;
+    letter-spacing: var(--_button-letter-spacing);
+    line-height: var(--_button-line-height);
+    margin: 0;
+    padding-block: var(--_button-padding-block);
+    padding-inline: var(--_button-padding-inline);
+    text-decoration: none;
+    transition-duration: var(--_button-transition-duration);
+    transition-property: background-color, border-color, box-shadow, color;
+    transition-timing-function: var(--_button-transition-easing);
+    user-select: none;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  .dds-button[data-variant='default'] {
+    --_button-bg-color: var(--dds-control-bg-color);
+    --_button-border-color: var(--dds-control-border-color);
+    --_button-text-color: var(--dds-state-interactive-text-color);
+  }
+
+  .dds-button[data-variant='primary'] {
+    --_button-bg-color: var(--dds-state-selected-bg-color);
+    --_button-border-color: var(--dds-state-selected-border-color);
+    --_button-text-color: var(--dds-state-selected-text-color);
+  }
+
+  .dds-button[data-variant='ghost'] {
+    --_button-bg-color: var(--dds-state-interactive-bg-color);
+    --_button-border-color: var(--dds-state-interactive-bg-color);
+    --_button-shadow-color: var(--dds-state-interactive-shadow-color);
+    --_button-shadow-shape: var(--dds-state-interactive-shadow-shape);
+    --_button-text-color: var(--dds-state-interactive-text-color);
+  }
+
+  .dds-button[data-variant='danger'] {
+    --_button-bg-color: var(--dds-status-error-bg-color);
+    --_button-border-color: var(--dds-status-error-border-color);
+    --_button-text-color: var(--dds-status-error-text-color);
+  }
+
+  .dds-button[data-size='sm'] {
+    --_button-gap: var(--dds-space-2xs);
+    --_button-padding-block: var(--dds-space-2xs);
+    --_button-padding-inline: var(--dds-space-sm);
+  }
+
+  .dds-button[data-size='md'] {
+    --_button-gap: var(--dds-space-gap-tight);
+    --_button-padding-block: var(--dds-space-xs);
+    --_button-padding-inline: var(--dds-space-md);
+  }
+
+  .dds-button[data-size='lg'] {
+    --_button-gap: var(--dds-space-sm);
+    --_button-padding-block: var(--dds-space-sm);
+    --_button-padding-inline: var(--dds-space-lg);
+  }
+
+  .dds-button[data-icon-only='true'] {
+    padding-inline: var(--_button-padding-block);
+  }
+
+  .dds-button:hover:not(:disabled) {
+    background-color: var(--_button-hover-bg-color);
+    border-color: var(--_button-hover-border-color);
+    box-shadow: var(--_button-hover-shadow-shape) var(--_button-hover-shadow-color);
+    color: var(--_button-hover-text-color);
+  }
+
+  .dds-button:active:not(:disabled) {
+    background-color: var(--_button-active-bg-color);
+    border-color: var(--_button-active-border-color);
+    color: var(--_button-active-text-color);
+  }
+
+  .dds-button:focus-visible {
+    border-color: var(--_button-focus-border-color);
+    outline-color: var(--_button-focus-outline-color);
+    outline-offset: var(--_button-focus-outline-offset);
+    outline-style: var(--_button-focus-outline-style);
+    outline-width: var(--_button-focus-outline-width);
+  }
+
+  .dds-button[aria-pressed='true'] {
+    background-color: var(--_button-pressed-bg-color);
+    border-color: var(--_button-pressed-border-color);
+    color: var(--_button-pressed-text-color);
+  }
+
+  .dds-button:disabled {
+    background-color: var(--_button-disabled-bg-color);
+    border-color: var(--_button-disabled-border-color);
+    box-shadow: none;
+    color: var(--_button-disabled-text-color);
+    cursor: not-allowed;
+    opacity: var(--_button-disabled-opacity);
+  }
+}

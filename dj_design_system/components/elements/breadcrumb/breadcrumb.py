@@ -1,0 +1,127 @@
+"""Built-in breadcrumb navigation trail element component."""
+
+from typing import Any
+
+from dj_design_system.components import TagComponent
+from dj_design_system.components.elements.icon import ICON_NAMES
+from dj_design_system.parameters import ListParam, StrParam
+
+
+DEFAULT_ARIA_LABEL = "Breadcrumb"
+DEFAULT_SEPARATOR_ICON = "chevron-right"
+
+
+class Breadcrumb(TagComponent):
+    """Hierarchical breadcrumb trail navigation primitive.
+
+    Renders an accessible ``<nav class="dds-breadcrumb">`` landmark wrapping an
+    Every Layout ``<ol class="l-cluster">`` trail. Each item in ``items`` may be
+    provided as a dictionary (with ``label`` and optional ``url``/``href`` and
+    ``icon`` keys), an object exposing those attributes, or a plain string.
+
+    The final item in the trail is automatically marked as the current page
+    (``<span aria-current="page">``) and its link URL is cleared in
+    ``get_context()`` so the active location is never rendered as a redundant
+    self-link. Preceding items with a ``url`` or ``href`` render as ``<a>``
+    links; items without a URL render as static ``<span>`` elements.
+
+    Example usage::
+
+        {% dds__breadcrumb items=trail %}
+        {% dds__breadcrumb items separator_icon="chevron-right" aria_label="Component path" %}
+    """
+
+    template_name = "dj_design_system/components/elements/breadcrumb/breadcrumb.html"
+    _template_name = template_name
+
+    items = ListParam(
+        description=(
+            "Ordered list of trail items (dicts with 'label' and optional "
+            "'url'/'href' and 'icon')."
+        ),
+        default=[],
+        required=False,
+    )
+    aria_label = StrParam(
+        description="Accessible landmark label.",
+        default=DEFAULT_ARIA_LABEL,
+        required=False,
+    )
+    separator_icon = StrParam(
+        description="Icon name rendered between trail items.",
+        default=DEFAULT_SEPARATOR_ICON,
+        required=False,
+        choices=list(ICON_NAMES),
+    )
+
+    class Meta:
+        positional_args = ["items"]
+
+    class Media:
+        css = "dj_design_system/components/elements/breadcrumb/breadcrumb.css"
+
+    @staticmethod
+    def _normalize_item(raw_item: Any, *, is_current: bool) -> dict[str, Any]:
+        """Normalize a single trail entry into a structured template dictionary.
+
+        Args:
+            raw_item: A dict, object with ``label``/``url``/``href``/``icon``
+                attributes, or plain string label.
+            is_current: Whether this item is the final (current page) item.
+
+        Returns:
+            Dictionary containing ``label``, ``url``, ``icon``, ``is_current``,
+            ``has_url``, and ``has_icon``.
+        """
+        if isinstance(raw_item, str):
+            raw_label: Any = raw_item
+            raw_url: Any = None
+            raw_icon: Any = None
+        elif isinstance(raw_item, dict):
+            raw_label = raw_item.get("label")
+            if raw_label is None:
+                raw_label = raw_item.get("name", "")
+            raw_url = raw_item.get("url") or raw_item.get("href")
+            raw_icon = raw_item.get("icon")
+        else:
+            raw_label = getattr(raw_item, "label", None)
+            if raw_label is None:
+                raw_label = getattr(raw_item, "name", str(raw_item))
+            raw_url = getattr(raw_item, "url", None) or getattr(
+                raw_item, "href", None
+            )
+            raw_icon = getattr(raw_item, "icon", None)
+
+        label = str(raw_label) if raw_label is not None else ""
+        resolved_url = str(raw_url) if raw_url else None
+        url = None if is_current else resolved_url
+        icon = str(raw_icon) if raw_icon else None
+
+        return {
+            "label": label,
+            "url": url,
+            "icon": icon,
+            "is_current": is_current,
+            "has_url": bool(url),
+            "has_icon": bool(icon),
+        }
+
+    def get_context(self) -> dict[str, Any]:
+        """Build the normalized template context for the breadcrumb trail.
+
+        Returns:
+            Dictionary containing resolved ``aria_label``, ``separator_icon``,
+            ``normalized_items``, and ``has_items``.
+        """
+        context = super().get_context()
+        raw_items = list(self.items) if self.items else []
+        total = len(raw_items)
+        normalized_items = [
+            self._normalize_item(raw_item=item, is_current=(idx == total - 1))
+            for idx, item in enumerate(raw_items)
+        ]
+        context["aria_label"] = self.aria_label or DEFAULT_ARIA_LABEL
+        context["separator_icon"] = self.separator_icon or DEFAULT_SEPARATOR_ICON
+        context["normalized_items"] = normalized_items
+        context["has_items"] = bool(normalized_items)
+        return context

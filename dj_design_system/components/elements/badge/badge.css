@@ -1,0 +1,69 @@
+@layer blocks {
+  .dds-badge {
+    --_badge-bg-color: var(--dds-control-bg-color);
+    --_badge-border-color: var(--dds-control-border-color);
+    --_badge-border-radius: var(--dds-control-border-radius);
+    --_badge-border-style: var(--dds-control-border-style);
+    --_badge-border-width: var(--dds-control-border-width);
+    --_badge-font: var(--dds-text-caption-font);
+    --_badge-font-size: var(--dds-text-caption-size);
+    --_badge-font-weight: var(--dds-text-caption-weight);
+    --_badge-letter-spacing: var(--dds-text-caption-letter-spacing);
+    --_badge-line-height: var(--dds-text-caption-line-height);
+    --_badge-padding-block: var(--dds-space-3xs);
+    --_badge-padding-inline: var(--dds-space-xs);
+    --_badge-text-color: var(--dds-text-default-color);
+    align-items: center;
+    background-color: var(--_badge-bg-color);
+    border-color: var(--_badge-border-color);
+    border-radius: var(--_badge-border-radius);
+    border-style: var(--_badge-border-style);
+    border-width: var(--_badge-border-width);
+    color: var(--_badge-text-color);
+    display: inline-flex;
+    font-family: var(--_badge-font);
+    font-size: var(--_badge-font-size);
+    font-weight: var(--_badge-font-weight);
+    letter-spacing: var(--_badge-letter-spacing);
+    line-height: var(--_badge-line-height);
+    margin: 0;
+    padding-block: var(--_badge-padding-block);
+    padding-inline: var(--_badge-padding-inline);
+    white-space: nowrap;
+  }
+
+  .dds-badge[data-variant='info'] {
+    --_badge-bg-color: var(--dds-status-info-bg-color);
+    --_badge-border-color: var(--dds-status-info-border-color);
+    --_badge-text-color: var(--dds-status-info-text-color);
+  }
+
+  .dds-badge[data-variant='success'] {
+    --_badge-bg-color: var(--dds-status-success-bg-color);
+    --_badge-border-color: var(--dds-status-success-border-color);
+    --_badge-text-color: var(--dds-status-success-text-color);
+  }
+
+  .dds-badge[data-variant='warning'] {
+    --_badge-bg-color: var(--dds-status-warning-bg-color);
+    --_badge-border-color: var(--dds-status-warning-border-color);
+    --_badge-text-color: var(--dds-status-warning-text-color);
+  }
+
+  .dds-badge[data-variant='error'] {
+    --_badge-bg-color: var(--dds-status-error-bg-color);
+    --_badge-border-color: var(--dds-status-error-border-color);
+    --_badge-text-color: var(--dds-status-error-text-color);
+  }
+
+  .dds-badge[data-variant='code'] {
+    --_badge-bg-color: var(--dds-control-bg-color);
+    --_badge-border-color: var(--dds-control-border-color);
+    --_badge-font: var(--dds-text-code-font);
+    --_badge-font-size: var(--dds-text-code-size);
+    --_badge-font-weight: var(--dds-text-code-weight);
+    --_badge-letter-spacing: var(--dds-text-code-letter-spacing);
+    --_badge-line-height: var(--dds-text-code-line-height);
+    --_badge-text-color: var(--dds-text-default-color);
+  }
+}
