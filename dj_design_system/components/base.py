@@ -99,7 +99,7 @@ class BaseComponent:
         from django.utils.html import escape
 
         all_attrs = []
-        for param_name, spec in self.params.items():
+        for param_name, spec in type(self).get_params().items():
             value = getattr(self, param_name)
             self.context[param_name] = value
             self.context.update(spec.get_extra_context(param_name, value))
@@ -130,7 +130,7 @@ class BaseComponent:
     def get_classes_string(self):
         """Get a string of CSS classes based on the context."""
         classes = []
-        for param_name, spec in self.params.items():
+        for param_name, spec in type(self).get_params().items():
             param_value = getattr(self, param_name)
             classes.extend(spec.get_css_classes(param_name, param_value))
         return " ".join(classes)

@@ -1,0 +1,96 @@
+@layer blocks {
+  .dds-params-table {
+    --_params-table-choices-gap: var(--dds-space-2xs);
+    --_params-table-code-bg-color: var(--dds-control-bg-color);
+    --_params-table-code-border-color: var(--dds-control-border-color);
+    --_params-table-code-border-radius: var(--dds-control-border-radius);
+    --_params-table-code-border-style: var(--dds-control-border-style);
+    --_params-table-code-border-width: var(--dds-control-border-width);
+    --_params-table-code-color: var(--dds-text-prominent-color);
+    --_params-table-code-font: var(--dds-text-code-font);
+    --_params-table-code-line-height: var(--dds-text-code-line-height);
+    --_params-table-code-padding-block: var(--dds-space-3xs);
+    --_params-table-code-padding-inline: var(--dds-space-2xs);
+    --_params-table-code-size: var(--dds-text-code-size);
+    --_params-table-code-weight: var(--dds-text-code-weight);
+    --_params-table-description-color: var(--dds-text-default-color);
+    --_params-table-empty-color: var(--dds-text-muted-color);
+    --_params-table-font: var(--dds-text-body-font);
+    --_params-table-font-size: var(--dds-text-body-size);
+    --_params-table-font-weight: var(--dds-text-body-weight);
+    --_params-table-heading-color: var(--dds-text-prominent-color);
+    --_params-table-heading-font: var(--dds-text-subheading-font);
+    --_params-table-heading-letter-spacing: var(--dds-text-subheading-letter-spacing);
+    --_params-table-heading-line-height: var(--dds-text-subheading-line-height);
+    --_params-table-heading-size: var(--dds-text-subheading-size);
+    --_params-table-heading-weight: var(--dds-text-subheading-weight);
+    --_params-table-letter-spacing: var(--dds-text-body-letter-spacing);
+    --_params-table-line-height: var(--dds-text-body-line-height);
+    --_params-table-slots-heading-size: var(--dds-text-control-size);
+    --_params-table-slots-heading-weight: var(--dds-text-control-weight);
+    --_params-table-stack-gap: var(--dds-space-gap-default);
+    --_params-table-text-color: var(--dds-text-default-color);
+    color: var(--_params-table-text-color);
+    display: block;
+    font-family: var(--_params-table-font);
+    font-size: var(--_params-table-font-size);
+    font-weight: var(--_params-table-font-weight);
+    letter-spacing: var(--_params-table-letter-spacing);
+    line-height: var(--_params-table-line-height);
+    margin: 0;
+  }
+
+  .dds-params-table > l-stack {
+    --space: var(--_params-table-stack-gap);
+  }
+
+  .dds-params-table [data-params-heading] {
+    color: var(--_params-table-heading-color);
+    font-family: var(--_params-table-heading-font);
+    font-size: var(--_params-table-heading-size);
+    font-weight: var(--_params-table-heading-weight);
+    letter-spacing: var(--_params-table-heading-letter-spacing);
+    line-height: var(--_params-table-heading-line-height);
+    margin: 0;
+  }
+
+  .dds-params-table [data-slots-heading] {
+    color: var(--_params-table-heading-color);
+    font-family: var(--_params-table-heading-font);
+    font-size: var(--_params-table-slots-heading-size);
+    font-weight: var(--_params-table-slots-heading-weight);
+    line-height: var(--_params-table-heading-line-height);
+    margin: 0;
+  }
+
+  .dds-params-table [data-param-name],
+  .dds-params-table [data-param-default] {
+    background-color: var(--_params-table-code-bg-color);
+    border-color: var(--_params-table-code-border-color);
+    border-radius: var(--_params-table-code-border-radius);
+    border-style: var(--_params-table-code-border-style);
+    border-width: var(--_params-table-code-border-width);
+    color: var(--_params-table-code-color);
+    font-family: var(--_params-table-code-font);
+    font-size: var(--_params-table-code-size);
+    font-weight: var(--_params-table-code-weight);
+    line-height: var(--_params-table-code-line-height);
+    padding-block: var(--_params-table-code-padding-block);
+    padding-inline: var(--_params-table-code-padding-inline);
+  }
+
+  .dds-params-table [data-param-choices] {
+    --space: var(--_params-table-choices-gap);
+    align-items: center;
+  }
+
+  .dds-params-table [data-param-description] {
+    color: var(--_params-table-description-color);
+  }
+
+  .dds-params-table [data-param-empty],
+  .dds-params-table [data-params-empty] {
+    color: var(--_params-table-empty-color);
+    margin: 0;
+  }
+}

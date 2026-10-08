@@ -1,0 +1,95 @@
+{% load design_components %}
+<section class="dds-params-table">
+  <l-stack>
+    {% if has_title %}
+      <h3 data-params-heading>{{ title }}</h3>
+    {% endif %}
+    {% if has_params %}
+      {% dds__table density="compact" %}
+        {% slot "head" %}
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Type</th>
+            <th scope="col">Requirement</th>
+            <th scope="col">Default</th>
+            <th scope="col">Choices</th>
+            <th scope="col">Description</th>
+          </tr>
+        {% endslot %}
+        {% slot "body" %}
+          {% for row in normalized_params %}
+            <tr>
+              <td>
+                <code data-param-name>{{ row.name }}</code>
+              </td>
+              <td>
+                {% dds__badge label=row.type_name variant="code" %}
+              </td>
+              <td>
+                {% dds__badge label=row.required_label variant=row.required_variant %}
+              </td>
+              <td>
+                {% if row.has_default %}
+                  <code data-param-default>{{ row.default_display }}</code>
+                {% else %}
+                  <span data-param-empty>—</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if row.has_choices %}
+                  <l-cluster data-param-choices>
+                    {% for choice in row.choices %}
+                      {% dds__badge label=choice variant="code" %}
+                    {% endfor %}
+                  </l-cluster>
+                {% else %}
+                  <span data-param-empty>—</span>
+                {% endif %}
+              </td>
+              <td>
+                <span data-param-description>{{ row.description }}</span>
+              </td>
+            </tr>
+          {% endfor %}
+        {% endslot %}
+      {% enddds__table %}
+    {% else %}
+      <p data-params-empty>{{ empty_message }}</p>
+    {% endif %}
+    {% if has_slots %}
+      <h4 data-slots-heading>Slots</h4>
+      {% dds__table density="compact" %}
+        {% slot "head" %}
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Requirement</th>
+            <th scope="col">Default</th>
+            <th scope="col">Description</th>
+          </tr>
+        {% endslot %}
+        {% slot "body" %}
+          {% for slot_row in normalized_slots %}
+            <tr>
+              <td>
+                <code data-param-name data-slot-name>{{ slot_row.name }}</code>
+              </td>
+              <td>
+                {% dds__badge label=slot_row.required_label variant=slot_row.required_variant %}
+              </td>
+              <td>
+                {% if slot_row.has_default %}
+                  <code data-param-default>{{ slot_row.default_display }}</code>
+                {% else %}
+                  <span data-param-empty>—</span>
+                {% endif %}
+              </td>
+              <td>
+                <span data-param-description>{{ slot_row.description }}</span>
+              </td>
+            </tr>
+          {% endfor %}
+        {% endslot %}
+      {% enddds__table %}
+    {% endif %}
+  </l-stack>
+</section>

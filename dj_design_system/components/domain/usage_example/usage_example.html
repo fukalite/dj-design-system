@@ -1,0 +1,21 @@
+{% load design_components %}
+<section class="dds-usage-example">
+  <l-stack>
+    {% if has_title %}
+      <h4 data-usage-title>{{ title }}</h4>
+    {% endif %}
+    {% if has_preview %}
+      <div data-usage-preview data-surface="stage">
+        <iframe src="{{ preview_url }}" name="{{ canvas_id }}" data-canvas-id="{{ canvas_id }}" title="{{ iframe_title }}"></iframe>
+        {% if has_sandbox_link %}
+          <div data-usage-sandbox-link>
+            {% dds__button label="Open in sandbox" icon="external-link" icon_only=True variant="ghost" size="sm" href=sandbox_href %}
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
+    {% if has_code %}
+      {% dds__code_block code=code language=language %}
+    {% endif %}
+  </l-stack>
+</section>

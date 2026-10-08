@@ -22,11 +22,11 @@
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Documentation Components (`prose`, `params_table`, `usage_example`, `variant_view`)
-- [ ] **Orchestrator Pre-Dispatch Contract Lock:** Confirm parameter shapes passed from views to `prose`, `params_table`, `usage_example`, and `variant_view`
-- [ ] **Parallel Batch 2A — Delegate 4x `dds-component-builder` (Template B) concurrently:**
+- [x] **Orchestrator Pre-Dispatch Contract Lock:** Confirm parameter shapes passed from views to `prose`, `params_table`, `usage_example`, and `variant_view`
+- [x] **Parallel Batch 2A — Delegate 4x `dds-component-builder` (Template B) concurrently:**
   - Subagent 1: `dj_design_system/components/domain/prose/` + `tests/components/test_prose.py`
   - Subagent 2: `dj_design_system/components/domain/params_table/` + `tests/components/test_params_table.py`
   - Subagent 3: `dj_design_system/components/domain/usage_example/` + `tests/components/test_usage_example.py`
   - Subagent 4: `dj_design_system/components/domain/variant_view/` + `tests/components/test_variant_view.py`
-- [ ] **Delegate to `dds-reviewer` (Template D):** Audit all 4 documentation components and tests against `dds-components.md`, `python.md`, and `html-css.md`, and run `just test` & `just check`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] **Delegate to `dds-reviewer` (Template D):** Audit all 4 documentation components and tests against `dds-components.md`, `python.md`, and `html-css.md`, and run `just test` & `just check`
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
