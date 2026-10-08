@@ -153,6 +153,7 @@
   .l-imposter {
     inset-block-start: 50%;
     inset-inline-start: 50%;
+    /* Unit on 0px is required by CSS Values & Units inside calc(100% - ...) */
     max-block-size: calc(100% - (var(--margin, 0px) * 2));
     max-inline-size: calc(100% - (var(--margin, 0px) * 2));
     overflow: auto;
