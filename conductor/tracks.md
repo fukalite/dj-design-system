@@ -52,7 +52,7 @@
 - [x] **Track: Gallery Rebuild 3 — Built-in `elements` Collection**
   *Link: [tracks/gallery_rebuild_03_elements_20261007/index.md](tracks/gallery_rebuild_03_elements_20261007/index.md)*
 
-- [ ] **Track: Gallery Rebuild 4 — Built-in `domain` Collection: Shell, Navigation & Docs**
+- [~] **Track: Gallery Rebuild 4 — Built-in `domain` Collection: Shell, Navigation & Docs**
   *Link: [tracks/gallery_rebuild_04_domain_shell_nav_docs_20261007/index.md](tracks/gallery_rebuild_04_domain_shell_nav_docs_20261007/index.md)*
 
 - [ ] **Track: Gallery Rebuild 5 — Built-in `domain` Collection: Sandbox, Controls & Canvas**

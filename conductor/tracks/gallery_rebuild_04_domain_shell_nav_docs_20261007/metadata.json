@@ -1,9 +1,9 @@
 {
   "id": "gallery_rebuild_04_domain_shell_nav_docs_20261007",
   "type": "feature",
-  "status": "new",
+  "status": "in_progress",
   "created_at": "2026-10-07T23:50:00Z",
-  "updated_at": "2026-10-07T23:50:00Z",
+  "updated_at": "2026-10-08T12:33:00Z",
   "initiative": "gallery_rebuild",
   "phase": 4,
   "depends_on": [

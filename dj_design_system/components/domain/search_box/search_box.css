@@ -1,0 +1,244 @@
+@layer blocks {
+  dds-search-box,
+  .dds-search-box {
+    --_search-box-empty-color: var(--dds-text-muted-color);
+    --_search-box-empty-padding: var(--dds-space-md);
+    --_search-box-field-bg-color: var(--dds-control-bg-color);
+    --_search-box-field-border-color: var(--dds-control-border-color);
+    --_search-box-field-border-radius: var(--dds-control-border-radius);
+    --_search-box-field-border-style: var(--dds-control-border-style);
+    --_search-box-field-border-width: var(--dds-control-border-width);
+    --_search-box-field-focus-border-color: var(--dds-state-focus-border-color);
+    --_search-box-field-focus-outline-color: var(--dds-state-focus-outline-color);
+    --_search-box-field-focus-outline-offset: var(--dds-state-focus-outline-offset);
+    --_search-box-field-focus-outline-style: var(--dds-state-focus-outline-style);
+    --_search-box-field-focus-outline-width: var(--dds-state-focus-outline-width);
+    --_search-box-field-gap: var(--dds-space-gap-tight);
+    --_search-box-field-hover-border-color: var(--dds-state-hover-border-color);
+    --_search-box-field-padding-block: var(--dds-space-xs);
+    --_search-box-field-padding-inline: var(--dds-space-sm);
+    --_search-box-field-shadow-color: var(--dds-control-shadow-color);
+    --_search-box-field-shadow-shape: var(--dds-control-shadow-shape);
+    --_search-box-field-text-color: var(--dds-text-default-color);
+    --_search-box-font: var(--dds-text-control-font);
+    --_search-box-font-size: var(--dds-text-control-size);
+    --_search-box-font-weight: var(--dds-text-control-weight);
+    --_search-box-highlight-bg-color: var(--dds-status-warning-bg-color);
+    --_search-box-highlight-text-color: var(--dds-status-warning-text-color);
+    --_search-box-icon-color: var(--dds-text-muted-color);
+    --_search-box-letter-spacing: var(--dds-text-control-letter-spacing);
+    --_search-box-line-height: var(--dds-text-control-line-height);
+    --_search-box-meta-color: var(--dds-text-muted-color);
+    --_search-box-meta-font: var(--dds-text-caption-font);
+    --_search-box-meta-font-size: var(--dds-text-caption-size);
+    --_search-box-meta-font-weight: var(--dds-text-caption-weight);
+    --_search-box-meta-letter-spacing: var(--dds-text-caption-letter-spacing);
+    --_search-box-meta-line-height: var(--dds-text-caption-line-height);
+    --_search-box-placeholder-color: var(--dds-text-muted-color);
+    --_search-box-result-active-bg-color: var(--dds-state-selected-bg-color);
+    --_search-box-result-active-border-color: var(--dds-state-selected-border-color);
+    --_search-box-result-active-text-color: var(--dds-state-selected-text-color);
+    --_search-box-result-border-radius: var(--dds-control-border-radius);
+    --_search-box-result-gap: var(--dds-space-3xs);
+    --_search-box-result-hover-bg-color: var(--dds-state-hover-bg-color);
+    --_search-box-result-hover-text-color: var(--dds-state-hover-text-color);
+    --_search-box-result-padding-block: var(--dds-space-xs);
+    --_search-box-result-padding-inline: var(--dds-space-sm);
+    --_search-box-result-text-color: var(--dds-text-default-color);
+    --_search-box-results-bg-blur: var(--dds-surface-popout-bg-blur);
+    --_search-box-results-bg-color: var(--dds-surface-popout-bg-color);
+    --_search-box-results-border-color: var(--dds-surface-popout-border-color);
+    --_search-box-results-border-radius: var(--dds-surface-popout-border-radius);
+    --_search-box-results-border-style: var(--dds-surface-popout-border-style);
+    --_search-box-results-border-width: var(--dds-surface-popout-border-width);
+    --_search-box-results-gap: var(--dds-space-3xs);
+    --_search-box-results-offset: var(--dds-space-2xs);
+    --_search-box-results-padding: var(--dds-space-2xs);
+    --_search-box-results-shadow-color: var(--dds-surface-popout-shadow-color);
+    --_search-box-results-shadow-shape: var(--dds-surface-popout-shadow-shape);
+    --_search-box-results-z-index: var(--dds-surface-popout-z-index);
+    --_search-box-shortcut-bg-color: var(--dds-surface-stage-bg-color);
+    --_search-box-shortcut-border-color: var(--dds-control-border-color);
+    --_search-box-shortcut-border-radius: var(--dds-control-border-radius);
+    --_search-box-shortcut-border-style: var(--dds-control-border-style);
+    --_search-box-shortcut-border-width: var(--dds-control-border-width);
+    --_search-box-shortcut-color: var(--dds-text-muted-color);
+    --_search-box-shortcut-font: var(--dds-text-code-font);
+    --_search-box-shortcut-font-size: var(--dds-text-caption-size);
+    --_search-box-shortcut-line-height: var(--dds-text-control-line-height);
+    --_search-box-shortcut-padding-block: var(--dds-space-3xs);
+    --_search-box-shortcut-padding-inline: var(--dds-space-2xs);
+    --_search-box-transition-duration: var(--dds-state-entry-duration);
+    --_search-box-transition-easing: var(--dds-state-entry-easing);
+    display: block;
+    margin: 0;
+    position: relative;
+  }
+
+  dds-search-box [data-search-field],
+  .dds-search-box [data-search-field] {
+    align-items: center;
+    background-color: var(--_search-box-field-bg-color);
+    border-color: var(--_search-box-field-border-color);
+    border-radius: var(--_search-box-field-border-radius);
+    border-style: var(--_search-box-field-border-style);
+    border-width: var(--_search-box-field-border-width);
+    box-shadow: var(--_search-box-field-shadow-shape) var(--_search-box-field-shadow-color);
+    box-sizing: border-box;
+    color: var(--_search-box-icon-color);
+    display: flex;
+    gap: var(--_search-box-field-gap);
+    inline-size: 100%;
+    margin: 0;
+    padding-block: var(--_search-box-field-padding-block);
+    padding-inline: var(--_search-box-field-padding-inline);
+    transition-duration: var(--_search-box-transition-duration);
+    transition-property: background-color, border-color, box-shadow;
+    transition-timing-function: var(--_search-box-transition-easing);
+  }
+
+  dds-search-box [data-search-field]:hover,
+  .dds-search-box [data-search-field]:hover {
+    border-color: var(--_search-box-field-hover-border-color);
+  }
+
+  dds-search-box [data-search-field]:focus-within,
+  .dds-search-box [data-search-field]:focus-within {
+    border-color: var(--_search-box-field-focus-border-color);
+    outline-color: var(--_search-box-field-focus-outline-color);
+    outline-offset: var(--_search-box-field-focus-outline-offset);
+    outline-style: var(--_search-box-field-focus-outline-style);
+    outline-width: var(--_search-box-field-focus-outline-width);
+  }
+
+  dds-search-box [data-search-input],
+  .dds-search-box [data-search-input] {
+    appearance: none;
+    background-color: transparent;
+    border-width: 0;
+    color: var(--_search-box-field-text-color);
+    flex: 1 1 auto;
+    font-family: var(--_search-box-font);
+    font-size: var(--_search-box-font-size);
+    font-weight: var(--_search-box-font-weight);
+    inline-size: 100%;
+    letter-spacing: var(--_search-box-letter-spacing);
+    line-height: var(--_search-box-line-height);
+    margin: 0;
+    min-inline-size: 0;
+    outline: none;
+    padding: 0;
+  }
+
+  dds-search-box [data-search-input]::placeholder,
+  .dds-search-box [data-search-input]::placeholder {
+    color: var(--_search-box-placeholder-color);
+  }
+
+  dds-search-box [data-search-shortcut],
+  .dds-search-box [data-search-shortcut] {
+    background-color: var(--_search-box-shortcut-bg-color);
+    border-color: var(--_search-box-shortcut-border-color);
+    border-radius: var(--_search-box-shortcut-border-radius);
+    border-style: var(--_search-box-shortcut-border-style);
+    border-width: var(--_search-box-shortcut-border-width);
+    color: var(--_search-box-shortcut-color);
+    flex: 0 0 auto;
+    font-family: var(--_search-box-shortcut-font);
+    font-size: var(--_search-box-shortcut-font-size);
+    line-height: var(--_search-box-shortcut-line-height);
+    margin: 0;
+    padding-block: var(--_search-box-shortcut-padding-block);
+    padding-inline: var(--_search-box-shortcut-padding-inline);
+    user-select: none;
+  }
+
+  dds-search-box [data-search-results],
+  .dds-search-box [data-search-results] {
+    backdrop-filter: blur(var(--_search-box-results-bg-blur));
+    background-color: var(--_search-box-results-bg-color);
+    border-color: var(--_search-box-results-border-color);
+    border-radius: var(--_search-box-results-border-radius);
+    border-style: var(--_search-box-results-border-style);
+    border-width: var(--_search-box-results-border-width);
+    box-shadow: var(--_search-box-results-shadow-shape) var(--_search-box-results-shadow-color);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: var(--_search-box-results-gap);
+    inset-block-start: calc(100% + var(--_search-box-results-offset));
+    inset-inline-end: 0;
+    inset-inline-start: 0;
+    margin: 0;
+    overflow-y: auto;
+    padding: var(--_search-box-results-padding);
+    position: absolute;
+    z-index: var(--_search-box-results-z-index);
+  }
+
+  dds-search-box [data-search-results][hidden],
+  .dds-search-box [data-search-results][hidden] {
+    display: none;
+  }
+
+  dds-search-box [role='option'],
+  .dds-search-box [role='option'] {
+    border-radius: var(--_search-box-result-border-radius);
+    color: var(--_search-box-result-text-color);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    font-family: var(--_search-box-font);
+    font-size: var(--_search-box-font-size);
+    font-weight: var(--_search-box-font-weight);
+    gap: var(--_search-box-result-gap);
+    letter-spacing: var(--_search-box-letter-spacing);
+    line-height: var(--_search-box-line-height);
+    margin: 0;
+    padding-block: var(--_search-box-result-padding-block);
+    padding-inline: var(--_search-box-result-padding-inline);
+    text-decoration: none;
+    transition-duration: var(--_search-box-transition-duration);
+    transition-property: background-color, color;
+    transition-timing-function: var(--_search-box-transition-easing);
+  }
+
+  dds-search-box [role='option']:hover,
+  .dds-search-box [role='option']:hover {
+    background-color: var(--_search-box-result-hover-bg-color);
+    color: var(--_search-box-result-hover-text-color);
+  }
+
+  dds-search-box [role='option'][aria-selected='true'],
+  .dds-search-box [role='option'][aria-selected='true'] {
+    background-color: var(--_search-box-result-active-bg-color);
+    color: var(--_search-box-result-active-text-color);
+  }
+
+  dds-search-box [data-search-breadcrumb],
+  .dds-search-box [data-search-breadcrumb] {
+    color: var(--_search-box-meta-color);
+    font-family: var(--_search-box-meta-font);
+    font-size: var(--_search-box-meta-font-size);
+    font-weight: var(--_search-box-meta-font-weight);
+    letter-spacing: var(--_search-box-meta-letter-spacing);
+    line-height: var(--_search-box-meta-line-height);
+  }
+
+  dds-search-box [data-search-empty],
+  .dds-search-box [data-search-empty] {
+    color: var(--_search-box-empty-color);
+    font-family: var(--_search-box-font);
+    font-size: var(--_search-box-font-size);
+    line-height: var(--_search-box-line-height);
+    margin: 0;
+    padding: var(--_search-box-empty-padding);
+    text-align: center;
+  }
+
+  dds-search-box mark,
+  .dds-search-box mark {
+    background-color: var(--_search-box-highlight-bg-color);
+    color: var(--_search-box-highlight-text-color);
+  }
+}

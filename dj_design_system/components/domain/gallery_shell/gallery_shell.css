@@ -1,0 +1,124 @@
+@layer blocks {
+  dds-gallery-shell,
+  .dds-gallery-shell {
+    --_gallery-shell-backdrop-bg-blur: var(--dds-surface-overlay-bg-blur);
+    --_gallery-shell-backdrop-bg-color: var(--dds-surface-overlay-bg-color);
+    --_gallery-shell-backdrop-z-index: var(--dds-surface-overlay-z-index);
+    --_gallery-shell-bg-color: var(--dds-surface-bg-color);
+    --_gallery-shell-border-color: var(--dds-surface-border-color);
+    --_gallery-shell-border-style: var(--dds-surface-border-style);
+    --_gallery-shell-font: var(--dds-text-body-font);
+    --_gallery-shell-font-size: var(--dds-text-body-size);
+    --_gallery-shell-font-weight: var(--dds-text-body-weight);
+    --_gallery-shell-letter-spacing: var(--dds-text-body-letter-spacing);
+    --_gallery-shell-line-height: var(--dds-text-body-line-height);
+    --_gallery-shell-main-bg-color: var(--dds-surface-docs-bg-color);
+    --_gallery-shell-main-padding: var(--dds-space-inset-page);
+    --_gallery-shell-main-padding-compact: var(--dds-space-inset-default);
+    --_gallery-shell-main-z-index: var(--dds-surface-docs-z-index);
+    --_gallery-shell-sidebar-bg-color: var(--dds-surface-sidebar-bg-color);
+    --_gallery-shell-sidebar-shadow-color: var(--dds-surface-overlay-shadow-color);
+    --_gallery-shell-sidebar-shadow-shape: var(--dds-surface-overlay-shadow-shape);
+    --_gallery-shell-sidebar-width: var(--dds-layout-sidebar-width);
+    --_gallery-shell-sidebar-z-index: var(--dds-surface-sidebar-z-index);
+    --_gallery-shell-text-color: var(--dds-text-default-color);
+    --_gallery-shell-topbar-z-index: var(--dds-surface-topbar-z-index);
+    --_gallery-shell-transition-duration: var(--dds-state-entry-duration);
+    --_gallery-shell-transition-easing: var(--dds-state-entry-easing);
+    background-color: var(--_gallery-shell-bg-color);
+    box-sizing: border-box;
+    color: var(--_gallery-shell-text-color);
+    display: flex;
+    flex-direction: column;
+    font-family: var(--_gallery-shell-font);
+    font-size: var(--_gallery-shell-font-size);
+    font-weight: var(--_gallery-shell-font-weight);
+    letter-spacing: var(--_gallery-shell-letter-spacing);
+    line-height: var(--_gallery-shell-line-height);
+    margin: 0;
+    min-height: 100vh;
+  }
+
+  dds-gallery-shell [data-shell-topbar],
+  .dds-gallery-shell [data-shell-topbar] {
+    flex-shrink: 0;
+    inset-block-start: 0;
+    margin: 0;
+    position: sticky;
+    z-index: var(--_gallery-shell-topbar-z-index);
+  }
+
+  dds-gallery-shell [data-shell-body],
+  .dds-gallery-shell [data-shell-body] {
+    --space: 0;
+    align-items: stretch;
+    flex: 1 1 auto;
+    gap: 0;
+    margin: 0;
+    min-block-size: 0;
+    position: relative;
+  }
+
+  dds-gallery-shell [data-shell-backdrop],
+  .dds-gallery-shell [data-shell-backdrop] {
+    backdrop-filter: blur(var(--_gallery-shell-backdrop-bg-blur));
+    background-color: var(--_gallery-shell-backdrop-bg-color);
+    inset: 0;
+    margin: 0;
+    position: fixed;
+    z-index: var(--_gallery-shell-backdrop-z-index);
+  }
+
+  dds-gallery-shell [data-shell-backdrop][hidden],
+  .dds-gallery-shell [data-shell-backdrop][hidden] {
+    display: none;
+  }
+
+  dds-gallery-shell [data-shell-sidebar],
+  .dds-gallery-shell [data-shell-sidebar] {
+    background-color: var(--_gallery-shell-sidebar-bg-color);
+    flex: 0 0 var(--_gallery-shell-sidebar-width);
+    inline-size: var(--_gallery-shell-sidebar-width);
+    margin: 0;
+    min-block-size: 0;
+    position: relative;
+    z-index: var(--_gallery-shell-sidebar-z-index);
+  }
+
+  dds-gallery-shell [data-shell-main],
+  .dds-gallery-shell [data-shell-main] {
+    background-color: var(--_gallery-shell-main-bg-color);
+    box-sizing: border-box;
+    flex: 1 1 0;
+    margin: 0;
+    min-inline-size: 0;
+    padding: var(--_gallery-shell-main-padding);
+    position: relative;
+    z-index: var(--_gallery-shell-main-z-index);
+  }
+
+  @media (max-width: 48rem) {
+    dds-gallery-shell [data-shell-sidebar],
+    .dds-gallery-shell [data-shell-sidebar] {
+      box-shadow: var(--_gallery-shell-sidebar-shadow-shape) var(--_gallery-shell-sidebar-shadow-color);
+      inset-block: 0;
+      inset-inline-start: 0;
+      position: fixed;
+      transform: translateX(-100%);
+      transition-duration: var(--_gallery-shell-transition-duration);
+      transition-property: transform;
+      transition-timing-function: var(--_gallery-shell-transition-easing);
+      z-index: var(--_gallery-shell-backdrop-z-index);
+    }
+
+    dds-gallery-shell[data-drawer-state='open'] [data-shell-sidebar],
+    .dds-gallery-shell[data-drawer-state='open'] [data-shell-sidebar] {
+      transform: translateX(0);
+    }
+
+    dds-gallery-shell [data-shell-main],
+    .dds-gallery-shell [data-shell-main] {
+      padding: var(--_gallery-shell-main-padding-compact);
+    }
+  }
+}

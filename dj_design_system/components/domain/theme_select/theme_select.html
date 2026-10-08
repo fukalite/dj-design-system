@@ -1,0 +1,11 @@
+{% load design_components %}
+<dds-theme-select class="dds-theme-select" data-active-theme="{{ resolved_active_theme }}">
+  <div data-theme-control>
+    {% dds__icon name=active_icon size="sm" %}
+    <select id="{{ select_id }}" data-theme-select aria-label="{{ label }}" title="{{ label }}">
+      {% for item in normalized_themes %}
+        <option value="{{ item.value }}"{% if item.is_selected %} selected{% endif %}>{{ item.label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+</dds-theme-select>
