@@ -62,6 +62,42 @@ def get_env_var(name: str, default: str = "") -> str:
     return value
 
 
+def is_dependabot(author: str = "", branch: str = "") -> bool:
+    """Check if the author or branch belongs to Dependabot."""
+    if author and "dependabot" in author.lower():
+        return True
+    if branch and branch.lower().startswith("dependabot/"):
+        return True
+    return False
+
+
+def should_skip_review(
+    pr_number: str,
+    pr_author: str = "",
+    is_merged: str | bool = False,
+    pr_info: dict | None = None,
+) -> tuple[bool, str]:
+    """Determine whether to skip review (already merged or Dependabot)."""
+    if str(is_merged).lower() in ("true", "1"):
+        return True, f"PR #{pr_number} is already merged."
+
+    if is_dependabot(author=pr_author):
+        return True, f"PR #{pr_number} author is {pr_author} (Dependabot)."
+
+    if pr_info is not None:
+        if pr_info.get("merged") or pr_info.get("merged_at"):
+            return True, f"PR #{pr_number} is already merged."
+        author = pr_info.get("user", {}).get("login", "")
+        branch = pr_info.get("head", {}).get("ref", "")
+        if is_dependabot(author=author, branch=branch):
+            return (
+                True,
+                f"PR #{pr_number} is from Dependabot (author: {author or 'unknown'}, branch: {branch or 'unknown'}).",
+            )
+
+    return False, ""
+
+
 def get_pr_info(repo: str, pr_number: str, github_token: str) -> dict:
     """Fetch pull request metadata from GitHub REST API."""
     url = f"https://api.github.com/repos/{repo}/pulls/{pr_number}"
@@ -427,6 +463,8 @@ def main():
     pr_number = get_env_var("PR_NUMBER")
     head_sha = get_env_var("HEAD_SHA")
     base_sha = get_env_var("BASE_SHA")
+    pr_author = get_env_var("PR_AUTHOR")
+    is_merged_env = get_env_var("IS_MERGED")
     model = get_env_var("GEMINI_MODEL", "gemini-3.8-flash")
     instructions_file = get_env_var(
         "INSTRUCTIONS_FILE", ".github/copilot-instructions.md"
@@ -434,25 +472,48 @@ def main():
     styleguides_dir = get_env_var("STYLEGUIDES_DIR", "conductor/code_styleguides")
     user_comment = get_env_var("USER_COMMENT")
 
-    if not gemini_key:
-        print("Error: GEMINI_API_KEY is not set.", file=sys.stderr)
-        sys.exit(1)
-    if not github_token:
-        print("Error: GITHUB_TOKEN is not set.", file=sys.stderr)
-        sys.exit(1)
     if not repo or not pr_number:
         print("Error: REPO and PR_NUMBER must be specified.", file=sys.stderr)
         sys.exit(1)
 
-    # 1. Fetch PR details if head_sha or base_sha are missing (e.g. on issue_comment triggers)
-    if not head_sha or not base_sha:
+    # Check skip conditions from environment variables before requiring secrets or API calls
+    skip, reason = should_skip_review(
+        pr_number=pr_number,
+        pr_author=pr_author,
+        is_merged=is_merged_env,
+    )
+    if skip:
+        print(f"{reason} Skipping Gemini code review.")
+        sys.exit(0)
+
+    if not github_token:
+        print("Error: GITHUB_TOKEN is not set.", file=sys.stderr)
+        sys.exit(1)
+
+    # 1. Fetch PR details if head_sha or base_sha are missing, or if merged/author status needs resolution
+    pr_info = None
+    if not head_sha or not base_sha or not pr_author or not is_merged_env:
         print(f"Fetching PR #{pr_number} metadata from GitHub API...")
         pr_info = get_pr_info(repo, pr_number, github_token)
         head_sha = head_sha or pr_info.get("head", {}).get("sha", "")
         base_sha = base_sha or pr_info.get("base", {}).get("sha", "")
 
+        skip, reason = should_skip_review(
+            pr_number=pr_number,
+            pr_author=pr_author,
+            is_merged=is_merged_env,
+            pr_info=pr_info,
+        )
+        if skip:
+            print(f"{reason} Skipping Gemini code review.")
+            sys.exit(0)
+
     if not head_sha:
         print("Error: Unable to resolve HEAD_SHA for review.", file=sys.stderr)
+        sys.exit(1)
+
+    if not gemini_key:
+        print("Error: GEMINI_API_KEY is not set.", file=sys.stderr)
         sys.exit(1)
 
     # 2. Read Instructions & apply custom developer focus if provided

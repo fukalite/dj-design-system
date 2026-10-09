@@ -5,6 +5,8 @@ import urllib.error
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 
 # Load .github/scripts/ai_pr_review.py dynamically as a module
 script_path = (
@@ -212,3 +214,140 @@ def test_load_styleguides_returns_empty_string_for_missing_directory(tmp_path):
     result = ai_pr_review.load_styleguides(directory=str(tmp_path / "missing"))
 
     assert result == ""
+
+
+def test_is_dependabot():
+    assert ai_pr_review.is_dependabot(author="dependabot[bot]")
+    assert ai_pr_review.is_dependabot(author="Dependabot[bot]")
+    assert ai_pr_review.is_dependabot(author="dependabot")
+    assert ai_pr_review.is_dependabot(branch="dependabot/pip/urllib3-2.0")
+    assert not ai_pr_review.is_dependabot(author="alice")
+    assert not ai_pr_review.is_dependabot(branch="feature/new-button")
+    assert not ai_pr_review.is_dependabot()
+
+
+def test_should_skip_review_when_merged():
+    # Via is_merged argument string
+    skip, reason = ai_pr_review.should_skip_review(pr_number="42", is_merged="true")
+    assert skip is True
+    assert "already merged" in reason
+
+    # Via is_merged boolean
+    skip, reason = ai_pr_review.should_skip_review(pr_number="42", is_merged=True)
+    assert skip is True
+    assert "already merged" in reason
+
+    # Via pr_info merged boolean
+    skip, reason = ai_pr_review.should_skip_review(
+        pr_number="42", pr_info={"merged": True}
+    )
+    assert skip is True
+    assert "already merged" in reason
+
+    # Via pr_info merged_at timestamp
+    skip, reason = ai_pr_review.should_skip_review(
+        pr_number="42", pr_info={"merged_at": "2026-10-09T10:00:00Z"}
+    )
+    assert skip is True
+    assert "already merged" in reason
+
+
+def test_should_skip_review_when_dependabot():
+    # Via pr_author argument
+    skip, reason = ai_pr_review.should_skip_review(
+        pr_number="42", pr_author="dependabot[bot]"
+    )
+    assert skip is True
+    assert "Dependabot" in reason
+
+    # Via pr_info user login
+    skip, reason = ai_pr_review.should_skip_review(
+        pr_number="42", pr_info={"user": {"login": "dependabot[bot]"}}
+    )
+    assert skip is True
+    assert "Dependabot" in reason
+
+    # Via pr_info branch
+    skip, reason = ai_pr_review.should_skip_review(
+        pr_number="42", pr_info={"head": {"ref": "dependabot/npm/lodash-4.17.21"}}
+    )
+    assert skip is True
+    assert "Dependabot" in reason
+
+
+def test_should_not_skip_normal_open_pr():
+    skip, reason = ai_pr_review.should_skip_review(
+        pr_number="42",
+        pr_author="alice",
+        is_merged="false",
+        pr_info={"merged": False, "user": {"login": "alice"}, "head": {"ref": "feat/foo"}},
+    )
+    assert skip is False
+    assert reason == ""
+
+
+def test_main_skips_when_is_merged_in_env(monkeypatch, capsys):
+    monkeypatch.setenv("REPO", "owner/repo")
+    monkeypatch.setenv("PR_NUMBER", "10")
+    monkeypatch.setenv("IS_MERGED", "true")
+
+    with pytest.raises(SystemExit) as exc_info:
+        ai_pr_review.main()
+
+    assert exc_info.value.code == 0
+    captured = capsys.readouterr()
+    assert "PR #10 is already merged. Skipping Gemini code review." in captured.out
+
+
+def test_main_skips_when_dependabot_in_env(monkeypatch, capsys):
+    monkeypatch.setenv("REPO", "owner/repo")
+    monkeypatch.setenv("PR_NUMBER", "11")
+    monkeypatch.setenv("PR_AUTHOR", "dependabot[bot]")
+
+    with pytest.raises(SystemExit) as exc_info:
+        ai_pr_review.main()
+
+    assert exc_info.value.code == 0
+    captured = capsys.readouterr()
+    assert "PR #11 author is dependabot[bot] (Dependabot). Skipping Gemini code review." in captured.out
+
+
+@patch.object(ai_pr_review, "get_pr_info")
+def test_main_fetches_pr_info_and_skips_merged(mock_get_pr_info, monkeypatch, capsys):
+    monkeypatch.setenv("REPO", "owner/repo")
+    monkeypatch.setenv("PR_NUMBER", "12")
+    monkeypatch.setenv("GITHUB_TOKEN", "fake-token")
+    mock_get_pr_info.return_value = {
+        "head": {"sha": "sha-head"},
+        "base": {"sha": "sha-base"},
+        "merged": True,
+        "user": {"login": "alice"},
+    }
+
+    with pytest.raises(SystemExit) as exc_info:
+        ai_pr_review.main()
+
+    assert exc_info.value.code == 0
+    captured = capsys.readouterr()
+    assert "PR #12 is already merged. Skipping Gemini code review." in captured.out
+
+
+@patch.object(ai_pr_review, "get_pr_info")
+def test_main_fetches_pr_info_and_skips_dependabot(mock_get_pr_info, monkeypatch, capsys):
+    monkeypatch.setenv("REPO", "owner/repo")
+    monkeypatch.setenv("PR_NUMBER", "13")
+    monkeypatch.setenv("GITHUB_TOKEN", "fake-token")
+    mock_get_pr_info.return_value = {
+        "head": {"sha": "sha-head"},
+        "base": {"sha": "sha-base"},
+        "merged": False,
+        "user": {"login": "dependabot[bot]"},
+    }
+
+    with pytest.raises(SystemExit) as exc_info:
+        ai_pr_review.main()
+
+    assert exc_info.value.code == 0
+    captured = capsys.readouterr()
+    assert "PR #13 is from Dependabot (author: dependabot[bot]" in captured.out
+

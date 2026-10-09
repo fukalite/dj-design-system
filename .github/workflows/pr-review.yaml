@@ -18,15 +18,27 @@ concurrency:
 jobs:
   review:
     # Trigger conditions:
-    # 1. PR opened or marked ready for review (not draft)
-    # 2. PR comment starting with /review by a collaborator/contributor/owner
+    # 1. PR opened or marked ready for review (not draft, not merged, not Dependabot)
+    # 2. PR comment starting with /review by a collaborator/contributor/owner (on open PR, not Dependabot)
     # 3. Manual workflow_dispatch
     if: |
-      (github.event_name == 'pull_request' && github.event.pull_request.draft == false) ||
-      (github.event_name == 'issue_comment' &&
-       github.event.issue.pull_request &&
-       startsWith(github.event.comment.body, '/review') &&
-       contains(fromJson('["OWNER", "MEMBER", "COLLABORATOR", "CONTRIBUTOR"]'), github.event.comment.author_association)) ||
+      (
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.draft == false &&
+        github.event.pull_request.merged == false &&
+        !contains(github.actor, 'dependabot') &&
+        !contains(github.event.pull_request.user.login, 'dependabot') &&
+        !startsWith(github.event.pull_request.head.ref, 'dependabot/')
+      ) ||
+      (
+        github.event_name == 'issue_comment' &&
+        github.event.issue.pull_request &&
+        github.event.issue.state == 'open' &&
+        startsWith(github.event.comment.body, '/review') &&
+        contains(fromJson('["OWNER", "MEMBER", "COLLABORATOR", "CONTRIBUTOR"]'), github.event.comment.author_association) &&
+        !contains(github.actor, 'dependabot') &&
+        !contains(github.event.issue.user.login, 'dependabot')
+      ) ||
       (github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     permissions:
@@ -61,6 +73,8 @@ jobs:
           REPO: ${{ github.repository }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || '' }}
           BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login || github.event.issue.user.login || '' }}
+          IS_MERGED: ${{ github.event.pull_request.merged || '' }}
           GEMINI_MODEL: 'gemini-3.8-flash'
           INSTRUCTIONS_FILE: '.github/copilot-instructions.md'
           STYLEGUIDES_DIR: 'conductor/code_styleguides'
