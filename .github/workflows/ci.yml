@@ -24,6 +24,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.13"
+          activate-environment: true
 
       - name: Install dev dependencies
         run: uv pip install -e ".[dev]"
@@ -42,6 +43,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.13"
+          activate-environment: true
 
       - name: Install dev dependencies
         run: uv pip install -e ".[dev]"
@@ -101,6 +103,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: "${{ matrix.python-version }}"
+          activate-environment: true
 
       - name: Install testing dependencies
         run: uv pip install -e ".[dev]"
@@ -135,6 +138,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.13"
+          activate-environment: true
 
       - name: Install testing dependencies
         run: uv pip install -e ".[dev]"
