@@ -245,7 +245,8 @@ on a real page, without interference from gallery chrome.
 
 The tag automatically:
 
-- Loads global CSS via the same logic as `{% global_stylesheets %}`
+- Loads global CSS and JS via the same logic as `{% global_stylesheets %}`
+  and `{% global_scripts %}`
 - Includes `canvas.css` for padding and background styles
 - Reads component CSS/JS from the `_canvas_component_css` and
   `_canvas_component_js` context variables, if set

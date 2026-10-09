@@ -37,6 +37,20 @@ def build_global_css_tags() -> str:
     )
 
 
+def global_js_urls() -> list[str]:
+    """Return the URLs of the global JS (webpack bundles + static)."""
+    return media_service.get_bundle_urls(dds_settings.GLOBAL_JS_BUNDLES, "js") + [
+        media_service.resolve_asset_url(path=path) for path in dds_settings.GLOBAL_JS
+    ]
+
+
+def build_global_js_tags() -> str:
+    """Build ``<script>`` tags for global JS (webpack bundles + static)."""
+    return format_html_join(
+        "", '<script src="{}"></script>', ((src,) for src in global_js_urls())
+    )
+
+
 def build_theme_app_media(
     theme_dict: Optional[Theme], app_label: Optional[str]
 ) -> tuple[str, str]:
@@ -193,6 +207,7 @@ def build_canvas_srcdoc(
         iframe_id: Optional ID to uniquely identify this canvas instance for resize events.
     """
     global_css = build_global_css_tags()
+    global_js = build_global_js_tags()
     canvas_css_tag = (
         f'<link rel="stylesheet" href="{static("dj_design_system/canvas.css")}">'
     )
@@ -230,6 +245,7 @@ def build_canvas_srcdoc(
         f'<div class="canvas-wrapper {mode_class} {bg_class}">'
         f"{rendered_html}"
         "</div>"
+        f"{global_js}"
         f"{component_js}"
         f"{theme_app_js_tags}"
         f"{resize_script}"

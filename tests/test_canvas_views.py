@@ -204,6 +204,19 @@ class TestCanvasIframeView:
         content = response.content.decode()
         assert '<style nonce="sample-canvas-nonce-456">' in content
 
+    def test_canvas_iframe_loads_global_js(self):
+        with override_settings(
+            DJ_DESIGN_SYSTEM={
+                "GALLERY_IS_PUBLIC": True,
+                "GLOBAL_JS": ["https://cdn.example.com/global.js"],
+            }
+        ):
+            client = Client()
+            url = reverse("gallery-canvas-iframe")
+            response = client.get(url, {"component": "rich_button", "label": "Test"})
+        content = response.content.decode()
+        assert '<script src="https://cdn.example.com/global.js"></script>' in content
+
     def test_external_urls_preserved_in_canvas_iframe(self):
         with override_settings(
             DJ_DESIGN_SYSTEM={

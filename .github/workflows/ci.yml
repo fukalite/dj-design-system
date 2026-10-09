@@ -17,13 +17,14 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: extractions/setup-just@v2
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.13"
+          activate-environment: true
 
       - name: Install dev dependencies
         run: uv pip install -e ".[dev]"
@@ -35,13 +36,14 @@ jobs:
     name: Type Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: extractions/setup-just@v2
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.13"
+          activate-environment: true
 
       - name: Install dev dependencies
         run: uv pip install -e ".[dev]"
@@ -96,11 +98,12 @@ jobs:
             django-label: "latest"
             coverage: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v7
         with:
           python-version: "${{ matrix.python-version }}"
+          activate-environment: true
 
       - name: Install testing dependencies
         run: uv pip install -e ".[dev]"
@@ -128,13 +131,14 @@ jobs:
     name: E2E Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: extractions/setup-just@v2
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.13"
+          activate-environment: true
 
       - name: Install testing dependencies
         run: uv pip install -e ".[dev]"

@@ -17,12 +17,12 @@ jobs:
     environment: test-pypi
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Full history needed so hatch-vcs can derive the version from git tags
           fetch-depth: 0
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.13"
 
