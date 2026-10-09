@@ -338,7 +338,7 @@
     --dds-surface-stage-bg-color: var(--_dds-neutral-50);
     --dds-surface-stage-border-color: var(--_dds-neutral-300);
     --dds-surface-stage-border-radius: var(--_dds-radius-none);
-    --dds-surface-stage-border-style: solid;
+    --dds-surface-stage-border-style: dashed;
     --dds-surface-stage-border-width: var(--_dds-border-width-1);
     --dds-surface-stage-shadow-color: var(--_dds-color-transparent);
     --dds-surface-stage-shadow-shape: var(--_dds-shadow-shape-none);

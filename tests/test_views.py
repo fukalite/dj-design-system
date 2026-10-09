@@ -196,6 +196,34 @@ class TestGalleryComponentView:
         assert response.context["theme_body_class"] == "gallery-theme-light"
         assert response.context["sandbox_active_theme"] == "dark"
 
+    def test_component_renders_section_headings_and_dividers(self, client):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+        content = response.content.decode("utf-8")
+        assert "<h2 data-docs-heading>Description</h2>" in content
+        assert "<h2 data-docs-heading>Usage</h2>" in content
+        assert "<h2 data-docs-heading>Parameters</h2>" in content
+        assert "<h2 data-docs-heading>Further documentation</h2>" in content
+        assert "<hr data-docs-divider>" in content
+
+    def test_variant_view_renders_parameters_and_further_documentation(
+        self, client
+    ):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        response = client.get(f"{url}?variant=danger")
+        assert response.status_code == 200
+        content = response.content.decode("utf-8")
+        assert "<h3 data-variant-subheading>Preview</h3>" in content
+        assert "<h2 data-docs-heading>Parameters</h2>" in content
+        assert "<h2 data-docs-heading>Further documentation</h2>" in content
+
 
 class TestGalleryFolderView:
     """Test the folder view."""

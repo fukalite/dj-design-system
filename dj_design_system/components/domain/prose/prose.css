@@ -9,16 +9,16 @@
     --_prose-blockquote-padding-block: var(--dds-space-sm);
     --_prose-blockquote-padding-inline: var(--dds-space-lg);
     --_prose-border-color: var(--dds-surface-border-color);
-    --_prose-code-bg-color: var(--dds-control-bg-color);
+    --_prose-code-bg-color: var(--dds-state-hover-bg-color);
     --_prose-code-border-color: var(--dds-control-border-color);
     --_prose-code-border-radius: var(--dds-control-border-radius);
     --_prose-code-border-style: var(--dds-control-border-style);
-    --_prose-code-border-width: var(--dds-control-border-width);
+    --_prose-code-border-width: var(--dds-surface-border-width);
     --_prose-code-font: var(--dds-text-code-font);
     --_prose-code-letter-spacing: var(--dds-text-code-letter-spacing);
     --_prose-code-line-height: var(--dds-text-code-line-height);
-    --_prose-code-padding-block: var(--dds-space-2xs);
-    --_prose-code-padding-inline: var(--dds-space-xs);
+    --_prose-code-padding-block: var(--dds-space-3xs);
+    --_prose-code-padding-inline: var(--dds-space-2xs);
     --_prose-code-size: var(--dds-text-code-size);
     --_prose-code-weight: var(--dds-text-code-weight);
     --_prose-focus-outline-color: var(--dds-state-focus-outline-color);
@@ -31,11 +31,13 @@
     --_prose-gap: var(--dds-space-gap-default);
     --_prose-h3-size: var(--dds-text-subheading-size);
     --_prose-h4-size: var(--dds-text-body-size);
+    --_prose-heading-border-width: var(--dds-control-border-width);
     --_prose-heading-color: var(--dds-text-prominent-color);
     --_prose-heading-font: var(--dds-text-heading-font);
     --_prose-heading-letter-spacing: var(--dds-text-heading-letter-spacing);
     --_prose-heading-line-height: var(--dds-text-heading-line-height);
     --_prose-heading-margin-block-start: var(--dds-space-xl);
+    --_prose-heading-padding-block-end: var(--dds-space-2xs);
     --_prose-heading-size: var(--dds-text-heading-size);
     --_prose-heading-weight: var(--dds-text-heading-weight);
     --_prose-hr-border-width: var(--dds-control-border-width);
@@ -111,6 +113,9 @@
   }
 
   .dds-prose h2 {
+    border-block-end-color: var(--_prose-border-color);
+    border-block-end-style: var(--_prose-code-border-style);
+    border-block-end-width: var(--_prose-heading-border-width);
     color: var(--_prose-heading-color);
     font-family: var(--_prose-heading-font);
     font-size: var(--_prose-heading-size);
@@ -119,6 +124,7 @@
     line-height: var(--_prose-heading-line-height);
     margin-block-end: 0;
     margin-block-start: var(--_prose-heading-margin-block-start);
+    padding-block-end: var(--_prose-heading-padding-block-end);
   }
 
   .dds-prose h3 {

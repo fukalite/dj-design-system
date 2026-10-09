@@ -3,7 +3,7 @@
   .dds-canvas-widget {
     --_canvas-widget-border-color: var(--dds-surface-stage-border-color);
     --_canvas-widget-border-radius: var(--dds-control-border-radius);
-    --_canvas-widget-border-style: var(--dds-surface-stage-border-style);
+    --_canvas-widget-border-style: var(--dds-control-border-style);
     --_canvas-widget-border-width: var(--dds-surface-stage-border-width);
     --_canvas-widget-code-bg-color: var(--dds-surface-code-bg-color);
     --_canvas-widget-code-border-color: var(--dds-surface-code-border-color);
@@ -29,6 +29,7 @@
     --_canvas-widget-selected-border-color: var(--dds-state-selected-border-color);
     --_canvas-widget-selected-text-color: var(--dds-state-selected-text-color);
     --_canvas-widget-stage-bg-color: var(--dds-surface-stage-bg-color);
+    --_canvas-widget-stage-border-style: var(--dds-surface-stage-border-style);
     --_canvas-widget-stage-dark-bg-color: var(--dds-surface-code-bg-color);
     --_canvas-widget-stage-light-bg-color: var(--dds-surface-stage-bg-color);
     --_canvas-widget-stage-padding: var(--dds-space-inset-default);
@@ -51,6 +52,16 @@
     display: block;
     margin: 0;
     overflow: hidden;
+  }
+
+  dds-canvas-widget[data-canvas-id='sandbox'],
+  .dds-canvas-widget[data-canvas-id='sandbox'] {
+    border-block-start-width: 0;
+    border-inline-width: 0;
+    border-radius: 0;
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
   }
 
   dds-canvas-widget [data-canvas-toggles],
@@ -123,6 +134,14 @@
     padding: var(--_canvas-widget-stage-padding);
   }
 
+  dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-stage]:not([hidden]),
+  .dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-stage]:not([hidden]) {
+    align-items: center;
+    display: flex;
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
   dds-canvas-widget[data-background='white'] [data-canvas-stage],
   .dds-canvas-widget[data-background='white'] [data-canvas-stage] {
     background-color: var(--_canvas-widget-stage-white-bg-color);
@@ -166,6 +185,12 @@
     border-block-start-width: var(--_canvas-widget-border-width);
     color: var(--_canvas-widget-code-text-color);
     margin: 0;
+  }
+
+  dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-panel]:not([hidden]),
+  .dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-panel]:not([hidden]) {
+    flex: 1 1 auto;
+    overflow-y: auto;
   }
 
   dds-canvas-widget [data-canvas-stage][hidden],

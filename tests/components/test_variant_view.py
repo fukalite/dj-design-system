@@ -270,6 +270,7 @@ class TestVariantViewRenderingAndTemplate:
             "<div data-variant-description><p>Primary call to action.</p></div>"
             in html
         )
+        assert "<h3 data-variant-subheading>Preview</h3>" in html
         assert '<div data-variant-preview data-surface="stage">' in html
         assert (
             '<iframe src="/canvas/button/?variant=primary" name="variant" '

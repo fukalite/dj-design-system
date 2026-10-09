@@ -26,15 +26,15 @@
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3: Documentation Typography, Section Overlines, Params Table & Sandbox Layout
-- [ ] **Documentation & Typography Layer (`prose`, `usage_example`, `params_table`, `variant_view`, `component.html`):**
+- [x] **Documentation & Typography Layer (`prose`, `usage_example`, `params_table`, `variant_view`, `component.html`):**
   - Standardise uppercase muted section overlines (`DESCRIPTION`, `USAGE`, `PARAMETERS`, `FURTHER DOCUMENTATION`) and `<hr data-docs-divider>` dividers in `component.html` and `variant_view.html`.
   - Refine `usage_example.css`, `prose.css`, and `params_table.css` heading scales, sub-overline casing (`MINIMAL EXAMPLE`, `ALL PARAMETERS`, `QUALIFIED TAG USAGE`), inline `<code>` surface pills, `h2` bottom rules, and `prominent`/`default`/`muted` text contrast tokens.
   - Update `params_table.html` and `params_table.css` for clean column headers, non-clipping responsive horizontal scroll, and neutral `Yes`/`No` requirement display.
-- [ ] **Sandbox Stage, Toolbar & Params Form Layer (`sandbox`, `sandbox_toolbar`, `params_form`):**
+- [x] **Sandbox Stage, Toolbar & Params Form Layer (`sandbox`, `sandbox_toolbar`, `params_form`):**
   - Update `sandbox.css` and `split_pane.css` so the sandbox pane and `[data-sandbox-stage]` flex to fill full viewport height (`flex: 1`), centring the preview canvas widget.
   - Refine `sandbox_toolbar.css` and `params_form.css` so toolbar controls sit in a compact single bar and parameter rows render in a clean two-column (`label + description` | `control`) grid below the splitter handle.
-- [ ] **Tests & Review (`dds-reviewer`):** Update component unit tests, run `dds-reviewer`, and verify `just check`, `just typecheck`, and `just test`.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] **Tests & Review (`dds-reviewer`):** Update component unit tests, run `dds-reviewer`, and verify `just check`, `just typecheck`, and `just test`.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4: Expanded Visual Baselines, Iterative Visual Inspection Loop & Stacked PR
 - [ ] **Expand Visual Suite (`tests/e2e/visual/test_gallery_interactions.py`):**
