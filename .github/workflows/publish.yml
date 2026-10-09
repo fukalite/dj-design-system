@@ -19,7 +19,7 @@ jobs:
           # Full history needed so hatch-vcs reads the release tag as the version
           fetch-depth: 0
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.13"
 
