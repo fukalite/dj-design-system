@@ -563,3 +563,10 @@ class TestCanvasWidgetTypeScriptCustomElement:
         )
         assert "this.syncIframeHeight();" in ts_text
         assert "'.canvas-wrapper--basic'" in ts_text
+        assert "'dds:sandbox-bg'" in ts_text
+        assert "'dds:sandbox-viewport'" in ts_text
+        assert "'dds:sandbox-zoom'" in ts_text
+        assert "'dds:sandbox-toggle'" in ts_text
+        assert "applyIframeEnhancements" in ts_text
+        assert "'dds-outline-style'" in ts_text
+        assert "'dds-measure-style'" in ts_text

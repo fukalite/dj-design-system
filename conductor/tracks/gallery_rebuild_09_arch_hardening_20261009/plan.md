@@ -27,22 +27,32 @@
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3: Consumer Theme Controller Isolation & `GalleryShell` Encapsulation
-- [ ] **Task 3.1: Gallery Chrome `prefers-color-scheme` & Consumer-Only `ThemeSelect` Controller**
+- [x] **Task 3.1: Gallery Chrome `prefers-color-scheme` & Consumer-Only `ThemeSelect` Controller**
   - **Red Phase:** Write tests in `tests/test_views.py` and `tests/components/test_theme_select.py` asserting that `get_base_context()` does not derive `theme_body_class` from consumer `active_theme`, `ThemeSelect` does not use `"dark" in theme.lower()` to select moon/sun icons, `tokens.css` includes `@media (prefers-color-scheme: dark)` rules for `:root:not(.gallery-theme-light)`, and `gallery_shell.ts` updates `_dds_theme` without mutating `document.documentElement` / `document.body` theme classes.
   - **Green Phase:** Update `tokens.css`, `views/gallery.py`, `gallery/base.html`, `theme_select.py`, `theme_select.html`, `theme_select.ts`, and `gallery_shell.ts`.
-- [ ] **Task 3.2: Decouple `GalleryShell` (`gallery_shell.ts` & `gallery_shell.css`) from Child Component Internals**
+- [x] **Task 3.2: Decouple `GalleryShell` (`gallery_shell.ts` & `gallery_shell.css`) from Child Component Internals**
   - **Red Phase:** Add tests in `tests/components/test_sandbox_toolbar.py`, `tests/components/test_canvas_widget.py`, and `tests/components/test_gallery_shell.py` verifying `<dds-sandbox-toolbar>` custom element registration and event dispatch, `<dds-canvas-widget>` stage control methods/event handling, and absence of child-component internal selectors in `gallery_shell.css`.
   - **Green Phase:** Create `sandbox_toolbar.ts` (`<dds-sandbox-toolbar>`), extend `canvas_widget.ts` (`<dds-canvas-widget>`) to handle sandbox stage state, simplify `gallery_shell.ts`, and move child-reaching CSS rules from `gallery_shell.css` into `tabs.css`, `split_pane.css`, `sidebar.css`, and `<l-stack>` composition in `gallery/component.html`.
   - **Quality Check:** Run `dds-reviewer`, `just build-ts`, `just check`, `just typecheck`, and `just test`.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 4: Layered View Thinning, Typed Domain Dataclasses & Visual Baseline Verification
+## Phase 4: Layered View Thinning & Typed Domain Dataclasses
 - [ ] **Task 4.1: Extract View Business Logic to Services & Introduce Frozen `ParamRowData` (`views/component.py`, `views/canvas.py`, `services/`, `data.py`)**
   - **Red Phase:** Write unit tests in `tests/test_views.py` and `tests/test_data.py` asserting that `views/component.py` and `views/canvas.py` define no private `_`-prefixed helper functions and that building parameter rows does not mutate `BaseParam` descriptors on component classes.
   - **Green Phase:** Add `ParamRowData` to `dj_design_system/data.py`, extract view helpers into `dj_design_system/services/gallery_context.py` and `dj_design_system/services/canvas.py`, and slim `views/component.py` and `views/canvas.py`.
 - [ ] **Task 4.2: Replace Duck-Typing in `domain/` Components with Typed Data Normalisers (`data.py`, `components/domain/**`)**
   - **Red Phase:** Add tests in `tests/test_data.py` and `tests/components/` testing typed dataclass construction and normalisation for `NavTree`, `FolderListing`, `ParamsTable`, `ParamsForm`, `SandboxToolbar`, and `ThemeSelect`.
   - **Green Phase:** Refactor `domain/` component `get_context()` methods to use typed dataclasses / normalisers in `dj_design_system/data.py`.
-- [ ] **Task 4.3: End-to-End, Visual Regression & Stacked PR Verification**
-  - Run `dds-reviewer`, `just build-ts`, `just check`, `just typecheck`, `just test`, `just e2e`, and `just visual-run` (updating any affected visual baselines if needed and inspecting via `view_file`).
+  - **Quality Check:** Run `dds-reviewer`, `just build-ts`, `just check`, `just typecheck`, and `just test`.
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+## Phase 5: Inbuilt Integration Test Harness & CI Wiring for Built-in `dds` Components
+- [ ] **Task 5.1: Enhance `IterationEngine` & `PlaywrightAssessmentPlugin` for `gallery.py` Variants (`dj_design_system/testing/engine.py`, `dj_design_system/testing/plugins.py`)**
+  - **Red Phase:** Add unit tests in `tests/test_testing_engine.py` and `tests/test_testing_plugins.py` asserting that `IterationEngine` yields `"basic"`, `"maximal"`, and all component `gallery_config.variants` when `variants=None`, and that `PlaywrightAssessmentPlugin._navigate_to_component` passes `variant=<name>` in the `/_canvas/` query string for named variants.
+  - **Green Phase:** Update `IterationEngine.get_combinations()` in `dj_design_system/testing/engine.py` and `PlaywrightAssessmentPlugin._navigate_to_component()` in `dj_design_system/testing/plugins.py`.
+- [ ] **Task 5.2: Configure Internal Component Library Harness (`tests/settings.py`, `tests/e2e/test_package_components.py`, `example_project/tests/test_components.py`)**
+  - **Red Phase:** Configure `DJ_DESIGN_SYSTEM["GALLERY_THEMES"]` in `tests/settings.py` with `"light"` (`gallery-theme-light`) and `"dark"` (`gallery-theme-dark`, `canvas_background: "dark-grey"`), update `tests/e2e/test_package_components.py` to assert all 26 internal `dj_design_system` components and their `gallery.py` variants are exercised across both themes via `AccessibilityPlugin` and `HTMLValidationPlugin`, and filter `is_internal` components out of `example_project/tests/test_components.py`.
+  - **Green Phase:** Run `pytest tests/e2e/test_package_components.py` and fix any accessibility (WCAG contrast / ARIA) or HTML validation issues uncovered across any built-in component variant in light or dark mode.
+- [ ] **Task 5.3: Wire Harness into `justfile` & CI (`.github/workflows/ci.yml`, `justfile`)**
+  - Add a dedicated `test-components` recipe in `justfile`, verify `just e2e` and `.github/workflows/ci.yml` execute the internal component assessment suite in CI, and run `dds-reviewer`, `just build-ts`, `just check`, `just typecheck`, `just test`, and `just e2e`.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)

@@ -186,15 +186,20 @@ class TestGalleryComponentView:
         assert "<p>A dismissable alert banner" in content
         assert "&lt;p&gt;A dismissable alert banner" not in content
 
-    def test_dark_only_component_preserves_global_theme_body_class(self, client):
+    def test_consumer_theme_does_not_force_gallery_chrome_theme_class(self, client):
         url = reverse(
             "gallery-node",
             kwargs={"app_label": "demo_components", "path": "alert"},
         )
-        response = client.get(url)
+        response = client.get(f"{url}?_dds_theme=dark")
         assert response.status_code == 200
-        assert response.context["theme_body_class"] == "gallery-theme-light"
+        assert "theme_body_class" not in response.context
+        assert response.context["global_active_theme"] == "dark"
         assert response.context["sandbox_active_theme"] == "dark"
+        content = response.content.decode("utf-8")
+        assert '<html lang="en">' in content
+        assert "gallery-theme-dark" not in content
+        assert "gallery-theme-light" not in content
 
     def test_component_renders_section_headings_and_dividers(self, client):
         url = reverse(
@@ -665,37 +670,45 @@ class TestSmokeAllPages:
 class TestToolbarButtons:
     """Test that all sandbox toolbar buttons render on component pages."""
 
-    @pytest.fixture()
-    def component_response(self, client):
+    @staticmethod
+    def _get_component_response(client):
         nav_tree = _get_nav_tree()
         for node in _collect_all_nodes(nav_tree):
             if node.is_component:
                 return client.get(node.url)
         pytest.skip("No components registered")
 
-    def test_outline_toggle(self, component_response):
-        assert b'data-action="toggle-outline"' in component_response.content
+    def test_outline_toggle(self, client):
+        response = self._get_component_response(client=client)
+        assert b'data-action="toggle-outline"' in response.content
 
-    def test_measure_toggle(self, component_response):
-        assert b'data-action="toggle-measure"' in component_response.content
+    def test_measure_toggle(self, client):
+        response = self._get_component_response(client=client)
+        assert b'data-action="toggle-measure"' in response.content
 
-    def test_rtl_toggle(self, component_response):
-        assert b'data-action="toggle-rtl"' in component_response.content
+    def test_rtl_toggle(self, client):
+        response = self._get_component_response(client=client)
+        assert b'data-action="toggle-rtl"' in response.content
 
-    def test_viewport_toggle(self, component_response):
-        assert b'data-sandbox-control="viewport"' in component_response.content
+    def test_viewport_toggle(self, client):
+        response = self._get_component_response(client=client)
+        assert b'data-sandbox-control="viewport"' in response.content
 
-    def test_zoom_toggle(self, component_response):
-        assert b'data-sandbox-control="zoom"' in component_response.content
+    def test_zoom_toggle(self, client):
+        response = self._get_component_response(client=client)
+        assert b'data-sandbox-control="zoom"' in response.content
 
-    def test_bg_toggle(self, component_response):
-        assert b'data-sandbox-control="background"' in component_response.content
+    def test_bg_toggle(self, client):
+        response = self._get_component_response(client=client)
+        assert b'data-sandbox-control="background"' in response.content
 
-    def test_measure_script_data_attribute(self, component_response):
-        assert b'data-action="toggle-measure"' in component_response.content
+    def test_measure_script_data_attribute(self, client):
+        response = self._get_component_response(client=client)
+        assert b'data-action="toggle-measure"' in response.content
 
-    def test_viewport_presets(self, component_response):
-        content = component_response.content
+    def test_viewport_presets(self, client):
+        response = self._get_component_response(client=client)
+        content = response.content
         assert b'data-value="320"' in content
         assert b'data-value="1920"' in content
         assert b'data-value="2560"' in content

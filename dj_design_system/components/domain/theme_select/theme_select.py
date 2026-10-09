@@ -8,18 +8,17 @@ from dj_design_system import components, parameters
 DEFAULT_ACTIVE_THEME = "light"
 DEFAULT_LABEL = "Global Theme"
 DEFAULT_SELECT_ID = "gallery-global-theme-select"
-ICON_MOON = "moon"
-ICON_SUN = "sun"
+DEFAULT_ICON = "sun"
 
 
 class ThemeSelect(components.TagComponent):
     """Gallery theme selector control with Light DOM custom element enhancement.
 
     Use ``ThemeSelect`` (``{% dds__theme_select %}``) in the gallery topbar or
-    sandbox toolbar to allow switching between configured design system themes.
-    Accepts ``Theme`` dataclass instances, dictionaries with ``value`` and
-    ``label`` keys, or plain theme identifier strings, normalizing them in
-    ``get_context()`` with automatic ``sun`` / ``moon`` icon resolution.
+    sandbox toolbar to allow switching between configured consumer component
+    themes. Accepts ``Theme`` dataclass instances, dictionaries with ``value``
+    and ``label`` keys, or plain theme identifier strings, normalizing them in
+    ``get_context()``.
 
     Args:
         themes: Available theme objects, dicts with ``value`` and ``label``, or
@@ -104,22 +103,15 @@ class ThemeSelect(components.TagComponent):
         else:
             resolved_active_theme = str(self.active_theme or DEFAULT_ACTIVE_THEME)
 
-        normalized_themes: list[dict[str, typing.Any]] = []
-        for value, label in extracted_themes:
-            icon = ICON_MOON if "dark" in value.lower() else ICON_SUN
-            is_selected = value == resolved_active_theme
-            normalized_themes.append(
-                {
-                    "value": value,
-                    "label": label,
-                    "icon": icon,
-                    "is_selected": is_selected,
-                }
-            )
+        normalized_themes: list[dict[str, typing.Any]] = [
+            {
+                "value": value,
+                "label": label,
+                "is_selected": value == resolved_active_theme,
+            }
+            for value, label in extracted_themes
+        ]
 
-        active_icon = (
-            ICON_MOON if "dark" in resolved_active_theme.lower() else ICON_SUN
-        )
         resolved_label = str(self.label) if self.label else DEFAULT_LABEL
         resolved_select_id = (
             str(self.select_id) if self.select_id else DEFAULT_SELECT_ID
@@ -128,7 +120,7 @@ class ThemeSelect(components.TagComponent):
         context["label"] = resolved_label
         context["select_id"] = resolved_select_id
         context["resolved_active_theme"] = resolved_active_theme
-        context["active_icon"] = active_icon
+        context["active_icon"] = DEFAULT_ICON
         context["normalized_themes"] = normalized_themes
         context["has_themes"] = bool(normalized_themes)
         context["has_multiple_themes"] = len(normalized_themes) > 1

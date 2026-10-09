@@ -30,6 +30,7 @@ TEMPLATE_PATH = (
 CSS_MEDIA_PATH = (
     "dj_design_system/components/domain/sandbox_toolbar/sandbox_toolbar.css"
 )
+JS_MEDIA_PATH = "dj_design_system/components/domain/sandbox_toolbar/sandbox_toolbar.js"
 
 SANDBOX_TOOLBAR_DIR = (
     pathlib.Path(__file__).resolve().parent.parent.parent
@@ -41,6 +42,7 @@ SANDBOX_TOOLBAR_DIR = (
 SANDBOX_TOOLBAR_PY_PATH = SANDBOX_TOOLBAR_DIR / "sandbox_toolbar.py"
 SANDBOX_TOOLBAR_HTML_PATH = SANDBOX_TOOLBAR_DIR / "sandbox_toolbar.html"
 SANDBOX_TOOLBAR_CSS_PATH = SANDBOX_TOOLBAR_DIR / "sandbox_toolbar.css"
+SANDBOX_TOOLBAR_TS_PATH = SANDBOX_TOOLBAR_DIR / "sandbox_toolbar.ts"
 SANDBOX_TOOLBAR_INDEX_MD_PATH = SANDBOX_TOOLBAR_DIR / "index.md"
 
 
@@ -118,11 +120,12 @@ class TestSandboxToolbarDiscoveryAndMetadata:
         )
 
     def test_template_and_media_declarations(self) -> None:
-        """Verify SandboxToolbar relies on co-located template_name and Media.css auto-discovery."""
+        """Verify SandboxToolbar relies on co-located template_name and Media.css/js auto-discovery."""
         reg = _make_registry()
         info = reg.get_by_name(name=COMPONENT_NAME, app_label=APP_LABEL)
         assert info.template_name == TEMPLATE_PATH
         assert info.media.css == [CSS_MEDIA_PATH]
+        assert info.media.js == [JS_MEDIA_PATH]
 
     def test_discovered_as_dds_sandbox_toolbar_in_registry(self) -> None:
         """Verify ComponentRegistry discovers SandboxToolbar as internal dds__sandbox_toolbar."""
@@ -133,7 +136,7 @@ class TestSandboxToolbarDiscoveryAndMetadata:
         assert info.relative_path == RELATIVE_PATH
         assert info.is_internal is True
         assert info.media.css == [CSS_MEDIA_PATH]
-        assert info.media.js == []
+        assert info.media.js == [JS_MEDIA_PATH]
 
     def test_no_private_helper_methods_or_inline_comments_in_component(
         self,
@@ -142,9 +145,7 @@ class TestSandboxToolbarDiscoveryAndMetadata:
         own_private_methods = [
             name
             for name, attr in sandbox_toolbar_module.SandboxToolbar.__dict__.items()
-            if name.startswith("_")
-            and not name.startswith("__")
-            and callable(attr)
+            if name.startswith("_") and not name.startswith("__") and callable(attr)
         ]
         assert not own_private_methods
         py_text = _read_text(path=SANDBOX_TOOLBAR_PY_PATH)
@@ -319,7 +320,7 @@ class TestSandboxToolbarRenderingAndTemplate:
         """Verify default {% dds__sandbox_toolbar %} renders toolbar landmark, popouts, and toggles."""
         html = _render_template(source="{% dds__sandbox_toolbar %}").strip()
         assert (
-            '<div class="dds-sandbox-toolbar" data-surface="sandbox" '
+            '<dds-sandbox-toolbar class="dds-sandbox-toolbar" data-surface="sandbox" '
             'role="toolbar" aria-label="Sandbox controls">' in html
         )
         assert "<l-cluster data-sandbox-controls>" in html
@@ -397,9 +398,7 @@ class TestSandboxToolbarStylesheet:
             css_text=css_text,
             selector=".dds-sandbox-toolbar",
         )
-        root_props = _extract_defined_properties(
-            block_text="\n".join(root_blocks)
-        )
+        root_props = _extract_defined_properties(block_text="\n".join(root_blocks))
         assert root_props
         for token_name, token_val in root_props.items():
             assert token_name.startswith("--_sandbox-toolbar-")
@@ -434,6 +433,42 @@ class TestSandboxToolbarStylesheet:
                 flags=re.MULTILINE,
             )
             assert prop_names == sorted(prop_names)
+
+
+class TestSandboxToolbarCustomElementTypeScript:
+    """Verify Light DOM <dds-sandbox-toolbar> TypeScript contract in sandbox_toolbar.ts."""
+
+    def test_ts_implements_custom_element_and_event_dispatch_contract(self) -> None:
+        """Verify sandbox_toolbar.ts defines DDSSandboxToolbarElement and dispatches semantic events."""
+        assert SANDBOX_TOOLBAR_TS_PATH.is_file()
+        ts_text = _read_text(path=SANDBOX_TOOLBAR_TS_PATH)
+        assert "import type { DDSCustomElement } from '../../types.js';" in ts_text
+        assert (
+            "export class DDSSandboxToolbarElement" in ts_text
+            and "extends HTMLElement" in ts_text
+            and "implements DDSCustomElement" in ts_text
+        )
+        assert "AbortController" in ts_text
+        assert "connectedCallback(): void" in ts_text
+        assert "disconnectedCallback(): void" in ts_text
+        assert "'dds:popout-select'" in ts_text
+        assert "'dds:sandbox-bg'" in ts_text
+        assert "'dds:sandbox-viewport'" in ts_text
+        assert "'dds:sandbox-zoom'" in ts_text
+        assert "'dds:sandbox-toggle'" in ts_text
+        assert "'dds:sandbox-reset'" in ts_text
+        assert "if (!customElements.get('dds-sandbox-toolbar'))" in ts_text
+        assert (
+            "customElements.define('dds-sandbox-toolbar', DDSSandboxToolbarElement);"
+            in ts_text
+        )
+        assert "attachShadow" not in ts_text
+        assert "document.querySelector" not in ts_text
+        assert '"' not in ts_text
+        assert "\t" not in ts_text
+        for line in ts_text.splitlines():
+            assert len(line) <= 80
+            assert line == line.rstrip()
 
 
 class TestSandboxToolbarGalleryAndDocs:

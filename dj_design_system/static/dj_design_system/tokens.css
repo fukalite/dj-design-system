@@ -471,6 +471,76 @@
     --dds-text-prominent-color: var(--_dds-neutral-0);
   }
 
+  @media (prefers-color-scheme: dark) {
+    :root:not(.gallery-theme-light) {
+      --dds-control-accent-color: var(--_dds-blue-300);
+      --dds-control-bg-color: var(--_dds-ink-900);
+      --dds-control-border-color: var(--_dds-ink-700);
+      --dds-control-shadow-color: var(--_dds-alpha-dark-300);
+      --dds-state-active-bg-color: var(--_dds-alpha-light-100);
+      --dds-state-active-border-color: var(--_dds-blue-400);
+      --dds-state-active-text-color: var(--_dds-ink-100);
+      --dds-state-disabled-bg-color: var(--_dds-ink-900);
+      --dds-state-disabled-border-color: var(--_dds-ink-700);
+      --dds-state-disabled-text-color: var(--_dds-ink-500);
+      --dds-state-focus-border-color: var(--_dds-blue-300);
+      --dds-state-focus-outline-color: var(--_dds-blue-300);
+      --dds-state-focus-shadow-color: var(--_dds-blue-900);
+      --dds-state-focus-text-color: var(--_dds-ink-100);
+      --dds-state-hover-bg-color: var(--_dds-alpha-light-50);
+      --dds-state-hover-border-color: var(--_dds-ink-500);
+      --dds-state-hover-shadow-color: var(--_dds-alpha-dark-300);
+      --dds-state-hover-text-color: var(--_dds-ink-100);
+      --dds-state-interactive-border-color: var(--_dds-ink-700);
+      --dds-state-interactive-text-color: var(--_dds-ink-100);
+      --dds-state-selected-bg-color: var(--_dds-ink-700);
+      --dds-state-selected-border-color: var(--_dds-blue-300);
+      --dds-state-selected-text-color: var(--_dds-ink-100);
+      --dds-status-error-bg-color: var(--_dds-red-900);
+      --dds-status-error-border-color: var(--_dds-red-300);
+      --dds-status-error-text-color: var(--_dds-red-300);
+      --dds-status-info-bg-color: var(--_dds-blue-900);
+      --dds-status-info-border-color: var(--_dds-blue-300);
+      --dds-status-info-text-color: var(--_dds-blue-300);
+      --dds-status-success-bg-color: var(--_dds-green-900);
+      --dds-status-success-border-color: var(--_dds-green-300);
+      --dds-status-success-text-color: var(--_dds-green-300);
+      --dds-status-warning-bg-color: var(--_dds-amber-900);
+      --dds-status-warning-border-color: var(--_dds-amber-dark-300);
+      --dds-status-warning-text-color: var(--_dds-amber-dark-400);
+      --dds-surface-bg-color: var(--_dds-ink-850);
+      --dds-surface-border-color: var(--_dds-ink-700);
+      --dds-surface-code-bg-color: var(--_dds-ink-950);
+      --dds-surface-code-border-color: var(--_dds-alpha-light-100);
+      --dds-surface-code-state-selected-bg-color: var(--_dds-ink-700);
+      --dds-surface-code-state-selected-text-color: var(--_dds-ink-100);
+      --dds-surface-code-text-prominent-color: var(--_dds-ink-100);
+      --dds-surface-docs-bg-color: var(--_dds-ink-850);
+      --dds-surface-docs-border-color: var(--_dds-ink-700);
+      --dds-surface-popout-bg-color: var(--_dds-ink-850);
+      --dds-surface-popout-border-color: var(--_dds-ink-700);
+      --dds-surface-popout-shadow-color: var(--_dds-alpha-dark-500);
+      --dds-surface-sandbox-bg-color: var(--_dds-ink-850);
+      --dds-surface-sandbox-border-color: var(--_dds-ink-700);
+      --dds-surface-sidebar-bg-color: var(--_dds-ink-900);
+      --dds-surface-sidebar-border-color: var(--_dds-alpha-light-100);
+      --dds-surface-sidebar-state-active-bg-color: var(--_dds-alpha-light-100);
+      --dds-surface-sidebar-state-hover-bg-color: var(--_dds-alpha-light-50);
+      --dds-surface-sidebar-state-selected-bg-color: var(--_dds-ink-700);
+      --dds-surface-sidebar-state-selected-text-color: var(--_dds-ink-100);
+      --dds-surface-sidebar-text-default-color: var(--_dds-ink-300);
+      --dds-surface-sidebar-text-muted-color: var(--_dds-ink-500);
+      --dds-surface-sidebar-text-prominent-color: var(--_dds-ink-100);
+      --dds-surface-stage-bg-color: var(--_dds-ink-950);
+      --dds-surface-stage-border-color: var(--_dds-ink-700);
+      --dds-surface-topbar-bg-color: var(--_dds-ink-850);
+      --dds-surface-topbar-border-color: var(--_dds-ink-700);
+      --dds-text-default-color: var(--_dds-ink-100);
+      --dds-text-muted-color: var(--_dds-ink-500);
+      --dds-text-prominent-color: var(--_dds-neutral-0);
+    }
+  }
+
   [data-surface='stage'] {
     --dds-surface-bg-blur: var(--dds-surface-stage-bg-blur);
     --dds-surface-bg-color: var(--dds-surface-stage-bg-color);

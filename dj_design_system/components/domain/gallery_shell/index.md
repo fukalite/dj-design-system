@@ -35,7 +35,7 @@ The `dds__gallery_shell` domain component renders the top-level application shel
 
 - **Drawer Toggle:** Clicking any `[data-action="toggle-drawer"]` or `[data-drawer-toggle]` control within `<dds-gallery-shell>` toggles `data-drawer-state` between `"open"` and `"closed"`, updates `aria-expanded` on triggers, toggles `hidden` on `[data-shell-backdrop]`, and dispatches a bubbling `dds:drawer-toggle` `CustomEvent` (`detail: { open }`).
 - **Dismissal:** Clicking `[data-shell-backdrop]` or pressing `Escape` while `data-drawer-state="open"` closes the drawer.
-- **Theme Synchronisation:** Listening for bubbling `dds:theme-change` events updates `data-theme` and toggles `.gallery-theme-dark` / `.gallery-theme-light` on `<dds-gallery-shell>` and `document.documentElement`.
+- **Theme Synchronisation:** Listening for bubbling `dds:theme-change` events updates `data-theme`, `_dds_theme` URL parameters, hidden form inputs, and preview `iframe[src]` URLs for consumer component themes.
 
 ## Template Usage
 

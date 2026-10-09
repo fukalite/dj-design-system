@@ -136,9 +136,7 @@ class TestGalleryShellDiscoveryAndMetadata:
 
     def test_exported_from_package_init_and_subclasses_block_component(self) -> None:
         """Verify GalleryShell is exported in dj_design_system.components.domain.gallery_shell."""
-        assert (
-            gallery_shell_package.GalleryShell is gallery_shell_module.GalleryShell
-        )
+        assert gallery_shell_package.GalleryShell is gallery_shell_module.GalleryShell
         assert issubclass(
             gallery_shell_module.GalleryShell,
             components_base.BlockComponent,
@@ -231,7 +229,10 @@ class TestGalleryShellParametersAndContext:
         """Verify Variant instance normalization in __init__ and slot/content flags in get_context()."""
         variant_obj = gallery.Variant(name="primary", label="Primary")
         breadcrumbs = [{"label": "Domain", "url": "/domain/"}]
-        themes = [{"value": "light", "label": "Light"}, {"value": "dark", "label": "Dark"}]
+        themes = [
+            {"value": "light", "label": "Light"},
+            {"value": "dark", "label": "Dark"},
+        ]
         search_index = [{"label": "Button", "url": "/button/"}]
         comp = gallery_shell_module.GalleryShell(
             content="<p>Fallback content</p>",
@@ -276,7 +277,9 @@ class TestGalleryShellParametersAndContext:
         assert ctx["main_content"] == "<h1>Main Slot</h1>"
         assert ctx["has_main_content"] is True
 
-    def test_main_content_falls_back_to_block_content_when_main_slot_empty(self) -> None:
+    def test_main_content_falls_back_to_block_content_when_main_slot_empty(
+        self,
+    ) -> None:
         """Verify main_content falls back to self.content when main slot is not provided."""
         comp = gallery_shell_module.GalleryShell(
             content=safestring.SafeString("<section>Python Body</section>"),
@@ -350,7 +353,10 @@ class TestGalleryShellRenderingAndTemplate:
         assert '<header class="dds-toolbar" data-surface="topbar">' in html
         assert '<a href="/acme/" data-toolbar-brand>Acme DS</a>' in html
         assert '<nav class="dds-breadcrumb"' in html
-        assert '<dds-theme-select class="dds-theme-select" data-active-theme="dark">' in html
+        assert (
+            '<dds-theme-select class="dds-theme-select" data-active-theme="dark">'
+            in html
+        )
         assert '<a href="/repo" data-extra-action>Repo</a>' in html
         assert '<div class="l-sidebar" data-shell-body>' in html
         assert (
@@ -385,7 +391,9 @@ class TestGalleryShellRenderingAndTemplate:
 
         _make_registry()
         direct_html = gallery_shell_module.GalleryShell(
-            content=safestring.SafeString("<div data-direct-main>Direct Python Content</div>"),
+            content=safestring.SafeString(
+                "<div data-direct-main>Direct Python Content</div>"
+            ),
         ).render()
         assert "<div data-direct-main>Direct Python Content</div>" in direct_html
 
@@ -454,9 +462,7 @@ class TestGalleryShellStylesheet:
         )
         root_props = _extract_defined_properties(block_text="\n".join(root_blocks))
         tier_3_props = {
-            name: value
-            for name, value in root_props.items()
-            if name.startswith("--_")
+            name: value for name, value in root_props.items() if name.startswith("--_")
         }
         assert tier_3_props
         for name, value in tier_3_props.items():
@@ -486,6 +492,22 @@ class TestGalleryShellStylesheet:
             )
             assert prop_names == sorted(prop_names)
 
+    def test_contains_no_child_component_internal_selectors(self) -> None:
+        """Verify gallery_shell.css does not style internals of child components."""
+        css_text = _read_text(path=GALLERY_SHELL_CSS_PATH)
+        for forbidden_selector in (
+            ".dds-usage-example",
+            "[role='tablist']",
+            "[role='tab']",
+            "[data-sidebar-header]",
+            "[data-split-pane-header]",
+            "[data-split-resizer]",
+            "[data-split-pane=",
+            ".dds-tabs",
+            "dds-tabs",
+        ):
+            assert forbidden_selector not in css_text
+
 
 class TestGalleryShellCustomElementTypeScript:
     """Verify Light DOM <dds-gallery-shell> TypeScript contract in gallery_shell.ts."""
@@ -507,24 +529,30 @@ class TestGalleryShellCustomElementTypeScript:
         assert "this.abortController = new AbortController();" in ts_text
         assert "this.abortController = null;" in ts_text
         assert "this.querySelectorAll<HTMLElement>(" in ts_text
-        assert '\'[data-action="toggle-drawer"], [data-drawer-toggle]\'' in ts_text
+        assert "'[data-action=\"toggle-drawer\"], [data-drawer-toggle]'" in ts_text
         assert "this.querySelector<HTMLElement>('[data-shell-backdrop]')" in ts_text
         assert "this.dataset.drawerState = isOpen ? 'open' : 'closed';" in ts_text
-        assert "trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');" in ts_text
+        assert (
+            "trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');"
+            in ts_text
+        )
         assert "backdrop.hidden = !isOpen;" in ts_text
         assert "new CustomEvent('dds:drawer-toggle'" in ts_text
         assert "bubbles: true," in ts_text
         assert "detail: { open: isOpen }," in ts_text
-        assert "event.key === 'Escape' && this.dataset.drawerState === 'open'" in ts_text
+        assert (
+            "event.key === 'Escape' && this.dataset.drawerState === 'open'" in ts_text
+        )
         assert "this.setDrawerOpen(false);" in ts_text
         assert "'dds:theme-change'" in ts_text
         assert "this.dataset.theme = theme;" in ts_text
-        assert "this.classList.toggle('gallery-theme-dark', isDark);" in ts_text
-        assert "this.classList.toggle('gallery-theme-light', !isDark);" in ts_text
-        assert (
-            "document.documentElement.classList.toggle('gallery-theme-dark', isDark);"
-            in ts_text
-        )
+        assert "currentUrl.searchParams.set('_dds_theme', theme);" in ts_text
+        assert "iframeUrl.searchParams.set('_dds_theme', theme);" in ts_text
+        assert "gallery-theme-dark" not in ts_text
+        assert "gallery-theme-light" not in ts_text
+        assert "includes('dark')" not in ts_text
+        assert "document.documentElement" not in ts_text
+        assert "document.body" not in ts_text
         assert "if (!customElements.get('dds-gallery-shell'))" in ts_text
         assert (
             "customElements.define('dds-gallery-shell', DDSGalleryShellElement);"
@@ -537,6 +565,15 @@ class TestGalleryShellCustomElementTypeScript:
         assert "attachShadow" not in ts_text
         assert "document.getElementById" not in ts_text
         assert "document.querySelector" not in ts_text
+        for forbidden_child_ref in (
+            ".dds-sandbox-toolbar",
+            "data-sandbox-control",
+            "dds-canvas-widget",
+            '[role="tab"][data-tab-trigger]',
+            "dds-outline-style",
+            "dds-measure-style",
+        ):
+            assert forbidden_child_ref not in ts_text
         assert "\t" not in ts_text
         assert "@fileoverview" in ts_text
         assert "@param {boolean} isOpen" in ts_text

@@ -144,8 +144,10 @@ class TestThemeSelectParametersAndContext:
         assert ctx["label"] == "Global Theme"
         assert ctx["select_id"] == "gallery-global-theme-select"
 
-    def test_normalizes_theme_dataclasses_dicts_and_strings(self) -> None:
-        """Verify Theme objects, dicts, and strings normalize with value, label, icon, and is_selected."""
+    def test_normalizes_theme_dataclasses_dicts_and_strings_without_dark_heuristic(
+        self,
+    ) -> None:
+        """Verify Theme objects, dicts, and strings normalize without 'dark' substring icon heuristics."""
         themes_input = [
             types.Theme(value="light", label="Light Mode"),
             {"value": "dark", "label": "Dark Mode"},
@@ -159,7 +161,7 @@ class TestThemeSelectParametersAndContext:
         )
         ctx = comp.get_context()
         assert ctx["resolved_active_theme"] == "dark"
-        assert ctx["active_icon"] == "moon"
+        assert ctx["active_icon"] == "sun"
         assert ctx["has_themes"] is True
         assert ctx["has_multiple_themes"] is True
         assert ctx["label"] == "Canvas Theme"
@@ -168,19 +170,16 @@ class TestThemeSelectParametersAndContext:
             {
                 "value": "light",
                 "label": "Light Mode",
-                "icon": "sun",
                 "is_selected": False,
             },
             {
                 "value": "dark",
                 "label": "Dark Mode",
-                "icon": "moon",
                 "is_selected": True,
             },
             {
                 "value": "solarized-dark",
                 "label": "Solarized-dark",
-                "icon": "moon",
                 "is_selected": False,
             },
         ]
@@ -193,22 +192,16 @@ class TestThemeSelectParametersAndContext:
         )
         ctx = comp.get_context()
         assert ctx["resolved_active_theme"] == "dark-high-contrast"
-        assert ctx["active_icon"] == "moon"
+        assert ctx["active_icon"] == "sun"
         assert ctx["has_themes"] is True
         assert ctx["has_multiple_themes"] is False
         assert ctx["normalized_themes"][0]["is_selected"] is True
 
-    def test_empty_themes_with_dark_active_theme_sets_moon_icon(self) -> None:
-        """Verify active_icon is moon when themes is empty and active_theme contains dark."""
-        comp = theme_select_module.ThemeSelect(
-            themes=[],
-            active_theme="custom-dark",
-        )
-        ctx = comp.get_context()
-        assert ctx["resolved_active_theme"] == "custom-dark"
-        assert ctx["active_icon"] == "moon"
-        assert ctx["has_themes"] is False
-        assert ctx["has_multiple_themes"] is False
+    def test_python_module_contains_no_dark_substring_heuristic(self) -> None:
+        """Verify theme_select.py contains no 'dark' in ... substring heuristic."""
+        py_text = _read_text(path=THEME_SELECT_DIR / "theme_select.py")
+        assert ".lower()" not in py_text
+        assert "ICON_MOON" not in py_text
 
     def test_invalid_themes_type_raises_type_error(self) -> None:
         """Verify passing a non-list themes parameter raises TypeError."""
@@ -234,7 +227,7 @@ class TestThemeSelectRenderingAndTemplate:
             in html
         )
         assert "<div data-theme-control>" in html
-        assert 'data-icon="moon"' in html
+        assert 'data-icon="sun"' in html
         assert 'data-size="sm"' in html
         assert (
             '<select id="gallery-global-theme-select" data-theme-select '

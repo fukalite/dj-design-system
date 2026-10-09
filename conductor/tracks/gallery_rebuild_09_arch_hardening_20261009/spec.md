@@ -53,13 +53,24 @@ Address all packaging, component engine, HTML/JS runtime, theme isolation, Web C
 - **Typed Domain Normalisation Helpers & Dataclasses (`data.py`, `components/domain/`):**
   - Introduce clean typed dataclasses and conversion helpers in `dj_design_system/data.py` for domain component items (`ParamRowData`, `FormFieldRowData`, `ThemeOptionData`, `SandboxControlOptionData`, `BreadcrumbItemData`, `TabItemData`) to eliminate repetitive `isinstance`/`getattr` duck-typing chains in `domain/` `get_context()` methods.
 
+### 5. Inbuilt Integration Test Harness & CI Wiring (`dj_design_system/testing/`, `tests/settings.py`, `tests/e2e/test_package_components.py`, `justfile`, `.github/workflows/ci.yml`)
+- **Gallery Variant Iteration in `IterationEngine` & `PlaywrightAssessmentPlugin`:**
+  - Enhance `IterationEngine.get_combinations()` (`dj_design_system/testing/engine.py`) so that when `variants is None`, it yields `"basic"`, `"maximal"`, and every named `Variant` defined in `comp.gallery_config.variants` (deduplicated, preserving order) for each component.
+  - Enhance `PlaywrightAssessmentPlugin._navigate_to_component()` (`dj_design_system/testing/plugins.py`) so named `gallery.py` variants pass `variant=<variant_name>` in the `/_canvas/` query string alongside `_dds_theme`.
+- **Internal Component Library Harness Configuration (`tests/settings.py`, `tests/e2e/test_package_components.py`, `example_project/tests/test_components.py`):**
+  - Configure `DJ_DESIGN_SYSTEM["GALLERY_THEMES"]` in `tests/settings.py` with `"light"` (`html_attrs: {"html": {"class": "gallery-theme-light"}}`) and `"dark"` (`html_attrs: {"html": {"class": "gallery-theme-dark"}}`, `canvas_background: "dark-grey"`) so `IterationEngine` genuinely tests all 26 internal `dj_design_system` components across both light and dark themes (including Axe-core colour contrast and HTML validation across every `basic`, `maximal`, and `gallery.py` `Variant`).
+  - Filter out internal `is_internal` components in `example_project/tests/test_components.py` so `just test-demo` assesses consumer showcase components cleanly.
+- **CI Execution (`justfile`, `.github/workflows/ci.yml`):**
+  - Ensure the internal component integration test harness (`tests/e2e/test_package_components.py`) is wired into `justfile` and executed in `.github/workflows/ci.yml`.
+
 ## Acceptance Criteria
-- [ ] `pyproject.toml` includes `dj_design_system/components/**/*.js` in wheel and sdist targets, and `publish.yml` / `publish-test.yml` build TypeScript before `uv build`.
-- [ ] `BaseComponent.__init__` raises `TypeError` on unknown keyword arguments.
-- [ ] All 25 built-in `dds` components omit redundant `template_name`, `_template_name`, co-located `class Media:`, and duplicate `BlockComponent.__init__` boilerplate.
-- [ ] `UsageExample` declares `show_sandbox_link`; `CanvasWidget` no longer strips HTML tags with regex or double-highlights code; `<dds-canvas-widget>` resizes deterministically on initial load without lost `postMessage` races.
-- [ ] `#gallery-search-index` appears at most once per page; `search_box.ts` properly debounces `handleInput()`; `ParamsForm` builds zero HTML strings in Python; `breadcrumb.html` composes `{% dds__popout %}` + `{% dds__popout_option %}`.
-- [ ] Gallery chrome inherits `prefers-color-scheme` (with `.gallery-theme-light`/`.gallery-theme-dark` overrides preserved), and `ThemeSelect` in the topbar controls only the consumer's `GALLERY_THEMES` (`_dds_theme`) with zero `"dark" in theme.lower()` heuristics.
-- [ ] `gallery_shell.ts` and `gallery_shell.css` no longer reach into child component internals; `<dds-sandbox-toolbar>` and `<dds-canvas-widget>` encapsulate sandbox controls and stage state.
+- [x] `pyproject.toml` includes `dj_design_system/components/**/*.js` in wheel and sdist targets, and `publish.yml` / `publish-test.yml` build TypeScript before `uv build`.
+- [x] `BaseComponent.__init__` raises `TypeError` on unknown keyword arguments.
+- [x] All 26 built-in `dds` components omit redundant `template_name`, `_template_name`, co-located `class Media:`, and duplicate `BlockComponent.__init__` boilerplate.
+- [x] `UsageExample` declares `show_sandbox_link`; `CanvasWidget` no longer strips HTML tags with regex or double-highlights code; `<dds-canvas-widget>` resizes deterministically on initial load without lost `postMessage` races.
+- [x] `#gallery-search-index` appears at most once per page; `search_box.ts` properly debounces `handleInput()`; `ParamsForm` builds zero HTML strings in Python; `breadcrumb.html` composes `{% dds__popout %}` + `{% dds__popout_option %}`.
+- [x] Gallery chrome inherits `prefers-color-scheme` (with `.gallery-theme-light`/`.gallery-theme-dark` overrides preserved), and `ThemeSelect` in the topbar controls only the consumer's `GALLERY_THEMES` (`_dds_theme`) with zero `"dark" in theme.lower()` heuristics.
+- [x] `gallery_shell.ts` and `gallery_shell.css` no longer reach into child component internals; `<dds-sandbox-toolbar>` and `<dds-canvas-widget>` encapsulate sandbox controls and stage state.
 - [ ] `views/component.py` and `views/canvas.py` contain zero private `_`-prefixed business-logic helpers and never mutate `BaseParam` instances in-place.
+- [ ] `IterationEngine` and `PlaywrightAssessmentPlugin` exercise `basic`, `maximal`, and all `gallery.py` `Variant`s across `light` and `dark` themes for all 26 internal `dj_design_system` components with `AccessibilityPlugin` and `HTMLValidationPlugin` in CI.
 - [ ] `just check`, `just typecheck`, `just test`, `just e2e`, and `just visual-run` pass with 0 errors.
