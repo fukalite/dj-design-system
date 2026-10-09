@@ -100,7 +100,7 @@ def derive_relative_path(modname: str, components_module_path: str) -> str:
 
 
 def resolve_colocated_template(
-    cls: Type,
+    cls: type,
     *,
     app_label: str | None = None,
     relative_path: str | None = None,

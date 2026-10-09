@@ -23,8 +23,6 @@ if TYPE_CHECKING:
 
 class BaseComponent:
     template_format_str: str = "<span class='{classes}'>ABSTRACT COMPONENT</span>"
-    template_name: str | None
-    _template_name: str | None
 
     class Meta:
         abstract = True
