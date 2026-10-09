@@ -65,6 +65,7 @@ def get_base_context(
         "breadcrumbs": [],
         "available_themes": get_themes(),
         "active_theme": active_theme,
+        "global_active_theme": active_theme,
         "theme_body_class": theme_body_class,
         "component_tabs": [
             {"id": "docs", "label": "Documentation"},

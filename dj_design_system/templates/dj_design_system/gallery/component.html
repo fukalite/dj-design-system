@@ -16,10 +16,8 @@
                 {% dds__variant_view variant_label=active_variant.label description_html=variant_description preview_url=variant_preview_url code=variant_signature.minimal %}
             {% else %}
                 <l-stack data-docs-stack>
-                {% dds__prose title=component_info.name %}
-                {% if component_description %}
-                    {{ component_description }}
-                {% else %}
+                {% dds__prose title=component_info.name html=component_description %}
+                {% if not component_description %}
                     <p data-docs-empty>No description provided. Add a docstring to the component class.</p>
                 {% endif %}
             {% enddds__prose %}

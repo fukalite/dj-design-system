@@ -17,3 +17,5 @@ Rebuild the `dj-design-system` component gallery UI cleanly on top of `main` usi
 5. [Track 5 — Built-in `domain` Collection: Sandbox, Controls & Canvas](../../tracks/gallery_rebuild_05_domain_sandbox_canvas_20261007/index.md)
 6. [Track 6 — Gallery Page Composition, Legacy Asset Removal & Visual Baselines](../../tracks/gallery_rebuild_06_pages_20261007/index.md)
 7. [Track 7 — `example_project/` Rework & Consumer Shadowing Showcase](../../tracks/gallery_rebuild_07_example_docs_20261007/index.md)
+8. [Track 8 — Visual Parity, Token & Typography Polish](../../tracks/gallery_rebuild_08_visual_polish_20261008/index.md)
+

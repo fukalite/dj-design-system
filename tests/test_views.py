@@ -175,6 +175,27 @@ class TestGalleryComponentView:
         response = user_client.get(url)
         assert response.status_code == 404
 
+    def test_component_docstring_renders_unescaped_html(self, client):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+        content = response.content.decode("utf-8")
+        assert "<p>A dismissable alert banner" in content
+        assert "&lt;p&gt;A dismissable alert banner" not in content
+
+    def test_dark_only_component_preserves_global_theme_body_class(self, client):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response.context["theme_body_class"] == "gallery-theme-light"
+        assert response.context["sandbox_active_theme"] == "dark"
+
 
 class TestGalleryFolderView:
     """Test the folder view."""

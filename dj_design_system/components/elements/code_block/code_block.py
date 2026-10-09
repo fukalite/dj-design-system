@@ -1,11 +1,21 @@
 """Built-in code block element component with copy-to-clipboard support."""
 
+import html
 import typing
+
+import pygments
+from django.utils import safestring
+from pygments import formatters, lexers
+from pygments import util as pygments_util
 
 from dj_design_system import components, parameters
 
 
 DEFAULT_LANGUAGE = "django"
+DJANGO_LANGUAGES: tuple[str, ...] = ("django", "html+django", "jinja")
+DJANGO_TAG_MARKERS: tuple[str, ...] = ("{%", "{{", "{#")
+LINE_BREAK_CHARS = "\r\n"
+PYGMENTS_STYLE = "monokai"
 
 
 class CodeBlock(components.TagComponent):
@@ -30,7 +40,9 @@ class CodeBlock(components.TagComponent):
         {% dds__code_block code=python_snippet language="python" title="views.py" %}
     """
 
-    template_name = "dj_design_system/components/elements/code_block/code_block.html"
+    template_name = (
+        "dj_design_system/components/elements/code_block/code_block.html"
+    )
     _template_name = template_name
 
     code = parameters.StrParam(description="Source code snippet to render.")
@@ -62,23 +74,85 @@ class CodeBlock(components.TagComponent):
 
         Returns:
             Dictionary containing component parameters, ``stripped_code``,
-            ``has_title``, ``has_language``, ``header_label``, and
-            ``show_header``.
+            ``highlighted_code``, ``has_title``, ``has_language``,
+            ``header_label``, ``show_header``, and ``show_overlay_copy``.
         """
         context = super().get_context()
         title = "" if self.title is None else str(self.title)
         language = "" if self.language is None else str(self.language)
-        stripped_code = str(self.code).strip("\r\n") if self.code is not None else ""
+        stripped_code = (
+            str(self.code).strip(LINE_BREAK_CHARS)
+            if self.code is not None
+            else ""
+        )
         has_title = bool(title)
         has_language = bool(language)
         header_label = title if title else language
-        show_header = bool(header_label) or bool(self.copyable)
+        show_header = has_title
+        show_overlay_copy = bool(self.copyable) and not show_header
+        highlighted_code = self._highlight_snippet(
+            code=stripped_code,
+            language=language,
+        )
 
         context["language"] = language
         context["title"] = title
         context["stripped_code"] = stripped_code
+        context["highlighted_code"] = highlighted_code
         context["has_title"] = has_title
         context["has_language"] = has_language
         context["header_label"] = header_label
         context["show_header"] = show_header
+        context["show_overlay_copy"] = show_overlay_copy
         return context
+
+    def _highlight_snippet(
+        self,
+        *,
+        code: str,
+        language: str,
+    ) -> safestring.SafeString:
+        """Return syntax-highlighted HTML for ``code`` or escaped fallback text.
+
+        Args:
+            code: Stripped source code snippet.
+            language: Language identifier for lexer selection.
+
+        Returns:
+            SafeString containing Pygments-highlighted HTML or escaped text.
+        """
+        if not code:
+            return safestring.SafeString("")
+        normalized_lang = language.lower().strip()
+        if not normalized_lang:
+            return safestring.SafeString(html.escape(s=code))
+        if normalized_lang in DJANGO_LANGUAGES and not any(
+            marker in code for marker in DJANGO_TAG_MARKERS
+        ):
+            return safestring.SafeString(html.escape(s=code))
+        try:
+            if normalized_lang in DJANGO_LANGUAGES:
+                lexer = lexers.DjangoLexer(stripnl=False)
+            elif normalized_lang == "html":
+                lexer = lexers.HtmlLexer(stripnl=False)
+            else:
+                lexer = lexers.get_lexer_by_name(
+                    _alias=normalized_lang,
+                    stripnl=False,
+                )
+            formatter = formatters.HtmlFormatter(
+                style=PYGMENTS_STYLE,
+                noclasses=False,
+                nowrap=True,
+            )
+            highlighted = pygments.highlight(
+                code=code,
+                lexer=lexer,
+                formatter=formatter,
+            ).strip(LINE_BREAK_CHARS)
+            if highlighted:
+                return safestring.SafeString(highlighted)
+        except (ValueError, TypeError, pygments_util.ClassNotFound):
+            pass
+        return safestring.SafeString(html.escape(s=code))
+
