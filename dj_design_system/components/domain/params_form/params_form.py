@@ -2,9 +2,7 @@
 
 import typing
 
-from django.utils import safestring
-
-from dj_design_system import components, parameters
+from dj_design_system import components, data, parameters
 
 
 DEFAULT_EMPTY_MESSAGE = "This component has no configurable parameters."
@@ -98,79 +96,9 @@ class ParamsForm(components.TagComponent):
         """
         context = super().get_context()
         raw_rows = list(self.param_rows) if self.param_rows is not None else []
-        normalized_rows: list[dict[str, typing.Any]] = []
-
-        for raw_item in raw_rows:
-            if isinstance(raw_item, dict):
-                raw_name: typing.Any = raw_item.get("name", "")
-                raw_label: typing.Any = raw_item.get("label")
-                raw_spec: typing.Any = raw_item.get("spec")
-                raw_field: typing.Any = raw_item.get("field")
-                raw_field_id: typing.Any = raw_item.get("field_id", "")
-                raw_description: typing.Any = raw_item.get("description")
-                raw_required: typing.Any = raw_item.get("required", False)
-                raw_item_errors: typing.Any = raw_item.get("errors")
-            else:
-                raw_name = getattr(raw_item, "name", "")
-                raw_label = getattr(raw_item, "label", None)
-                raw_spec = getattr(raw_item, "spec", None)
-                raw_field = getattr(raw_item, "field", None)
-                raw_field_id = getattr(raw_item, "field_id", "")
-                raw_description = getattr(raw_item, "description", None)
-                raw_required = getattr(raw_item, "required", False)
-                raw_item_errors = getattr(raw_item, "errors", None)
-
-            name = str(raw_name) if raw_name is not None else ""
-            label = str(raw_label) if raw_label else name
-            field_id = str(
-                getattr(raw_field, "id_for_label", None) or raw_field_id or f"id_{name}"
-            )
-            description = str(
-                getattr(raw_spec, "description", None)
-                or (raw_spec.get("description") if isinstance(raw_spec, dict) else None)
-                or raw_description
-                or ""
-            )
-            if raw_spec is not None:
-                required = bool(
-                    getattr(raw_spec, "required", False)
-                    if not isinstance(raw_spec, dict)
-                    else raw_spec.get("required", False)
-                )
-            else:
-                required = bool(raw_required)
-
-            field_errors = getattr(raw_field, "errors", None)
-            raw_errors = field_errors if field_errors is not None else raw_item_errors
-            if isinstance(raw_errors, str):
-                errors = [raw_errors] if raw_errors else []
-            elif raw_errors is not None:
-                errors = [str(err) for err in raw_errors]
-            else:
-                errors = []
-            error = " ".join(errors)
-
-            has_field_html = raw_field is not None
-            if has_field_html:
-                field_html: safestring.SafeString | str = safestring.SafeString(
-                    str(raw_field)
-                )
-            else:
-                field_html = ""
-
-            normalized_rows.append(
-                {
-                    "name": name,
-                    "label": label,
-                    "field_id": field_id,
-                    "description": description,
-                    "required": required,
-                    "errors": errors,
-                    "error": error,
-                    "has_field_html": has_field_html,
-                    "field_html": field_html,
-                }
-            )
+        normalized_rows: list[dict[str, typing.Any]] = [
+            data.FormFieldRowData.from_raw(raw_item).to_dict() for raw_item in raw_rows
+        ]
 
         has_rows = bool(normalized_rows)
         action_url = self.action_url or ""

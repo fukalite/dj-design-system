@@ -1,4 +1,19 @@
-from dj_design_system.data import ComponentMedia
+import dataclasses
+from types import SimpleNamespace
+
+import pytest
+
+from dj_design_system.data import (
+    ComponentMedia,
+    FormFieldRowData,
+    NavItemInputData,
+    ParamRowData,
+    ParamSpecData,
+    ParamTableRowData,
+    SandboxControlOptionData,
+    SlotTableRowData,
+)
+from dj_design_system.parameters.base import JSONParam, StrParam
 from example_project.demo_components.components.button.button import ButtonComponent
 from example_project.demo_components.components.card.info_card import InfoCardComponent
 from example_project.demo_components.components.rich_button import RichButtonComponent
@@ -288,3 +303,115 @@ class TestGalleryKwargs:
         # It should cache the result on the instance, not the class
         assert not hasattr(ButtonComponent, "_gallery_kwargs")
         assert "_gallery_kwargs" in info.__dict__
+
+
+class TestParamRowData:
+    def test_param_spec_and_row_are_frozen_and_do_not_mutate_base_param(self):
+        str_param = StrParam("Label text", default="Click", required=True)
+        json_param = JSONParam("Payload")
+
+        spec_str = ParamSpecData.from_param(str_param)
+        spec_json = ParamSpecData.from_param(json_param)
+
+        assert "type_name" not in str_param.__dict__
+        assert "type_name" not in json_param.__dict__
+        assert spec_str.type_name == "str"
+        assert spec_str.description == "Label text"
+        assert spec_str.default == "Click"
+        assert spec_str.required is True
+        assert (
+            "dict | list | str | int | float | bool | NoneType" in spec_json.type_name
+        )
+
+        row = ParamRowData(name="label", spec=spec_str, field="<input>")
+        assert row.name == "label"
+        assert row["name"] == "label"
+        assert "name" in row
+        assert "spec" in row
+        assert "field" in row
+        assert row.get("name") == "label"
+        assert row.get("missing", "fallback") == "fallback"
+
+        with pytest.raises(dataclasses.FrozenInstanceError):
+            row.name = "mutated"  # type: ignore[misc]
+        with pytest.raises(dataclasses.FrozenInstanceError):
+            spec_str.type_name = "int"  # type: ignore[misc]
+
+
+class TestDomainDataNormalisers:
+    def test_sandbox_control_option_data_normalises_strings_tuples_dicts_and_objects(
+        self,
+    ):
+        from_str = SandboxControlOptionData.from_raw("dark")
+        assert from_str.value == "dark"
+        assert from_str.label == "Dark"
+
+        from_tuple = SandboxControlOptionData.from_raw(("768", "Tablet — 768px"))
+        assert from_tuple.value == "768"
+        assert from_tuple.label == "Tablet — 768px"
+
+        from_dict = SandboxControlOptionData.from_raw(
+            {"name": "primary", "label": "Primary"},
+            base_url="/dds/button/",
+            is_variant=True,
+        )
+        assert from_dict.name == "primary"
+        assert from_dict.label == "Primary"
+        assert from_dict.href == "/dds/button/?variant=primary"
+
+        from_obj = SandboxControlOptionData.from_raw(
+            SimpleNamespace(value="125%", label="125%"),
+            is_zoom=True,
+        )
+        assert from_obj.value == "125"
+        assert from_obj.label == "125%"
+
+    def test_form_field_row_data_normalises_dicts_and_param_row_data(self):
+        spec = ParamSpecData(description="Button label", required=True, type_name="str")
+        row = ParamRowData(name="label", spec=spec, field="<input id='id_label'>")
+        normalised = FormFieldRowData.from_raw(row)
+        assert normalised.name == "label"
+        assert normalised.description == "Button label"
+        assert normalised.required is True
+        assert normalised.has_field_html is True
+        assert normalised["name"] == "label"
+
+    def test_param_and_slot_table_row_data_normalise_tuples_and_dicts(self):
+        param_row = ParamTableRowData.from_raw(
+            (
+                "variant",
+                StrParam(
+                    "Visual style",
+                    default="primary",
+                    choices=["primary", "secondary"],
+                ),
+            )
+        )
+        assert param_row.name == "variant"
+        assert param_row.type_name == "str"
+        assert param_row.default_display == "primary"
+        assert param_row.choices == ["primary", "secondary"]
+        assert param_row["name"] == "variant"
+
+        slot_row = SlotTableRowData.from_raw(
+            {"name": "header", "required": True, "description": "Card header"}
+        )
+        assert slot_row.name == "header"
+        assert slot_row.required is True
+        assert slot_row.required_label == "Required"
+        assert slot_row["description"] == "Card header"
+
+    def test_nav_item_input_data_normalises_nav_nodes_and_dicts(self):
+        item = NavItemInputData.from_raw(
+            {
+                "name": "Buttons",
+                "href": "/dds/buttons/",
+                "type": "folder",
+                "children": [{"label": "Button"}],
+            },
+            default_label_from_name=True,
+        )
+        assert item.label == "Buttons"
+        assert item.url == "/dds/buttons/"
+        assert item.node_type == "folder"
+        assert len(item.children) == 1

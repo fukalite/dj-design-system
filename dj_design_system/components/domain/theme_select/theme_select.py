@@ -2,7 +2,7 @@
 
 import typing
 
-from dj_design_system import components, parameters
+from dj_design_system import components, data, parameters
 
 
 DEFAULT_ACTIVE_THEME = "light"
@@ -70,46 +70,21 @@ class ThemeSelect(components.TagComponent):
         """
         context = super().get_context()
         raw_themes = list(self.themes) if self.themes is not None else []
-        extracted_themes: list[tuple[str, str]] = []
+        extracted_options = [
+            data.SandboxControlOptionData.from_raw(raw_item) for raw_item in raw_themes
+        ]
 
-        for raw_item in raw_themes:
-            if isinstance(raw_item, str):
-                raw_value: typing.Any = raw_item
-                raw_label: typing.Any = (
-                    raw_item.capitalize() if raw_item.islower() else raw_item
-                )
-            elif isinstance(raw_item, dict):
-                raw_value = raw_item.get("value")
-                raw_label = raw_item.get("label")
-                if raw_label is None and raw_value is not None:
-                    val_str = str(raw_value)
-                    raw_label = val_str.capitalize() if val_str.islower() else val_str
-            else:
-                raw_value = getattr(raw_item, "value", None)
-                raw_label = getattr(raw_item, "label", None)
-                if raw_label is None and raw_value is not None:
-                    val_str = str(raw_value)
-                    raw_label = val_str.capitalize() if val_str.islower() else val_str
-
-            value = str(raw_value) if raw_value is not None else ""
-            label = str(raw_label) if raw_label is not None else value
-            extracted_themes.append((value, label))
-
-        theme_values = [value for value, _ in extracted_themes]
+        theme_values = [opt.value for opt in extracted_options]
         if self.active_theme and self.active_theme in theme_values:
             resolved_active_theme = str(self.active_theme)
-        elif extracted_themes:
-            resolved_active_theme = extracted_themes[0][0]
+        elif extracted_options:
+            resolved_active_theme = extracted_options[0].value
         else:
             resolved_active_theme = str(self.active_theme or DEFAULT_ACTIVE_THEME)
 
         normalized_themes: list[dict[str, typing.Any]] = [
-            {
-                "value": value,
-                "label": label,
-                "is_selected": value == resolved_active_theme,
-            }
-            for value, label in extracted_themes
+            opt.to_dict(is_selected=(opt.value == resolved_active_theme))
+            for opt in extracted_options
         ]
 
         resolved_label = str(self.label) if self.label else DEFAULT_LABEL

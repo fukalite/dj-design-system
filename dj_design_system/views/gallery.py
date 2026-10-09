@@ -25,7 +25,7 @@ from dj_design_system.settings import (
     get_theme,
     get_themes,
 )
-from dj_design_system.views.component import _render_component
+from dj_design_system.views.component import render_component_node
 from dj_design_system.views.decorators import gallery_access_required
 
 
@@ -158,7 +158,7 @@ def gallery_node(
     context["active_path"] = node.active_path
 
     if node.is_component:
-        return _render_component(request, context, node, app_label, path_parts)
+        return render_component_node(request, context, node, app_label, path_parts)
 
     if node.is_document:
         return _render_document(request, context, node, app_label, path_parts)

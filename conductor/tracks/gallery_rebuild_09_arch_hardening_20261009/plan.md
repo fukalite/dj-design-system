@@ -37,14 +37,14 @@
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4: Layered View Thinning & Typed Domain Dataclasses
-- [ ] **Task 4.1: Extract View Business Logic to Services & Introduce Frozen `ParamRowData` (`views/component.py`, `views/canvas.py`, `services/`, `data.py`)**
+- [x] **Task 4.1: Extract View Business Logic to Services & Introduce Frozen `ParamRowData` (`views/component.py`, `views/canvas.py`, `services/`, `data.py`)**
   - **Red Phase:** Write unit tests in `tests/test_views.py` and `tests/test_data.py` asserting that `views/component.py` and `views/canvas.py` define no private `_`-prefixed helper functions and that building parameter rows does not mutate `BaseParam` descriptors on component classes.
   - **Green Phase:** Add `ParamRowData` to `dj_design_system/data.py`, extract view helpers into `dj_design_system/services/gallery_context.py` and `dj_design_system/services/canvas.py`, and slim `views/component.py` and `views/canvas.py`.
-- [ ] **Task 4.2: Replace Duck-Typing in `domain/` Components with Typed Data Normalisers (`data.py`, `components/domain/**`)**
+- [x] **Task 4.2: Replace Duck-Typing in `domain/` Components with Typed Data Normalisers (`data.py`, `components/domain/**`)**
   - **Red Phase:** Add tests in `tests/test_data.py` and `tests/components/` testing typed dataclass construction and normalisation for `NavTree`, `FolderListing`, `ParamsTable`, `ParamsForm`, `SandboxToolbar`, and `ThemeSelect`.
   - **Green Phase:** Refactor `domain/` component `get_context()` methods to use typed dataclasses / normalisers in `dj_design_system/data.py`.
   - **Quality Check:** Run `dds-reviewer`, `just build-ts`, `just check`, `just typecheck`, and `just test`.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 5: Inbuilt Integration Test Harness & CI Wiring for Built-in `dds` Components
 - [ ] **Task 5.1: Enhance `IterationEngine` & `PlaywrightAssessmentPlugin` for `gallery.py` Variants (`dj_design_system/testing/engine.py`, `dj_design_system/testing/plugins.py`)**

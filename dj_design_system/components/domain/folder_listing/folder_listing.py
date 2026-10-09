@@ -2,7 +2,7 @@
 
 import typing
 
-from dj_design_system import components, parameters
+from dj_design_system import components, data, parameters
 from dj_design_system.components.elements import icon as icon_element
 
 
@@ -72,57 +72,23 @@ class FolderListing(components.TagComponent):
         normalized_items: list[dict[str, typing.Any]] = []
 
         for raw_item in raw_items:
-            if isinstance(raw_item, dict):
-                raw_label: typing.Any = raw_item.get("label")
-                if raw_label is None:
-                    raw_label = raw_item.get("name", "")
-                raw_url: typing.Any = raw_item.get("url") or raw_item.get("href")
-                raw_node_type: typing.Any = (
-                    raw_item.get("node_type")
-                    or raw_item.get("type")
-                    or raw_item.get("node_kind")
-                )
-                raw_icon: typing.Any = raw_item.get("icon")
-                raw_children: typing.Any = raw_item.get("children")
-                raw_has_children: typing.Any = raw_item.get("has_children")
-                raw_child_count: typing.Any = raw_item.get("child_count")
-                is_component = bool(raw_item.get("is_component", False))
-                is_document = bool(raw_item.get("is_document", False))
-                is_variant = bool(raw_item.get("is_variant", False))
-            else:
-                raw_label = getattr(raw_item, "label", None)
-                if raw_label is None:
-                    raw_label = getattr(raw_item, "name", str(raw_item))
-                raw_url = getattr(raw_item, "url", None) or getattr(
-                    raw_item, "href", None
-                )
-                raw_node_type = (
-                    getattr(raw_item, "node_type", None)
-                    or getattr(raw_item, "type", None)
-                    or getattr(raw_item, "node_kind", None)
-                )
-                raw_icon = getattr(raw_item, "icon", None)
-                raw_children = getattr(raw_item, "children", None)
-                raw_has_children = getattr(raw_item, "has_children", None)
-                raw_child_count = getattr(raw_item, "child_count", None)
-                is_component = bool(getattr(raw_item, "is_component", False))
-                is_document = bool(getattr(raw_item, "is_document", False))
-                is_variant = bool(getattr(raw_item, "is_variant", False))
+            parsed = data.NavItemInputData.from_raw(
+                raw_item,
+                default_label_from_name=True,
+                default_url=DEFAULT_ITEM_URL,
+            )
 
-            node_type_val = getattr(raw_node_type, "value", raw_node_type)
-            node_type_str = str(node_type_val).lower() if node_type_val else ""
-
-            if is_component or node_type_str == "component":
+            if parsed.is_component or parsed.node_type == "component":
                 node_kind = "component"
                 default_icon = "component"
                 badge_label = "Component"
                 badge_variant = "info"
-            elif is_document or node_type_str in ("document", "doc"):
+            elif parsed.is_document or parsed.node_type in ("document", "doc"):
                 node_kind = "document"
                 default_icon = "doc"
                 badge_label = "Document"
                 badge_variant = "neutral"
-            elif is_variant or node_type_str == "variant":
+            elif parsed.is_variant or parsed.node_type == "variant":
                 node_kind = "variant"
                 default_icon = "code"
                 badge_label = "Variant"
@@ -133,23 +99,16 @@ class FolderListing(components.TagComponent):
                 badge_label = "Folder"
                 badge_variant = "neutral"
 
-            icon_candidate = str(raw_icon) if raw_icon else ""
             icon = (
-                icon_candidate
-                if icon_candidate in icon_element.ICON_NAMES
-                else default_icon
+                parsed.icon if parsed.icon in icon_element.ICON_NAMES else default_icon
             )
 
-            if isinstance(raw_child_count, int) and not isinstance(
-                raw_child_count, bool
-            ):
-                child_count = max(0, raw_child_count)
-            elif raw_has_children is False:
+            if parsed.child_count is not None:
+                child_count = parsed.child_count
+            elif parsed.has_children is False:
                 child_count = 0
-            elif isinstance(raw_children, (list, tuple, set)):
-                child_count = len(raw_children)
             else:
-                child_count = 0
+                child_count = len(parsed.children)
 
             if child_count == 1:
                 child_count_label = "1 item"
@@ -158,13 +117,10 @@ class FolderListing(components.TagComponent):
             else:
                 child_count_label = ""
 
-            label = str(raw_label) if raw_label is not None else ""
-            url = str(raw_url) if raw_url else DEFAULT_ITEM_URL
-
             normalized_items.append(
                 {
-                    "label": label,
-                    "url": url,
+                    "label": parsed.label,
+                    "url": parsed.url,
                     "node_kind": node_kind,
                     "icon": icon,
                     "badge_label": badge_label,

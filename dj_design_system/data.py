@@ -7,6 +7,8 @@ from functools import cached_property
 from pathlib import Path
 from typing import Any, Type
 
+from django.utils import safestring
+
 from dj_design_system.exceptions import InvalidTagType
 from dj_design_system.gallery import GalleryConfig, Variant, load_gallery_config
 from dj_design_system.types import FlattenStrategy, NodeType, TagType
@@ -376,3 +378,513 @@ class NavNode:
     @property
     def has_index_doc(self) -> bool:
         return self.index_doc_path is not None
+
+
+def format_param_type_name(param_type: Any, fallback: str = "any") -> str:
+    """Format a Python type, tuple of types, or string into a human-readable type label."""
+    if isinstance(param_type, str) and param_type:
+        return param_type
+    if isinstance(param_type, tuple) and param_type:
+        return " | ".join(getattr(t, "__name__", str(t)) for t in param_type)
+    if getattr(param_type, "__name__", None):
+        return str(getattr(param_type, "__name__"))
+    if param_type is not None:
+        return str(param_type)
+    return fallback
+
+
+@dataclass(frozen=True)
+class ParamSpecData:
+    """Immutable view of a component parameter specification."""
+
+    description: str
+    required: bool
+    type_name: str
+    default: Any = None
+    choices: list[Any] | tuple[Any, ...] | None = None
+
+    @classmethod
+    def from_param(cls, spec_param: Any) -> ParamSpecData:
+        """Create a ``ParamSpecData`` from a ``BaseParam``, dict, or existing instance."""
+        if isinstance(spec_param, cls):
+            return spec_param
+        if isinstance(spec_param, dict):
+            param_type = spec_param.get("type")
+            raw_type_name = spec_param.get("type_name")
+            return cls(
+                description=str(spec_param.get("description") or ""),
+                required=bool(spec_param.get("required", False)),
+                type_name=(
+                    str(raw_type_name)
+                    if raw_type_name
+                    else format_param_type_name(param_type)
+                ),
+                default=spec_param.get("default"),
+                choices=spec_param.get("choices"),
+            )
+        param_type = getattr(spec_param, "type", type(spec_param))
+        raw_type_name = getattr(spec_param, "type_name", None)
+        return cls(
+            description=str(getattr(spec_param, "description", "") or ""),
+            required=bool(getattr(spec_param, "required", False)),
+            type_name=(
+                str(raw_type_name)
+                if raw_type_name
+                else format_param_type_name(param_type)
+            ),
+            default=getattr(spec_param, "default", None),
+            choices=getattr(spec_param, "choices", None),
+        )
+
+
+@dataclass(frozen=True)
+class ParamRowData:
+    """Immutable parameter row combining a parameter name, spec, and bound form field."""
+
+    name: str
+    spec: ParamSpecData
+    field: Any = None
+
+    def __getitem__(self, key: str) -> Any:
+        if key in ("name", "spec", "field"):
+            return getattr(self, key)
+        raise KeyError(key)
+
+    def __contains__(self, key: object) -> bool:
+        return key in ("name", "spec", "field")
+
+    def get(self, key: str, default: Any = None) -> Any:
+        if key in ("name", "spec", "field"):
+            return getattr(self, key)
+        return default
+
+
+def _get_field(raw: Any, key: str, default: Any = None) -> Any:
+    """Read *key* from a mapping or attribute from an object."""
+    if isinstance(raw, dict):
+        return raw.get(key, default)
+    return getattr(raw, key, default)
+
+
+@dataclass(frozen=True)
+class SandboxControlOptionData:
+    """Normalized option item for ThemeSelect and SandboxToolbar controls."""
+
+    value: str
+    label: str
+    name: str = ""
+    href: str = ""
+    is_selected: bool = False
+
+    @classmethod
+    def from_raw(
+        cls,
+        raw_item: Any,
+        *,
+        base_url: str = "",
+        is_variant: bool = False,
+        is_zoom: bool = False,
+        default_label: str = "Default",
+    ) -> SandboxControlOptionData:
+        """Normalise a string, 2-tuple, dict, ``Theme``, or ``Variant`` into an option."""
+        if is_variant:
+            if isinstance(raw_item, str):
+                raw_name: Any = raw_item
+                raw_label: Any = (
+                    raw_item.capitalize() if raw_item.islower() else raw_item
+                )
+                raw_href: Any = None
+            else:
+                raw_name = _get_field(raw_item, "name")
+                raw_label = _get_field(raw_item, "label")
+                raw_href = _get_field(raw_item, "href")
+
+            name = str(raw_name) if raw_name is not None else ""
+            if raw_label is not None:
+                label = str(raw_label)
+            elif name:
+                label = name.capitalize() if name.islower() else name
+            else:
+                label = default_label
+
+            if raw_href is not None and str(raw_href):
+                href = str(raw_href)
+            elif base_url:
+                if name:
+                    separator = "&" if "?" in base_url else "?"
+                    href = f"{base_url}{separator}variant={name}"
+                else:
+                    href = base_url
+            else:
+                href = ""
+            return cls(value=name, label=label, name=name, href=href)
+
+        if is_zoom:
+            if isinstance(raw_item, (tuple, list)) and len(raw_item) >= 2:
+                zoom_val = str(raw_item[0]).rstrip("%")
+                zoom_lbl = str(raw_item[1])
+            elif isinstance(raw_item, dict) or hasattr(raw_item, "value"):
+                raw_val = _get_field(raw_item, "value")
+                raw_lbl = _get_field(raw_item, "label")
+                zoom_val = str(raw_val).rstrip("%") if raw_val is not None else ""
+                zoom_lbl = str(raw_lbl) if raw_lbl is not None else f"{zoom_val}%"
+            else:
+                zoom_val = str(raw_item).rstrip("%")
+                zoom_lbl = f"{zoom_val}%"
+            return cls(value=zoom_val, label=zoom_lbl)
+
+        if isinstance(raw_item, (tuple, list)) and len(raw_item) >= 2:
+            value = str(raw_item[0])
+            label = str(raw_item[1])
+        elif isinstance(raw_item, str):
+            value = raw_item
+            label = raw_item.capitalize() if raw_item.islower() else raw_item
+        else:
+            raw_val = _get_field(raw_item, "value")
+            raw_lbl = _get_field(raw_item, "label")
+            value = str(raw_val) if raw_val is not None else ""
+            label = (
+                str(raw_lbl)
+                if raw_lbl is not None
+                else (value.capitalize() if value.islower() else value)
+            )
+        return cls(value=value, label=label)
+
+    def to_dict(self, *, is_selected: bool | None = None) -> dict[str, Any]:
+        """Return a template-ready dictionary representation."""
+        selected = self.is_selected if is_selected is None else is_selected
+        if self.name or self.href:
+            return {
+                "name": self.name,
+                "label": self.label,
+                "href": self.href,
+                "is_selected": selected,
+            }
+        return {
+            "value": self.value,
+            "label": self.label,
+            "is_selected": selected,
+        }
+
+
+@dataclass(frozen=True)
+class FormFieldRowData:
+    """Normalized parameter form row for ``ParamsForm``."""
+
+    name: str
+    label: str
+    field_id: str
+    description: str
+    required: bool
+    errors: list[str]
+    error: str
+    has_field_html: bool
+    field_html: Any
+
+    @classmethod
+    def from_raw(cls, raw_item: Any) -> FormFieldRowData:
+        """Normalise a ``ParamRowData``, dict, or duck-typed row object."""
+        raw_name = _get_field(raw_item, "name", "")
+
+        raw_label = _get_field(raw_item, "label")
+        raw_spec = _get_field(raw_item, "spec")
+        raw_field = _get_field(raw_item, "field")
+        raw_field_id = _get_field(raw_item, "field_id", "")
+        raw_description = _get_field(raw_item, "description")
+        raw_required = _get_field(raw_item, "required", False)
+        raw_item_errors = _get_field(raw_item, "errors")
+
+        name = str(raw_name) if raw_name is not None else ""
+        label = str(raw_label) if raw_label else name
+        field_id = str(
+            getattr(raw_field, "id_for_label", None) or raw_field_id or f"id_{name}"
+        )
+        spec_desc = (
+            _get_field(raw_spec, "description") if raw_spec is not None else None
+        )
+        description = str(spec_desc or raw_description or "")
+        if raw_spec is not None:
+            required = bool(_get_field(raw_spec, "required", False))
+        else:
+            required = bool(raw_required)
+
+        field_errors = getattr(raw_field, "errors", None)
+        raw_errors = field_errors if field_errors is not None else raw_item_errors
+        if isinstance(raw_errors, str):
+            errors = [raw_errors] if raw_errors else []
+        elif raw_errors is not None:
+            errors = [str(err) for err in raw_errors]
+        else:
+            errors = []
+        error = " ".join(errors)
+
+        has_field_html = raw_field is not None
+        field_html: Any = (
+            safestring.SafeString(str(raw_field)) if has_field_html else ""
+        )
+        return cls(
+            name=name,
+            label=label,
+            field_id=field_id,
+            description=description,
+            required=required,
+            errors=errors,
+            error=error,
+            has_field_html=has_field_html,
+            field_html=field_html,
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return a dictionary representation for template contexts."""
+        return {
+            "name": self.name,
+            "label": self.label,
+            "field_id": self.field_id,
+            "description": self.description,
+            "required": self.required,
+            "errors": self.errors,
+            "error": self.error,
+            "has_field_html": self.has_field_html,
+            "field_html": self.field_html,
+        }
+
+    def __getitem__(self, key: str) -> Any:
+        return self.to_dict()[key]
+
+
+@dataclass(frozen=True)
+class ParamTableRowData:
+    """Normalized parameter metadata row for ``ParamsTable``."""
+
+    name: str
+    type_name: str
+    required: bool
+    required_label: str
+    required_variant: str
+    has_default: bool
+    default_display: str
+    choices: list[str]
+    has_choices: bool
+    description: str
+
+    @classmethod
+    def from_raw(
+        cls,
+        raw_item: Any,
+        *,
+        empty_placeholder: str = "—",
+        fallback_type_name: str = "any",
+    ) -> ParamTableRowData:
+        """Normalise a ``(name, spec)`` tuple, ``ParamRowData``, dict, or object."""
+        if isinstance(raw_item, (tuple, list)) and len(raw_item) == 2:
+            raw_name: Any = raw_item[0]
+            spec: Any = raw_item[1]
+        else:
+            raw_name = _get_field(raw_item, "name", "")
+            nested_spec = _get_field(raw_item, "spec")
+            spec = nested_spec if nested_spec is not None else raw_item
+
+        raw_type_name = _get_field(spec, "type_name")
+        raw_type = _get_field(spec, "type")
+        raw_required = _get_field(spec, "required", False)
+        raw_default = _get_field(spec, "default")
+        raw_choices = _get_field(spec, "choices")
+        raw_description = _get_field(spec, "description")
+
+        type_name = (
+            str(raw_type_name)
+            if raw_type_name
+            else format_param_type_name(raw_type, fallback=fallback_type_name)
+        )
+        required = bool(raw_required)
+        has_default = raw_default is not None
+        choices = (
+            [str(choice) for choice in raw_choices] if raw_choices is not None else []
+        )
+        return cls(
+            name=str(raw_name) if raw_name is not None else "",
+            type_name=type_name,
+            required=required,
+            required_label="Required" if required else "Optional",
+            required_variant="error" if required else "neutral",
+            has_default=has_default,
+            default_display=str(raw_default) if has_default else empty_placeholder,
+            choices=choices,
+            has_choices=bool(choices),
+            description=str(raw_description) if raw_description else empty_placeholder,
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return a dictionary representation for template contexts."""
+        return {
+            "name": self.name,
+            "type_name": self.type_name,
+            "required": self.required,
+            "required_label": self.required_label,
+            "required_variant": self.required_variant,
+            "has_default": self.has_default,
+            "default_display": self.default_display,
+            "choices": self.choices,
+            "has_choices": self.has_choices,
+            "description": self.description,
+        }
+
+    def __getitem__(self, key: str) -> Any:
+        return self.to_dict()[key]
+
+
+@dataclass(frozen=True)
+class SlotTableRowData:
+    """Normalized slot metadata row for ``ParamsTable``."""
+
+    name: str
+    required: bool
+    required_label: str
+    required_variant: str
+    has_default: bool
+    default_display: str
+    description: str
+
+    @classmethod
+    def from_raw(
+        cls,
+        raw_slot: Any,
+        *,
+        empty_placeholder: str = "—",
+    ) -> SlotTableRowData:
+        """Normalise a ``(name, slot)`` tuple, dict, or slot object."""
+        if isinstance(raw_slot, (tuple, list)) and len(raw_slot) == 2:
+            raw_slot_name: Any = raw_slot[0]
+            slot_spec: Any = raw_slot[1]
+        else:
+            raw_slot_name = _get_field(raw_slot, "name", "")
+            nested_slot = _get_field(raw_slot, "slot")
+            if nested_slot is None:
+                nested_slot = _get_field(raw_slot, "spec")
+            slot_spec = nested_slot if nested_slot is not None else raw_slot
+
+        slot_required = bool(_get_field(slot_spec, "required", False))
+        slot_default_raw = _get_field(slot_spec, "default")
+        slot_description_raw = _get_field(slot_spec, "description")
+        has_default = slot_default_raw is not None and slot_default_raw != ""
+        return cls(
+            name=str(raw_slot_name) if raw_slot_name is not None else "",
+            required=slot_required,
+            required_label="Required" if slot_required else "Optional",
+            required_variant="error" if slot_required else "neutral",
+            has_default=has_default,
+            default_display=str(slot_default_raw) if has_default else empty_placeholder,
+            description=(
+                str(slot_description_raw) if slot_description_raw else empty_placeholder
+            ),
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return a dictionary representation for template contexts."""
+        return {
+            "name": self.name,
+            "required": self.required,
+            "required_label": self.required_label,
+            "required_variant": self.required_variant,
+            "has_default": self.has_default,
+            "default_display": self.default_display,
+            "description": self.description,
+        }
+
+    def __getitem__(self, key: str) -> Any:
+        return self.to_dict()[key]
+
+
+@dataclass(frozen=True)
+class NavItemInputData:
+    """Normalized navigation node input fields shared by ``NavTree`` and ``FolderListing``."""
+
+    label: str
+    slug: str
+    node_type: str
+    url: str
+    active_path: str
+    base_active_path: str
+    children: list[Any]
+    icon: str
+    is_component: bool | None
+    is_document: bool | None
+    is_variant: bool | None
+    has_children: bool | None
+    has_index_doc: bool
+    child_count: int | None
+
+    @classmethod
+    def from_raw(
+        cls,
+        raw_node: Any,
+        *,
+        default_label_from_name: bool = False,
+        default_url: str = "#",
+    ) -> NavItemInputData:
+        """Extract normalized attributes from a ``NavNode``, dict, or duck-typed object."""
+        raw_label = _get_field(raw_node, "label")
+        if raw_label is None:
+            if default_label_from_name:
+                raw_label = _get_field(
+                    raw_node,
+                    "name",
+                    "" if isinstance(raw_node, dict) else str(raw_node),
+                )
+            else:
+                raw_label = ""
+        raw_slug = _get_field(raw_node, "slug", "")
+        raw_type = (
+            _get_field(raw_node, "node_type")
+            or _get_field(raw_node, "type")
+            or _get_field(raw_node, "node_kind")
+            or ""
+        )
+        raw_url = _get_field(raw_node, "url") or _get_field(raw_node, "href")
+        raw_active = _get_field(raw_node, "active_path", "")
+        raw_base_active = _get_field(raw_node, "base_active_path", "")
+        raw_children_val = _get_field(raw_node, "children")
+        raw_icon = _get_field(raw_node, "icon")
+        raw_is_component = _get_field(raw_node, "is_component")
+        raw_is_document = _get_field(raw_node, "is_document")
+        raw_is_variant = _get_field(raw_node, "is_variant")
+        raw_has_children = _get_field(raw_node, "has_children")
+        raw_has_index_doc = _get_field(raw_node, "has_index_doc")
+        if raw_has_index_doc is None:
+            raw_has_index_doc = _get_field(raw_node, "index_doc_path") is not None
+        raw_child_count = _get_field(raw_node, "child_count")
+
+        node_type_val = getattr(raw_type, "value", raw_type)
+        node_type = str(node_type_val).lower() if node_type_val else ""
+
+        children = (
+            list(raw_children_val)
+            if isinstance(raw_children_val, (list, tuple, set))
+            else (list(raw_children_val) if raw_children_val is not None else [])
+        )
+        child_count = (
+            max(0, raw_child_count)
+            if isinstance(raw_child_count, int)
+            and not isinstance(raw_child_count, bool)
+            else None
+        )
+        return cls(
+            label=str(raw_label) if raw_label is not None else "",
+            slug=str(raw_slug) if raw_slug is not None else "",
+            node_type=node_type,
+            url=str(raw_url) if raw_url else default_url,
+            active_path=str(raw_active) if raw_active else "",
+            base_active_path=str(raw_base_active) if raw_base_active else "",
+            children=children,
+            icon=str(raw_icon) if raw_icon else "",
+            is_component=bool(raw_is_component)
+            if raw_is_component is not None
+            else None,
+            is_document=bool(raw_is_document) if raw_is_document is not None else None,
+            is_variant=bool(raw_is_variant) if raw_is_variant is not None else None,
+            has_children=bool(raw_has_children)
+            if raw_has_children is not None
+            else None,
+            has_index_doc=bool(raw_has_index_doc),
+            child_count=child_count,
+        )

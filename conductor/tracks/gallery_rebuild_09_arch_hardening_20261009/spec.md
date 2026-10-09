@@ -71,6 +71,6 @@ Address all packaging, component engine, HTML/JS runtime, theme isolation, Web C
 - [x] `#gallery-search-index` appears at most once per page; `search_box.ts` properly debounces `handleInput()`; `ParamsForm` builds zero HTML strings in Python; `breadcrumb.html` composes `{% dds__popout %}` + `{% dds__popout_option %}`.
 - [x] Gallery chrome inherits `prefers-color-scheme` (with `.gallery-theme-light`/`.gallery-theme-dark` overrides preserved), and `ThemeSelect` in the topbar controls only the consumer's `GALLERY_THEMES` (`_dds_theme`) with zero `"dark" in theme.lower()` heuristics.
 - [x] `gallery_shell.ts` and `gallery_shell.css` no longer reach into child component internals; `<dds-sandbox-toolbar>` and `<dds-canvas-widget>` encapsulate sandbox controls and stage state.
-- [ ] `views/component.py` and `views/canvas.py` contain zero private `_`-prefixed business-logic helpers and never mutate `BaseParam` instances in-place.
+- [x] `views/component.py` and `views/canvas.py` contain zero private `_`-prefixed business-logic helpers and never mutate `BaseParam` instances in-place.
 - [ ] `IterationEngine` and `PlaywrightAssessmentPlugin` exercise `basic`, `maximal`, and all `gallery.py` `Variant`s across `light` and `dark` themes for all 26 internal `dj_design_system` components with `AccessibilityPlugin` and `HTMLValidationPlugin` in CI.
 - [ ] `just check`, `just typecheck`, `just test`, `just e2e`, and `just visual-run` pass with 0 errors.

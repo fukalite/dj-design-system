@@ -1,5 +1,6 @@
 """Tests for the gallery views."""
 
+import inspect
 from urllib.parse import parse_qs, urlsplit
 
 import pytest
@@ -7,11 +8,25 @@ from django.contrib.auth.models import Permission
 from django.test import override_settings
 from django.urls import reverse
 
+from dj_design_system.components import BlockComponent
+from dj_design_system.data import ParamRowData
+from dj_design_system.forms import build_component_form
+from dj_design_system.parameters.base import JSONParam, StrParam
+from dj_design_system.services.gallery_context import build_param_rows
 from dj_design_system.services.navigation import (
     build_breadcrumbs,
     find_node,
 )
-from dj_design_system.views import gallery_index, get_base_context
+from dj_design_system.views import (
+    canvas as canvas_views,
+)
+from dj_design_system.views import (
+    component as component_views,
+)
+from dj_design_system.views import (
+    gallery_index,
+    get_base_context,
+)
 
 
 def _get_nav_tree():
@@ -345,8 +360,10 @@ class TestGalleryComponentFormIntegration:
         """When the component page first loads without parameters, form should have initial data from gallery kwargs."""
         from django.test import RequestFactory
 
+        from dj_design_system.services.gallery_context import (
+            get_form_and_sandbox_spec as _get_form_and_sandbox_spec,
+        )
         from dj_design_system.services.tag_signature import generate_tag_signature
-        from dj_design_system.views.component import _get_form_and_sandbox_spec
 
         nav_tree = _get_nav_tree()
         component = _find_component_with_params(nav_tree)
@@ -381,8 +398,10 @@ class TestGalleryComponentFormIntegration:
         from dj_design_system.data import CanvasSpec
         from dj_design_system.parameters import StrParam
         from dj_design_system.parameters.model import ModelParam
+        from dj_design_system.services.gallery_context import (
+            get_form_and_sandbox_spec as _get_form_and_sandbox_spec,
+        )
         from dj_design_system.services.tag_signature import TagSignature
-        from dj_design_system.views.component import _get_form_and_sandbox_spec
 
         dummy_qs = MagicMock()
         dummy_qs.order_by.return_value = dummy_qs
@@ -425,12 +444,12 @@ class TestGalleryComponentFormIntegration:
         assert form_kwargs.get("user") == fake_instance
 
     def test_is_sandbox_form_submission(self):
-        """_is_sandbox_form_submission returns True if and only if _iss is in GET."""
+        """is_sandbox_form_submission returns True if and only if _iss is in GET."""
         from django.test import RequestFactory
 
-        from dj_design_system.views.component import (
-            SANDBOX_SUBMISSION_PARAM,
-            _is_sandbox_form_submission,
+        from dj_design_system.services.control_params import SANDBOX_SUBMISSION_PARAM
+        from dj_design_system.services.gallery_context import (
+            is_sandbox_form_submission as _is_sandbox_form_submission,
         )
 
         rf = RequestFactory()
@@ -472,11 +491,13 @@ class TestGalleryComponentFormIntegration:
             assert "field" in row
 
     def test_param_rows_handles_tuple_type(self):
-        """_build_param_rows should handle parameter specs with tuple type definitions without raising AttributeError."""
+        """build_param_rows should handle parameter specs with tuple type definitions without raising AttributeError."""
         from dj_design_system.components import BlockComponent
         from dj_design_system.forms import build_component_form
         from dj_design_system.parameters.base import JSONParam
-        from dj_design_system.views.component import _build_param_rows
+        from dj_design_system.services.gallery_context import (
+            build_param_rows as _build_param_rows,
+        )
 
         class TupleParamComponent(BlockComponent):
             data = JSONParam("JSON data")
@@ -853,3 +874,29 @@ class TestCSPCompliance:
         response = gallery_index(request)
         content = response.content.decode()
         assert content.count('<script id="gallery-search-index"') == 1
+
+
+class TestThinViewsAndImmutableParams:
+    def test_component_and_canvas_views_define_no_private_helpers(self):
+        for mod in (component_views, canvas_views):
+            private_funcs = [
+                name
+                for name, fn in inspect.getmembers(mod, inspect.isfunction)
+                if fn.__module__ == mod.__name__ and name.startswith("_")
+            ]
+            assert private_funcs == [], (
+                f"{mod.__name__} defines private helper functions: {private_funcs}"
+            )
+
+    def test_build_param_rows_does_not_mutate_base_param_descriptors(self):
+        class ImmutableParamComponent(BlockComponent):
+            title = StrParam("Title", default="Hi")
+            payload = JSONParam("JSON data")
+
+        form = build_component_form(ImmutableParamComponent)()
+        params = ImmutableParamComponent.get_params()
+        rows = build_param_rows(form, params, ImmutableParamComponent)
+
+        assert all(isinstance(r, ParamRowData) for r in rows)
+        for param_obj in params.values():
+            assert "type_name" not in param_obj.__dict__

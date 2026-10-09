@@ -2,7 +2,7 @@
 
 import typing
 
-from dj_design_system import components, parameters
+from dj_design_system import components, data, parameters
 from dj_design_system.components.elements import icon as icon_element
 
 
@@ -104,94 +104,50 @@ class NavTree(components.TagComponent):
 
         raw_root_nodes = list(self.nodes) if self.nodes is not None else []
         normalized_nodes: list[dict[str, typing.Any]] = []
-        work_stack: list[
-            tuple[typing.Any, int, list[dict[str, typing.Any]], str]
-        ] = [
-            (raw_node, 0, normalized_nodes, "")
-            for raw_node in reversed(raw_root_nodes)
+        work_stack: list[tuple[typing.Any, int, list[dict[str, typing.Any]], str]] = [
+            (raw_node, 0, normalized_nodes, "") for raw_node in reversed(raw_root_nodes)
         ]
         post_order: list[tuple[dict[str, typing.Any], bool, str]] = []
 
         while work_stack:
             raw_node, depth, target_list, parent_active_path = work_stack.pop()
 
-            if isinstance(raw_node, dict):
-                raw_label = raw_node.get("label", "")
-                raw_slug = raw_node.get("slug", "")
-                raw_type = raw_node.get("node_type") or raw_node.get("type") or ""
-                raw_url = raw_node.get("url")
-                raw_node_active = raw_node.get("active_path", "")
-                raw_base_active = raw_node.get("base_active_path", "")
-                raw_children_val = raw_node.get("children")
-                raw_icon = raw_node.get("icon")
-                raw_is_component = raw_node.get("is_component")
-                raw_is_document = raw_node.get("is_document")
-                raw_is_variant = raw_node.get("is_variant")
-                raw_has_children = raw_node.get("has_children")
-                raw_has_index_doc = raw_node.get("has_index_doc")
-                if raw_has_index_doc is None:
-                    raw_has_index_doc = raw_node.get("index_doc_path") is not None
-            else:
-                raw_label = getattr(raw_node, "label", "")
-                raw_slug = getattr(raw_node, "slug", "")
-                raw_type = (
-                    getattr(raw_node, "node_type", None)
-                    or getattr(raw_node, "type", None)
-                    or ""
-                )
-                raw_url = getattr(raw_node, "url", None)
-                raw_node_active = getattr(raw_node, "active_path", "")
-                raw_base_active = getattr(raw_node, "base_active_path", "")
-                raw_children_val = getattr(raw_node, "children", None)
-                raw_icon = getattr(raw_node, "icon", None)
-                raw_is_component = getattr(raw_node, "is_component", None)
-                raw_is_document = getattr(raw_node, "is_document", None)
-                raw_is_variant = getattr(raw_node, "is_variant", None)
-                raw_has_children = getattr(raw_node, "has_children", None)
-                raw_has_index_doc = getattr(raw_node, "has_index_doc", None)
-                if raw_has_index_doc is None:
-                    raw_has_index_doc = (
-                        getattr(raw_node, "index_doc_path", None) is not None
-                    )
-
-            label = str(raw_label) if raw_label is not None else ""
-            slug = str(raw_slug) if raw_slug is not None else ""
-            url = str(raw_url) if raw_url else DEFAULT_NODE_URL
-
-            node_type_val = getattr(raw_type, "value", raw_type)
-            node_type = str(node_type_val).lower() if node_type_val else ""
-
-            raw_children = (
-                list(raw_children_val)
-                if raw_children_val is not None and depth < MAX_TREE_DEPTH
-                else []
+            parsed = data.NavItemInputData.from_raw(
+                raw_node,
+                default_url=DEFAULT_NODE_URL,
             )
-            has_children = bool(raw_children) or bool(raw_has_children)
+            label = parsed.label
+            slug = parsed.slug
+            url = parsed.url
+            node_type = parsed.node_type
+
+            raw_children = parsed.children if depth < MAX_TREE_DEPTH else []
+            has_children = bool(raw_children) or bool(parsed.has_children)
 
             is_component = (
-                bool(raw_is_component)
-                if raw_is_component is not None
+                parsed.is_component
+                if parsed.is_component is not None
                 else node_type == NODE_TYPE_COMPONENT
             )
             is_document = (
-                bool(raw_is_document)
-                if raw_is_document is not None
+                parsed.is_document
+                if parsed.is_document is not None
                 else node_type == NODE_TYPE_DOCUMENT
             )
             is_variant = (
-                bool(raw_is_variant)
-                if raw_is_variant is not None
+                parsed.is_variant
+                if parsed.is_variant is not None
                 else node_type == NODE_TYPE_VARIANT
             )
-            has_index_doc = bool(raw_has_index_doc)
+            has_index_doc = parsed.has_index_doc
 
             node_active_path = (
-                str(raw_node_active).split("?")[0].strip("/")
-                if raw_node_active
+                parsed.active_path.split("?")[0].strip("/")
+                if parsed.active_path
                 else ""
             )
-            if raw_base_active:
-                base_active_path = str(raw_base_active).split("?")[0].strip("/")
+            if parsed.base_active_path:
+                base_active_path = parsed.base_active_path.split("?")[0].strip("/")
             elif node_active_path:
                 base_active_path = node_active_path
             elif is_variant and parent_active_path:
@@ -219,9 +175,10 @@ class NavTree(components.TagComponent):
             else:
                 node_kind = NODE_KIND_LEAF
 
-            icon_str = str(raw_icon) if raw_icon else ""
+            icon_str = parsed.icon
             if icon_str in icon_element.ICON_NAMES:
                 resolved_icon = icon_str
+
             elif is_document or (has_index_doc and not has_children):
                 resolved_icon = ICON_DOC
             elif has_children or node_type == NODE_TYPE_FOLDER:
@@ -265,9 +222,7 @@ class NavTree(components.TagComponent):
 
             next_parent_path = folder_path or parent_active_path
             for raw_child in reversed(raw_children):
-                work_stack.append(
-                    (raw_child, depth + 1, child_dicts, next_parent_path)
-                )
+                work_stack.append((raw_child, depth + 1, child_dicts, next_parent_path))
 
         for node_dict, has_children, folder_path in reversed(post_order):
             if has_children:
