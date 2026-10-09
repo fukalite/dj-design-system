@@ -97,6 +97,10 @@
     position: relative;
   }
 
+  .dds-variant-view [data-variant-preview]:has(> iframe) {
+    padding: 0;
+  }
+
   .dds-variant-view [data-variant-preview] > iframe {
     border: 0;
     display: block;

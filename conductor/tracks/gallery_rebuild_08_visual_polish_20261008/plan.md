@@ -37,16 +37,16 @@
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4: Expanded Visual Baselines, Iterative Visual Inspection Loop & Stacked PR
-- [ ] **Expand Visual Suite (`tests/e2e/visual/test_gallery_interactions.py`):**
+- [x] **Expand Visual Suite (`tests/e2e/visual/test_gallery_interactions.py`):**
   - Add `test_desktop_sandbox_tab` (`component--desktop--sandbox-tab`), `test_sandbox_template_tab` (`component--wide--template-tab`), and `test_sandbox_html_tab` (`component--wide--html-tab`).
-- [ ] **Iterative Visual Inspection, Token-Tier Enforcement & Per-Iteration `dds-reviewer` Loop:**
+- [x] **Iterative Visual Inspection, Token-Tier Enforcement & Per-Iteration `dds-reviewer` Loop:**
   - For each iteration `N`:
     1. **Visual Capture & Inspection (`view_file`):** Compare live rendering against Track 1 (`origin/visual/rebuild-baselines`) across all 49 captures (`index`, `folder`, `document`, `component`, `variant`, `component-docs`, and all interactive captures across `mobile`, `desktop`, `wide`, `light`, `dark`) and inspect the Before/After/Diff PNGs via `view_file`.
     2. **Architectural & Token-Tier Fix:** Address every visual discrepancy at its proper architectural layer (`tokens.css` Tier 2 `--dds-*` semantic tokens -> `composition.css` `<l-*>` primitives -> component Tier 3 `--_<component>-*` tokens -> templates/views). Never introduce hardcoded CSS values (colours, spacing, radii, font sizes) or Tier 1 `--_dds-*` leaks in component stylesheets.
     3. **Per-Iteration `dds-reviewer` Audit & Test Gate:** Run `dds-reviewer` (auditing against `dds-components.md`, `html-css.md`, `python.md`, `javascript.md`, and `layered-architecture.md`) plus `just check`, `just typecheck`, and `just test` at the end of *every* iteration before re-capturing screenshots.
     4. **Repeat Until Converged:** Continue iterating until all 49 screenshots are visually cohesive, surprise-free, and pass the `dds-reviewer` audit with zero violations.
-- [ ] **Final Baselines, Visual Assets & Stacked Draft PR:**
+- [x] **Final Baselines, Visual Assets & Stacked Draft PR:**
   - Regenerate final baselines (`tests/e2e/visual/baselines/*.png`), verify `just check`, `just typecheck`, `just test`, `just e2e`, and `just visual-run`.
   - Generate Before (Track 1) / After (Track 8) / Diff PNG triplets, push them to `origin/visual/pr8-assets`, open the stacked draft PR (`gallery-rebuild/visual-polish -> gallery-rebuild/example-docs`), and run Gemini Code Review (`/review`) until green.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 

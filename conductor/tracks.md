@@ -64,7 +64,7 @@
 - [x] **Track: Gallery Rebuild 7 — `example_project/` Rework & Consumer Shadowing Showcase**
   *Link: [tracks/gallery_rebuild_07_example_docs_20261007/index.md](tracks/gallery_rebuild_07_example_docs_20261007/index.md)*
 
-- [~] **Track: Gallery Rebuild 8 — Visual Parity, Token & Typography Polish**
+- [x] **Track: Gallery Rebuild 8 — Visual Parity, Token & Typography Polish**
   *Link: [tracks/gallery_rebuild_08_visual_polish_20261008/index.md](tracks/gallery_rebuild_08_visual_polish_20261008/index.md)*
 
 

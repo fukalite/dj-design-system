@@ -45,6 +45,36 @@ def test_mobile_sandbox_tab(gallery, screenshot_recorder):
     screenshot_recorder.check(_settle(page), "component--mobile--sandbox-tab")
 
 
+def test_desktop_sandbox_tab(gallery, screenshot_recorder):
+    page = gallery(COMPONENT, viewport="desktop")
+    page.click('[data-tab-trigger="sandbox"]')
+    screenshot_recorder.check(_settle(page), "component--desktop--sandbox-tab")
+
+
+def test_sandbox_template_tab(gallery, screenshot_recorder):
+    page = gallery(COMPONENT, viewport="wide")
+    page.click(
+        "dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-mode='code']"
+    )
+    page.wait_for_selector(
+        "dds-canvas-widget[data-canvas-id='sandbox'] "
+        "[data-canvas-panel='code']:not([hidden])"
+    )
+    screenshot_recorder.check(_settle(page), "component--wide--template-tab")
+
+
+def test_sandbox_html_tab(gallery, screenshot_recorder):
+    page = gallery(COMPONENT, viewport="wide")
+    page.click(
+        "dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-mode='html']"
+    )
+    page.wait_for_selector(
+        "dds-canvas-widget[data-canvas-id='sandbox'] "
+        "[data-canvas-panel='html']:not([hidden])"
+    )
+    screenshot_recorder.check(_settle(page), "component--wide--html-tab")
+
+
 def test_search_results(gallery, screenshot_recorder):
     page = gallery()
     page.fill("[data-search-input]", "button")

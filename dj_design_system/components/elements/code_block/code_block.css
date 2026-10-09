@@ -57,6 +57,11 @@
     position: relative;
   }
 
+  [data-surface='code'] > dds-code-block {
+    border-radius: 0;
+    border-width: 0;
+  }
+
   dds-code-block > header {
     --space: var(--_code-block-header-gap);
     align-items: center;
