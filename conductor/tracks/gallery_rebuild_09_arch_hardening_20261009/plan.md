@@ -14,17 +14,17 @@
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Bug Fixes, HTML/JS Integrity & `Breadcrumb`/`Popout` Composition
-- [ ] **Task 2.1: Single-Pass Syntax Highlighting in `CanvasWidget` & Resize Race Fix in `canvas_widget.ts`**
+- [x] **Task 2.1: Single-Pass Syntax Highlighting in `CanvasWidget` & Resize Race Fix in `canvas_widget.ts`**
   - **Red Phase:** Write failing unit tests in `tests/components/test_canvas_widget.py` proving that `CanvasWidget` preserves literal `<span class="...">` and `<pre>` tags in raw `rendered_html` / `source_code` without stripping them, and update `tests/test_views.py` / `tests/test_markdown_canvas.py` to expect raw strings passed to `CanvasWidget`.
   - **Green Phase:** Remove pre-highlighting before `CanvasWidget` in `views/component.py` and `services/markdown_canvas.py`; remove regex tag stripping in `CanvasWidget.get_context()`; update `canvas_widget.ts` to sync iframe height on `connectedCallback` and `load` when `iframe.contentDocument` is already ready; run `just build-ts`.
-- [ ] **Task 2.2: Search Index Deduplication, Search Debounce Fix & `ParamsForm` Declarative Fallback**
+- [x] **Task 2.2: Search Index Deduplication, Search Debounce Fix & `ParamsForm` Declarative Fallback**
   - **Red Phase:** Add tests in `tests/components/test_search_box.py`, `tests/test_views.py`, and `tests/components/test_params_form.py` asserting that rendered gallery pages contain at most one `#gallery-search-index` element, `search_box.ts` invokes `handleInput()` inside its debounce timer callback, and `ParamsForm.get_context()` constructs zero HTML strings in Python.
   - **Green Phase:** Remove `{% gallery_search_index_script %}` from `gallery/base.html`, fix `onInput` debounce in `search_box.ts`, replace `SafeString(f'<input ...>')` in `params_form.py` with declarative markup in `params_form.html`, and clean up dead event code in `params_form.ts`.
-- [ ] **Task 2.3: Scoped `Tabs` DOM IDs & `Breadcrumb` `{% dds__popout %}` Composition**
+- [x] **Task 2.3: Scoped `Tabs` DOM IDs & `Breadcrumb` `{% dds__popout %}` Composition**
   - **Red Phase:** Add tests in `tests/components/test_tabs.py` and `tests/components/test_breadcrumb.py` verifying `id_prefix` scoping on `Tabs` and verifying that `Breadcrumb` composes `{% dds__popout %}` and `{% dds__popout_option %}` (and declares any required media).
   - **Green Phase:** Add `id_prefix` to `Tabs`, update `breadcrumb.html` and `breadcrumb.css` to compose `{% dds__popout %}` + `{% dds__popout_option %}`, and update `conductor/code_styleguides/dds-components.md`.
   - **Quality Check:** Run `dds-reviewer`, `just build-ts`, `just check`, `just typecheck`, and `just test`.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3: Consumer Theme Controller Isolation & `GalleryShell` Encapsulation
 - [ ] **Task 3.1: Gallery Chrome `prefers-color-scheme` & Consumer-Only `ThemeSelect` Controller**

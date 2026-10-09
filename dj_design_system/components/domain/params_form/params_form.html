@@ -18,7 +18,7 @@
       <l-stack data-params-fields>
         {% for row in normalized_rows %}
           {% dds__form_field label=row.label field_id=row.field_id description=row.description error=row.error required_field=row.required %}
-            {% slot "control" %}{{ row.field_html }}{% endslot %}
+            {% slot "control" %}{% if row.has_field_html %}{{ row.field_html }}{% else %}<input type="text" id="{{ row.field_id }}" name="{{ row.name }}">{% endif %}{% endslot %}
           {% enddds__form_field %}
         {% endfor %}
       </l-stack>

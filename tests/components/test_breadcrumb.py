@@ -311,6 +311,32 @@ class TestBreadcrumbRenderingAndTemplate:
         assert "&lt;script&gt;alert(1)&lt;/script&gt;" in html
         assert "Nav &quot;unsafe&quot;" in html
 
+    def test_composes_dds_popout_and_dds_popout_option_in_template(
+        self,
+    ) -> None:
+        """Verify breadcrumb.html composes {% dds__popout %} and {% dds__popout_option %} instead of raw <dds-popout> markup."""
+        template_text = _read_text(path=BREADCRUMB_HTML_PATH)
+        assert "{% dds__popout " in template_text
+        assert "{% dds__popout_option " in template_text
+        assert "<dds-popout" not in template_text
+
+        trail = [
+            {"label": "Gallery", "url": "/gallery/"},
+            {"label": "Elements", "url": "/gallery/elements/"},
+            {"label": "Static Folder"},
+            {"label": "Breadcrumb"},
+        ]
+        html = _render_template(
+            source="{% dds__breadcrumb items=trail %}",
+            context={"trail": trail},
+        )
+        assert (
+            '<dds-popout class="dds-popout" data-align="start" data-state="closed">'
+            in html
+        )
+        assert 'class="dds-popout-option"' in html
+        assert 'href="/gallery/elements/"' in html
+
     def test_template_contains_no_filters_or_bem(self) -> None:
         """Verify breadcrumb.html loads design_components and has no filters or BEM."""
         template_text = _read_text(path=BREADCRUMB_HTML_PATH)

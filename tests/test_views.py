@@ -11,7 +11,7 @@ from dj_design_system.services.navigation import (
     build_breadcrumbs,
     find_node,
 )
-from dj_design_system.views import get_base_context
+from dj_design_system.views import gallery_index, get_base_context
 
 
 def _get_nav_tree():
@@ -210,9 +210,7 @@ class TestGalleryComponentView:
         assert "<h2 data-docs-heading>Further documentation</h2>" in content
         assert "<hr data-docs-divider>" in content
 
-    def test_variant_view_renders_parameters_and_further_documentation(
-        self, client
-    ):
+    def test_variant_view_renders_parameters_and_further_documentation(self, client):
         url = reverse(
             "gallery-node",
             kwargs={"app_label": "demo_components", "path": "badge"},
@@ -825,8 +823,6 @@ class TestCanvasHtmlAttrs:
 
 class TestCSPCompliance:
     def test_csp_nonce_in_gallery_views(self, rf):
-        from dj_design_system.views import gallery_index
-
         request = rf.get("/dds/")
         request.csp_nonce = "sample-nonce-987"
         response = gallery_index(request)
@@ -834,9 +830,13 @@ class TestCSPCompliance:
         assert 'nonce="sample-nonce-987"' in content
 
     def test_no_inline_style_attributes_in_index(self, rf):
-        from dj_design_system.views import gallery_index
-
         request = rf.get("/dds/")
         response = gallery_index(request)
         content = response.content.decode()
         assert 'style="' not in content
+
+    def test_single_gallery_search_index_script_in_rendered_page(self, rf):
+        request = rf.get("/dds/")
+        response = gallery_index(request)
+        content = response.content.decode()
+        assert content.count('<script id="gallery-search-index"') == 1

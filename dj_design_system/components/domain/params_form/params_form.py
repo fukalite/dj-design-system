@@ -83,9 +83,7 @@ class ParamsForm(components.TagComponent):
             and not isinstance(kwargs["active_variant"], str)
         ):
             kwargs["active_variant"] = str(
-                getattr(
-                    kwargs["active_variant"], "name", kwargs["active_variant"]
-                )
+                getattr(kwargs["active_variant"], "name", kwargs["active_variant"])
             )
         super().__init__(**kwargs)
 
@@ -125,17 +123,11 @@ class ParamsForm(components.TagComponent):
             name = str(raw_name) if raw_name is not None else ""
             label = str(raw_label) if raw_label else name
             field_id = str(
-                getattr(raw_field, "id_for_label", None)
-                or raw_field_id
-                or f"id_{name}"
+                getattr(raw_field, "id_for_label", None) or raw_field_id or f"id_{name}"
             )
             description = str(
                 getattr(raw_spec, "description", None)
-                or (
-                    raw_spec.get("description")
-                    if isinstance(raw_spec, dict)
-                    else None
-                )
+                or (raw_spec.get("description") if isinstance(raw_spec, dict) else None)
                 or raw_description
                 or ""
             )
@@ -149,9 +141,7 @@ class ParamsForm(components.TagComponent):
                 required = bool(raw_required)
 
             field_errors = getattr(raw_field, "errors", None)
-            raw_errors = (
-                field_errors if field_errors is not None else raw_item_errors
-            )
+            raw_errors = field_errors if field_errors is not None else raw_item_errors
             if isinstance(raw_errors, str):
                 errors = [raw_errors] if raw_errors else []
             elif raw_errors is not None:
@@ -160,12 +150,13 @@ class ParamsForm(components.TagComponent):
                 errors = []
             error = " ".join(errors)
 
-            if raw_field is not None:
-                field_html = safestring.SafeString(str(raw_field))
-            else:
-                field_html = safestring.SafeString(
-                    f'<input type="text" id="{field_id}" name="{name}">'
+            has_field_html = raw_field is not None
+            if has_field_html:
+                field_html: safestring.SafeString | str = safestring.SafeString(
+                    str(raw_field)
                 )
+            else:
+                field_html = ""
 
             normalized_rows.append(
                 {
@@ -176,6 +167,7 @@ class ParamsForm(components.TagComponent):
                     "required": required,
                     "errors": errors,
                     "error": error,
+                    "has_field_html": has_field_html,
                     "field_html": field_html,
                 }
             )

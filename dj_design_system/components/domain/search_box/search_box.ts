@@ -76,9 +76,9 @@ export class DDSSearchBoxElement
         'input',
         () => {
           this.clearDebounceTimer();
-          this.handleInput();
           this.debounceTimer = window.setTimeout(() => {
             this.debounceTimer = null;
+            this.handleInput();
           }, DEBOUNCE_DELAY_MS);
         },
         { signal },

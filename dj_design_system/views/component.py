@@ -1,6 +1,5 @@
 """Component rendering views and sandbox inspection helpers."""
 
-import html
 from types import SimpleNamespace
 from typing import Any
 
@@ -35,7 +34,6 @@ from dj_design_system.services.registry import component_registry
 from dj_design_system.services.tag_signature import (
     generate_current_tag_signature,
     generate_tag_signature,
-    highlight_html,
 )
 from dj_design_system.settings import (
     get_backgrounds,
@@ -437,21 +435,15 @@ def _render_component(request, context, node, app_label, path_parts):
     except Exception as exc:
         raw_rendered_html = f"<!-- Error rendering component: {exc} -->"
 
-    rendered_output_html = highlight_html(raw_rendered_html) or html.escape(
-        raw_rendered_html
-    )
-
-    if current_signature and current_signature.minimal_html:
-        source_html = current_signature.minimal_html
-    elif current_signature:
-        source_html = html.escape(current_signature.minimal)
-    elif tag_signature and tag_signature.minimal_html:
-        source_html = tag_signature.minimal_html
+    if current_signature:
+        source_html = current_signature.minimal
+    elif tag_signature:
+        source_html = tag_signature.minimal
     else:
-        source_html = html.escape(tag_signature.minimal if tag_signature else "")
+        source_html = ""
 
     context["source_html"] = source_html
-    context["rendered_output_html"] = rendered_output_html
+    context["rendered_output_html"] = raw_rendered_html
 
     # active_theme and available_themes are already provided by get_base_context,
     # but we override active_theme with the resolved component-specific one for the UI overrides.

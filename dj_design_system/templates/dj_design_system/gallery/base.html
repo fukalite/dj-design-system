@@ -23,7 +23,6 @@
 {% endslot %}
 {% enddds__gallery_shell %}
 
-{% gallery_search_index_script %}
 {% block extra_js %}{% endblock %}
 <script src="{% static 'dj_design_system/htmx.min.js' %}"
         {% if request.csp_nonce %} nonce="{{ request.csp_nonce }}"{% endif %}></script>

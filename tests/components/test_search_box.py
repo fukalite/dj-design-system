@@ -387,6 +387,12 @@ class TestSearchBoxTypeScriptCustomElement:
         assert "this.abortController = null;" in ts_text
         assert "this.clearDebounceTimer();" in ts_text
         assert "window.clearTimeout(this.debounceTimer);" in ts_text
+        assert (
+            "this.debounceTimer = window.setTimeout(() => {\n"
+            "            this.debounceTimer = null;\n"
+            "            this.handleInput();\n"
+            "          }, DEBOUNCE_DELAY_MS);" in ts_text
+        )
         assert "this.querySelector<HTMLInputElement>('[data-search-input]')" in ts_text
         assert "this.querySelector<HTMLElement>('[data-search-results]')" in ts_text
         assert "this.querySelector<HTMLScriptElement>('[data-search-index]')" in ts_text
@@ -455,4 +461,3 @@ class TestSearchBoxTypeScriptCustomElement:
         for line in ts_text.splitlines():
             assert len(line) <= 80
             assert line == line.rstrip()
-
