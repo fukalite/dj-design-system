@@ -293,8 +293,17 @@ export class DDSCanvasWidgetElement
         return {};
       }
       const parsed = JSON.parse(raw) as SandboxStageState;
-      return parsed && typeof parsed === 'object' ? parsed : {};
+      if (parsed && typeof parsed === 'object') {
+        return parsed;
+      }
+      window.sessionStorage.removeItem(TOOLBAR_STATE_KEY);
+      return {};
     } catch {
+      try {
+        window.sessionStorage.removeItem(TOOLBAR_STATE_KEY);
+      } catch {
+        // Ignore storage errors
+      }
       return {};
     }
   }
