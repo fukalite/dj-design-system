@@ -1,7 +1,7 @@
 import inspect
 import re
+import typing
 from pathlib import Path
-from typing import Type
 
 from dj_design_system.data import BUILTIN_APP_LABEL, BUILTIN_PREFIX
 
@@ -27,7 +27,7 @@ class EmptyMeta:
     """
 
 
-def get_own_meta(cls: Type) -> type:
+def get_own_meta(cls: type[typing.Any]) -> type[typing.Any]:
     """Return the Meta inner class defined directly on ``cls``.
 
     Only looks at the class's own ``__dict__``, not inherited Meta from
@@ -37,12 +37,12 @@ def get_own_meta(cls: Type) -> type:
     return cls.__dict__.get("Meta", EmptyMeta)
 
 
-def is_abstract(cls: Type) -> bool:
+def is_abstract(cls: type[typing.Any]) -> bool:
     """Return True if the class's own Meta marks it as abstract."""
     return getattr(get_own_meta(cls), "abstract", False)
 
 
-def is_internal(cls: Type, app_label: str) -> bool:
+def is_internal(cls: type[typing.Any], app_label: str) -> bool:
     """Return True if the component is internal.
 
     Built-in components (from the ``dj_design_system`` app) are always
@@ -54,13 +54,13 @@ def is_internal(cls: Type, app_label: str) -> bool:
     )
 
 
-def get_meta_name(cls: Type) -> str | None:
+def get_meta_name(cls: type[typing.Any]) -> str | None:
     """Return the explicit name from the class's own Meta, if provided."""
     name = getattr(get_own_meta(cls), "name", None)
     return name if isinstance(name, str) else None
 
 
-def derive_name(cls: Type) -> str:
+def derive_name(cls: type[typing.Any]) -> str:
     """
     Derive a component name from a class name by stripping a trailing
     'Component' suffix and converting to snake_case.
@@ -100,7 +100,7 @@ def derive_relative_path(modname: str, components_module_path: str) -> str:
 
 
 def resolve_colocated_template(
-    cls: type,
+    cls: type[typing.Any],
     *,
     app_label: str | None = None,
     relative_path: str | None = None,
