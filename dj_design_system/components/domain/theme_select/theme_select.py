@@ -37,9 +37,6 @@ class ThemeSelect(components.TagComponent):
         {% dds__theme_select themes=gallery_themes active_theme=current_theme label="Canvas Theme" select_id="canvas-theme-select" %}
     """
 
-    template_name = "dj_design_system/components/domain/theme_select/theme_select.html"
-    _template_name = template_name
-
     themes = parameters.ListParam(
         description="Available theme objects or dicts with 'value' and 'label'.",
         default=None,
@@ -63,10 +60,6 @@ class ThemeSelect(components.TagComponent):
 
     class Meta:
         positional_args = ["themes"]
-
-    class Media:
-        css = "dj_design_system/components/domain/theme_select/theme_select.css"
-        js = "dj_design_system/components/domain/theme_select/theme_select.js"
 
     def get_context(self) -> dict[str, typing.Any]:
         """Compute normalized theme options, active theme state, and icon name.

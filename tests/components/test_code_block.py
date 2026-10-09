@@ -103,11 +103,13 @@ class TestCodeBlockDiscoveryAndMetadata:
         assert issubclass(code_block_module.CodeBlock, components_base.TagComponent)
 
     def test_template_meta_and_media_declarations(self) -> None:
-        """Verify CodeBlock declares co-located template_name, positional_args, and Media."""
-        assert code_block_module.CodeBlock.template_name == TEMPLATE_PATH
+        """Verify CodeBlock relies on co-located template_name, positional_args, and Media."""
+        reg = _make_registry()
+        info = reg.get_by_name(name=COMPONENT_NAME, app_label=APP_LABEL)
+        assert info.template_name == TEMPLATE_PATH
         assert code_block_module.CodeBlock.get_positional_args() == ["code"]
-        assert code_block_module.CodeBlock.Media.css == CSS_MEDIA_PATH
-        assert code_block_module.CodeBlock.Media.js == JS_MEDIA_PATH
+        assert info.media.css == [CSS_MEDIA_PATH]
+        assert info.media.js == [JS_MEDIA_PATH]
 
     def test_discovered_as_dds_code_block_in_registry(self) -> None:
         """Verify ComponentRegistry discovers CodeBlock as internal dds__code_block."""

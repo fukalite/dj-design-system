@@ -111,10 +111,12 @@ class TestTabsDiscoveryAndMetadata:
         assert issubclass(tabs_module.Tabs, components_base.BlockComponent)
 
     def test_template_media_and_positional_args(self) -> None:
-        """Verify Tabs declares co-located template_name, Media.css, Media.js, and positional_args."""
-        assert tabs_module.Tabs.template_name == TEMPLATE_PATH
-        assert tabs_module.Tabs.Media.css == CSS_MEDIA_PATH
-        assert tabs_module.Tabs.Media.js == JS_MEDIA_PATH
+        """Verify Tabs relies on co-located template_name, Media.css, Media.js, and positional_args."""
+        reg = _make_registry()
+        info = reg.get_by_name(name=COMPONENT_NAME, app_label=APP_LABEL)
+        assert info.template_name == TEMPLATE_PATH
+        assert info.media.css == [CSS_MEDIA_PATH]
+        assert info.media.js == [JS_MEDIA_PATH]
         assert tabs_module.Tabs.get_positional_args() == ["tabs"]
 
     def test_discovered_as_dds_tabs_in_registry(self) -> None:

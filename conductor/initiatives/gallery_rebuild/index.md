@@ -18,4 +18,4 @@ Rebuild the `dj-design-system` component gallery UI cleanly on top of `main` usi
 6. [Track 6 — Gallery Page Composition, Legacy Asset Removal & Visual Baselines](../../tracks/gallery_rebuild_06_pages_20261007/index.md)
 7. [Track 7 — `example_project/` Rework & Consumer Shadowing Showcase](../../tracks/gallery_rebuild_07_example_docs_20261007/index.md)
 8. [Track 8 — Visual Parity, Token & Typography Polish](../../tracks/gallery_rebuild_08_visual_polish_20261008/index.md)
-
+9. [Track 9 — Packaging, Engine & Architectural Hardening](../../tracks/gallery_rebuild_09_arch_hardening_20261009/index.md)

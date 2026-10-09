@@ -146,10 +146,12 @@ class TestGalleryShellDiscoveryAndMetadata:
         assert gallery_shell_module.GalleryShell.has_slots() is True
 
     def test_template_media_and_slots_metadata(self) -> None:
-        """Verify GalleryShell declares co-located template_name, Media.css/js, and 4 optional slots."""
-        assert gallery_shell_module.GalleryShell.template_name == TEMPLATE_PATH
-        assert gallery_shell_module.GalleryShell.Media.css == CSS_MEDIA_PATH
-        assert gallery_shell_module.GalleryShell.Media.js == JS_MEDIA_PATH
+        """Verify GalleryShell relies on co-located template_name, Media.css/js, and 4 optional slots."""
+        reg = _make_registry()
+        info = reg.get_by_name(name=COMPONENT_NAME, app_label=APP_LABEL)
+        assert info.template_name == TEMPLATE_PATH
+        assert info.media.css == [CSS_MEDIA_PATH]
+        assert info.media.js == [JS_MEDIA_PATH]
         slots_spec = gallery_shell_module.GalleryShell.get_slots()
         assert set(slots_spec.keys()) == {
             "topbar",

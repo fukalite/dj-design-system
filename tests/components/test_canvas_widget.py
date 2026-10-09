@@ -127,10 +127,12 @@ class TestCanvasWidgetDiscoveryAndMetadata:
         )
 
     def test_template_media_and_positional_args_metadata(self) -> None:
-        """Verify CanvasWidget declares co-located template_name, Media.css/js, and positional_args."""
-        assert canvas_widget_module.CanvasWidget.template_name == TEMPLATE_PATH
-        assert canvas_widget_module.CanvasWidget.Media.css == CSS_MEDIA_PATH
-        assert canvas_widget_module.CanvasWidget.Media.js == JS_MEDIA_PATH
+        """Verify CanvasWidget relies on co-located template_name, Media.css/js, and positional_args."""
+        reg = _make_registry()
+        info = reg.get_by_name(name=COMPONENT_NAME, app_label=APP_LABEL)
+        assert info.template_name == TEMPLATE_PATH
+        assert info.media.css == [CSS_MEDIA_PATH]
+        assert info.media.js == [JS_MEDIA_PATH]
         assert canvas_widget_module.CanvasWidget.get_positional_args() == [
             "iframe_src",
         ]

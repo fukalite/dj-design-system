@@ -2,8 +2,6 @@
 
 import typing
 
-from django.utils import safestring
-
 from dj_design_system import components, parameters, slots
 
 
@@ -50,9 +48,6 @@ class Toolbar(components.BlockComponent):
             {% endslot %}
         {% enddds__toolbar %}
     """
-
-    template_name = "dj_design_system/components/domain/toolbar/toolbar.html"
-    _template_name = template_name
 
     brand_name = parameters.StrParam(
         description="Design system brand title.",
@@ -106,37 +101,6 @@ class Toolbar(components.BlockComponent):
                 description="Optional extra toolbar action controls.",
             ),
         }
-
-    class Media:
-        css = "dj_design_system/components/domain/toolbar/toolbar.css"
-
-    def __init__(
-        self,
-        content: safestring.SafeString | str | None = None,
-        *,
-        slots: dict[str, safestring.SafeString] | None = None,
-        **kwargs: typing.Any,
-    ) -> None:
-        """Initialise the toolbar component and preserve slot and block content.
-
-        Args:
-            content: Optional trailing toolbar action markup.
-            slots: Optional mapping of named slot values (``"leading"``, ``"actions"``).
-            **kwargs: Component parameter keyword arguments.
-        """
-        normalized_slots = {
-            name: safestring.SafeString(val) if val else val
-            for name, val in (slots or {}).items()
-        }
-        normalized_content = (
-            safestring.SafeString(content) if content is not None else ""
-        )
-        super().__init__(
-            content=normalized_content,
-            slots=normalized_slots,
-            **kwargs,
-        )
-        self.content = normalized_content
 
     def get_context(self) -> dict[str, typing.Any]:
         """Compute normalized template context for toolbar regions, slots, and child controls.

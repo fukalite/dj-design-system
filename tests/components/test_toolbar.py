@@ -99,14 +99,16 @@ class TestToolbarDiscoveryAndMetadata:
         assert issubclass(toolbar_module.Toolbar, components_base.BlockComponent)
 
     def test_template_meta_slots_and_media_declarations(self) -> None:
-        """Verify Toolbar declares co-located template_name, slots, and Media.css."""
-        assert toolbar_module.Toolbar.template_name == TEMPLATE_PATH
+        """Verify Toolbar relies on co-located template_name, slots, and Media.css."""
+        reg = _make_registry()
+        info = reg.get_by_name(name=COMPONENT_NAME, app_label=APP_LABEL)
+        assert info.template_name == TEMPLATE_PATH
         assert toolbar_module.Toolbar.has_slots() is True
         slot_defs = toolbar_module.Toolbar.get_slots()
         assert set(slot_defs.keys()) == {"leading", "actions"}
         assert slot_defs["leading"].required is False
         assert slot_defs["actions"].required is False
-        assert toolbar_module.Toolbar.Media.css == CSS_MEDIA_PATH
+        assert info.media.css == [CSS_MEDIA_PATH]
 
     def test_discovered_as_dds_toolbar_in_registry(self) -> None:
         """Verify ComponentRegistry discovers Toolbar as internal dds__toolbar."""

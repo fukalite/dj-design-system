@@ -98,7 +98,7 @@ class TestRenderBlockComponent:
         """A BlockComponent renders its content."""
         spec = CanvasSpec(
             component_name="alert",
-            params={"type": "warning", "content": "Watch out!"},
+            params={"level": "warning", "content": "Watch out!"},
         )
         html = render_component(spec, registry_with_demo_components)
         assert "Watch out!" in html

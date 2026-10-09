@@ -135,9 +135,11 @@ class TestSidebarDiscoveryAndMetadata:
         assert sidebar_module.Sidebar.has_slots() is True
 
     def test_template_media_and_slots_metadata(self) -> None:
-        """Verify Sidebar declares co-located template_name, Media.css, and header/footer slots."""
-        assert sidebar_module.Sidebar.template_name == TEMPLATE_PATH
-        assert sidebar_module.Sidebar.Media.css == CSS_MEDIA_PATH
+        """Verify Sidebar relies on co-located template_name, Media.css, and header/footer slots."""
+        reg = _make_registry()
+        info = reg.get_by_name(name=COMPONENT_NAME, app_label=APP_LABEL)
+        assert info.template_name == TEMPLATE_PATH
+        assert info.media.css == [CSS_MEDIA_PATH]
         slots_spec = sidebar_module.Sidebar.get_slots()
         assert set(slots_spec.keys()) == {"header", "footer"}
         assert slots_spec["header"].required is False

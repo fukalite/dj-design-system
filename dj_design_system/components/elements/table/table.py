@@ -36,9 +36,6 @@ class Table(components.BlockComponent):
         {% enddds__table %}
     """
 
-    template_name = "dj_design_system/components/elements/table/table.html"
-    _template_name = template_name
-
     caption = parameters.StrParam(
         description="Optional accessible table caption.",
         default="",
@@ -62,9 +59,6 @@ class Table(components.BlockComponent):
                 description="Table body rows (<tr> with <td> cells).",
             ),
         }
-
-    class Media:
-        css = "dj_design_system/components/elements/table/table.css"
 
     def get_context(self) -> dict[str, typing.Any]:
         """Compute template context including caption flag and slot mapping.

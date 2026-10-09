@@ -118,13 +118,11 @@ class TestSandboxToolbarDiscoveryAndMetadata:
         )
 
     def test_template_and_media_declarations(self) -> None:
-        """Verify SandboxToolbar declares co-located template_name and Media.css."""
-        assert (
-            sandbox_toolbar_module.SandboxToolbar.template_name == TEMPLATE_PATH
-        )
-        assert (
-            sandbox_toolbar_module.SandboxToolbar.Media.css == CSS_MEDIA_PATH
-        )
+        """Verify SandboxToolbar relies on co-located template_name and Media.css auto-discovery."""
+        reg = _make_registry()
+        info = reg.get_by_name(name=COMPONENT_NAME, app_label=APP_LABEL)
+        assert info.template_name == TEMPLATE_PATH
+        assert info.media.css == [CSS_MEDIA_PATH]
 
     def test_discovered_as_dds_sandbox_toolbar_in_registry(self) -> None:
         """Verify ComponentRegistry discovers SandboxToolbar as internal dds__sandbox_toolbar."""

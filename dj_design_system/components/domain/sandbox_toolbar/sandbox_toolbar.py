@@ -82,11 +82,6 @@ class SandboxToolbar(components.TagComponent):
         {% dds__sandbox_toolbar active_background="dark" active_viewport="768" outline_active=True canvas_url="/canvas/button/" %}
     """
 
-    template_name = (
-        "dj_design_system/components/domain/sandbox_toolbar/sandbox_toolbar.html"
-    )
-    _template_name = template_name
-
     variants = parameters.ListParam(
         description="Optional list of Variant instances or dicts with 'name' and 'label'.",
         default=None,
@@ -162,9 +157,6 @@ class SandboxToolbar(components.TagComponent):
         default=DEFAULT_ARIA_LABEL,
         required=False,
     )
-
-    class Media:
-        css = "dj_design_system/components/domain/sandbox_toolbar/sandbox_toolbar.css"
 
     def __init__(self, **kwargs: typing.Any) -> None:
         """Initialise the sandbox toolbar, normalising non-string active variant and zoom inputs.

@@ -125,9 +125,11 @@ class TestUsageExampleDiscoveryAndMetadata:
         )
 
     def test_template_media_and_positional_args(self) -> None:
-        """Verify UsageExample declares co-located template_name, Media.css, and positional_args."""
-        assert usage_example_module.UsageExample.template_name == TEMPLATE_PATH
-        assert usage_example_module.UsageExample.Media.css == CSS_MEDIA_PATH
+        """Verify UsageExample relies on co-located template_name, Media.css, and positional_args."""
+        reg = _make_registry()
+        info = reg.get_by_name(name=COMPONENT_NAME, app_label=APP_LABEL)
+        assert info.template_name == TEMPLATE_PATH
+        assert info.media.css == [CSS_MEDIA_PATH]
         assert usage_example_module.UsageExample.get_positional_args() == [
             "title",
             "code",
@@ -210,6 +212,19 @@ class TestUsageExampleParametersAndContext:
         assert ctx["has_code"] is False
         assert ctx["has_preview"] is True
         assert ctx["sandbox_href"] == ""
+        assert ctx["has_sandbox_link"] is False
+
+    def test_show_sandbox_link_false_hides_sandbox_link(self) -> None:
+        """Verify show_sandbox_link=False suppresses has_sandbox_link even with preview_url."""
+        comp = usage_example_module.UsageExample(
+            title="Variant preview",
+            code="{% dds__button 'Save' %}",
+            preview_url="/gallery/canvas/?component=dds__button",
+            show_sandbox_link=False,
+        )
+        ctx = comp.get_context()
+        assert ctx["show_sandbox_link"] is False
+        assert ctx["has_preview"] is True
         assert ctx["has_sandbox_link"] is False
 
     def test_none_fallbacks_in_get_context(self) -> None:

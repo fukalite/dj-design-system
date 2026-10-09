@@ -105,9 +105,11 @@ class TestBreadcrumbDiscoveryAndMetadata:
         assert issubclass(breadcrumb_module.Breadcrumb, components_base.TagComponent)
 
     def test_template_media_and_positional_args(self) -> None:
-        """Verify Breadcrumb declares co-located template_name, Media.css, and positional_args."""
-        assert breadcrumb_module.Breadcrumb.template_name == TEMPLATE_PATH
-        assert breadcrumb_module.Breadcrumb.Media.css == CSS_MEDIA_PATH
+        """Verify Breadcrumb relies on co-located template_name, Media.css, and positional_args."""
+        reg = _make_registry()
+        info = reg.get_by_name(name=COMPONENT_NAME, app_label=APP_LABEL)
+        assert info.template_name == TEMPLATE_PATH
+        assert info.media.css == [CSS_MEDIA_PATH]
         assert breadcrumb_module.Breadcrumb.get_positional_args() == ["items"]
 
     def test_discovered_as_dds_breadcrumb_in_registry(self) -> None:

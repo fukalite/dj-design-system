@@ -137,10 +137,12 @@ class TestParamsFormDiscoveryAndMetadata:
         )
 
     def test_template_media_and_positional_args(self) -> None:
-        """Verify ParamsForm declares co-located template_name, Media.css, Media.js, and positional_args."""
-        assert params_form_module.ParamsForm.template_name == TEMPLATE_PATH
-        assert params_form_module.ParamsForm.Media.css == CSS_MEDIA_PATH
-        assert params_form_module.ParamsForm.Media.js == JS_MEDIA_PATH
+        """Verify ParamsForm relies on co-located template_name, Media.css, Media.js, and positional_args."""
+        reg = _make_registry()
+        info = reg.get_by_name(name=COMPONENT_NAME, app_label=APP_LABEL)
+        assert info.template_name == TEMPLATE_PATH
+        assert info.media.css == [CSS_MEDIA_PATH]
+        assert info.media.js == [JS_MEDIA_PATH]
         assert params_form_module.ParamsForm.get_positional_args() == [
             "param_rows",
         ]

@@ -66,11 +66,6 @@ class CanvasWidget(components.TagComponent):
         {% dds__canvas_widget iframe_srcdoc="<button>Hello</button>" background="dark" viewport="768" zoom="125" %}
     """
 
-    template_name = (
-        "dj_design_system/components/domain/canvas_widget/canvas_widget.html"
-    )
-    _template_name = template_name
-
     canvas_id = parameters.StrParam(
         default=DEFAULT_CANVAS_ID,
         required=False,
@@ -143,12 +138,6 @@ class CanvasWidget(components.TagComponent):
 
     class Meta:
         positional_args = ["iframe_src"]
-
-    class Media:
-        css = (
-            "dj_design_system/components/domain/canvas_widget/canvas_widget.css"
-        )
-        js = "dj_design_system/components/domain/canvas_widget/canvas_widget.js"
 
     def __init__(self, **kwargs: typing.Any) -> None:
         """Initialise the canvas widget, normalising numeric or percentage zoom inputs.

@@ -117,9 +117,11 @@ class TestProseDiscoveryAndMetadata:
         assert issubclass(prose_module.Prose, components.BlockComponent)
 
     def test_template_media_and_positional_args(self) -> None:
-        """Verify Prose declares co-located template_name, Media.css, and positional_args."""
-        assert prose_module.Prose.template_name == TEMPLATE_PATH
-        assert prose_module.Prose.Media.css == CSS_MEDIA_PATH
+        """Verify Prose relies on co-located template_name, Media.css, and positional_args."""
+        reg = _make_registry()
+        info = reg.get_by_name(name=COMPONENT_NAME, app_label=APP_LABEL)
+        assert info.template_name == TEMPLATE_PATH
+        assert info.media.css == [CSS_MEDIA_PATH]
         assert prose_module.Prose.get_positional_args() == ["html"]
 
     def test_discovered_as_dds_prose_in_registry(self) -> None:

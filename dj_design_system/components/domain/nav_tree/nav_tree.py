@@ -47,9 +47,6 @@ class NavTree(components.TagComponent):
         {% dds__nav_tree nav_tree aria_label="Design system navigation" %}
     """
 
-    template_name = "dj_design_system/components/domain/nav_tree/nav_tree.html"
-    _template_name = template_name
-
     nodes = parameters.ListParam(
         description="Top-level navigation nodes (NavNode objects or dicts).",
         default=None,
@@ -73,10 +70,6 @@ class NavTree(components.TagComponent):
 
     class Meta:
         positional_args = ["nodes"]
-
-    class Media:
-        css = "dj_design_system/components/domain/nav_tree/nav_tree.css"
-        js = "dj_design_system/components/domain/nav_tree/nav_tree.js"
 
     def __init__(self, **kwargs: typing.Any) -> None:
         """Initialise the navigation tree component.

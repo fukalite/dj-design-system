@@ -35,11 +35,6 @@ class FolderListing(components.TagComponent):
         {% dds__folder_listing title="Domain" items=children show_debug_hint=True %}
     """
 
-    template_name = (
-        "dj_design_system/components/domain/folder_listing/folder_listing.html"
-    )
-    _template_name = template_name
-
     title = parameters.StrParam(
         description="Folder heading title.",
         default="",
@@ -63,9 +58,6 @@ class FolderListing(components.TagComponent):
 
     class Meta:
         positional_args = ["title", "items"]
-
-    class Media:
-        css = "dj_design_system/components/domain/folder_listing/folder_listing.css"
 
     def get_context(self) -> dict[str, typing.Any]:
         """Build the normalized template context for the folder listing.

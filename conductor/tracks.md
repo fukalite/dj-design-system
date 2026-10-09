@@ -67,7 +67,6 @@
 - [x] **Track: Gallery Rebuild 8 — Visual Parity, Token & Typography Polish**
   *Link: [tracks/gallery_rebuild_08_visual_polish_20261008/index.md](tracks/gallery_rebuild_08_visual_polish_20261008/index.md)*
 
-
-
-
+- [~] **Track: Gallery Rebuild 9 — Packaging, Engine & Architectural Hardening**
+  *Link: [tracks/gallery_rebuild_09_arch_hardening_20261009/index.md](tracks/gallery_rebuild_09_arch_hardening_20261009/index.md)*
 

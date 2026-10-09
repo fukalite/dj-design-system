@@ -76,9 +76,11 @@ class TestTableExportAndRegistration:
         assert issubclass(Table, BlockComponent)
 
     def test_template_and_media_declarations(self) -> None:
-        """Verify template_name and Media.css match the component contract."""
-        assert Table.template_name == TEMPLATE_REL_PATH
-        assert Table.Media.css == CSS_REL_PATH
+        """Verify template_name and Media.css match the component contract via auto-discovery."""
+        registry = _make_table_registry()
+        info = registry.get_by_name(name="table", app_label=APP_LABEL)
+        assert info.template_name == TEMPLATE_REL_PATH
+        assert info.media.css == [CSS_REL_PATH]
 
     def test_registered_as_dds_table(self) -> None:
         """Verify autodiscovery registers Table under dds__table."""

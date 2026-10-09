@@ -26,6 +26,16 @@ jobs:
         with:
           python-version: "3.13"
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Compile TypeScript components
+        run: |
+          npm ci
+          npx tsc -p tsconfig.json
+
       - name: Build package
         run: uv build
 

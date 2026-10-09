@@ -168,10 +168,12 @@ class TestNavTreeDiscoveryAndMetadata:
         assert issubclass(nav_tree_module.NavTree, components_base.TagComponent)
 
     def test_template_media_and_positional_args(self) -> None:
-        """Verify NavTree declares co-located template_name, Media.css/js, and positional_args."""
-        assert nav_tree_module.NavTree.template_name == TEMPLATE_PATH
-        assert nav_tree_module.NavTree.Media.css == CSS_MEDIA_PATH
-        assert nav_tree_module.NavTree.Media.js == JS_MEDIA_PATH
+        """Verify NavTree relies on co-located template_name, Media.css/js, and positional_args."""
+        reg = _make_registry()
+        info = reg.get_by_name(name=COMPONENT_NAME, app_label=APP_LABEL)
+        assert info.template_name == TEMPLATE_PATH
+        assert info.media.css == [CSS_MEDIA_PATH]
+        assert info.media.js == [JS_MEDIA_PATH]
         assert nav_tree_module.NavTree.get_positional_args() == ["nodes"]
 
     def test_discovered_as_dds_nav_tree_in_registry(self) -> None:

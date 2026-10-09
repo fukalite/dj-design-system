@@ -30,11 +30,6 @@ class PopoutOption(components.TagComponent):
         {% dds__popout_option "Documentation" href="/docs/" icon="external-link" %}
     """
 
-    template_name = (
-        "dj_design_system/components/elements/popout_option/popout_option.html"
-    )
-    _template_name = template_name
-
     label = parameters.StrParam(description="Option text label.")
     value = parameters.StrParam(
         description="Option value payload.",
@@ -65,9 +60,6 @@ class PopoutOption(components.TagComponent):
 
     class Meta:
         positional_args = ["label"]
-
-    class Media:
-        css = "dj_design_system/components/elements/popout_option/popout_option.css"
 
     def get_context(self) -> dict[str, typing.Any]:
         """Compute normalized template context for button or link option rendering.

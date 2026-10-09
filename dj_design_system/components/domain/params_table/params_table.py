@@ -36,11 +36,6 @@ class ParamsTable(components.TagComponent):
         {% dds__params_table params=param_rows slots_list=slots title="Parameters" %}
     """
 
-    template_name = (
-        "dj_design_system/components/domain/params_table/params_table.html"
-    )
-    _template_name = template_name
-
     params = parameters.ListParam(  # type: ignore[assignment]
         description="Component parameter tuples (name, spec) or dicts.",
         default=None,
@@ -64,9 +59,6 @@ class ParamsTable(components.TagComponent):
 
     class Meta:
         positional_args = ["params"]
-
-    class Media:
-        css = "dj_design_system/components/domain/params_table/params_table.css"
 
     def get_context(self) -> dict[str, typing.Any]:
         """Build the normalized template context for the parameters table.

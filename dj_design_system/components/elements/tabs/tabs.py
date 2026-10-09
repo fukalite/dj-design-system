@@ -35,9 +35,6 @@ class Tabs(components.BlockComponent):
         {% enddds__tabs %}
     """
 
-    template_name = "dj_design_system/components/elements/tabs/tabs.html"
-    _template_name = template_name
-
     tabs = parameters.ListParam(
         description="List of tab items (dicts with 'id', 'label', and optional 'icon', 'badge', 'content').",
         default=None,
@@ -56,10 +53,6 @@ class Tabs(components.BlockComponent):
 
     class Meta:
         positional_args = ["tabs"]
-
-    class Media:
-        css = "dj_design_system/components/elements/tabs/tabs.css"
-        js = "dj_design_system/components/elements/tabs/tabs.js"
 
     def get_context(self) -> dict[str, typing.Any]:
         """Compute normalized tabs, active tab state, and panel flags.

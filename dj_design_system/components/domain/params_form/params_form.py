@@ -37,9 +37,6 @@ class ParamsForm(components.TagComponent):
         {% dds__params_form param_rows action_url=request.path active_theme=active_theme active_variant=active_variant %}
     """
 
-    template_name = "dj_design_system/components/domain/params_form/params_form.html"
-    _template_name = template_name
-
     param_rows = parameters.ListParam(
         description="Parameter form row dicts with 'name', 'spec', and 'field'.",
         default=None,
@@ -73,10 +70,6 @@ class ParamsForm(components.TagComponent):
 
     class Meta:
         positional_args = ["param_rows"]
-
-    class Media:
-        css = "dj_design_system/components/domain/params_form/params_form.css"
-        js = "dj_design_system/components/domain/params_form/params_form.js"
 
     def __init__(self, **kwargs: typing.Any) -> None:
         """Initialise ParamsForm and normalise active_variant objects to their name string.

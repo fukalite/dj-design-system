@@ -2,8 +2,6 @@
 
 import typing
 
-from django.utils import safestring
-
 from dj_design_system import components, parameters, slots
 
 
@@ -36,9 +34,6 @@ class Sidebar(components.BlockComponent):
         {% dds__sidebar brand_name="Design System" nodes=nav_tree active_path=active_path %}
         {% enddds__sidebar %}
     """
-
-    template_name = "dj_design_system/components/domain/sidebar/sidebar.html"
-    _template_name = template_name
 
     brand_name = parameters.StrParam(
         description="Design system title shown in the sidebar header.",
@@ -93,17 +88,14 @@ class Sidebar(components.BlockComponent):
             ),
         }
 
-    class Media:
-        css = "dj_design_system/components/domain/sidebar/sidebar.css"
-
     def __init__(
         self,
-        content: safestring.SafeString | str | None = None,
+        content: str | None = None,
         *,
-        slots: dict[str, safestring.SafeString] | None = None,
+        slots: dict[str, typing.Any] | None = None,
         **kwargs: typing.Any,
     ) -> None:
-        """Initialise the sidebar component, normalising variant objects and safe slots.
+        """Initialise the sidebar component, normalising variant objects.
 
         Args:
             content: Optional additional body markup rendered after the nav tree.
@@ -122,19 +114,11 @@ class Sidebar(components.BlockComponent):
                     kwargs["active_variant"],
                 )
             )
-        normalized_slots = {
-            name: safestring.SafeString(val) if val else val
-            for name, val in (slots or {}).items()
-        }
-        normalized_content = (
-            safestring.SafeString(content) if content is not None else ""
-        )
         super().__init__(
-            content=normalized_content,
-            slots=normalized_slots,
+            content=content,
+            slots=slots,
             **kwargs,
         )
-        self.content = normalized_content
 
     def get_context(self) -> dict[str, typing.Any]:
         """Compute normalized template context for the sidebar landmark and slots.

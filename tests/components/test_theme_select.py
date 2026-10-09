@@ -99,11 +99,13 @@ class TestThemeSelectDiscoveryAndMetadata:
         assert issubclass(theme_select_module.ThemeSelect, components_base.TagComponent)
 
     def test_template_meta_and_media_declarations(self) -> None:
-        """Verify ThemeSelect declares co-located template_name, positional_args, and Media."""
-        assert theme_select_module.ThemeSelect.template_name == TEMPLATE_PATH
+        """Verify ThemeSelect relies on co-located template_name, positional_args, and Media."""
+        reg = _make_registry()
+        info = reg.get_by_name(name=COMPONENT_NAME, app_label=APP_LABEL)
+        assert info.template_name == TEMPLATE_PATH
         assert theme_select_module.ThemeSelect.get_positional_args() == ["themes"]
-        assert theme_select_module.ThemeSelect.Media.css == CSS_MEDIA_PATH
-        assert theme_select_module.ThemeSelect.Media.js == JS_MEDIA_PATH
+        assert info.media.css == [CSS_MEDIA_PATH]
+        assert info.media.js == [JS_MEDIA_PATH]
 
     def test_discovered_as_dds_theme_select_in_registry(self) -> None:
         """Verify ComponentRegistry discovers ThemeSelect as internal dds__theme_select."""

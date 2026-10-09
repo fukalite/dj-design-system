@@ -111,10 +111,12 @@ class TestSplitPaneDiscoveryAndMetadata:
         assert split_pane_module.SplitPane.has_slots() is True
 
     def test_template_media_and_slots_metadata(self) -> None:
-        """Verify SplitPane declares co-located template_name, Media.css/js, and primary/secondary slots."""
-        assert split_pane_module.SplitPane.template_name == TEMPLATE_PATH
-        assert split_pane_module.SplitPane.Media.css == CSS_MEDIA_PATH
-        assert split_pane_module.SplitPane.Media.js == JS_MEDIA_PATH
+        """Verify SplitPane relies on co-located template_name, Media.css/js, and primary/secondary slots."""
+        reg = _make_registry()
+        info = reg.get_by_name(name=COMPONENT_NAME, app_label=APP_LABEL)
+        assert info.template_name == TEMPLATE_PATH
+        assert info.media.css == [CSS_MEDIA_PATH]
+        assert info.media.js == [JS_MEDIA_PATH]
         slots_spec = split_pane_module.SplitPane.get_slots()
         assert set(slots_spec.keys()) == {"primary", "secondary"}
         assert slots_spec["primary"].required is False

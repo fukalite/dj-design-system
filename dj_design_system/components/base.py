@@ -53,7 +53,12 @@ class BaseComponent:
 
     def __init__(self, **kwargs):
         self.context = {}
+        declared_params = type(self).get_params()
         for var_name, var_value in kwargs.items():
+            if var_name not in declared_params:
+                raise TypeError(
+                    f"{type(self).__name__}() got an unexpected keyword argument '{var_name}'"
+                )
             setattr(self, var_name, var_value)
 
         self._validate_meta_constraints()
@@ -137,7 +142,9 @@ class BaseComponent:
 
     def render(self) -> str:
         """Render the component as an HTML string."""
-        template_name: str | None = getattr(type(self), "_template_name", None)
+        template_name: str | None = getattr(
+            type(self), "_template_name", None
+        ) or getattr(type(self), "template_name", None)
         if template_name:
             return mark_safe(render_to_string(template_name, self.get_context()))
         return format_html(format_string=self.template_format_str, **self.get_context())
@@ -284,30 +291,35 @@ class BlockComponent(BaseComponent):
 
     def __init__(
         self,
-        content: SafeString | None = None,
+        content: SafeString | str | None = None,
         *,
-        slots: dict[str, SafeString] | None = None,
+        slots: dict[str, SafeString | str] | None = None,
         **kwargs,
     ):
+        normalized_content = (
+            SafeString(content) if content is not None else SafeString("")
+        )
         if self.has_slots():
-            if slots is None:
-                slots = {}
+            normalized_slots: dict[str, SafeString] = {
+                name: SafeString(val) if val else SafeString("")
+                for name, val in (slots or {}).items()
+            }
             tag_name = get_meta_name(type(self)) or derive_name(type(self))
-            self.slots = validate_slots(self.get_slots(), slots, tag_name)
-            self.content = None
+            self.slots = validate_slots(self.get_slots(), normalized_slots, tag_name)
+            self.content = normalized_content
         else:
-            self.content = content
+            self.content = normalized_content
             self.slots = {}
         super().__init__(**kwargs)
 
     def get_context(self) -> dict[str, Any]:
-        """Add ``content`` or slot values to the context automatically."""
+        """Add ``content`` and slot values to the context automatically."""
         context = super().get_context()
+        context["content"] = self.content
+        context["slots"] = self.slots
         if self.has_slots():
             for name, value in self.slots.items():
                 context[name] = value
-        else:
-            context["content"] = self.content
         return context
 
     @classmethod
