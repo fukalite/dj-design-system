@@ -373,6 +373,11 @@ class TestBlockComponentSafeStringAndTemplateFallback:
         assert isinstance(unsafe_comp.slots["header"], SafeString)
         assert unsafe_comp.slots["header"] == "&lt;img src=x onerror=alert(1)&gt;"
 
+        falsy_comp = SlottedSample(
+            slots={"header": 0},  # type: ignore[dict-item]
+        )
+        assert falsy_comp.slots["header"] == "0"
+
     def test_render_falls_back_to_explicit_template_name_without_private_attr(
         self,
     ) -> None:
@@ -385,7 +390,7 @@ class TestBlockComponentSafeStringAndTemplateFallback:
         rendered = comp.render()
         assert "Unbound" in rendered
 
-    def test_render_lazily_resolves_colocated_template_without_registry(
+    def test_resolve_colocated_template_derives_path_from_module(
         self,
     ) -> None:
         import inspect
@@ -393,6 +398,7 @@ class TestBlockComponentSafeStringAndTemplateFallback:
         from unittest.mock import patch
 
         from dj_design_system.components.elements.badge import badge as badge_module
+        from dj_design_system.services.component import resolve_colocated_template
 
         badge_py = Path(badge_module.__file__).resolve()
 
@@ -403,31 +409,7 @@ class TestBlockComponentSafeStringAndTemplateFallback:
             class Meta:
                 name = "badge"
 
-        assert "_template_name" not in StandaloneBadge.__dict__
         with patch.object(inspect, "getfile", return_value=str(badge_py)):
-            rendered = StandaloneBadge(label="Standalone").render()
+            resolved = resolve_colocated_template(StandaloneBadge)
 
-        assert "Standalone" in rendered
-        assert (
-            StandaloneBadge.__dict__.get("_template_name")
-            == "dj_design_system/components/elements/badge/badge.html"
-        )
-
-        from dj_design_system.components.elements.button import button as button_module
-
-        button_py = Path(button_module.__file__).resolve()
-
-        class ChildButton(StandaloneBadge):
-            __module__ = "dj_design_system.components.elements.button.button"
-
-            class Meta:
-                name = "button"
-
-        with patch.object(inspect, "getfile", return_value=str(button_py)):
-            child_rendered = ChildButton(label="ChildBtn").render()
-
-        assert 'class="dds-button"' in child_rendered
-        assert (
-            ChildButton.__dict__.get("_template_name")
-            == "dj_design_system/components/elements/button/button.html"
-        )
+        assert resolved == "dj_design_system/components/elements/badge/badge.html"

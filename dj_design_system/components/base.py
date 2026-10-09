@@ -10,7 +10,6 @@ from dj_design_system.services.component import (
     get_meta_name,
     get_own_meta,
     is_abstract,
-    resolve_colocated_template,
 )
 from dj_design_system.services.slot_node import make_slotted_block_tag
 from dj_design_system.settings import dds_settings, get_themes
@@ -144,19 +143,15 @@ class BaseComponent:
         return " ".join(classes)
 
     def render(self) -> str:
-        """Render the component as an HTML string."""
-        cls = type(self)
-        template_name: str | None = cls.__dict__.get(
-            "_template_name"
-        ) or cls.__dict__.get("template_name")
-        if template_name is None and "_template_name" not in cls.__dict__:
-            colocated = resolve_colocated_template(cls)
-            cls._template_name = colocated
-            template_name = colocated
-        if template_name is None:
-            template_name = getattr(cls, "_template_name", None) or getattr(
-                cls, "template_name", None
-            )
+        """Render the component as an HTML string.
+
+        Co-located ``.html`` templates and explicit ``template_name`` attributes
+        are resolved and bound to ``cls._template_name`` during application
+        startup by ``ComponentRegistry._bind_template()``.
+        """
+        template_name: str | None = getattr(
+            type(self), "_template_name", None
+        ) or getattr(type(self), "template_name", None)
         if template_name:
             return mark_safe(render_to_string(template_name, self.get_context()))
         return format_html(format_string=self.template_format_str, **self.get_context())
@@ -320,7 +315,7 @@ class BlockComponent(BaseComponent):
         if self.has_slots():
             normalized_slots: dict[str, SafeString] = {
                 name: (val if isinstance(val, SafeString) else conditional_escape(val))
-                if val
+                if val is not None
                 else mark_safe("")
                 for name, val in (slots or {}).items()
             }
