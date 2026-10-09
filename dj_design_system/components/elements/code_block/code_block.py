@@ -122,14 +122,14 @@ class CodeBlock(components.TagComponent):
             SafeString containing Pygments-highlighted HTML or escaped text.
         """
         if not code:
-            return safestring.SafeString("")
+            return safestring.mark_safe("")
         normalized_lang = language.lower().strip()
         if not normalized_lang:
-            return safestring.SafeString(html.escape(s=code))
+            return safestring.mark_safe(html.escape(s=code))
         if normalized_lang in DJANGO_LANGUAGES and not any(
             marker in code for marker in DJANGO_TAG_MARKERS
         ):
-            return safestring.SafeString(html.escape(s=code))
+            return safestring.mark_safe(html.escape(s=code))
         try:
             if normalized_lang in DJANGO_LANGUAGES:
                 lexer = lexers.DjangoLexer(stripnl=False)
@@ -151,8 +151,8 @@ class CodeBlock(components.TagComponent):
                 formatter=formatter,
             ).strip(LINE_BREAK_CHARS)
             if highlighted:
-                return safestring.SafeString(highlighted)
+                return safestring.mark_safe(highlighted)
         except (ValueError, TypeError, pygments_util.ClassNotFound):
             pass
-        return safestring.SafeString(html.escape(s=code))
+        return safestring.mark_safe(html.escape(s=code))
 

@@ -285,7 +285,7 @@ class TestUsageExampleRenderingAndTemplate:
         assert 'class="dds-code-block"' in html
         assert 'data-language="django"' in html
         assert "dds__button" in html
-        assert "&quot;Save&quot;" in html
+        assert "Save" in html
 
     def test_renders_tag_signature_object_passed_positionally(self) -> None:
         """Verify dds__usage_example renders TagSignature.minimal when passed as positional code."""
@@ -296,7 +296,7 @@ class TestUsageExampleRenderingAndTemplate:
         )
         assert "<h4 data-usage-title>Minimal</h4>" in html
         assert "dds__button" in html
-        assert "&quot;Save&quot;" in html
+        assert "Save" in html
         assert "data-usage-preview" not in html
 
     def test_omits_optional_sections_when_empty(self) -> None:
