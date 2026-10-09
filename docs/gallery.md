@@ -158,6 +158,8 @@ component is rendered in its own HTML document with the correct cascade:
 1. Global CSS (`{% global_stylesheets %}`)
 2. Canvas layout CSS (padding, backgrounds)
 3. Component-specific CSS
+4. Global JS (`GLOBAL_JS_BUNDLES`, `GLOBAL_JS`), then theme, app and
+   component JS
 
 A **toolbar** above the canvas provides:
 
