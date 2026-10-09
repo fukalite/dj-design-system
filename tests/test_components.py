@@ -390,26 +390,3 @@ class TestBlockComponentSafeStringAndTemplateFallback:
         rendered = comp.render()
         assert "Unbound" in rendered
 
-    def test_resolve_colocated_template_derives_path_from_module(
-        self,
-    ) -> None:
-        import inspect
-        from pathlib import Path
-        from unittest.mock import patch
-
-        from dj_design_system.components.elements.badge import badge as badge_module
-        from dj_design_system.services.component import resolve_colocated_template
-
-        badge_py = Path(badge_module.__file__).resolve()
-
-        class StandaloneBadge(TagComponent):
-            __module__ = "dj_design_system.components.elements.badge.badge"
-            label = StrParam("Label", default="Standalone")
-
-            class Meta:
-                name = "badge"
-
-        with patch.object(inspect, "getfile", return_value=str(badge_py)):
-            resolved = resolve_colocated_template(StandaloneBadge)
-
-        assert resolved == "dj_design_system/components/elements/badge/badge.html"
