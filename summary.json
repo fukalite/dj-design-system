@@ -1,0 +1,492 @@
+[
+  {
+    "name": "component--desktop--dark.png",
+    "stem": "component--desktop--dark",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1280x1396",
+    "after_size": "1280x1004",
+    "mismatch": 803117,
+    "ratio": 0.44945211765759313
+  },
+  {
+    "name": "component--desktop--light--theme-selector.png",
+    "stem": "component--desktop--light--theme-selector",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1280x1396",
+    "after_size": "1280x1004",
+    "mismatch": 1020832,
+    "ratio": 0.5712929799426935
+  },
+  {
+    "name": "component--desktop--light.png",
+    "stem": "component--desktop--light",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1280x1396",
+    "after_size": "1280x1004",
+    "mismatch": 1020545,
+    "ratio": 0.5711323647922636
+  },
+  {
+    "name": "component--desktop--sandbox-tab.png",
+    "stem": "component--desktop--sandbox-tab",
+    "has_t1": false,
+    "has_t7": false,
+    "before_size": "New in Track 8",
+    "after_size": "1280x800",
+    "mismatch": 0,
+    "ratio": 0.0
+  },
+  {
+    "name": "component--mobile--dark.png",
+    "stem": "component--mobile--dark",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "390x1475",
+    "after_size": "390x1126",
+    "mismatch": 263021,
+    "ratio": 0.4572290308561495
+  },
+  {
+    "name": "component--mobile--light.png",
+    "stem": "component--mobile--light",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "390x1475",
+    "after_size": "390x1126",
+    "mismatch": 339838,
+    "ratio": 0.5907657540199913
+  },
+  {
+    "name": "component--mobile--sandbox-tab.png",
+    "stem": "component--mobile--sandbox-tab",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "390x844",
+    "after_size": "390x844",
+    "mismatch": 26070,
+    "ratio": 0.07920160408312067
+  },
+  {
+    "name": "component--wide--bg-popout.png",
+    "stem": "component--wide--bg-popout",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1920x1396",
+    "after_size": "1920x1080",
+    "mismatch": 1127550,
+    "ratio": 0.42067738180515757
+  },
+  {
+    "name": "component--wide--dark.png",
+    "stem": "component--wide--dark",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1920x1396",
+    "after_size": "1920x1080",
+    "mismatch": 1041967,
+    "ratio": 0.3887472391356256
+  },
+  {
+    "name": "component--wide--html-tab.png",
+    "stem": "component--wide--html-tab",
+    "has_t1": false,
+    "has_t7": false,
+    "before_size": "New in Track 8",
+    "after_size": "1920x1080",
+    "mismatch": 0,
+    "ratio": 0.0
+  },
+  {
+    "name": "component--wide--light.png",
+    "stem": "component--wide--light",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1920x1396",
+    "after_size": "1920x1080",
+    "mismatch": 1123733,
+    "ratio": 0.4192532981136581
+  },
+  {
+    "name": "component--wide--outline-on.png",
+    "stem": "component--wide--outline-on",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1920x1396",
+    "after_size": "1920x1080",
+    "mismatch": 1126368,
+    "ratio": 0.42023638968481375
+  },
+  {
+    "name": "component--wide--rtl-on.png",
+    "stem": "component--wide--rtl-on",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1920x1396",
+    "after_size": "1920x1080",
+    "mismatch": 1124014,
+    "ratio": 0.4193581363419293
+  },
+  {
+    "name": "component--wide--template-tab.png",
+    "stem": "component--wide--template-tab",
+    "has_t1": false,
+    "has_t7": false,
+    "before_size": "New in Track 8",
+    "after_size": "1920x1080",
+    "mismatch": 0,
+    "ratio": 0.0
+  },
+  {
+    "name": "component--wide--viewport-popout.png",
+    "stem": "component--wide--viewport-popout",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1920x1396",
+    "after_size": "1920x1080",
+    "mismatch": 1130758,
+    "ratio": 0.42187425382043936
+  },
+  {
+    "name": "component--wide--zoom-popout.png",
+    "stem": "component--wide--zoom-popout",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1920x1396",
+    "after_size": "1920x1080",
+    "mismatch": 1125927,
+    "ratio": 0.42007185709169054
+  },
+  {
+    "name": "component-docs--desktop--dark.png",
+    "stem": "component-docs--desktop--dark",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1280x1383",
+    "after_size": "1280x954",
+    "mismatch": 722251,
+    "ratio": 0.40799609092552425
+  },
+  {
+    "name": "component-docs--desktop--light.png",
+    "stem": "component-docs--desktop--light",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1280x1383",
+    "after_size": "1280x954",
+    "mismatch": 927711,
+    "ratio": 0.5240594495661606
+  },
+  {
+    "name": "component-docs--mobile--breadcrumb-flyout.png",
+    "stem": "component-docs--mobile--breadcrumb-flyout",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "390x1448",
+    "after_size": "390x1049",
+    "mismatch": 284749,
+    "ratio": 0.5042304150729565
+  },
+  {
+    "name": "component-docs--mobile--dark.png",
+    "stem": "component-docs--mobile--dark",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "390x1448",
+    "after_size": "390x1049",
+    "mismatch": 233915,
+    "ratio": 0.4142141238135713
+  },
+  {
+    "name": "component-docs--mobile--light.png",
+    "stem": "component-docs--mobile--light",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "390x1448",
+    "after_size": "390x1049",
+    "mismatch": 283887,
+    "ratio": 0.5027039949001275
+  },
+  {
+    "name": "component-docs--wide--dark.png",
+    "stem": "component-docs--wide--dark",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1920x1383",
+    "after_size": "1920x1080",
+    "mismatch": 862253,
+    "ratio": 0.3247216949867438
+  },
+  {
+    "name": "component-docs--wide--light.png",
+    "stem": "component-docs--wide--light",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1920x1383",
+    "after_size": "1920x1080",
+    "mismatch": 947750,
+    "ratio": 0.35691958905760424
+  },
+  {
+    "name": "document--desktop--dark.png",
+    "stem": "document--desktop--dark",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1280x800",
+    "after_size": "1280x800",
+    "mismatch": 46975,
+    "ratio": 0.0458740234375
+  },
+  {
+    "name": "document--desktop--light.png",
+    "stem": "document--desktop--light",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1280x800",
+    "after_size": "1280x800",
+    "mismatch": 94616,
+    "ratio": 0.0923984375
+  },
+  {
+    "name": "document--mobile--dark.png",
+    "stem": "document--mobile--dark",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "390x844",
+    "after_size": "390x844",
+    "mismatch": 31533,
+    "ratio": 0.09579839591687933
+  },
+  {
+    "name": "document--mobile--light.png",
+    "stem": "document--mobile--light",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "390x844",
+    "after_size": "390x844",
+    "mismatch": 36162,
+    "ratio": 0.10986146554866934
+  },
+  {
+    "name": "document--wide--dark.png",
+    "stem": "document--wide--dark",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1920x1080",
+    "after_size": "1920x1080",
+    "mismatch": 46975,
+    "ratio": 0.022653838734567902
+  },
+  {
+    "name": "document--wide--light.png",
+    "stem": "document--wide--light",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1920x1080",
+    "after_size": "1920x1080",
+    "mismatch": 107441,
+    "ratio": 0.05181375385802469
+  },
+  {
+    "name": "folder--desktop--dark.png",
+    "stem": "folder--desktop--dark",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1280x800",
+    "after_size": "1280x800",
+    "mismatch": 22184,
+    "ratio": 0.0216640625
+  },
+  {
+    "name": "folder--desktop--light.png",
+    "stem": "folder--desktop--light",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1280x800",
+    "after_size": "1280x800",
+    "mismatch": 66878,
+    "ratio": 0.065310546875
+  },
+  {
+    "name": "folder--mobile--dark.png",
+    "stem": "folder--mobile--dark",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "390x844",
+    "after_size": "390x844",
+    "mismatch": 6835,
+    "ratio": 0.02076497751853202
+  },
+  {
+    "name": "folder--mobile--light.png",
+    "stem": "folder--mobile--light",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "390x844",
+    "after_size": "390x844",
+    "mismatch": 11243,
+    "ratio": 0.03415664114716247
+  },
+  {
+    "name": "folder--wide--dark.png",
+    "stem": "folder--wide--dark",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1920x1080",
+    "after_size": "1920x1080",
+    "mismatch": 22184,
+    "ratio": 0.010698302469135803
+  },
+  {
+    "name": "folder--wide--light.png",
+    "stem": "folder--wide--light",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1920x1080",
+    "after_size": "1920x1080",
+    "mismatch": 79039,
+    "ratio": 0.038116801697530865
+  },
+  {
+    "name": "index--desktop--dark.png",
+    "stem": "index--desktop--dark",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1280x800",
+    "after_size": "1280x800",
+    "mismatch": 28842,
+    "ratio": 0.028166015625
+  },
+  {
+    "name": "index--desktop--light.png",
+    "stem": "index--desktop--light",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1280x800",
+    "after_size": "1280x800",
+    "mismatch": 65843,
+    "ratio": 0.0642998046875
+  },
+  {
+    "name": "index--desktop--search-results.png",
+    "stem": "index--desktop--search-results",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1280x800",
+    "after_size": "1280x800",
+    "mismatch": 80381,
+    "ratio": 0.0784970703125
+  },
+  {
+    "name": "index--mobile--dark.png",
+    "stem": "index--mobile--dark",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "390x844",
+    "after_size": "390x844",
+    "mismatch": 15189,
+    "ratio": 0.04614473204520598
+  },
+  {
+    "name": "index--mobile--light.png",
+    "stem": "index--mobile--light",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "390x844",
+    "after_size": "390x844",
+    "mismatch": 17888,
+    "ratio": 0.054344391785150076
+  },
+  {
+    "name": "index--mobile--sidebar-open.png",
+    "stem": "index--mobile--sidebar-open",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "390x844",
+    "after_size": "390x844",
+    "mismatch": 29879,
+    "ratio": 0.09077348401992952
+  },
+  {
+    "name": "index--wide--dark.png",
+    "stem": "index--wide--dark",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1920x1080",
+    "after_size": "1920x1080",
+    "mismatch": 28842,
+    "ratio": 0.013909143518518519
+  },
+  {
+    "name": "index--wide--light.png",
+    "stem": "index--wide--light",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1920x1080",
+    "after_size": "1920x1080",
+    "mismatch": 76724,
+    "ratio": 0.037000385802469136
+  },
+  {
+    "name": "variant--desktop--dark.png",
+    "stem": "variant--desktop--dark",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1280x800",
+    "after_size": "1280x800",
+    "mismatch": 97287,
+    "ratio": 0.0950068359375
+  },
+  {
+    "name": "variant--desktop--light.png",
+    "stem": "variant--desktop--light",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1280x800",
+    "after_size": "1280x800",
+    "mismatch": 139601,
+    "ratio": 0.1363291015625
+  },
+  {
+    "name": "variant--mobile--dark.png",
+    "stem": "variant--mobile--dark",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "390x844",
+    "after_size": "390x844",
+    "mismatch": 64316,
+    "ratio": 0.19539433710049825
+  },
+  {
+    "name": "variant--mobile--light.png",
+    "stem": "variant--mobile--light",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "390x844",
+    "after_size": "390x844",
+    "mismatch": 47349,
+    "ratio": 0.14384797666788188
+  },
+  {
+    "name": "variant--wide--dark.png",
+    "stem": "variant--wide--dark",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1920x1080",
+    "after_size": "1920x1080",
+    "mismatch": 188027,
+    "ratio": 0.09067660108024692
+  },
+  {
+    "name": "variant--wide--light.png",
+    "stem": "variant--wide--light",
+    "has_t1": true,
+    "has_t7": true,
+    "before_size": "1920x1080",
+    "after_size": "1920x1080",
+    "mismatch": 183355,
+    "ratio": 0.08842351466049382
+  }
+]
