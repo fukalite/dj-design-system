@@ -37,7 +37,7 @@
     --_prose-heading-letter-spacing: var(--dds-text-heading-letter-spacing);
     --_prose-heading-line-height: var(--dds-text-heading-line-height);
     --_prose-heading-margin-block-start: var(--dds-space-xl);
-    --_prose-heading-padding-block-end: var(--dds-space-2xs);
+    --_prose-heading-padding-block-end: var(--dds-space-xs);
     --_prose-heading-size: var(--dds-text-heading-size);
     --_prose-heading-weight: var(--dds-text-heading-weight);
     --_prose-hr-border-width: var(--dds-control-border-width);
@@ -77,12 +77,16 @@
     font-family: var(--_prose-font);
     font-size: var(--_prose-font-size);
     font-weight: var(--_prose-font-weight);
+    inline-size: 100%;
     letter-spacing: var(--_prose-letter-spacing);
     line-height: var(--_prose-line-height);
     margin: 0;
   }
 
-  .dds-prose[data-measure='constrained'] {
+  .dds-prose[data-measure='constrained'] blockquote,
+  .dds-prose[data-measure='constrained'] ol,
+  .dds-prose[data-measure='constrained'] p,
+  .dds-prose[data-measure='constrained'] ul {
     max-inline-size: var(--_prose-measure);
   }
 
@@ -101,7 +105,8 @@
     margin-block-start: var(--_prose-gap);
   }
 
-  .dds-prose h1 {
+  .dds-prose h1,
+  .dds-prose [data-prose-body] > h1 {
     color: var(--_prose-heading-color);
     font-family: var(--_prose-title-font);
     font-size: var(--_prose-title-size);
@@ -112,7 +117,8 @@
     margin-block-start: var(--_prose-heading-margin-block-start);
   }
 
-  .dds-prose h2 {
+  .dds-prose h2,
+  .dds-prose [data-prose-body] > h2 {
     border-block-end-color: var(--_prose-border-color);
     border-block-end-style: var(--_prose-code-border-style);
     border-block-end-width: var(--_prose-heading-border-width);
@@ -127,7 +133,8 @@
     padding-block-end: var(--_prose-heading-padding-block-end);
   }
 
-  .dds-prose h3 {
+  .dds-prose h3,
+  .dds-prose [data-prose-body] > h3 {
     color: var(--_prose-heading-color);
     font-family: var(--_prose-subheading-font);
     font-size: var(--_prose-h3-size);
@@ -138,7 +145,8 @@
     margin-block-start: var(--_prose-heading-margin-block-start);
   }
 
-  .dds-prose h4 {
+  .dds-prose h4,
+  .dds-prose [data-prose-body] > h4 {
     color: var(--_prose-heading-color);
     font-family: var(--_prose-subheading-font);
     font-size: var(--_prose-h4-size);
@@ -149,17 +157,23 @@
     margin-block-start: var(--_prose-gap);
   }
 
-  .dds-prose [data-prose-body] > :first-child {
+  .dds-prose [data-prose-body] > :first-child,
+  .dds-prose [data-prose-body] > h1:first-child,
+  .dds-prose [data-prose-body] > h2:first-child,
+  .dds-prose [data-prose-body] > h3:first-child,
+  .dds-prose [data-prose-body] > h4:first-child {
     margin-block-start: 0;
   }
 
   .dds-prose p {
     margin-block-end: 0;
+    margin-block-start: 0;
   }
 
   .dds-prose ul,
   .dds-prose ol {
     margin-block-end: 0;
+    margin-block-start: 0;
     padding-inline-start: var(--_prose-list-indent);
   }
 
@@ -209,6 +223,7 @@
     font-size: var(--_prose-code-size);
     line-height: var(--_prose-code-line-height);
     margin-block-end: 0;
+    margin-block-start: 0;
     overflow-x: auto;
     padding: var(--_prose-pre-padding);
   }
@@ -227,6 +242,7 @@
     border-inline-start-width: var(--_prose-blockquote-border-width);
     color: var(--_prose-blockquote-color);
     margin-block-end: 0;
+    margin-block-start: 0;
     margin-inline: 0;
     padding-block: var(--_prose-blockquote-padding-block);
     padding-inline: var(--_prose-blockquote-padding-inline);
@@ -236,6 +252,7 @@
     border-collapse: collapse;
     inline-size: 100%;
     margin-block-end: 0;
+    margin-block-start: 0;
   }
 
   .dds-prose th,
@@ -254,7 +271,8 @@
     font-weight: var(--_prose-table-header-weight);
   }
 
-  .dds-prose hr {
+  .dds-prose hr,
+  .dds-prose [data-prose-body] > hr {
     border-block-start-color: var(--_prose-border-color);
     border-block-start-style: var(--_prose-code-border-style);
     border-block-start-width: var(--_prose-hr-border-width);

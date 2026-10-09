@@ -7,7 +7,7 @@
     --_usage-example-preview-border-width: var(--dds-surface-stage-border-width);
     --_usage-example-preview-padding: var(--dds-space-inset-default);
     --_usage-example-sandbox-offset: var(--dds-space-sm);
-    --_usage-example-stack-gap: var(--dds-space-gap-tight);
+    --_usage-example-stack-gap: var(--dds-space-sm);
     --_usage-example-title-color: var(--dds-text-muted-color);
     --_usage-example-title-font: var(--dds-text-overline-font);
     --_usage-example-title-letter-spacing: var(--dds-text-overline-letter-spacing);
