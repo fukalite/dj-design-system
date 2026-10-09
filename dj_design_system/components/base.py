@@ -10,6 +10,7 @@ from dj_design_system.services.component import (
     get_meta_name,
     get_own_meta,
     is_abstract,
+    resolve_colocated_template,
 )
 from dj_design_system.services.slot_node import make_slotted_block_tag
 from dj_design_system.settings import dds_settings, get_themes
@@ -23,16 +24,27 @@ if TYPE_CHECKING:
 
 class BaseComponent:
     template_format_str: str = "<span class='{classes}'>ABSTRACT COMPONENT</span>"
+    template_name: str | None
+    _template_name: str | None
 
     class Meta:
         abstract = True
 
     def __init_subclass__(cls, **kwargs) -> None:
-        """Validate Meta constraint declarations at class definition time."""
+        """Validate Meta constraint declarations and auto-resolve co-located templates."""
         super().__init_subclass__(**kwargs)
 
         if is_abstract(cls):
             return
+
+        if (
+            "_template_name" not in cls.__dict__
+            and "template_name" not in cls.__dict__
+            and "template_format_str" not in cls.__dict__
+        ):
+            colocated = resolve_colocated_template(cls)
+            if colocated is not None:
+                cls._template_name = colocated
 
         meta = get_own_meta(cls)
         param_names = set(cls.get_params().keys())
@@ -297,7 +309,11 @@ class BlockComponent(BaseComponent):
         **kwargs,
     ):
         normalized_content = (
-            (content if isinstance(content, SafeString) else conditional_escape(content))
+            (
+                content
+                if isinstance(content, SafeString)
+                else conditional_escape(content)
+            )
             if content is not None
             else mark_safe("")
         )

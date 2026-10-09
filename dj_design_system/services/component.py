@@ -1,4 +1,6 @@
+import inspect
 import re
+from pathlib import Path
 from typing import Type
 
 from dj_design_system.data import BUILTIN_APP_LABEL, BUILTIN_PREFIX
@@ -9,10 +11,12 @@ __all__ = [
     "BUILTIN_PREFIX",
     "EmptyMeta",
     "derive_name",
+    "derive_relative_path",
     "get_meta_name",
     "get_own_meta",
     "is_abstract",
     "is_internal",
+    "resolve_colocated_template",
 ]
 
 
@@ -93,3 +97,73 @@ def derive_relative_path(modname: str, components_module_path: str) -> str:
     suffix = modname[len(components_module_path) + 1 :]
     parts = suffix.split(".")
     return ".".join(parts[:-1])  # drop the module filename, keep directories
+
+
+def resolve_colocated_template(
+    cls: Type,
+    *,
+    app_label: str | None = None,
+    relative_path: str | None = None,
+    name: str | None = None,
+) -> str | None:
+    """Resolve the template loader path for a component's co-located ``.html`` file.
+
+    Args:
+        cls: The component class to inspect.
+        app_label: Optional explicit Django app label; derived from ``cls.__module__``
+            when omitted.
+        relative_path: Optional dotted path relative to ``components/``; derived
+            from ``cls.__module__`` when omitted.
+        name: Optional component name; derived from ``cls`` when omitted.
+
+    Returns:
+        The ``{app_label}/components/{sub_path}/{name}.html`` template path if a
+        co-located ``.html`` file exists on disk, or ``None``.
+    """
+    from dj_design_system.services.media import build_static_url
+
+    try:
+        source_file = inspect.getfile(cls)
+    except (TypeError, OSError):
+        return None
+
+    source_path = Path(source_file)
+    source_dir = source_path.parent
+    comp_name = name or get_meta_name(cls) or derive_name(cls)
+
+    candidates = list(dict.fromkeys([f"{comp_name}.html", f"{source_path.stem}.html"]))
+    matched_stem: str | None = None
+    for candidate in candidates:
+        if (source_dir / candidate).is_file():
+            matched_stem = candidate[:-5]
+            break
+
+    if matched_stem is None:
+        return None
+
+    if app_label is None or relative_path is None:
+        mod_name = getattr(cls, "__module__", "")
+        if ".components" in mod_name:
+            app_prefix, _, after = mod_name.partition(".components")
+            if app_label is None:
+                app_label = app_prefix.rsplit(".", 1)[-1]
+            if relative_path is None:
+                if after.startswith("."):
+                    sub_parts = after[1:].split(".")
+                    relative_path = ".".join(sub_parts[:-1])
+                else:
+                    relative_path = ""
+        elif "components" in source_path.parts:
+            idx = (
+                len(source_path.parts) - 1 - source_path.parts[::-1].index("components")
+            )
+            if app_label is None and idx > 0:
+                app_label = source_path.parts[idx - 1]
+            if relative_path is None:
+                rel_parts = source_path.parts[idx + 1 : -1]
+                relative_path = ".".join(rel_parts)
+
+    if not app_label:
+        return None
+
+    return build_static_url(app_label, relative_path or "", matched_stem, ".html")

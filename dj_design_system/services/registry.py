@@ -2,7 +2,6 @@ import inspect
 import pkgutil
 from collections.abc import Iterable
 from importlib import import_module
-from pathlib import Path
 from typing import Any, Type
 
 from dj_design_system import settings
@@ -18,6 +17,7 @@ from dj_design_system.services.component import (
     derive_relative_path,
     get_meta_name,
     is_abstract,
+    resolve_colocated_template,
 )
 from dj_design_system.types import FlattenStrategy, TagType
 
@@ -239,28 +239,12 @@ class ComponentRegistry:
 
     def _find_colocated_template(self, info: ComponentInfo) -> str | None:
         """Find a co-located HTML template for the given component."""
-        from dj_design_system.services.media import build_static_url
-
-        try:
-            source_file = inspect.getfile(info.component_class)
-        except (TypeError, OSError):
-            return None
-
-        source_path = Path(source_file)
-        source_dir = source_path.parent
-
-        candidates = list(
-            dict.fromkeys([f"{info.name}.html", f"{source_path.stem}.html"])
+        return resolve_colocated_template(
+            info.component_class,
+            app_label=info.app_label,
+            relative_path=info.relative_path,
+            name=info.name,
         )
-
-        for candidate in candidates:
-            if (source_dir / candidate).is_file():
-                template_base_name = candidate[:-5]
-                return build_static_url(
-                    info.app_label, info.relative_path, template_base_name, ".html"
-                )
-
-        return None
 
     def _bind_template(self, info: ComponentInfo) -> None:
         """

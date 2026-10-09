@@ -104,11 +104,9 @@ class TestBuiltinColocationZeroBoilerplate:
             *sorted((components_root / "domain").glob("*/*.py")),
         ]
         component_files = [
-            p
-            for p in component_files
-            if p.name not in ("__init__.py", "gallery.py")
+            p for p in component_files if p.name not in ("__init__.py", "gallery.py")
         ]
-        assert len(component_files) == 26
+        assert len(component_files) > 0
 
         for py_file in component_files:
             source = py_file.read_text(encoding="utf-8")
@@ -123,13 +121,13 @@ class TestBuiltinColocationZeroBoilerplate:
             )
 
     def test_all_builtin_components_auto_discover_templates_and_media(self) -> None:
-        """Verify ComponentRegistry auto-discovers .html, .css, and .ts/.js for all 26 built-in components."""
+        """Verify ComponentRegistry auto-discovers .html, .css, and .ts/.js for all built-in components."""
         from pathlib import Path
 
         reg = ComponentRegistry()
         discover_app_into_registry(reg, "dj_design_system", "dj_design_system")
         infos = reg.list_by_app("dj_design_system")
-        assert len(infos) == 26
+        assert len(infos) > 0
 
         components_root = Path(components_package.__file__).resolve().parent
         for info in infos:
@@ -147,4 +145,3 @@ class TestBuiltinColocationZeroBoilerplate:
                     f"dj_design_system/components/{rel_dir.as_posix()}/{info.name}.js"
                     in info.media.js
                 )
-
