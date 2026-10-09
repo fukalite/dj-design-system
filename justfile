@@ -63,6 +63,10 @@ typecheck:
 coverage:
     uv run --no-sync pytest tests/ -m "not e2e" --cov --cov-report=term-missing
 
+# Generate and display PR coverage summary comment
+coverage-comment:
+    uv run --no-sync python .github/scripts/coverage_comment.py --dry-run
+
 # Serve the MkDocs documentation site locally
 docs-serve:
     uv run --no-sync mkdocs serve
