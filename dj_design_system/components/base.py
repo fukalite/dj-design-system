@@ -31,20 +31,11 @@ class BaseComponent:
         abstract = True
 
     def __init_subclass__(cls, **kwargs) -> None:
-        """Validate Meta constraint declarations and auto-resolve co-located templates."""
+        """Validate Meta constraint declarations at class definition time."""
         super().__init_subclass__(**kwargs)
 
         if is_abstract(cls):
             return
-
-        if (
-            "_template_name" not in cls.__dict__
-            and "template_name" not in cls.__dict__
-            and "template_format_str" not in cls.__dict__
-        ):
-            colocated = resolve_colocated_template(cls)
-            if colocated is not None:
-                cls._template_name = colocated
 
         meta = get_own_meta(cls)
         param_names = set(cls.get_params().keys())
@@ -154,9 +145,14 @@ class BaseComponent:
 
     def render(self) -> str:
         """Render the component as an HTML string."""
-        template_name: str | None = getattr(
-            type(self), "_template_name", None
-        ) or getattr(type(self), "template_name", None)
+        cls = type(self)
+        template_name: str | None = getattr(cls, "_template_name", None) or getattr(
+            cls, "template_name", None
+        )
+        if template_name is None and not hasattr(cls, "_template_name"):
+            colocated = resolve_colocated_template(cls)
+            cls._template_name = colocated
+            template_name = colocated
         if template_name:
             return mark_safe(render_to_string(template_name, self.get_context()))
         return format_html(format_string=self.template_format_str, **self.get_context())

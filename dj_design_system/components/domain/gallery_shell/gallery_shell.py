@@ -2,6 +2,8 @@
 
 import typing
 
+from django.utils import safestring
+
 from dj_design_system import components, parameters, slots
 
 
@@ -111,9 +113,9 @@ class GalleryShell(components.BlockComponent):
 
     def __init__(
         self,
-        content: str | None = None,
+        content: safestring.SafeString | str | None = None,
         *,
-        slots: dict[str, typing.Any] | None = None,
+        slots: dict[str, safestring.SafeString | str] | None = None,
         **kwargs: typing.Any,
     ) -> None:
         """Initialise the gallery shell component, normalising variant objects.
@@ -153,13 +155,9 @@ class GalleryShell(components.BlockComponent):
         brand_url = self.brand_url or DEFAULT_BRAND_URL
         resolved_theme = self.active_theme or DEFAULT_ACTIVE_THEME
         nodes = list(self.nodes) if self.nodes is not None else []
-        breadcrumbs = (
-            list(self.breadcrumbs) if self.breadcrumbs is not None else []
-        )
+        breadcrumbs = list(self.breadcrumbs) if self.breadcrumbs is not None else []
         themes = list(self.themes) if self.themes is not None else []
-        search_index = (
-            list(self.search_index) if self.search_index is not None else []
-        )
+        search_index = list(self.search_index) if self.search_index is not None else []
         has_topbar_slot = bool(self.slots and self.slots.get("topbar"))
         has_sidebar_slot = bool(self.slots and self.slots.get("sidebar"))
         has_toolbar_actions_slot = bool(

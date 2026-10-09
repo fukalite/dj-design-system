@@ -2,6 +2,8 @@
 
 import typing
 
+from django.utils import safestring
+
 from dj_design_system import components, parameters, slots
 
 
@@ -90,9 +92,9 @@ class Sidebar(components.BlockComponent):
 
     def __init__(
         self,
-        content: str | None = None,
+        content: safestring.SafeString | str | None = None,
         *,
-        slots: dict[str, typing.Any] | None = None,
+        slots: dict[str, safestring.SafeString | str] | None = None,
         **kwargs: typing.Any,
     ) -> None:
         """Initialise the sidebar component, normalising variant objects.
@@ -132,9 +134,7 @@ class Sidebar(components.BlockComponent):
         brand_url = self.brand_url or DEFAULT_BRAND_URL
         aria_label = self.aria_label or DEFAULT_ARIA_LABEL
         nodes = list(self.nodes) if self.nodes is not None else []
-        search_index = (
-            list(self.search_index) if self.search_index is not None else []
-        )
+        search_index = list(self.search_index) if self.search_index is not None else []
         has_header_slot = bool(self.slots and self.slots.get("header"))
         has_footer_slot = bool(self.slots and self.slots.get("footer"))
         has_content = bool(self.content and str(self.content).strip())

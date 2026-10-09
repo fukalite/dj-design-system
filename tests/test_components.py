@@ -385,7 +385,7 @@ class TestBlockComponentSafeStringAndTemplateFallback:
         rendered = comp.render()
         assert "Unbound" in rendered
 
-    def test_init_subclass_auto_resolves_colocated_template_without_registry(
+    def test_render_lazily_resolves_colocated_template_without_registry(
         self,
     ) -> None:
         import inspect
@@ -395,17 +395,20 @@ class TestBlockComponentSafeStringAndTemplateFallback:
         from dj_design_system.components.elements.badge import badge as badge_module
 
         badge_py = Path(badge_module.__file__).resolve()
+
+        class StandaloneBadge(TagComponent):
+            __module__ = "dj_design_system.components.elements.badge.badge"
+            label = StrParam("Label", default="Standalone")
+
+            class Meta:
+                name = "badge"
+
+        assert "_template_name" not in StandaloneBadge.__dict__
         with patch.object(inspect, "getfile", return_value=str(badge_py)):
+            rendered = StandaloneBadge(label="Standalone").render()
 
-            class StandaloneBadge(TagComponent):
-                __module__ = "dj_design_system.components.elements.badge.badge"
-                label = StrParam("Label", default="Standalone")
-
-                class Meta:
-                    name = "badge"
-
+        assert "Standalone" in rendered
         assert (
             StandaloneBadge.__dict__.get("_template_name")
             == "dj_design_system/components/elements/badge/badge.html"
         )
-        assert "Standalone" in StandaloneBadge(label="Standalone").render()
