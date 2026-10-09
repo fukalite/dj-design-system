@@ -307,7 +307,7 @@ class TestSidebarRenderingAndTemplate:
 
         _make_registry()
         direct_html = sidebar_module.Sidebar(
-            content="<div data-extra-body>Extra body</div>",
+            content=safestring.SafeString("<div data-extra-body>Extra body</div>"),
             nodes=_make_sample_nodes(),
         ).render()
         assert "<div data-extra-body>Extra body</div>" in direct_html

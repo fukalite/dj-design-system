@@ -5,12 +5,17 @@ import pathlib
 import re
 import shutil
 import subprocess
-import tomllib
 import typing
 
 import pytest
 
 from dj_design_system import finders
+
+
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib  # type: ignore[import-not-found,no-redef]
 
 
 ROOT_DIR = pathlib.Path(__file__).resolve().parent.parent

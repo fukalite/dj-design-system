@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Any
 
 from django.template.loader import render_to_string
-from django.utils.html import format_html
+from django.utils.html import conditional_escape, format_html
 from django.utils.safestring import SafeString, mark_safe
 
 from dj_design_system.parameters import BaseParam
@@ -297,11 +297,15 @@ class BlockComponent(BaseComponent):
         **kwargs,
     ):
         normalized_content = (
-            SafeString(content) if content is not None else SafeString("")
+            (content if isinstance(content, SafeString) else conditional_escape(content))
+            if content is not None
+            else mark_safe("")
         )
         if self.has_slots():
             normalized_slots: dict[str, SafeString] = {
-                name: SafeString(val) if val else SafeString("")
+                name: (val if isinstance(val, SafeString) else conditional_escape(val))
+                if val
+                else mark_safe("")
                 for name, val in (slots or {}).items()
             }
             tag_name = get_meta_name(type(self)) or derive_name(type(self))

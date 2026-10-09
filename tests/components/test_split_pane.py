@@ -219,7 +219,7 @@ class TestSplitPaneParametersAndContext:
     def test_slots_and_direct_content_fallback_and_surface_flags(self) -> None:
         """Verify primary slot overrides content fallback, and empty surface strings disable surface attributes."""
         comp_fallback = split_pane_module.SplitPane(
-            content="<p>Direct primary</p>",
+            content=safestring.SafeString("<p>Direct primary</p>"),
             primary_surface="",
             secondary_surface="",
             primary_label="Left",
@@ -237,10 +237,10 @@ class TestSplitPaneParametersAndContext:
         assert ctx_fallback["resolved_resizer_label"] == "Resize panes"
 
         comp_slots = split_pane_module.SplitPane(
-            content="<p>Ignored fallback</p>",
+            content=safestring.SafeString("<p>Ignored fallback</p>"),
             slots={
-                "primary": "<p>Slot primary</p>",
-                "secondary": "<p>Slot secondary</p>",
+                "primary": safestring.SafeString("<p>Slot primary</p>"),
+                "secondary": safestring.SafeString("<p>Slot secondary</p>"),
             },
         )
         assert isinstance(comp_slots.slots["primary"], safestring.SafeString)

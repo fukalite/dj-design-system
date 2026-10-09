@@ -323,16 +323,20 @@ class TestBlockComponentSafeStringAndTemplateFallback:
     """Verify BlockComponent.__init__ normalises content/slots and render() falls back to template_name."""
 
     def test_block_component_normalizes_content_to_safestring(self) -> None:
-        from django.utils.safestring import SafeString
+        from django.utils.safestring import SafeString, mark_safe
 
         from dj_design_system.components import BlockComponent
 
         class SampleBlock(BlockComponent):
             template_format_str = "<div>{content}</div>"
 
-        comp = SampleBlock(content="<span>Hi</span>")
-        assert isinstance(comp.content, SafeString)
-        assert comp.content == "<span>Hi</span>"
+        safe_comp = SampleBlock(content=mark_safe("<span>Hi</span>"))
+        assert isinstance(safe_comp.content, SafeString)
+        assert safe_comp.content == "<span>Hi</span>"
+
+        plain_comp = SampleBlock(content="<script>evil()</script>")
+        assert isinstance(plain_comp.content, SafeString)
+        assert plain_comp.content == "&lt;script&gt;evil()&lt;/script&gt;"
 
         empty_comp = SampleBlock()
         assert isinstance(empty_comp.content, SafeString)
@@ -341,7 +345,7 @@ class TestBlockComponentSafeStringAndTemplateFallback:
     def test_slotted_block_component_normalizes_slots_and_exposes_slots_dict(
         self,
     ) -> None:
-        from django.utils.safestring import SafeString
+        from django.utils.safestring import SafeString, mark_safe
 
         from dj_design_system.components import BlockComponent
         from dj_design_system.slots import Slot
@@ -353,8 +357,8 @@ class TestBlockComponentSafeStringAndTemplateFallback:
                 slots = {"header": Slot(required=False)}
 
         comp = SlottedSample(
-            content="<p>Body</p>",
-            slots={"header": "<h1>Header</h1>"},
+            content=mark_safe("<p>Body</p>"),
+            slots={"header": mark_safe("<h1>Header</h1>")},
         )
         assert isinstance(comp.slots["header"], SafeString)
         assert isinstance(comp.content, SafeString)
@@ -362,6 +366,12 @@ class TestBlockComponentSafeStringAndTemplateFallback:
         assert ctx["slots"] == comp.slots
         assert ctx["header"] == "<h1>Header</h1>"
         assert ctx["content"] == "<p>Body</p>"
+
+        unsafe_comp = SlottedSample(
+            slots={"header": "<img src=x onerror=alert(1)>"},
+        )
+        assert isinstance(unsafe_comp.slots["header"], SafeString)
+        assert unsafe_comp.slots["header"] == "&lt;img src=x onerror=alert(1)&gt;"
 
     def test_render_falls_back_to_explicit_template_name_without_private_attr(
         self,

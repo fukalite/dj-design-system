@@ -290,7 +290,7 @@ class TestToolbarRenderingAndTemplate:
         assert '<button type="button" data-custom-action>Act</button>' in html
 
         direct_html = toolbar_module.Toolbar(
-            content="<span data-extra-content>Trailing</span>",
+            content=safestring.SafeString("<span data-extra-content>Trailing</span>"),
             show_search=False,
             show_menu_toggle=False,
         ).render()

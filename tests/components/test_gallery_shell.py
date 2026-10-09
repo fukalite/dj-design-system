@@ -279,7 +279,7 @@ class TestGalleryShellParametersAndContext:
     def test_main_content_falls_back_to_block_content_when_main_slot_empty(self) -> None:
         """Verify main_content falls back to self.content when main slot is not provided."""
         comp = gallery_shell_module.GalleryShell(
-            content="<section>Python Body</section>",
+            content=safestring.SafeString("<section>Python Body</section>"),
             brand_name="",
             brand_url="",
             active_theme="",
@@ -385,7 +385,7 @@ class TestGalleryShellRenderingAndTemplate:
 
         _make_registry()
         direct_html = gallery_shell_module.GalleryShell(
-            content="<div data-direct-main>Direct Python Content</div>",
+            content=safestring.SafeString("<div data-direct-main>Direct Python Content</div>"),
         ).render()
         assert "<div data-direct-main>Direct Python Content</div>" in direct_html
 

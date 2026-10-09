@@ -168,7 +168,7 @@ class TestProseParametersAndContext:
 
     def test_block_content_fallback_when_html_omitted(self) -> None:
         """Verify block content is wrapped as SafeString and used when html parameter is empty."""
-        comp = prose_module.Prose(content="<p>Block fallback</p>")
+        comp = prose_module.Prose(content=safestring.SafeString("<p>Block fallback</p>"))
         assert isinstance(comp.content, safestring.SafeString)
         ctx = comp.get_context()
         assert isinstance(ctx["prose_html"], safestring.SafeString)
