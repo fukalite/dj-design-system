@@ -14,16 +14,16 @@
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Shell Chrome, Non-Duplicated Sidebar Header, Mobile Breadcrumb Flyout & Split-Pane Framing
-- [ ] **Shell & Sidebar Layer (`gallery_shell`, `sidebar`):**
+- [x] **Shell & Sidebar Layer (`gallery_shell`, `sidebar`):**
   - Remove duplicate `brand_name` from `dds__sidebar` invocation in `gallery_shell.html` while keeping `dds__sidebar`'s `brand_name` parameter functional for standalone usage.
   - Fix `[data-sidebar-brand]` colour token in `sidebar.css` to use `var(--dds-text-prominent-color)` on `[data-surface="sidebar"]` and ensure mobile drawer header contrast is crisp.
-- [ ] **Responsive Breadcrumb Ellipsis Flyout (`elements/breadcrumb`):**
+- [x] **Responsive Breadcrumb Ellipsis Flyout (`elements/breadcrumb`):**
   - Enhance `breadcrumb.py`, `breadcrumb.html`, and `breadcrumb.css` so paths with `> 2` crumbs render a mobile-only (`< 768px`) `[data-breadcrumb-ellipsis]` `<dds-popout>` menu containing intermediate crumbs while keeping full inline crumbs on desktop/wide viewports.
-- [ ] **Responsive Topbar Tabs & Full-Bleed Split-Pane (`domain/split_pane`, `domain/gallery_shell`):**
+- [x] **Responsive Topbar Tabs & Full-Bleed Split-Pane (`domain/split_pane`, `domain/gallery_shell`):**
   - Hide topbar Documentation/Sandbox tab switcher in `gallery_shell.css` / `split_pane.css` at `@media (min-width: 100rem)` (`1600px`) when both panes are side-by-side.
   - Refactor `split_pane.css` from an inset bordered card to a full-bleed split container with a flush pane header strip (`DOCUMENTATION` / `SANDBOX`) and consistent page padding matching `index.html`, `folder.html`, and `documentation.html`.
-- [ ] **Tests & Review (`dds-reviewer`):** Update unit and E2E tests (`test_breadcrumb.py`, `test_gallery_shell.py`, `test_split_pane.py`), run `dds-reviewer`, and verify `just check`, `just typecheck`, and `just test`.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] **Tests & Review (`dds-reviewer`):** Update unit and E2E tests (`test_breadcrumb.py`, `test_gallery_shell.py`, `test_split_pane.py`), run `dds-reviewer`, and verify `just check`, `just typecheck`, and `just test`.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3: Documentation Typography, Section Overlines, Params Table & Sandbox Layout
 - [ ] **Documentation & Typography Layer (`prose`, `usage_example`, `params_table`, `variant_view`, `component.html`):**

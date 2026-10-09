@@ -19,6 +19,7 @@ An accessible hierarchical trail navigation primitive for displaying location co
 - Renders `<nav class="dds-breadcrumb" aria-label="...">` wrapping `<ol class="l-cluster">`.
 - The final item in `items` is always normalized in `get_context()` as the active page (`is_current=True`, `url=None`) and rendered as `<span aria-current="page">`.
 - Preceding items with a `url` or `href` render as `<a href="...">`; items without a URL render as `<span>`.
+- When more than two items are present, intermediate crumbs (`items[1:-1]`) collapse on narrow viewports (`<= 48rem`) behind a `<dds-popout>` ellipsis trigger (`[data-breadcrumb-ellipsis]`) that opens a flyout menu (`[data-breadcrumb-flyout]`).
 
 ## Example Usage
 

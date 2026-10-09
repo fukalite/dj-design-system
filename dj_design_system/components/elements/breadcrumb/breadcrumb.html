@@ -2,7 +2,7 @@
 <nav class="dds-breadcrumb" aria-label="{{ aria_label }}">
   <ol class="l-cluster">
     {% for item in normalized_items %}
-      <li>
+      <li{% if not forloop.first and not forloop.last %} data-breadcrumb-collapsible{% endif %}>
         {% if not forloop.first %}
           {% dds__icon name=separator_icon size="xs" %}
         {% endif %}
@@ -29,6 +29,23 @@
           </span>
         {% endif %}
       </li>
+      {% if forloop.first and has_collapsed_items %}
+        <li data-breadcrumb-ellipsis-item>
+          {% dds__icon name=separator_icon size="xs" %}
+          <dds-popout class="dds-popout" data-align="start" data-state="closed">
+            <button type="button" data-popout-trigger data-breadcrumb-ellipsis aria-haspopup="true" aria-expanded="false" aria-label="Show intermediate breadcrumbs">&hellip;</button>
+            <div data-popout-menu data-surface="popout" data-breadcrumb-flyout role="menu" aria-label="Intermediate breadcrumbs" hidden>
+              {% for collapsed in collapsed_items %}
+                {% if collapsed.has_url %}
+                  <a href="{{ collapsed.url }}" role="menuitem">{{ collapsed.label }}</a>
+                {% else %}
+                  <span role="menuitem">{{ collapsed.label }}</span>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </dds-popout>
+        </li>
+      {% endif %}
     {% endfor %}
   </ol>
 </nav>

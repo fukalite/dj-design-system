@@ -2,11 +2,12 @@
   dds-split-pane,
   .dds-split-pane {
     --_split-pane-bg-color: var(--dds-surface-bg-color);
-    --_split-pane-body-padding: var(--dds-space-inset-default);
+    --_split-pane-body-padding: var(--dds-space-inset-page);
+    --_split-pane-body-padding-compact: var(--dds-space-inset-default);
     --_split-pane-border-color: var(--dds-surface-border-color);
-    --_split-pane-border-radius: var(--dds-control-border-radius);
+    --_split-pane-border-radius: var(--dds-surface-border-radius);
     --_split-pane-border-style: var(--dds-control-border-style);
-    --_split-pane-border-width: var(--dds-control-border-width);
+    --_split-pane-border-width: var(--dds-surface-border-width);
     --_split-pane-focus-outline-color: var(--dds-state-focus-outline-color);
     --_split-pane-focus-outline-offset: var(--dds-state-focus-outline-offset);
     --_split-pane-focus-outline-style: var(--dds-state-focus-outline-style);
@@ -14,22 +15,23 @@
     --_split-pane-font: var(--dds-text-body-font);
     --_split-pane-font-size: var(--dds-text-body-size);
     --_split-pane-font-weight: var(--dds-text-body-weight);
-    --_split-pane-header-bg-color: var(--dds-surface-topbar-bg-color);
-    --_split-pane-header-border-color: var(--dds-surface-topbar-border-color);
+    --_split-pane-header-bg-color: var(--dds-surface-stage-bg-color);
+    --_split-pane-header-border-color: var(--dds-surface-border-color);
+    --_split-pane-header-border-width: var(--dds-control-border-width);
     --_split-pane-header-font: var(--dds-text-overline-font);
     --_split-pane-header-font-size: var(--dds-text-overline-size);
     --_split-pane-header-font-weight: var(--dds-text-overline-weight);
     --_split-pane-header-letter-spacing: var(--dds-text-overline-letter-spacing);
     --_split-pane-header-line-height: var(--dds-text-overline-line-height);
-    --_split-pane-header-padding-block: var(--dds-space-xs);
-    --_split-pane-header-padding-inline: var(--dds-space-md);
+    --_split-pane-header-padding-block: var(--dds-space-sm);
+    --_split-pane-header-padding-inline: var(--dds-space-lg);
     --_split-pane-header-text-color: var(--dds-text-muted-color);
     --_split-pane-letter-spacing: var(--dds-text-body-letter-spacing);
     --_split-pane-line-height: var(--dds-text-body-line-height);
     --_split-pane-resizer-active-bg-color: var(--dds-control-accent-color);
     --_split-pane-resizer-bg-color: var(--dds-surface-border-color);
     --_split-pane-resizer-hover-bg-color: var(--dds-state-hover-border-color);
-    --_split-pane-resizer-size: var(--dds-space-2xs);
+    --_split-pane-resizer-size: var(--dds-control-border-width);
     --_split-pane-text-color: var(--dds-text-default-color);
     --_split-pane-transition-duration: var(--dds-state-entry-duration);
     --_split-pane-transition-easing: var(--dds-state-entry-easing);
@@ -42,6 +44,7 @@
     box-sizing: border-box;
     color: var(--_split-pane-text-color);
     display: flex;
+    flex: 1 1 0;
     flex-direction: row;
     font-family: var(--_split-pane-font);
     font-size: var(--_split-pane-font-size);
@@ -88,7 +91,7 @@
     background-color: var(--_split-pane-header-bg-color);
     border-block-end-color: var(--_split-pane-header-border-color);
     border-block-end-style: var(--_split-pane-border-style);
-    border-block-end-width: var(--_split-pane-border-width);
+    border-block-end-width: var(--_split-pane-header-border-width);
     color: var(--_split-pane-header-text-color);
     flex-shrink: 0;
     font-family: var(--_split-pane-header-font);
@@ -111,6 +114,20 @@
     min-inline-size: 0;
     overflow: auto;
     padding: var(--_split-pane-body-padding);
+  }
+
+  dds-split-pane [data-split-pane='secondary'] [data-split-pane-body],
+  .dds-split-pane [data-split-pane='secondary'] [data-split-pane-body] {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+  }
+
+  @media (max-width: 48rem) {
+    dds-split-pane [data-split-pane='primary'] [data-split-pane-body],
+    .dds-split-pane [data-split-pane='primary'] [data-split-pane-body] {
+      padding: var(--_split-pane-body-padding-compact);
+    }
   }
 
   dds-split-pane [data-split-resizer],
