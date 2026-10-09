@@ -412,3 +412,22 @@ class TestBlockComponentSafeStringAndTemplateFallback:
             StandaloneBadge.__dict__.get("_template_name")
             == "dj_design_system/components/elements/badge/badge.html"
         )
+
+        from dj_design_system.components.elements.button import button as button_module
+
+        button_py = Path(button_module.__file__).resolve()
+
+        class ChildButton(StandaloneBadge):
+            __module__ = "dj_design_system.components.elements.button.button"
+
+            class Meta:
+                name = "button"
+
+        with patch.object(inspect, "getfile", return_value=str(button_py)):
+            child_rendered = ChildButton(label="ChildBtn").render()
+
+        assert 'class="dds-button"' in child_rendered
+        assert (
+            ChildButton.__dict__.get("_template_name")
+            == "dj_design_system/components/elements/button/button.html"
+        )
