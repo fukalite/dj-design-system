@@ -214,7 +214,8 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
     )
     all_js_urls = list(
         dict.fromkeys(
-            theme_js_bundles
+            canvas_renderer_service.global_js_urls()
+            + theme_js_bundles
             + [media_service.resolve_asset_url(path=p) for p in theme_js]
             + app_js_bundles
             + [media_service.resolve_asset_url(path=p) for p in app_js]

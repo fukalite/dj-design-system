@@ -14,7 +14,7 @@ jobs:
     environment: pypi
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Full history needed so hatch-vcs reads the release tag as the version
           fetch-depth: 0
