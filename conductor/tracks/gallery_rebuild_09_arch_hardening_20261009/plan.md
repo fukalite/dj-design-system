@@ -47,12 +47,12 @@
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 5: Inbuilt Integration Test Harness & CI Wiring for Built-in `dds` Components
-- [ ] **Task 5.1: Enhance `IterationEngine` & `PlaywrightAssessmentPlugin` for `gallery.py` Variants (`dj_design_system/testing/engine.py`, `dj_design_system/testing/plugins.py`)**
+- [x] **Task 5.1: Enhance `IterationEngine` & `PlaywrightAssessmentPlugin` for `gallery.py` Variants (`dj_design_system/testing/engine.py`, `dj_design_system/testing/plugins.py`)**
   - **Red Phase:** Add unit tests in `tests/test_testing_engine.py` and `tests/test_testing_plugins.py` asserting that `IterationEngine` yields `"basic"`, `"maximal"`, and all component `gallery_config.variants` when `variants=None`, and that `PlaywrightAssessmentPlugin._navigate_to_component` passes `variant=<name>` in the `/_canvas/` query string for named variants.
   - **Green Phase:** Update `IterationEngine.get_combinations()` in `dj_design_system/testing/engine.py` and `PlaywrightAssessmentPlugin._navigate_to_component()` in `dj_design_system/testing/plugins.py`.
-- [ ] **Task 5.2: Configure Internal Component Library Harness (`tests/settings.py`, `tests/e2e/test_package_components.py`, `example_project/tests/test_components.py`)**
+- [x] **Task 5.2: Configure Internal Component Library Harness (`tests/settings.py`, `tests/e2e/test_package_components.py`, `example_project/tests/test_components.py`)**
   - **Red Phase:** Configure `DJ_DESIGN_SYSTEM["GALLERY_THEMES"]` in `tests/settings.py` with `"light"` (`gallery-theme-light`) and `"dark"` (`gallery-theme-dark`, `canvas_background: "dark-grey"`), update `tests/e2e/test_package_components.py` to assert all 26 internal `dj_design_system` components and their `gallery.py` variants are exercised across both themes via `AccessibilityPlugin` and `HTMLValidationPlugin`, and filter `is_internal` components out of `example_project/tests/test_components.py`.
   - **Green Phase:** Run `pytest tests/e2e/test_package_components.py` and fix any accessibility (WCAG contrast / ARIA) or HTML validation issues uncovered across any built-in component variant in light or dark mode.
-- [ ] **Task 5.3: Wire Harness into `justfile` & CI (`.github/workflows/ci.yml`, `justfile`)**
+- [x] **Task 5.3: Wire Harness into `justfile` & CI (`.github/workflows/ci.yml`, `justfile`)**
   - Add a dedicated `test-components` recipe in `justfile`, verify `just e2e` and `.github/workflows/ci.yml` execute the internal component assessment suite in CI, and run `dds-reviewer`, `just build-ts`, `just check`, `just typecheck`, `just test`, and `just e2e`.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)

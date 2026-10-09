@@ -6,6 +6,7 @@ from dj_design_system.testing.plugins import (
     AccessibilityPlugin,
     HTMLValidationPlugin,
 )
+from tests.settings import INTERNAL_COMPONENT_GALLERY_THEMES
 
 
 # Axe rules about whole pages; a component canvas is a fragment, not a page.
@@ -18,8 +19,12 @@ STANDALONE_SUBCOMPONENT_EXEMPTIONS = {
 }
 
 
-def _run_assessment(page, gallery_url, components, *, disabled_rules) -> None:
-    engine = IterationEngine(components=components)
+def _run_assessment(page, gallery_url, components, *, disabled_rules) -> int:
+    engine = IterationEngine(
+        components=components,
+        themes=list(INTERNAL_COMPONENT_GALLERY_THEMES.keys()),
+    )
+    combinations = list(engine.get_combinations())
     engine.run_plugins(
         [
             AccessibilityPlugin(
@@ -28,18 +33,25 @@ def _run_assessment(page, gallery_url, components, *, disabled_rules) -> None:
             HTMLValidationPlugin(page=page, base_url=gallery_url),
         ]
     )
+    return len(combinations)
 
 
 @pytest.mark.e2e
-def test_all_standard_components(page, base_url):
+def test_all_standard_components(page, base_url, settings):
     """
     Test all standard, non-abstract components shipped by the dj-design-system package itself.
-    This runs the accessibility and HTML validation plugins across all built-in components.
+    This runs the accessibility and HTML validation plugins across all 26 built-in components
+    and all of their gallery.py variants across light and dark themes.
     """
-    components = component_registry.list_by_app("dj_design_system")
+    settings.DJ_DESIGN_SYSTEM = {
+        "GALLERY_THEMES": INTERNAL_COMPONENT_GALLERY_THEMES,
+        "GALLERY_DEFAULT_THEME": "light",
+    }
 
-    if not components:
-        pytest.skip("No standard components shipped by the main package yet.")
+    components = component_registry.list_by_app("dj_design_system")
+    assert len(components) >= 26, (
+        f"Expected at least 26 built-in dj_design_system components, found {len(components)}"
+    )
 
     gallery_url = f"{base_url}/dds"
     top_level = [
@@ -47,19 +59,22 @@ def test_all_standard_components(page, base_url):
         for c in components
         if c.qualified_name not in STANDALONE_SUBCOMPONENT_EXEMPTIONS
     ]
-    _run_assessment(
-        page,
-        gallery_url,
-        top_level,
+    total_combinations = _run_assessment(
+        page=page,
+        gallery_url=gallery_url,
+        components=top_level,
         disabled_rules=PAGE_LEVEL_RULES,
     )
 
     for qualified_name, extra_rules in STANDALONE_SUBCOMPONENT_EXEMPTIONS.items():
         sub_components = [c for c in components if c.qualified_name == qualified_name]
         if sub_components:
-            _run_assessment(
-                page,
-                gallery_url,
-                sub_components,
+            total_combinations += _run_assessment(
+                page=page,
+                gallery_url=gallery_url,
+                components=sub_components,
                 disabled_rules=PAGE_LEVEL_RULES + extra_rules,
             )
+
+    # Every component has at least basic + maximal + custom gallery.py variants across 2 themes
+    assert total_combinations > len(components) * 4

@@ -50,6 +50,11 @@ e2e:
     @just build-ts
     uv run --no-sync pytest tests/e2e/ -m "e2e and not visual"
 
+# Run the built-in dds component accessibility and HTML validation assessment harness
+test-components:
+    @just build-ts
+    uv run --no-sync pytest tests/e2e/test_package_components.py -m e2e
+
 # Run the gallery visual regression suite directly (used by CI inside the pinned container)
 visual-run *args:
     @just build-ts
