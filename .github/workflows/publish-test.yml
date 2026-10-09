@@ -17,7 +17,7 @@ jobs:
     environment: test-pypi
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Full history needed so hatch-vcs can derive the version from git tags
           fetch-depth: 0
