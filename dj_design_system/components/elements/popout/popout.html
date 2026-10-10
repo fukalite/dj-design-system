@@ -5,5 +5,5 @@
   {% else %}
     <button type="button" data-popout-trigger aria-haspopup="true" aria-expanded="{{ aria_expanded }}"{% if aria_label %} aria-label="{{ aria_label }}"{% endif %}>{% if has_icon %}{% dds__icon name=icon size="sm" %}{% endif %}{% if show_label %}<span>{{ label }}</span>{% endif %}{% if not icon_only %}{% dds__icon name="chevron-down" size="xs" %}{% endif %}</button>
   {% endif %}
-  <div data-popout-menu data-surface="popout" role="menu"{% if resolved_menu_label %} aria-label="{{ resolved_menu_label }}"{% endif %}{% if not open %} hidden{% endif %}>{{ content }}</div>
+  <div data-popout-menu data-surface="popout" role="menu"{% if resolved_menu_label %} aria-label="{{ resolved_menu_label }}"{% endif %}{% if not open %} hidden{% endif %}>{% if slots.menu %}{{ slots.menu }}{% else %}{{ content }}{% endif %}</div>
 </dds-popout>

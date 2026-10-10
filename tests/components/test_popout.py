@@ -20,7 +20,7 @@ from dj_design_system.components.elements.popout_option import (
 )
 from dj_design_system.services import canvas as canvas_service
 from dj_design_system.services import registry as registry_service
-from dj_design_system.services import slot_node
+from dj_design_system.services import slot_node as slot_node_service
 from tests import conftest
 
 
@@ -64,7 +64,7 @@ def _render_template(
     engine = template.engines["django"].engine
     lib = template.Library()
     reg.register_templatetags(library=lib)
-    lib.tag(name="slot", compile_function=slot_node.do_slot)
+    lib.tag(name="slot", compile_function=slot_node_service.do_slot)
     previous = engine.template_libraries.get("design_components")
     engine.template_libraries["design_components"] = lib
     try:
@@ -167,7 +167,7 @@ class TestPopoutParametersAndContext:
         assert ctx["has_icon"] is False
         assert ctx["show_label"] is True
         assert ctx["aria_label"] is None
-        assert ctx["slots"] == {"trigger": ""}
+        assert ctx["slots"] == {"trigger": "", "menu": ""}
         assert ctx["content"] == ""
 
     def test_open_end_aligned_with_menu_label_and_icon_context(self) -> None:
@@ -203,10 +203,12 @@ class TestPopoutParametersAndContext:
         assert ctx["aria_label"] == "More actions"
 
     def test_trigger_slot_declaration_and_invalid_choices(self) -> None:
-        """Verify trigger slot metadata and choice validation for icon and align."""
+        """Verify trigger and menu slot metadata and choice validation for icon and align."""
         slots_spec = popout_module.Popout.get_slots()
         assert "trigger" in slots_spec
         assert slots_spec["trigger"].required is False
+        assert "menu" in slots_spec
+        assert slots_spec["menu"].required is False
 
         params = popout_module.Popout.get_params()
         assert params["icon"].choices == ["", *icon_module.ICON_NAMES]

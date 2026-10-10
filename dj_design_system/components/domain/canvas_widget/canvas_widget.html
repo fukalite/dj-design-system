@@ -1,0 +1,29 @@
+{% load design_components %}
+<dds-canvas-widget class="dds-canvas-widget" data-canvas-id="{{ resolved_canvas_id }}" data-mode="{{ resolved_mode }}" data-viewport="{{ resolved_viewport }}" data-background="{{ resolved_background }}" data-zoom="{{ resolved_zoom }}">
+  {% if show_mode_toggles %}
+    <div data-canvas-toggles class="l-cluster" role="group" aria-label="Canvas view mode">
+      <button type="button" data-canvas-mode="preview" aria-pressed="{{ preview_aria_pressed }}" title="Preview">{% dds__icon name="eye" size="xs" %}<span>Preview</span></button>
+      {% if has_source_code %}
+        <button type="button" data-canvas-mode="code" aria-pressed="{{ code_aria_pressed }}" title="Template Source">{% dds__icon name="code" size="xs" %}<span>Template</span></button>
+      {% endif %}
+      {% if has_rendered_html %}
+        <button type="button" data-canvas-mode="html" aria-pressed="{{ html_aria_pressed }}" title="Output HTML">{% dds__icon name="file-code" size="xs" %}<span>HTML</span></button>
+      {% endif %}
+    </div>
+  {% endif %}
+  <div data-canvas-stage data-surface="stage"{% if not is_preview_mode %} hidden{% endif %}>
+    <div data-canvas-viewport>
+      <iframe data-canvas-iframe data-canvas-id="{{ resolved_canvas_id }}"{% if has_srcdoc %} srcdoc="{{ iframe_srcdoc }}"{% endif %}{% if has_src %} src="{{ iframe_src }}"{% endif %}{% if has_sandbox_attrs %} sandbox="{{ sandbox_attrs }}"{% endif %} loading="lazy" title="{{ resolved_title }}"></iframe>
+    </div>
+  </div>
+  {% if has_source_code %}
+    <div data-canvas-panel="code" data-surface="code"{% if not is_code_mode %} hidden{% endif %}>
+      {% dds__code_block code=normalized_source_code language="django" title="Template Source" %}
+    </div>
+  {% endif %}
+  {% if has_rendered_html %}
+    <div data-canvas-panel="html" data-surface="code"{% if not is_html_mode %} hidden{% endif %}>
+      {% dds__code_block code=normalized_rendered_html language="html" title="Output HTML" %}
+    </div>
+  {% endif %}
+</dds-canvas-widget>
