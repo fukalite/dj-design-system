@@ -20,6 +20,9 @@
   --gallery-border: #c9cdd4;
   --gallery-text: #212529;
   --gallery-text-muted: #495057;
+  --gallery-input-bg: #ffffff;
+  --gallery-input-text: #212529;
+  --gallery-input-border: #c9cdd4;
   --gallery-accent: #4263eb;
   --gallery-accent-hover: #3b5bdb;
   --gallery-pane-border: #c9cdd4;
@@ -69,6 +72,9 @@
   --gallery-border: #c9cdd4;
   --gallery-text: #212529;
   --gallery-text-muted: #495057;
+  --gallery-input-bg: #ffffff;
+  --gallery-input-text: #212529;
+  --gallery-input-border: #c9cdd4;
   --gallery-danger: #e03131;
   --gallery-tabs-active-bg: #2d2d42;
   --gallery-tabs-active-text: #ffffff;
@@ -88,7 +94,11 @@
   --gallery-content-bg: #1e1e2e;
   --gallery-border: #313244;
   --gallery-text: #cdd6f4;
-  --gallery-text-muted: #6c7086;
+  /* #8c95a8 keeps muted text at 5.4:1 on --gallery-content-bg (WCAG AA). */
+  --gallery-text-muted: #8c95a8;
+  --gallery-input-bg: #11111b;
+  --gallery-input-text: #cdd6f4;
+  --gallery-input-border: #313244;
   --gallery-accent: #89b4fa;
   --gallery-accent-hover: #74c7ec;
   --gallery-pane-border: #313244;
@@ -1572,12 +1582,14 @@ h3.gallery-docs__section-heading:first-child {
 /* Inputs, textareas and selects inside the sandbox form */
 .gallery-params-form__field input[type="text"],
 .gallery-params-form__field input[type="number"],
+.gallery-params-form__field input[type="date"],
 .gallery-params-form__field textarea,
 .gallery-params-form__field select {
   font-family: var(--gallery-font);
   font-size: 13px;
-  color: var(--gallery-text);
-  border: 1px solid var(--gallery-border);
+  background: var(--gallery-input-bg);
+  color: var(--gallery-input-text);
+  border: 1px solid var(--gallery-input-border);
   border-radius: var(--gallery-radius);
   padding: 5px 9px;
   width: 100%;
@@ -1587,6 +1599,10 @@ h3.gallery-docs__section-heading:first-child {
     box-shadow var(--gallery-transition);
   outline: none;
   resize: vertical;
+}
+
+.gallery-params-form__field input[type="checkbox"] {
+  accent-color: var(--gallery-accent);
 }
 
 .gallery-params-form__field input[type="text"]:focus,
