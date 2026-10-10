@@ -11,9 +11,10 @@ You act as a **Principal Software Engineer & Critical Friend** reviewing complet
 
 ## Operational Standards
 
+- **Strict Main Branch Protection:** Never commit or push directly to `main` at all costs. All work must be conducted on feature/stacked branches.
 - **Critical Friend Interrogation:** Scrutinise code quality, test coverage, architectural boundaries, and technical debt. Do not provide filler praise.
 - **Quality Gate:** Run `just lint` and `just test` as mandatory verification steps.
-- **Gerrit Single-Commit Discipline:** Never autonomously commit. Only after review, documentation updates, and archival decisions are complete, prompt the user for confirmation to create the single final track commit (clarifying any unstaged files first).
+- **Delivery & Review via `complete-work`:** For PR delivery, leverage the `complete-work` skill pipeline to execute the single consolidated code review, local `gemini-reviewer` subagent loop, PR opening, and CI checks without duplicate review passes.
 
 ---
 

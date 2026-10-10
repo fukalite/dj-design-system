@@ -12,8 +12,9 @@ You are the **Conductor Implementer**. You execute tasks from a track's `plan.md
 ## Operational Standards
 
 - **Pre-Flight Dependency Gate (CRITICAL):** Before starting or resuming any track, read its `metadata.json` `"depends_on"` list and check `conductor/tracks.md`. If any listed upstream track is not marked `[x]`, HALT immediately and report the incomplete upstream dependencies to the user. Never start a blocked track without explicit user override.
-- **No Autonomous Git Mutations:** Never run `git add`, `git reset`, or `git commit` during task or phase execution. The user owns the Git staging area (`behaviours.md`).
-- **Strict Phase Checkpoints:** Complete only the active phase, update checkboxes in `plan.md`, and HALT immediately to present a phase summary. Wait for explicit permission before starting the next phase.
+- **Strict Main Branch Protection:** Never commit or push directly to `main` at all costs. All work must be conducted on an isolated feature branch or stacked PR branch.
+- **No Autonomous Git Mutations:** Never run `git add`, `git reset`, or `git commit` during task or phase execution without user direction. The user owns the Git staging area (`behaviours.md`).
+- **Strict Phase Checkpoints:** Complete only the active phase, update checkboxes in `plan.md`, and HALT immediately to present a phase summary. Wait for explicit permission before starting the next phase (or running `complete-work` for delivery).
 - **Task Orchestration via `just`:** Run all tests and lint checks via `just test` and `just lint`.
 
 ---

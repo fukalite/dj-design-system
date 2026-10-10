@@ -10,6 +10,7 @@
 4.  **High Code Coverage:** Aim for >80% code coverage for all modules
 5.  **User Experience First:** Every decision should prioritize user experience
 6.  **Work in the open:** Use tools the user can see and replicate. Use `just` commands where possible: e.g. `just test`; NEVER use `pytest`
+7.  **NEVER Commit Directly to Main:** Under no circumstances must commits or pushes ever be made directly to `main`. All work must be conducted on an isolated feature branch or stacked PR branch, pushed with explicit refspecs (`git push -u origin <branch>:<branch>`), and landed exclusively through Pull Requests. If on `main`, immediately branch off before staging or committing.
 
 ## Task Workflow
 
@@ -221,6 +222,16 @@ that also concludes a phase in `plan.md`.
 10. **Announce Completion:** Inform the user that the phase is complete and the
     checkpoint has been created, with the detailed verification report attached
     as a git note.
+
+11. **Phase Code Review & Delivery Protocol (`complete-work`):**
+    When delivering phase work or preparing a Pull Request:
+    - **Single Review Pass (No Duplication):** The code review step is executed once via the `complete-work` skill pipeline, preventing duplicate review passes:
+      1. Ensure working on a feature branch (NEVER on `main`).
+      2. Initial phase commit with passing tests.
+      3. Run `/code-review` skill once to apply styleguide refactorings, then commit fixes.
+      4. Run local `gemini-reviewer` subagent loop, applying fixes and re-auditing until an all-clear verdict is issued.
+      5. Push branch with explicit refspec (`git push -u origin <branch>:<branch>`) and create PR (draft by default, prompting user).
+      6. Wait for CI checks, trigger `/review` on draft PR, and iterate on remote feedback until all checks are green and zero comments remain.
 
 ### Quality Gates
 
