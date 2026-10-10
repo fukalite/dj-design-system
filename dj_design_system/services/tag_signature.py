@@ -3,7 +3,7 @@
 from typing import Any, NamedTuple, cast
 
 from dj_design_system.components import BaseComponent, BlockComponent
-from dj_design_system.data import BLOCK_CONTENT_PLACEHOLDER, CanvasSpec
+from dj_design_system.data import CanvasSpec
 from dj_design_system.parameters import (
     BoolParam,
     StrParam,
@@ -245,7 +245,7 @@ def _build_slot_lines(
 
         if required_only and not slot.required:
             continue
-        placeholder = slot.default or f"Sample {name} content"
+        placeholder = slot.default or ""
         lines.append(f'  {{% slot "{name}" %}}{placeholder}{{% endslot %}}')
     return "\n".join(lines) + "\n" if lines else ""
 
@@ -268,7 +268,7 @@ def _build_current_slotted_raw(
     if not slot_lines_parts:
         for name, slot in block_class.get_slots().items():
             if slot.required:
-                placeholder = slot.default or f"Sample {name} content"
+                placeholder = slot.default or ""
                 slot_lines_parts.append(
                     f'  {{% slot "{name}" %}}{placeholder}{{% endslot %}}'
                 )
@@ -289,7 +289,7 @@ def _build_current_non_slotted_raw(
     opening += " %}"
 
     if is_block:
-        content = content_val or BLOCK_CONTENT_PLACEHOLDER
+        content = content_val or ""
         raw = f"{opening}{content}{{% end{component_name} %}}"
     else:
         raw = opening
@@ -395,11 +395,7 @@ def _build_sig_raw(
         if args_str:
             opening += f" {args_str}"
         opening += " %}"
-        body = (
-            content_override
-            if content_override is not None
-            else BLOCK_CONTENT_PLACEHOLDER
-        )
+        body = content_override if content_override is not None else ""
         raw = f"{opening}{body}{{% end{component_name} %}}"
         return _format_multiline_example(raw, is_block, component_name)
     else:
@@ -638,18 +634,14 @@ def generate_tag_signature(
                     basic_slot_overrides[override_key]
                 )
             elif slot.required:
-                minimal_slot_params[override_key] = (
-                    slot.default or f"Sample {slot_name} content"
-                )
+                minimal_slot_params[override_key] = slot.default or ""
 
             if override_key in maximal_slot_overrides:
                 maximal_slot_params[override_key] = _unwrap_example(
                     maximal_slot_overrides[override_key]
                 )
             else:
-                maximal_slot_params[override_key] = (
-                    slot.default or f"Sample {slot_name} content"
-                )
+                maximal_slot_params[override_key] = slot.default or ""
     elif is_block:
         if basic_content_override is not None:
             minimal_slot_params["content"] = _unwrap_example(basic_content_override)

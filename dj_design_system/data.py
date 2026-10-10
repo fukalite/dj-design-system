@@ -12,10 +12,6 @@ from dj_design_system.gallery import GalleryConfig, Variant, load_gallery_config
 from dj_design_system.types import FlattenStrategy, NodeType, TagType
 
 
-BLOCK_CONTENT_PLACEHOLDER = "Sample content"
-"""Default content used for block component previews in the canvas and code examples."""
-
-
 @dataclass(frozen=True)
 class CanvasSpec:
     """Specification for rendering a single component inside a canvas.

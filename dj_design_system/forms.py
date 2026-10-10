@@ -6,7 +6,6 @@ import json
 from django import forms
 
 from dj_design_system.components import BaseComponent, BlockComponent
-from dj_design_system.data import BLOCK_CONTENT_PLACEHOLDER
 from dj_design_system.parameters.base import (
     BoolParam,
     DateParam,
@@ -71,7 +70,7 @@ def build_component_form(component_class: type[BaseComponent]) -> type[forms.For
     if issubclass(component_class, BlockComponent):
         if component_class.has_slots():
             for slot_name, slot in component_class.get_slots().items():
-                initial = slot.default or f"Sample {slot_name} content"
+                initial = slot.default or ""
                 fields[f"{SLOT_PARAM_PREFIX}{slot_name}"] = forms.CharField(
                     label=slot_name,
                     help_text=slot.description or f"Slot: {slot_name}",
@@ -84,7 +83,7 @@ def build_component_form(component_class: type[BaseComponent]) -> type[forms.For
                 label="content",
                 help_text="Inner block content.",
                 required=False,
-                initial=BLOCK_CONTENT_PLACEHOLDER,
+                initial="",
                 widget=forms.Textarea(attrs={"rows": 1}),
             )
 
