@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import sys
+import typing
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
@@ -109,7 +110,7 @@ def compute_module_name(file_path: str, repo_root: str = "") -> str:
 
 
 def parse_coverage_data(
-    data: dict, repo_root: str = ""
+    data: dict[str, typing.Any], repo_root: str = ""
 ) -> tuple[CoverageTotals, list[ModuleSummary], list[FileSummary]]:
     totals_data = data.get("totals", {})
     files_data = data.get("files", {})
@@ -344,7 +345,7 @@ def find_existing_coverage_comment(
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:
             comments = json.loads(resp.read().decode("utf-8"))
-    except urllib.error.URLError as e:
+    except (urllib.error.URLError, json.JSONDecodeError) as e:
         print(f"Warning: Failed to fetch existing comments: {e}", file=sys.stderr)
         return None
 

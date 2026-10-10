@@ -301,6 +301,18 @@ class TestGitHubApiIntegration:
             is None
         )
 
+    @patch("urllib.request.urlopen")
+    def test_find_existing_coverage_comment_malformed_json(self, mock_urlopen):
+        mock_resp = MagicMock()
+        mock_resp.read.return_value = b"<html><head><title>502 Bad Gateway</title></head></html>"
+        mock_urlopen.return_value.__enter__.return_value = mock_resp
+        assert (
+            coverage_comment.find_existing_coverage_comment(
+                repo="owner/repo", pr_number=42, token="token123"
+            )
+            is None
+        )
+
     @patch.object(coverage_comment, "find_existing_coverage_comment")
     @patch("urllib.request.urlopen")
     def test_post_or_update_comment_updates_existing(self, mock_urlopen, mock_find):
