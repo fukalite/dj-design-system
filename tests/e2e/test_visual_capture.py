@@ -69,7 +69,7 @@ class TestStabilise:
         stabilise(page)
         durations = page.evaluate(
             """() => {
-                const style = getComputedStyle(document.querySelector(".gallery-sidebar"));
+                const style = getComputedStyle(document.querySelector(".dds-sidebar"));
                 return [style.transitionDuration, style.animationDuration];
             }"""
         )
@@ -100,7 +100,7 @@ class TestStabilise:
                 f.id = "shrinking";
                 f.srcdoc = "<p>hi</p>";
                 f.style.height = "150px";
-                document.querySelector(".gallery-content-area").append(f);
+                document.querySelector("[data-shell-main]").append(f);
                 let h = 150;
                 const step = () => {
                     h -= 2;
@@ -138,10 +138,9 @@ class TestStabilise:
                     }, "*")).observe(w), 800);
                 </scr` + `ipt></body></html>`;
                 const f = document.createElement("iframe");
-                f.className = "gallery-canvas gallery-doc-preview__iframe";
                 f.dataset.canvasId = "delayed";
                 f.srcdoc = srcdoc;
-                document.querySelector(".gallery-doc-preview").append(f);
+                document.querySelector(".dds-usage-example [data-usage-preview]").append(f);
             }"""
         )
         stabilise(page)
@@ -156,14 +155,14 @@ class TestStabilise:
         assert state[0] == f"{state[1]}px"
 
     def test_recovers_resize_report_sent_before_listener(self, page, live_server):
-        """If a preview reports its size before gallery-tabs.js is listening,
+        """If a preview reports its size before gallery_shell.js is listening,
         the report is lost and the preview never resizes (issue #111)."""
-        page.route("**/gallery-tabs.js", _delay_listener)
+        page.route("**/gallery_shell.js", _delay_listener)
         record_canvas_reports(page)
         page.goto(f"{live_server.url}/dds/demo_components/alert/")
         stabilise(page)
         heights = page.evaluate(
-            """() => [...document.querySelectorAll("iframe.gallery-doc-preview__iframe")]
+            """() => [...document.querySelectorAll("iframe[data-canvas-id]:not([data-canvas-iframe])")]
                 .map(f => {
                     const w = f.contentDocument.querySelector(".canvas-wrapper");
                     const border = Math.max(0, f.offsetHeight - f.clientHeight);
@@ -179,7 +178,7 @@ class TestStabilise:
         """Without record_canvas_reports a lost first report can't be replayed,
         so the preview's height is never applied. stabilise() must still finish
         rather than wait for a resize that will never come."""
-        page.route("**/gallery-tabs.js", _delay_listener)
+        page.route("**/gallery_shell.js", _delay_listener)
         page.goto(f"{live_server.url}/dds/demo_components/alert/")
         started = time.monotonic()
         stabilise(page)
@@ -217,7 +216,7 @@ class TestFitViewportToContent:
         """The nav tree scrolls inside the sidebar."""
         short_page = _open_short_page(page, live_server)
         clipped = find_clipped_containers(short_page)
-        assert any(item["name"] == "nav.gallery-nav" for item in clipped)
+        assert any(item["name"] == "nav.dds-nav-tree-nav" for item in clipped)
 
     def test_grows_viewport_until_nothing_is_clipped(self, page, live_server):
         short_page = _open_short_page(page, live_server)
@@ -258,7 +257,7 @@ class TestFitViewportToContent:
         page.goto(f"{live_server.url}/dds/")
         stabilise(page)
         clipped = find_clipped_containers(page)
-        assert not any(item["name"] == "nav.gallery-nav" for item in clipped)
+        assert not any(item["name"] == "nav.dds-nav-tree-nav" for item in clipped)
 
     def test_ignores_form_controls(self, page, live_server):
         """A textarea's own scrollback is not layout clipping."""
@@ -269,8 +268,9 @@ class TestFitViewportToContent:
                 const t = document.createElement("textarea");
                 t.rows = 1;
                 t.value = "line\\n".repeat(20);
-                document.querySelector(".gallery-content-area").append(t);
+                document.querySelector("[data-shell-main]").append(t);
             }"""
         )
         clipped = find_clipped_containers(page)
         assert not any(item["name"].startswith("textarea") for item in clipped)
+

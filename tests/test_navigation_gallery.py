@@ -4,6 +4,7 @@ Tests hidden filtering, icon propagation, order sorting, group sub-folders,
 and variant child nodes in the navigation tree.
 """
 
+from dj_design_system.components.domain.nav_tree.nav_tree import NavTree
 from dj_design_system.data import ComponentInfo
 from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.services.navigation import (
@@ -281,51 +282,27 @@ class TestNavigationVariants:
 
 
 class TestNavTreeTemplate:
-    """Tests for HTML rendering of the sidebar tree via navtree.html."""
+    """Tests for HTML rendering of the sidebar tree via the NavTree component."""
 
-    def test_custom_svg_icon_renders(self):
-        from django.template.loader import render_to_string
-
-        svg_icon = '<svg viewBox="0 0 24 24"><path d="M0 0h24v24H0z"/></svg>'
-        info = make_info_with_config("button", GalleryConfig(icon=svg_icon))
+    def test_custom_named_icon_renders(self):
+        info = make_info_with_config("button", GalleryConfig(icon="eye"))
         tree = _build_navigation([info])
 
-        html = render_to_string(
-            "dj_design_system/gallery/navtree.html",
-            {"node": tree[0], "depth": 0, "active_path": "", "active_variant": ""},
-        )
-        assert 'class="gallery-nav__icon gallery-nav__icon--custom"' in html
-        assert svg_icon in html
+        html = NavTree(
+            nodes=tree, active_path="", active_variant=""
+        ).render()
+        assert 'data-icon="eye"' in html
 
-    def test_custom_class_icon_renders(self):
-        from django.template.loader import render_to_string
-
+    def test_unknown_custom_icon_falls_back_to_component_icon(self):
         info = make_info_with_config("button", GalleryConfig(icon="mdi-star"))
         tree = _build_navigation([info])
 
-        html = render_to_string(
-            "dj_design_system/gallery/navtree.html",
-            {"node": tree[0], "depth": 0, "active_path": "", "active_variant": ""},
-        )
-        assert "gallery-nav__icon--custom mdi-star" in html
-
-    def test_custom_mask_icon_renders(self):
-        from django.template.loader import render_to_string
-
-        info = make_info_with_config(
-            "button", GalleryConfig(icon="/static/icons/btn.svg")
-        )
-        tree = _build_navigation([info])
-
-        html = render_to_string(
-            "dj_design_system/gallery/navtree.html",
-            {"node": tree[0], "depth": 0, "active_path": "", "active_variant": ""},
-        )
-        assert "url('/static/icons/btn.svg')" in html
+        html = NavTree(
+            nodes=tree, active_path="", active_variant=""
+        ).render()
+        assert 'data-icon="component"' in html
 
     def test_variant_child_links_render(self):
-        from django.template.loader import render_to_string
-
         config = GalleryConfig(
             variants=[
                 Variant(name="primary", label="Primary Button"),
@@ -335,19 +312,16 @@ class TestNavTreeTemplate:
         info = make_info_with_config("button", config)
         tree = _build_navigation([info])
 
-        html = render_to_string(
-            "dj_design_system/gallery/navtree.html",
-            {"node": tree[0], "depth": 0, "active_path": "", "active_variant": ""},
-        )
-        assert "gallery-nav__link--variant" in html
+        html = NavTree(
+            nodes=tree, active_path="", active_variant=""
+        ).render()
+        assert 'data-variant-link="true"' in html
         assert "?variant=primary" in html
         assert "?variant=danger" in html
         assert "Primary Button" in html
         assert "Danger Button" in html
 
     def test_variant_active_state(self):
-        from django.template.loader import render_to_string
-
         config = GalleryConfig(
             variants=[
                 Variant(name="primary", label="Primary Button"),
@@ -357,31 +331,16 @@ class TestNavTreeTemplate:
         info = make_info_with_config("button", config)
         tree = _build_navigation([info])
 
-        # Active variant is "danger"
-        html = render_to_string(
-            "dj_design_system/gallery/navtree.html",
-            {
-                "node": tree[0],
-                "depth": 0,
-                "active_path": "test_app/button",
-                "active_variant": "danger",
-            },
-        )
-        # Danger variant should have active class
-        assert (
-            'class="gallery-nav__link gallery-nav__link--variant gallery-nav__link--active"'
-            in html
-            or "gallery-nav__link--active" in html
-        )
-        # Parent folder should be expanded
-        assert (
-            '<div class="gallery-nav__folder gallery-nav__folder--open">' in html
-            and 'aria-expanded="true"' in html
-        )
+        html = NavTree(
+            nodes=tree,
+            active_path="test_app/button",
+            active_variant="danger",
+        ).render()
+        assert 'data-variant-link="true" aria-current="page" data-active="true"' in html
+        assert 'data-nav-folder data-state="open"' in html
+        assert 'aria-expanded="true"' in html
 
     def test_component_with_variants_icon_renders(self):
-        from django.template.loader import render_to_string
-
         config = GalleryConfig(
             variants=[
                 Variant(name="primary", label="Primary Button"),
@@ -391,21 +350,18 @@ class TestNavTreeTemplate:
         info = make_info_with_config("button", config)
         tree = _build_navigation([info])
 
-        html = render_to_string(
-            "dj_design_system/gallery/navtree.html",
-            {"node": tree[0], "depth": 0, "active_path": "", "active_variant": ""},
-        )
-        assert "gallery-nav__icon--component-variants" in html
-        assert "gallery-nav__icon--variant" in html
+        html = NavTree(
+            nodes=tree, active_path="", active_variant=""
+        ).render()
+        assert 'data-icon="folder"' in html
+        assert 'data-icon="code"' in html
 
     def test_component_without_variants_icon_renders(self):
-        from django.template.loader import render_to_string
-
         info = make_info_with_config("button", GalleryConfig())
         tree = _build_navigation([info])
 
-        html = render_to_string(
-            "dj_design_system/gallery/navtree.html",
-            {"node": tree[0], "depth": 0, "active_path": "", "active_variant": ""},
-        )
-        assert "gallery-nav__icon--component" in html
+        html = NavTree(
+            nodes=tree, active_path="", active_variant=""
+        ).render()
+        assert 'data-icon="component"' in html
+

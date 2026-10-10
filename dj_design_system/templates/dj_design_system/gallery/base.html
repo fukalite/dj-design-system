@@ -1,6 +1,6 @@
-{% load static dj_design_system_gallery %}
+{% load static design_components dj_design_system_gallery %}
 <!DOCTYPE html>
-<html lang="en" class="gallery-theme-light">
+<html lang="en" class="{{ theme_body_class }}">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,98 +8,28 @@
         <link rel="stylesheet" href="{% static 'dj_design_system/gallery.css' %}">
         <link rel="stylesheet"
               href="{% static 'dj_design_system/gallery-highlight.css' %}">
-        <link rel="stylesheet"
-              href="{% static 'dj_design_system/gallery-markdown.css' %}">
-        <link rel="stylesheet"
-              href="{% static 'dj_design_system/gallery-toolbar.css' %}">
+        {% internal_component_stylesheets %}
+        {% component_stylesheets %}
         {% block extra_css %}{% endblock %}
-        {{ search_index|json_script:"gallery-search-index" }}
     </head>
-    <body>
-        <div class="gallery">
-            {# ── Mobile menu toggle (CSS-only, no JS) ────────────────── #}
-            <input type="checkbox"
-                   id="gallery-sidebar-toggle"
-                   class="gallery-sidebar-toggle"
-                   aria-hidden="true">
-            <label for="gallery-sidebar-toggle"
-                   class="gallery-hamburger"
-                   aria-label="Toggle navigation">
-                <span class="gallery-hamburger__line"></span>
-                <span class="gallery-hamburger__line"></span>
-                <span class="gallery-hamburger__line"></span>
-            </label>
-            <label for="gallery-sidebar-toggle" class="gallery-overlay"></label>
+    <body class="{{ theme_body_class }}">
+        {% url 'gallery-index' as gallery_root_url %}
+        {% dds__gallery_shell brand_name=design_system_name brand_url=gallery_root_url nodes=nav_tree active_path=active_path active_variant=active_variant breadcrumbs=breadcrumbs themes=available_themes active_theme=active_theme search_index=search_index %}
+        {% slot "toolbar_actions" %}
+        {% block toolbar_actions %}{% endblock %}
+    {% endslot %}
+    {% slot "main" %}
+    {% block content %}{% endblock %}
+{% endslot %}
+{% enddds__gallery_shell %}
 
-            {# ── Navigation pane (left sidebar) ──────────────────────── #}
-            <aside class="gallery-sidebar">
-                <div class="gallery-sidebar__header">
-                    <a class="gallery-sidebar__title" href="{% url 'gallery' %}">{{ design_system_name }}</a>
-                </div>
-                <div class="gallery-sidebar__search">
-                    <input type="search"
-                           id="gallery-search-input"
-                           class="gallery-search-input gallery-sidebar__search-input"
-                           placeholder="Search..."
-                           autocomplete="off"
-                           aria-label="Search components and documentation">
-                </div>
-                <div id="gallery-search-results"
-                     class="gallery-search-results gallery-sidebar__search-results"
-                     role="listbox"
-                     aria-label="Search results"
-                     hidden></div>
-                <nav class="gallery-nav" id="gallery-nav">
-                    {% for app_node in nav_tree %}
-                        {% include "dj_design_system/gallery/navtree.html" with node=app_node depth=0 active_path=active_path active_variant=active_variant %}
-                    {% endfor %}
-                </nav>
-            </aside>
-
-            {# ── Right pane ──────────────────────────────────────────── #}
-            <main class="gallery-main">
-                {% block toolbar %}
-                    <div class="gallery-toolbar">
-                        <div class="gallery-toolbar__breadcrumb">
-                            {% block breadcrumb %}
-                                <a href="{% url 'gallery' %}">Gallery</a>
-                            {% endblock %}
-                        </div>
-                        <div class="gallery-toolbar__actions">
-                            {% if available_themes|length > 1 %}
-                                <div class="gallery-header-theme">
-                                    <select class="gallery-header-theme__select"
-                                            id="gallery-global-theme-select"
-                                            title="Global Theme">
-                                        {% for theme_dict in available_themes %}
-                                            <option value="{{ theme_dict.value }}"
-                                                    {% if theme_dict.value == active_theme %}selected{% endif %}>
-                                                {{ theme_dict.label }}
-                                            </option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                            {% endif %}
-                            {% block toolbar_actions %}{% endblock %}
-                        </div>
-                    </div>
-                {% endblock %}
-
-                {# ── Content area: Documentation + Sandbox ───────────── #}
-                <div class="gallery-content-area">
-                    {% block content %}{% endblock %}
-                </div>
-            </main>
-        </div>
-        {% block extra_js %}{% endblock %}
-        <script src="{% static 'dj_design_system/gallery-nav.js' %}"
-                defer
-                {% if request.csp_nonce %}nonce="{{ request.csp_nonce }}"{% endif %}></script>
-        <script src="{% static 'dj_design_system/gallery-search.js' %}"
-                defer
-                {% if request.csp_nonce %}nonce="{{ request.csp_nonce }}"{% endif %}></script>
-        <script src="{% static 'dj_design_system/gallery-theme.js' %}"
-                defer
-                {% if request.csp_nonce %}nonce="{{ request.csp_nonce }}"{% endif %}></script>
-    </body>
+{% gallery_search_index_script %}
+{% block extra_js %}{% endblock %}
+<script src="{% static 'dj_design_system/htmx.min.js' %}"
+        {% if request.csp_nonce %} nonce="{{ request.csp_nonce }}"{% endif %}></script>
+<script src="{% static 'dj_design_system/gallery-snapshot-notice.js' %}"
+        {% if request.csp_nonce %} nonce="{{ request.csp_nonce }}"{% endif %}></script>
+{% internal_component_scripts %}
+{% component_scripts %}
+</body>
 </html>

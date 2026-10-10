@@ -191,17 +191,24 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
         # reflected XSS through components that don't escape their params.
         rendered_html = format_html(
             '<div class="gallery-canvas-warning">'
-            '<p class="gallery-canvas-warning__message">'
+            "<p data-canvas-warning-message>"
             "<code>{}.render()</code> returned a plain <code>str</code>, so its "
             "HTML is shown escaped. Return <code>format_html(...)</code> or "
             "<code>mark_safe(...)</code> from <code>render()</code> to render it."
             "</p>"
-            '<pre class="gallery-canvas-warning__output">{}</pre>'
+            "<pre data-canvas-warning-output>{}</pre>"
             "</div>",
             component_class.__qualname__,
             rendered_html,
         )
     context["rendered_html"] = rendered_html
+
+    extra_css: list[str] = []
+    extra_js: list[str] = []
+    if app_label == "dj_design_system":
+        internal_media = component_registry.get_internal_media()
+        extra_css = ["dj_design_system/gallery.css", *internal_media.css]
+        extra_js = list(internal_media.js)
 
     all_css_urls = list(
         dict.fromkeys(
@@ -209,6 +216,7 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
             + [media_service.resolve_asset_url(path=p) for p in theme_css]
             + app_css_bundles
             + [media_service.resolve_asset_url(path=p) for p in app_css]
+            + [media_service.resolve_asset_url(path=p) for p in extra_css]
             + [media_service.resolve_asset_url(path=p) for p in media.css]
         )
     )
@@ -219,6 +227,7 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
             + [media_service.resolve_asset_url(path=p) for p in theme_js]
             + app_js_bundles
             + [media_service.resolve_asset_url(path=p) for p in app_js]
+            + [media_service.resolve_asset_url(path=p) for p in extra_js]
             + [media_service.resolve_asset_url(path=p) for p in media.js]
         )
     )
@@ -227,7 +236,17 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
         "", '<link rel="stylesheet" href="{}">', ((u,) for u in all_css_urls)
     )
     context["component_js"] = format_html_join(
-        "", '<script src="{}"></script>', ((u,) for u in all_js_urls)
+        "",
+        '<script{} src="{}"></script>',
+        (
+            (
+                format_html(' type="module"')
+                if "dj_design_system/components/" in u
+                else "",
+                u,
+            )
+            for u in all_js_urls
+        ),
     )
     context["html_attrs"], context["body_attrs"] = _canvas_html_attrs(
         theme_dict, app_label

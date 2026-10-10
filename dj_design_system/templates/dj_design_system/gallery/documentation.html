@@ -1,22 +1,8 @@
 {% extends "dj_design_system/gallery/base.html" %}
+{% load design_components %}
 
-{% block title %}
-    {% if doc_label %}
-        {{ doc_label }}
-    {% elif node %}
-        {{ node.label }}
-    {% endif %}
-    — {{ design_system_name }}
-{% endblock %}
-
-{% block breadcrumb %}
-    {% include "dj_design_system/gallery/breadcrumb.html" %}
-{% endblock %}
+{% block title %}{% if doc_label %}{{ doc_label }}{% else %}{{ node.label }}{% endif %} — {{ design_system_name }}{% endblock %}
 
 {% block content %}
-    <div class="gallery-page">
-        <div class="gallery-docs">
-            <div class="gallery-markdown">{{ doc_html|safe }}</div>
-        </div>
-    </div>
+    {% dds__prose html=doc_html %}{% enddds__prose %}
 {% endblock %}
