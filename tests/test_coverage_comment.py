@@ -10,68 +10,60 @@ import pytest
 SCRIPTS_DIR = Path(__file__).resolve().parent.parent / ".github" / "scripts"
 sys.path.insert(0, str(SCRIPTS_DIR))
 
-from coverage_comment import (  # noqa: E402
-    COMMENT_MARKER,
-    LEGACY_MARKERS,
-    CoverageTotals,
-    FileSummary,
-    MetricCount,
-    ModuleSummary,
-    RatchetConfig,
-    compute_module_name,
-    find_existing_coverage_comment,
-    generate_coverage_markdown,
-    get_badge_colour,
-    get_status_indicator,
-    get_status_label,
-    main,
-    parse_coverage_data,
-    post_or_update_comment,
-)
+import coverage_comment  # noqa: E402
 
 
 class TestStatusHelpers:
     def test_get_status_indicator(self):
-        assert get_status_indicator(pct=95.0) == "🟢"
-        assert get_status_indicator(pct=80.0) == "🟢"
-        assert get_status_indicator(pct=79.9) == "🟡"
-        assert get_status_indicator(pct=50.0) == "🟡"
-        assert get_status_indicator(pct=49.9) == "🔴"
-        assert get_status_indicator(pct=0.0) == "🔴"
+        assert coverage_comment.get_status_indicator(pct=95.0) == "🟢"
+        assert coverage_comment.get_status_indicator(pct=80.0) == "🟢"
+        assert coverage_comment.get_status_indicator(pct=79.9) == "🟡"
+        assert coverage_comment.get_status_indicator(pct=50.0) == "🟡"
+        assert coverage_comment.get_status_indicator(pct=49.9) == "🔴"
+        assert coverage_comment.get_status_indicator(pct=0.0) == "🔴"
 
     def test_get_status_label(self):
-        assert get_status_label(pct=85.0, threshold=80.0) == "🟢 Pass"
-        assert get_status_label(pct=80.0, threshold=80.0) == "🟢 Pass"
-        assert get_status_label(pct=79.9, threshold=80.0) == "🔴 Below Ratchet"
+        assert coverage_comment.get_status_label(pct=85.0, threshold=80.0) == "🟢 Pass"
+        assert coverage_comment.get_status_label(pct=80.0, threshold=80.0) == "🟢 Pass"
+        assert (
+            coverage_comment.get_status_label(pct=79.9, threshold=80.0)
+            == "🔴 Below Ratchet"
+        )
 
     def test_get_badge_colour(self):
-        assert get_badge_colour(pct=95.0) == "brightgreen"
-        assert get_badge_colour(pct=90.0) == "brightgreen"
-        assert get_badge_colour(pct=85.0) == "green"
-        assert get_badge_colour(pct=75.0) == "yellowgreen"
-        assert get_badge_colour(pct=65.0) == "yellow"
-        assert get_badge_colour(pct=55.0) == "orange"
-        assert get_badge_colour(pct=45.0) == "red"
+        assert coverage_comment.get_badge_colour(pct=95.0) == "brightgreen"
+        assert coverage_comment.get_badge_colour(pct=90.0) == "brightgreen"
+        assert coverage_comment.get_badge_colour(pct=85.0) == "green"
+        assert coverage_comment.get_badge_colour(pct=75.0) == "yellowgreen"
+        assert coverage_comment.get_badge_colour(pct=65.0) == "yellow"
+        assert coverage_comment.get_badge_colour(pct=55.0) == "orange"
+        assert coverage_comment.get_badge_colour(pct=45.0) == "red"
 
 
 class TestComputeModuleName:
     def test_relative_paths(self):
         assert (
-            compute_module_name(file_path="dj_design_system/api/views.py")
+            coverage_comment.compute_module_name(
+                file_path="dj_design_system/api/views.py"
+            )
             == "dj_design_system/api"
         )
         assert (
-            compute_module_name(
+            coverage_comment.compute_module_name(
                 file_path="dj_design_system/management/commands/cmd.py"
             )
             == "dj_design_system/management"
         )
         assert (
-            compute_module_name(file_path="dj_design_system/apps.py")
+            coverage_comment.compute_module_name(
+                file_path="dj_design_system/apps.py"
+            )
             == "dj_design_system (root)"
         )
         assert (
-            compute_module_name(file_path="dj_design_system/__init__.py")
+            coverage_comment.compute_module_name(
+                file_path="dj_design_system/__init__.py"
+            )
             == "dj_design_system (root)"
         )
 
@@ -79,16 +71,21 @@ class TestComputeModuleName:
         root = "/path/to/repo"
         abs_path = "/path/to/repo/dj_design_system/views/gallery.py"
         assert (
-            compute_module_name(file_path=abs_path, repo_root=root)
+            coverage_comment.compute_module_name(file_path=abs_path, repo_root=root)
             == "dj_design_system/views"
         )
 
     def test_generic_paths(self):
         assert (
-            compute_module_name(file_path="src/components/button.py")
+            coverage_comment.compute_module_name(
+                file_path="src/components/button.py"
+            )
             == "src/components"
         )
-        assert compute_module_name(file_path="src/main.py") == "src (root)"
+        assert (
+            coverage_comment.compute_module_name(file_path="src/main.py")
+            == "src (root)"
+        )
 
 
 def make_sample_coverage_dict() -> dict:
@@ -144,7 +141,9 @@ def make_sample_coverage_dict() -> dict:
 
 class TestParseCoverageData:
     def test_parse_aggregations(self):
-        totals, modules, files = parse_coverage_data(data=make_sample_coverage_dict())
+        totals, modules, files = coverage_comment.parse_coverage_data(
+            data=make_sample_coverage_dict()
+        )
 
         assert totals.statements.total == 200
         assert totals.statements.covered == 180
@@ -174,15 +173,17 @@ class TestParseCoverageData:
 
 class TestGenerateCoverageMarkdown:
     def test_markdown_structure(self):
-        totals = CoverageTotals(
-            lines=MetricCount(total=1000, covered=900, pct=90.0),
-            statements=MetricCount(total=1000, covered=900, pct=90.0),
-            branches=MetricCount(total=200, covered=170, pct=85.0),
-            functions=MetricCount(total=50, covered=48, pct=96.0),
+        totals = coverage_comment.CoverageTotals(
+            lines=coverage_comment.MetricCount(total=1000, covered=900, pct=90.0),
+            statements=coverage_comment.MetricCount(
+                total=1000, covered=900, pct=90.0
+            ),
+            branches=coverage_comment.MetricCount(total=200, covered=170, pct=85.0),
+            functions=coverage_comment.MetricCount(total=50, covered=48, pct=96.0),
             overall_pct=89.2,
         )
         modules = [
-            ModuleSummary(
+            coverage_comment.ModuleSummary(
                 module="dj_design_system/api",
                 files=2,
                 lines_tot=400,
@@ -197,7 +198,7 @@ class TestGenerateCoverageMarkdown:
             )
         ]
         files = [
-            FileSummary(
+            coverage_comment.FileSummary(
                 path="dj_design_system/api/views.py",
                 lines_pct=80.0,
                 branches_pct=80.0,
@@ -207,18 +208,18 @@ class TestGenerateCoverageMarkdown:
                 lines_tot=400,
             )
         ]
-        ratchet = RatchetConfig(
+        ratchet = coverage_comment.RatchetConfig(
             lines=85.0, statements=85.0, branches=80.0, functions=85.0
         )
 
-        md = generate_coverage_markdown(
+        md = coverage_comment.generate_coverage_markdown(
             totals=totals,
             module_summaries=modules,
             files_list=files,
             ratchet=ratchet,
         )
 
-        assert COMMENT_MARKER in md
+        assert coverage_comment.COMMENT_MARKER in md
         assert (
             "![Coverage](https://img.shields.io/badge/Coverage-89%25-green.svg)" in md
         )
@@ -242,12 +243,15 @@ class TestGitHubApiIntegration:
         mock_resp.read.return_value = json.dumps(
             [
                 {"id": 12345, "body": "Regular comment"},
-                {"id": 67890, "body": f"{COMMENT_MARKER}\nCoverage report"},
+                {
+                    "id": 67890,
+                    "body": f"{coverage_comment.COMMENT_MARKER}\nCoverage report",
+                },
             ]
         ).encode("utf-8")
         mock_urlopen.return_value.__enter__.return_value = mock_resp
 
-        comment_id = find_existing_coverage_comment(
+        comment_id = coverage_comment.find_existing_coverage_comment(
             repo="owner/repo", pr_number=42, token="token123"
         )
         assert comment_id == 67890
@@ -257,12 +261,15 @@ class TestGitHubApiIntegration:
         mock_resp = MagicMock()
         mock_resp.read.return_value = json.dumps(
             [
-                {"id": 99999, "body": f"{LEGACY_MARKERS[0]}\nOld comment too long"},
+                {
+                    "id": 99999,
+                    "body": f"{coverage_comment.LEGACY_MARKERS[0]}\nOld comment too long",
+                },
             ]
         ).encode("utf-8")
         mock_urlopen.return_value.__enter__.return_value = mock_resp
 
-        comment_id = find_existing_coverage_comment(
+        comment_id = coverage_comment.find_existing_coverage_comment(
             repo="owner/repo", pr_number=42, token="token123"
         )
         assert comment_id == 99999
@@ -278,7 +285,7 @@ class TestGitHubApiIntegration:
         mock_urlopen.return_value.__enter__.return_value = mock_resp
 
         assert (
-            find_existing_coverage_comment(
+            coverage_comment.find_existing_coverage_comment(
                 repo="owner/repo", pr_number=42, token="token123"
             )
             is None
@@ -288,20 +295,20 @@ class TestGitHubApiIntegration:
     def test_find_existing_coverage_comment_network_error(self, mock_urlopen):
         mock_urlopen.side_effect = urllib.error.URLError("Connection refused")
         assert (
-            find_existing_coverage_comment(
+            coverage_comment.find_existing_coverage_comment(
                 repo="owner/repo", pr_number=42, token="token123"
             )
             is None
         )
 
-    @patch("coverage_comment.find_existing_coverage_comment")
+    @patch.object(coverage_comment, "find_existing_coverage_comment")
     @patch("urllib.request.urlopen")
     def test_post_or_update_comment_updates_existing(self, mock_urlopen, mock_find):
         mock_find.return_value = 12345
         mock_resp = MagicMock()
         mock_urlopen.return_value.__enter__.return_value = mock_resp
 
-        post_or_update_comment(
+        coverage_comment.post_or_update_comment(
             repo="owner/repo", pr_number=42, token="tok", body="new body"
         )
 
@@ -313,14 +320,14 @@ class TestGitHubApiIntegration:
             == "https://api.github.com/repos/owner/repo/issues/comments/12345"
         )
 
-    @patch("coverage_comment.find_existing_coverage_comment")
+    @patch.object(coverage_comment, "find_existing_coverage_comment")
     @patch("urllib.request.urlopen")
     def test_post_or_update_comment_creates_new(self, mock_urlopen, mock_find):
         mock_find.return_value = None
         mock_resp = MagicMock()
         mock_urlopen.return_value.__enter__.return_value = mock_resp
 
-        post_or_update_comment(
+        coverage_comment.post_or_update_comment(
             repo="owner/repo", pr_number=42, token="tok", body="new body"
         )
 
@@ -354,10 +361,15 @@ class TestCli:
         monkeypatch.setattr(
             sys,
             "argv",
-            ["coverage_comment.py", "--coverage-json", str(cov_file), "--dry-run"],
+            [
+                "coverage_comment.py",
+                "--coverage-json",
+                str(cov_file),
+                "--dry-run",
+            ],
         )
 
-        exit_code = main()
+        exit_code = coverage_comment.main()
         assert exit_code == 0
         captured = capsys.readouterr()
         assert "Test Coverage Summary" in captured.out
@@ -365,10 +377,12 @@ class TestCli:
     def test_missing_file_error(self, tmp_path, monkeypatch, capsys):
         non_existent = tmp_path / "missing.json"
         monkeypatch.setattr(
-            sys, "argv", ["coverage_comment.py", "--coverage-json", str(non_existent)]
+            sys,
+            "argv",
+            ["coverage_comment.py", "--coverage-json", str(non_existent)],
         )
 
-        exit_code = main()
+        exit_code = coverage_comment.main()
         assert exit_code == 1
         captured = capsys.readouterr()
         assert "Error: coverage json file not found" in captured.err

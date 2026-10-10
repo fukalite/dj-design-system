@@ -95,7 +95,7 @@ def get_badge_colour(pct: float) -> str:
 
 def compute_module_name(file_path: str, repo_root: str = "") -> str:
     if repo_root and os.path.isabs(file_path):
-        rel_path = os.path.relpath(file_path, repo_root)
+        rel_path = os.path.relpath(file_path, repo_root).replace("\\", "/")
     else:
         rel_path = file_path.replace("\\", "/")
 
@@ -157,7 +157,7 @@ def parse_coverage_data(
             (f_branches_cov / f_branches_tot * 100) if f_branches_tot > 0 else 100.0
         )
 
-        funcs = fdata.get("functions", {})
+        funcs = fdata.get("functions") or {}
         actual_funcs = {name: fmeta for name, fmeta in funcs.items() if name}
         f_funcs_tot = len(actual_funcs)
         f_funcs_cov = sum(
@@ -332,7 +332,7 @@ def find_existing_coverage_comment(
         f"https://api.github.com/repos/{repo}/issues/{pr_number}/comments?per_page=100"
     )
     req = urllib.request.Request(
-        url,
+        url=url,
         headers={
             "Authorization": f"Bearer {token}",
             "Accept": "application/vnd.github+json",
@@ -379,7 +379,7 @@ def post_or_update_comment(
         print(f"Found existing coverage comment ID {existing_id}. Updating...")
         patch_url = f"https://api.github.com/repos/{repo}/issues/comments/{existing_id}"
         req = urllib.request.Request(
-            patch_url, data=payload, headers=headers, method="PATCH"
+            url=patch_url, data=payload, headers=headers, method="PATCH"
         )
         with urllib.request.urlopen(req, timeout=30):
             pass
@@ -390,7 +390,7 @@ def post_or_update_comment(
         print(f"Posting new coverage comment to PR #{pr_number}...")
         post_url = f"https://api.github.com/repos/{repo}/issues/{pr_number}/comments"
         req = urllib.request.Request(
-            post_url, data=payload, headers=headers, method="POST"
+            url=post_url, data=payload, headers=headers, method="POST"
         )
         with urllib.request.urlopen(req, timeout=30):
             pass
@@ -458,8 +458,7 @@ def main() -> int:
         )
         return 1
 
-    with open(coverage_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
+    data = json.loads(coverage_path.read_text(encoding="utf-8"))
 
     repo_root = os.getcwd()
     totals, module_summaries, files_list = parse_coverage_data(
