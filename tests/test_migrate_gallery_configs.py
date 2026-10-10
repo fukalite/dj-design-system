@@ -33,6 +33,14 @@ maximal_kwargs = {
         assert "config = GalleryConfig(" in new_source
         assert "name='basic'" in new_source or 'name="basic"' in new_source
         assert "name='maximal'" in new_source or 'name="maximal"' in new_source
+        assert (
+            "smaller_variant='basic'" in new_source
+            or 'smaller_variant="basic"' in new_source
+        )
+        assert (
+            "bigger_variant='maximal'" in new_source
+            or 'bigger_variant="maximal"' in new_source
+        )
         # Legacy variables removed by default
         assert "basic_kwargs =" not in new_source
         assert "maximal_kwargs =" not in new_source

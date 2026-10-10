@@ -118,6 +118,8 @@ def test_discovery_legacy_fallback_emits_warning(tmp_path: Path):
     maximal_v = cfg.get_variant("maximal")
     assert maximal_v is not None
     assert maximal_v.kwargs == {"title": "World", "count": 42}
+    assert cfg.smaller_variant == "basic"
+    assert cfg.bigger_variant == "maximal"
 
 
 def test_legacy_property_access_emits_warning(tmp_path: Path):

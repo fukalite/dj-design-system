@@ -112,10 +112,7 @@ class TestVariantViews:
         )
         response = client.get(f"{url}?variant=maximal")
         assert response.status_code == 200
-        assert (
-            b'<input type="hidden" name="_iss" value="1"'
-            in response.content
-        )
+        assert b'<input type="hidden" name="_iss" value="1"' in response.content
         assert (
             b'<input type="hidden" name="_dds_variant" value="maximal"'
             in response.content
@@ -260,6 +257,7 @@ class TestVariantViews:
             variants=[
                 Variant(name="maximal", kwargs={"content": "Detailed alert body"}),
             ],
+            bigger_variant="maximal",
         )
         info = ComponentInfo(
             component_class=AlertBox,

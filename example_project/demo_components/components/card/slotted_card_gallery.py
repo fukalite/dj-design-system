@@ -4,6 +4,7 @@ from dj_design_system.gallery import GalleryConfig, Variant
 
 
 config = GalleryConfig(
+    smaller_variant="basic",
     order=4,
     variants=[
         Variant(

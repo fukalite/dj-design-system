@@ -2,6 +2,7 @@ from dj_design_system.gallery import GalleryConfig, Variant
 
 
 config = GalleryConfig(
+    smaller_variant="basic",
     theme="dark",
     order=3,
     variants=[

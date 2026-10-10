@@ -2,6 +2,8 @@ from dj_design_system.gallery import GalleryConfig, Variant
 
 
 config = GalleryConfig(
+    smaller_variant="basic",
+    bigger_variant="maximal",
     order=2,
     variants=[
         Variant(name="basic", label="Default Badge", kwargs={"text": "New"}),

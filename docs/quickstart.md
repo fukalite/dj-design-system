@@ -229,8 +229,9 @@ from dj_design_system.gallery import GalleryConfig, Variant
 config = GalleryConfig(
     icon="ph:cards",
     order=1,
+    smaller_variant="simple",
     variants=[
-        Variant(name="basic", kwargs={"title": "Simple Card"}),
+        Variant(name="simple", kwargs={"title": "Simple Card"}),
         Variant(
             name="featured",
             label="Featured Card",

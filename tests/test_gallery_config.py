@@ -15,14 +15,37 @@ class TestVariant:
         assert v.extra_context == {}
         assert v.icon is None
         assert v.theme is None
-        assert v.show_in_nav is True
+        assert v.show_in_nav is None
 
-    def test_default_variants_hidden_from_nav_by_default(self):
-        v_basic = Variant(name="basic")
-        assert v_basic.show_in_nav is False
+    def test_example_variants_hidden_from_nav_by_default(self):
+        config = GalleryConfig(
+            variants=[
+                Variant(name="small"),
+                Variant(name="big"),
+                Variant(name="other"),
+            ],
+            smaller_variant="small",
+            bigger_variant="big",
+        )
+        assert config.get_variant("small").show_in_nav is False
+        assert config.get_variant("big").show_in_nav is False
+        assert config.get_variant("other").show_in_nav is True
 
-        v_maximal = Variant(name="maximal")
-        assert v_maximal.show_in_nav is False
+    def test_basic_and_maximal_names_are_not_special(self):
+        config = GalleryConfig(
+            variants=[Variant(name="basic"), Variant(name="maximal")]
+        )
+        assert config.get_variant("basic").show_in_nav is True
+        assert config.get_variant("maximal").show_in_nav is True
+        assert config.get_smaller_variant() is None
+        assert config.get_bigger_variant() is None
+
+    def test_explicit_show_in_nav_kept_for_example_variant(self):
+        config = GalleryConfig(
+            variants=[Variant(name="small", show_in_nav=True)],
+            smaller_variant="small",
+        )
+        assert config.get_variant("small").show_in_nav is True
 
     def test_explicit_show_in_nav_override(self):
         v_basic = Variant(name="basic", show_in_nav=True)
@@ -72,6 +95,8 @@ class TestGalleryConfig:
         assert cfg.extra_context == {}
         assert cfg.param_defaults == {}
         assert cfg.variants == []
+        assert cfg.smaller_variant is None
+        assert cfg.bigger_variant is None
 
     def test_explicit_properties(self):
         cfg = GalleryConfig(
@@ -119,6 +144,20 @@ class TestGalleryConfig:
                     "basic": {"kwargs": {"label": "Click"}},
                 }
             )
+
+    def test_example_variants_resolve_by_name(self):
+        cfg = GalleryConfig(
+            variants=[Variant(name="primary"), Variant(name="everything")],
+            smaller_variant="primary",
+            bigger_variant="everything",
+        )
+        assert cfg.get_smaller_variant().name == "primary"
+        assert cfg.get_bigger_variant().name == "everything"
+
+    @pytest.mark.parametrize("kwarg", ["smaller_variant", "bigger_variant"])
+    def test_unknown_example_variant_raises_error(self, kwarg):
+        with pytest.raises(ValueError, match=f"{kwarg} is 'missing'"):
+            GalleryConfig(variants=[Variant(name="primary")], **{kwarg: "missing"})
 
     def test_duplicate_variant_names_raises_error(self):
         with pytest.raises(ValueError, match="Duplicate variant name"):

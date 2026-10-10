@@ -16,7 +16,7 @@ class Variant:
     """A named component variation with preset arguments and preview configurations.
 
     Attributes:
-        name: Unique identifier slug for this variant (e.g. ``"basic"``, ``"danger"``).
+        name: Unique identifier slug for this variant (e.g. ``"primary"``, ``"danger"``).
         label: Human-readable display label in documentation and sidebar navigation.
             Defaults to title-cased name.
         description: Optional markdown text describing when/how to use this variant.
@@ -28,9 +28,9 @@ class Variant:
         icon: Optional icon name or SVG path for sidebar navigation.
         theme: Optional theme override when previewing this variant.
         show_in_nav: Whether to display this variant as a child node in the gallery sidebar navigation.
-            When left as None, defaults to False for standard built-in variants ("basic", "maximal")
-            so they do not clutter the sidebar tree, and True for custom named variants.
-            Explicitly set to True or False to override this default.
+            When left as None, the owning ``GalleryConfig`` resolves it: False for the variants
+            chosen as ``smaller_variant`` or ``bigger_variant`` so they do not clutter the sidebar
+            tree, and True for every other variant. Explicitly set to True or False to override.
     """
 
     name: str
@@ -47,9 +47,6 @@ class Variant:
     def __post_init__(self) -> None:
         if self.label is None:
             self.label = self.name.replace("_", " ").replace("-", " ").title()
-
-        if self.show_in_nav is None:
-            self.show_in_nav = False if self.name in ("basic", "maximal") else True
 
         self.positional_args = tuple(self.positional_args or ())
         self.kwargs = dict(self.kwargs or {})
@@ -100,6 +97,10 @@ class GalleryConfig:
         param_defaults: Mapping of param names to default values or callables.
         variants: List of named Variant instances. To construct from dictionary mappings,
             use ``GalleryConfig.from_dict(...)``.
+        smaller_variant: Name of the variant shown as the smaller (minimal) usage example.
+            When None, the smaller example is generated from parameter defaults.
+        bigger_variant: Name of the variant shown as the bigger (maximal) usage example.
+            When None, the bigger example is generated from parameter defaults.
     """
 
     hidden: bool = False
@@ -111,6 +112,8 @@ class GalleryConfig:
     extra_context: dict[str, Any] = field(default_factory=dict)
     param_defaults: dict[str, Any] = field(default_factory=dict)
     variants: list[Variant] = field(default_factory=list)
+    smaller_variant: str | None = None
+    bigger_variant: str | None = None
 
     @classmethod
     def _normalize_variants(
@@ -166,12 +169,32 @@ class GalleryConfig:
                 )
             seen_names.add(v.name)
 
+        for kwarg in ("smaller_variant", "bigger_variant"):
+            name = getattr(self, kwarg)
+            if name is not None and name not in seen_names:
+                raise ValueError(
+                    f"GalleryConfig.{kwarg} is '{name}', but no variant has that name."
+                )
+
+        example_names = {self.smaller_variant, self.bigger_variant}
+        for v in self.variants:
+            if v.show_in_nav is None:
+                v.show_in_nav = v.name not in example_names
+
     def get_variant(self, name: str) -> Variant | None:
         """Return the variant matching *name*, or None."""
         for v in self.variants:
             if v.name == name:
                 return v
         return None
+
+    def get_smaller_variant(self) -> Variant | None:
+        """Return the variant shown as the smaller usage example, or None."""
+        return self.get_variant(self.smaller_variant) if self.smaller_variant else None
+
+    def get_bigger_variant(self) -> Variant | None:
+        """Return the variant shown as the bigger usage example, or None."""
+        return self.get_variant(self.bigger_variant) if self.bigger_variant else None
 
 
 def load_gallery_config(source_dir: Path, component_name: str) -> GalleryConfig:
@@ -238,6 +261,10 @@ def load_gallery_config(source_dir: Path, component_name: str) -> GalleryConfig:
             variants.append(Variant(name="basic", kwargs=basic_kwargs))
         if maximal_kwargs is not None:
             variants.append(Variant(name="maximal", kwargs=maximal_kwargs))
-        return GalleryConfig(variants=variants)
+        return GalleryConfig(
+            variants=variants,
+            smaller_variant="basic" if basic_kwargs is not None else None,
+            bigger_variant="maximal" if maximal_kwargs is not None else None,
+        )
 
     return GalleryConfig()

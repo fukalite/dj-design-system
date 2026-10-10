@@ -247,8 +247,9 @@ config = GalleryConfig(
     icon="ph:cursor-click",
     order=1,
     group="Actions",
+    smaller_variant="primary",
     variants=[
-        Variant(name="basic", label="Primary Button", kwargs={"label": "Click me"}),
+        Variant(name="primary", label="Primary Button", kwargs={"label": "Click me"}),
         Variant(
             name="danger",
             label="Destructive Action",
@@ -266,6 +267,8 @@ config = GalleryConfig(
 | Attribute | Type | Default | Description |
 | --- | --- | --- | --- |
 | `variants` | `list[Variant]` or `list[dict]` | `[]` | List of named component variants. Supports `Variant` instances or shorthand dicts. |
+| `smaller_variant` | `str | None` | `None` | Name of the variant shown as the smaller (minimal) usage example. When `None`, the example is generated from parameter defaults. |
+| `bigger_variant` | `str | None` | `None` | Name of the variant shown as the bigger (maximal) usage example. When `None`, the example is generated from parameter defaults. |
 | `order` | `int` | `0` | Explicit ordering priority in the sidebar navigation. Lower numbers appear first. |
 | `group` | `str | None` | `None` | Grouping sub-folder name in the sidebar navigation. |
 | `icon` | `str | None` | `None` | Custom icon identifier (e.g. `"ph:cursor-click"`) for the component in the sidebar. |
@@ -300,7 +303,7 @@ Variant(
 
 ### Variant Attributes
 
-- **`name`** (`str`): Unique slug identifier (e.g. `"basic"`, `"maximal"`, `"danger"`).
+- **`name`** (`str`): Unique slug identifier (e.g. `"primary"`, `"danger"`). No name is special: choose which variants drive the usage examples with `GalleryConfig.smaller_variant` and `GalleryConfig.bigger_variant`.
 - **`label`** (`str | None`): Display label used in navigation and documentation. Defaults to title-cased name.
 - **`description`** (`str | None`): Markdown documentation explaining the intended use of this variant.
 - **`kwargs`** (`dict[str, Any]`): Parameter keyword arguments passed to the component tag. Supports static values, `GalleryParameter`, or dynamic callables.
@@ -309,7 +312,7 @@ Variant(
 - **`extra_context`** (`dict[str, Any]`): Extra context variables merged into preview rendering for this variant.
 - **`icon`** (`str | None`): Custom icon identifier displayed next to the variant in the sidebar.
 - **`theme`** (`str | None`): Theme override applied when previewing this specific variant.
-- **`show_in_nav`** (`bool`): Whether this variant appears as a nested child link in the sidebar navigation. Defaults to `False` for default variants (`basic`, `maximal`) and `True` for custom variants.
+- **`show_in_nav`** (`bool`): Whether this variant appears as a nested child link in the sidebar navigation. Defaults to `False` for the variants named by `smaller_variant` or `bigger_variant`, and `True` for every other variant.
 
 ### Focused Variant View & Breadcrumb Navigation
 
@@ -443,6 +446,8 @@ maximal_kwargs = {
 from dj_design_system.gallery import GalleryConfig, Variant
 
 config = GalleryConfig(
+    smaller_variant="basic",
+    bigger_variant="maximal",
     variants=[
         Variant(name="basic", kwargs={"text": "New basic badge"}),
         Variant(

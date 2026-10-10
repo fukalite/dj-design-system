@@ -529,10 +529,10 @@ def generate_tag_signature(
         info = component_registry.get_info(component_class)
         config = info.gallery_config
         basic_kwargs = merge_variant_params(
-            component_class, config=config, variant=config.get_variant("basic")
+            component_class, config=config, variant=config.get_smaller_variant()
         )
         maximal_kwargs = merge_variant_params(
-            component_class, config=config, variant=config.get_variant("maximal")
+            component_class, config=config, variant=config.get_bigger_variant()
         )
     except Exception:
         basic_kwargs = {}
