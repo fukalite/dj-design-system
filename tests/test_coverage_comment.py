@@ -32,54 +32,63 @@ from coverage_comment import (  # noqa: E402
 
 class TestStatusHelpers:
     def test_get_status_indicator(self):
-        assert get_status_indicator(95.0) == "🟢"
-        assert get_status_indicator(80.0) == "🟢"
-        assert get_status_indicator(79.9) == "🟡"
-        assert get_status_indicator(50.0) == "🟡"
-        assert get_status_indicator(49.9) == "🔴"
-        assert get_status_indicator(0.0) == "🔴"
+        assert get_status_indicator(pct=95.0) == "🟢"
+        assert get_status_indicator(pct=80.0) == "🟢"
+        assert get_status_indicator(pct=79.9) == "🟡"
+        assert get_status_indicator(pct=50.0) == "🟡"
+        assert get_status_indicator(pct=49.9) == "🔴"
+        assert get_status_indicator(pct=0.0) == "🔴"
 
     def test_get_status_label(self):
-        assert get_status_label(85.0, 80.0) == "🟢 Pass"
-        assert get_status_label(80.0, 80.0) == "🟢 Pass"
-        assert get_status_label(79.9, 80.0) == "🔴 Below Ratchet"
+        assert get_status_label(pct=85.0, threshold=80.0) == "🟢 Pass"
+        assert get_status_label(pct=80.0, threshold=80.0) == "🟢 Pass"
+        assert get_status_label(pct=79.9, threshold=80.0) == "🔴 Below Ratchet"
 
     def test_get_badge_colour(self):
-        assert get_badge_colour(95.0) == "brightgreen"
-        assert get_badge_colour(90.0) == "brightgreen"
-        assert get_badge_colour(85.0) == "green"
-        assert get_badge_colour(75.0) == "yellowgreen"
-        assert get_badge_colour(65.0) == "yellow"
-        assert get_badge_colour(55.0) == "orange"
-        assert get_badge_colour(45.0) == "red"
+        assert get_badge_colour(pct=95.0) == "brightgreen"
+        assert get_badge_colour(pct=90.0) == "brightgreen"
+        assert get_badge_colour(pct=85.0) == "green"
+        assert get_badge_colour(pct=75.0) == "yellowgreen"
+        assert get_badge_colour(pct=65.0) == "yellow"
+        assert get_badge_colour(pct=55.0) == "orange"
+        assert get_badge_colour(pct=45.0) == "red"
 
 
 class TestComputeModuleName:
     def test_relative_paths(self):
         assert (
-            compute_module_name("dj_design_system/api/views.py")
+            compute_module_name(file_path="dj_design_system/api/views.py")
             == "dj_design_system/api"
         )
         assert (
-            compute_module_name("dj_design_system/management/commands/cmd.py")
+            compute_module_name(
+                file_path="dj_design_system/management/commands/cmd.py"
+            )
             == "dj_design_system/management"
         )
         assert (
-            compute_module_name("dj_design_system/apps.py") == "dj_design_system (root)"
+            compute_module_name(file_path="dj_design_system/apps.py")
+            == "dj_design_system (root)"
         )
         assert (
-            compute_module_name("dj_design_system/__init__.py")
+            compute_module_name(file_path="dj_design_system/__init__.py")
             == "dj_design_system (root)"
         )
 
     def test_absolute_path_with_repo_root(self):
         root = "/path/to/repo"
         abs_path = "/path/to/repo/dj_design_system/views/gallery.py"
-        assert compute_module_name(abs_path, root) == "dj_design_system/views"
+        assert (
+            compute_module_name(file_path=abs_path, repo_root=root)
+            == "dj_design_system/views"
+        )
 
     def test_generic_paths(self):
-        assert compute_module_name("src/components/button.py") == "src/components"
-        assert compute_module_name("src/main.py") == "src (root)"
+        assert (
+            compute_module_name(file_path="src/components/button.py")
+            == "src/components"
+        )
+        assert compute_module_name(file_path="src/main.py") == "src (root)"
 
 
 class TestParseCoverageData:
@@ -135,7 +144,7 @@ class TestParseCoverageData:
         }
 
     def test_parse_aggregations(self, sample_coverage_dict):
-        totals, modules, files = parse_coverage_data(sample_coverage_dict)
+        totals, modules, files = parse_coverage_data(data=sample_coverage_dict)
 
         assert totals.statements.total == 200
         assert totals.statements.covered == 180
@@ -202,7 +211,12 @@ class TestGenerateCoverageMarkdown:
             lines=85.0, statements=85.0, branches=80.0, functions=85.0
         )
 
-        md = generate_coverage_markdown(totals, modules, files, ratchet)
+        md = generate_coverage_markdown(
+            totals=totals,
+            module_summaries=modules,
+            files_list=files,
+            ratchet=ratchet,
+        )
 
         assert COMMENT_MARKER in md
         assert (
@@ -233,7 +247,9 @@ class TestGitHubApiIntegration:
         ).encode("utf-8")
         mock_urlopen.return_value.__enter__.return_value = mock_resp
 
-        comment_id = find_existing_coverage_comment("owner/repo", 42, "token123")
+        comment_id = find_existing_coverage_comment(
+            repo="owner/repo", pr_number=42, token="token123"
+        )
         assert comment_id == 67890
 
     @patch("urllib.request.urlopen")
@@ -246,7 +262,9 @@ class TestGitHubApiIntegration:
         ).encode("utf-8")
         mock_urlopen.return_value.__enter__.return_value = mock_resp
 
-        comment_id = find_existing_coverage_comment("owner/repo", 42, "token123")
+        comment_id = find_existing_coverage_comment(
+            repo="owner/repo", pr_number=42, token="token123"
+        )
         assert comment_id == 99999
 
     @patch("urllib.request.urlopen")
@@ -259,22 +277,33 @@ class TestGitHubApiIntegration:
         ).encode("utf-8")
         mock_urlopen.return_value.__enter__.return_value = mock_resp
 
-        assert find_existing_coverage_comment("owner/repo", 42, "token123") is None
+        assert (
+            find_existing_coverage_comment(
+                repo="owner/repo", pr_number=42, token="token123"
+            )
+            is None
+        )
 
     @patch("urllib.request.urlopen")
     def test_find_existing_coverage_comment_network_error(self, mock_urlopen):
         mock_urlopen.side_effect = urllib.error.URLError("Connection refused")
-        assert find_existing_coverage_comment("owner/repo", 42, "token123") is None
+        assert (
+            find_existing_coverage_comment(
+                repo="owner/repo", pr_number=42, token="token123"
+            )
+            is None
+        )
 
     @patch("coverage_comment.find_existing_coverage_comment")
     @patch("urllib.request.urlopen")
     def test_post_or_update_comment_updates_existing(self, mock_urlopen, mock_find):
         mock_find.return_value = 12345
         mock_resp = MagicMock()
-        mock_resp.status = 200
         mock_urlopen.return_value.__enter__.return_value = mock_resp
 
-        post_or_update_comment("owner/repo", 42, "tok", "new body")
+        post_or_update_comment(
+            repo="owner/repo", pr_number=42, token="tok", body="new body"
+        )
 
         assert mock_urlopen.call_count == 1
         req = mock_urlopen.call_args[0][0]
@@ -289,16 +318,18 @@ class TestGitHubApiIntegration:
     def test_post_or_update_comment_creates_new(self, mock_urlopen, mock_find):
         mock_find.return_value = None
         mock_resp = MagicMock()
-        mock_resp.status = 201
         mock_urlopen.return_value.__enter__.return_value = mock_resp
 
-        post_or_update_comment("owner/repo", 42, "tok", "new body")
+        post_or_update_comment(
+            repo="owner/repo", pr_number=42, token="tok", body="new body"
+        )
 
         assert mock_urlopen.call_count == 1
         req = mock_urlopen.call_args[0][0]
         assert req.get_method() == "POST"
         assert (
-            req.full_url == "https://api.github.com/repos/owner/repo/issues/42/comments"
+            req.full_url
+            == "https://api.github.com/repos/owner/repo/issues/42/comments"
         )
 
 

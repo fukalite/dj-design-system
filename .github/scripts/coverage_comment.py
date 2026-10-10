@@ -251,15 +251,21 @@ def generate_coverage_markdown(
         ratchet = RatchetConfig()
 
     overall_rounded = round(totals.overall_pct)
-    badge_colour = get_badge_colour(totals.overall_pct)
+    badge_colour = get_badge_colour(pct=totals.overall_pct)
     badge_url = (
         f"https://img.shields.io/badge/Coverage-{overall_rounded}%25-{badge_colour}.svg"
     )
 
-    lines_status = get_status_label(totals.lines.pct, ratchet.lines)
-    stmts_status = get_status_label(totals.statements.pct, ratchet.statements)
-    branches_status = get_status_label(totals.branches.pct, ratchet.branches)
-    funcs_status = get_status_label(totals.functions.pct, ratchet.functions)
+    lines_status = get_status_label(pct=totals.lines.pct, threshold=ratchet.lines)
+    stmts_status = get_status_label(
+        pct=totals.statements.pct, threshold=ratchet.statements
+    )
+    branches_status = get_status_label(
+        pct=totals.branches.pct, threshold=ratchet.branches
+    )
+    funcs_status = get_status_label(
+        pct=totals.functions.pct, threshold=ratchet.functions
+    )
 
     lines: list[str] = [
         COMMENT_MARKER,
@@ -291,7 +297,7 @@ def generate_coverage_markdown(
     ]
 
     for m in module_summaries:
-        status = get_status_indicator(m.lines_pct)
+        status = get_status_indicator(pct=m.lines_pct)
         lines.append(
             f"| {status} | `{m.module}` | {m.files} | {m.lines_pct:.1f}% | "
             f"{m.branches_pct:.1f}% | {m.funcs_pct:.1f}% |"
@@ -308,7 +314,7 @@ def generate_coverage_markdown(
     )
 
     for f in files_list:
-        status = get_status_indicator(f.lines_pct)
+        status = get_status_indicator(pct=f.lines_pct)
         lines.append(
             f"| {status} | `{f.path}` | {f.lines_pct:.1f}% | "
             f"{f.branches_pct:.1f}% | {f.funcs_pct:.1f}% |"
@@ -357,7 +363,9 @@ def find_existing_coverage_comment(
 def post_or_update_comment(
     repo: str, pr_number: int | str, token: str, body: str
 ) -> None:
-    existing_id = find_existing_coverage_comment(repo, pr_number, token)
+    existing_id = find_existing_coverage_comment(
+        repo=repo, pr_number=pr_number, token=token
+    )
     headers = {
         "Authorization": f"Bearer {token}",
         "Accept": "application/vnd.github+json",
@@ -373,11 +381,8 @@ def post_or_update_comment(
         req = urllib.request.Request(
             patch_url, data=payload, headers=headers, method="PATCH"
         )
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            if resp.status not in (200, 201):
-                raise RuntimeError(
-                    f"Failed to update comment {existing_id}: HTTP {resp.status}"
-                )
+        with urllib.request.urlopen(req, timeout=30):
+            pass
         print(
             f"Successfully updated coverage comment {existing_id} on PR #{pr_number}."
         )
@@ -387,9 +392,8 @@ def post_or_update_comment(
         req = urllib.request.Request(
             post_url, data=payload, headers=headers, method="POST"
         )
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            if resp.status not in (200, 201):
-                raise RuntimeError(f"Failed to post comment: HTTP {resp.status}")
+        with urllib.request.urlopen(req, timeout=30):
+            pass
         print(f"Successfully posted coverage comment to PR #{pr_number}.")
 
 
@@ -458,7 +462,9 @@ def main() -> int:
         data = json.load(f)
 
     repo_root = os.getcwd()
-    totals, module_summaries, files_list = parse_coverage_data(data, repo_root)
+    totals, module_summaries, files_list = parse_coverage_data(
+        data=data, repo_root=repo_root
+    )
 
     ratchet = RatchetConfig(
         lines=args.ratchet_lines,
@@ -467,7 +473,12 @@ def main() -> int:
         functions=args.ratchet_functions,
     )
 
-    markdown = generate_coverage_markdown(totals, module_summaries, files_list, ratchet)
+    markdown = generate_coverage_markdown(
+        totals=totals,
+        module_summaries=module_summaries,
+        files_list=files_list,
+        ratchet=ratchet,
+    )
 
     if args.dry_run or not args.pr or not args.repo:
         print(f"Coverage report generated ({len(markdown)} characters):\n")
@@ -483,7 +494,9 @@ def main() -> int:
         return 0
 
     try:
-        post_or_update_comment(args.repo, args.pr, args.token, markdown)
+        post_or_update_comment(
+            repo=args.repo, pr_number=args.pr, token=args.token, body=markdown
+        )
     except Exception as e:
         print(f"Error posting PR coverage comment: {e}", file=sys.stderr)
         return 1
