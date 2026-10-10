@@ -6,8 +6,7 @@ from dj_design_system import components, parameters
 
 
 DEFAULT_ARIA_LABEL = "Tabs"
-TAB_DOM_ID_PREFIX = "dds-tab-"
-PANEL_DOM_ID_PREFIX = "dds-panel-"
+DEFAULT_ID_PREFIX = "dds"
 
 
 class Tabs(components.BlockComponent):
@@ -35,9 +34,6 @@ class Tabs(components.BlockComponent):
         {% enddds__tabs %}
     """
 
-    template_name = "dj_design_system/components/elements/tabs/tabs.html"
-    _template_name = template_name
-
     tabs = parameters.ListParam(
         description="List of tab items (dicts with 'id', 'label', and optional 'icon', 'badge', 'content').",
         default=None,
@@ -53,22 +49,27 @@ class Tabs(components.BlockComponent):
         default=DEFAULT_ARIA_LABEL,
         required=False,
     )
+    id_prefix = parameters.StrParam(
+        description="DOM ID prefix for tab triggers and panels.",
+        default=DEFAULT_ID_PREFIX,
+        required=False,
+    )
 
     class Meta:
         positional_args = ["tabs"]
-
-    class Media:
-        css = "dj_design_system/components/elements/tabs/tabs.css"
-        js = "dj_design_system/components/elements/tabs/tabs.js"
 
     def get_context(self) -> dict[str, typing.Any]:
         """Compute normalized tabs, active tab state, and panel flags.
 
         Returns:
             Dictionary containing ``normalized_tabs``, ``resolved_active``,
-            ``aria_label``, ``has_inline_panels``, and ``has_slot_content``.
+            ``aria_label``, ``id_prefix``, ``has_inline_panels``, and
+            ``has_slot_content``.
         """
         context = super().get_context()
+        resolved_id_prefix = (
+            str(self.id_prefix) if self.id_prefix else DEFAULT_ID_PREFIX
+        )
         raw_tabs = list(self.tabs) if self.tabs else []
         extracted_tabs: list[dict[str, str]] = []
 
@@ -125,8 +126,8 @@ class Tabs(components.BlockComponent):
                     "has_badge": bool(badge),
                     "content": content,
                     "has_content": bool(content),
-                    "tab_dom_id": f"{TAB_DOM_ID_PREFIX}{tab_id}",
-                    "panel_dom_id": f"{PANEL_DOM_ID_PREFIX}{tab_id}",
+                    "tab_dom_id": f"{resolved_id_prefix}-tab-{tab_id}",
+                    "panel_dom_id": f"{resolved_id_prefix}-panel-{tab_id}",
                     "is_active": is_active,
                     "aria_selected": "true" if is_active else "false",
                     "tabindex": "0" if is_active else "-1",
@@ -141,6 +142,7 @@ class Tabs(components.BlockComponent):
         )
 
         context["aria_label"] = self.aria_label or DEFAULT_ARIA_LABEL
+        context["id_prefix"] = resolved_id_prefix
         context["resolved_active"] = resolved_active
         context["normalized_tabs"] = normalized_tabs
         context["has_inline_panels"] = any(

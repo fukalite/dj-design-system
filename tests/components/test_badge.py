@@ -101,9 +101,11 @@ class TestBadgeDiscoveryAndMetadata:
         assert issubclass(badge_module.Badge, components_base.TagComponent)
 
     def test_template_and_media_declarations(self) -> None:
-        """Verify Badge declares co-located template_name and Media.css."""
-        assert badge_module.Badge.template_name == TEMPLATE_PATH
-        assert badge_module.Badge.Media.css == CSS_MEDIA_PATH
+        """Verify Badge relies on co-located template_name and Media.css auto-discovery."""
+        reg = _make_registry()
+        info = reg.get_by_name(name=COMPONENT_NAME, app_label=APP_LABEL)
+        assert info.template_name == TEMPLATE_PATH
+        assert info.media.css == [CSS_MEDIA_PATH]
         assert badge_module.Badge.get_positional_args() == ["label"]
 
     def test_discovered_as_dds_badge_in_registry(self) -> None:

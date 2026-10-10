@@ -48,9 +48,6 @@ class Button(components.TagComponent):
         action: Optional ``data-action`` hook for parent Web Components.
     """
 
-    template_name = "dj_design_system/components/elements/button/button.html"
-    _template_name = template_name
-
     label = parameters.StrParam(
         description="Button text label (or accessible aria-label when icon_only=True).",
         default="",
@@ -119,9 +116,6 @@ class Button(components.TagComponent):
 
     class Meta:
         positional_args = ["label"]
-
-    class Media:
-        css = "dj_design_system/components/elements/button/button.css"
 
     def validate_params(self) -> None:
         """Validate accessibility and content invariants across button parameters.

@@ -2,11 +2,21 @@ from pathlib import Path
 
 import pytest
 
+from dj_design_system.testing.plugins import (
+    AccessibilityPlugin,
+    HTMLValidationPlugin,
+    StrictHTMLParser,
+    VisualRegressionPlugin,
+)
+from dj_design_system.testing.visual import ImageComparison
+
+
+def _write_fake_screenshot(path: str) -> None:
+    Path(path).write_bytes(b"fake image data")
+
 
 def test_visual_regression_plugin_basic(mocker):
     """Verify the snapshot plugin properly hooks into the iteration engine and captures states."""
-    from dj_design_system.testing.plugins import VisualRegressionPlugin
-
     mock_page = mocker.Mock()
 
     plugin = VisualRegressionPlugin(
@@ -43,8 +53,6 @@ def test_visual_regression_plugin_basic(mocker):
 
 
 def test_visual_regression_plugin_maximal(mocker):
-    from dj_design_system.testing.plugins import VisualRegressionPlugin
-
     mock_page = mocker.Mock()
     plugin = VisualRegressionPlugin(
         page=mock_page, base_url="http://localhost:8000", enable_diff=False
@@ -70,8 +78,6 @@ def test_visual_regression_plugin_maximal(mocker):
 
 def test_playwright_assessment_plugin_navigates_with_json_params(mocker):
     """Verify Playwright plugins serialise list and dict kwargs as valid JSON in URLs (#95)."""
-    from dj_design_system.testing.plugins import VisualRegressionPlugin
-
     mock_page = mocker.Mock()
     plugin = VisualRegressionPlugin(
         page=mock_page, base_url="http://localhost:8000", enable_diff=False
@@ -94,9 +100,6 @@ def test_playwright_assessment_plugin_navigates_with_json_params(mocker):
 
 
 def test_visual_regression_plugin_unknown_variant(mocker):
-
-    from dj_design_system.testing.plugins import VisualRegressionPlugin
-
     mock_page = mocker.Mock()
     plugin = VisualRegressionPlugin(
         page=mock_page, base_url="http://localhost:8000", enable_diff=False
@@ -108,11 +111,28 @@ def test_visual_regression_plugin_unknown_variant(mocker):
     plugin.run_assessment(mock_comp, "unknown", "light")
     url = mock_page.goto.call_args[0][0]
     assert "test_app__test_component" in url
+    assert "_dds_variant=unknown" in url
+
+
+def test_playwright_assessment_plugin_named_gallery_variant(mocker):
+    """Named gallery.py variants pass _dds_variant=<name> in the /_canvas/ query string."""
+    mock_page = mocker.Mock()
+    mock_axe = mocker.patch("axe_playwright_python.sync_playwright.Axe")
+    mock_axe.return_value.run.return_value.violations_count = 0
+
+    plugin = AccessibilityPlugin(page=mock_page, base_url="http://localhost:8000/dds")
+
+    mock_comp = mocker.Mock()
+    mock_comp.qualified_name = "dds__badge"
+
+    plugin.run_assessment(mock_comp, "info", "dark")
+    url = mock_page.goto.call_args[0][0]
+    assert "component=dds__badge" in url
+    assert "_dds_variant=info" in url
+    assert "_dds_theme=dark" in url
 
 
 def test_visual_regression_missing_baseline(mocker, tmp_path):
-    from dj_design_system.testing.plugins import VisualRegressionPlugin
-
     mock_page = mocker.Mock()
     plugin = VisualRegressionPlugin(
         page=mock_page,
@@ -132,8 +152,6 @@ def test_visual_regression_missing_baseline(mocker, tmp_path):
 
 
 def test_visual_regression_update_snapshot(mocker, tmp_path):
-    from dj_design_system.testing.plugins import VisualRegressionPlugin
-
     mock_page = mocker.Mock()
     plugin = VisualRegressionPlugin(
         page=mock_page,
@@ -143,11 +161,7 @@ def test_visual_regression_update_snapshot(mocker, tmp_path):
         update_snapshots=True,
     )
 
-    # Mock screenshot to actually create a file
-    def mock_screenshot(path):
-        Path(path).write_bytes(b"fake image data")
-
-    mock_page.locator.return_value.screenshot.side_effect = mock_screenshot
+    mock_page.locator.return_value.screenshot.side_effect = _write_fake_screenshot
 
     mock_comp = mocker.Mock()
     mock_comp.qualified_name = "test_comp"
@@ -160,9 +174,6 @@ def test_visual_regression_update_snapshot(mocker, tmp_path):
 
 
 def test_visual_regression_diff_mismatch(mocker, tmp_path):
-    from dj_design_system.testing.plugins import VisualRegressionPlugin
-    from dj_design_system.testing.visual import ImageComparison
-
     mock_diff = mocker.Mock()
     mock_compare = mocker.patch(
         "dj_design_system.testing.plugins.compare_images",
@@ -198,8 +209,6 @@ def test_visual_regression_diff_mismatch(mocker, tmp_path):
 
 
 def test_accessibility_plugin_passes(mocker):
-    from dj_design_system.testing.plugins import AccessibilityPlugin
-
     mock_page = mocker.Mock()
     mock_axe = mocker.patch("axe_playwright_python.sync_playwright.Axe")
     mock_axe.return_value.run.return_value.violations_count = 0
@@ -215,8 +224,6 @@ def test_accessibility_plugin_passes(mocker):
 
 
 def test_accessibility_plugin_fails(mocker):
-    from dj_design_system.testing.plugins import AccessibilityPlugin
-
     mock_page = mocker.Mock()
     mock_axe = mocker.patch("axe_playwright_python.sync_playwright.Axe")
     mock_axe.return_value.run.return_value.violations_count = 1
@@ -235,8 +242,6 @@ def test_accessibility_plugin_fails(mocker):
 
 
 def test_html_validation_plugin_passes(mocker):
-    from dj_design_system.testing.plugins import HTMLValidationPlugin
-
     mock_page = mocker.Mock()
     # Mock goto().text() to return valid HTML
     mock_page.goto.return_value.text.return_value = "<div><p>Valid HTML</p></div>"
@@ -251,8 +256,6 @@ def test_html_validation_plugin_passes(mocker):
 
 
 def test_html_validation_plugin_fails(mocker):
-    from dj_design_system.testing.plugins import HTMLValidationPlugin
-
     mock_page = mocker.Mock()
     # Mock goto().text() to return invalid HTML (unclosed div)
     mock_page.goto.return_value.text.return_value = "<div><p>Invalid HTML"
@@ -267,10 +270,25 @@ def test_html_validation_plugin_fails(mocker):
         plugin.run_assessment(mock_comp, "basic", "light")
 
 
+def test_html_validation_plugin_fails_on_canvas_error(mocker):
+    """HTMLValidationPlugin fails if the canvas rendered a gallery-canvas-error fallback."""
+    mock_page = mocker.Mock()
+    mock_page.goto.return_value.text.return_value = (
+        '<p class="gallery-canvas-error">Could not render: Variant not found</p>'
+    )
+
+    plugin = HTMLValidationPlugin(page=mock_page)
+
+    mock_comp = mocker.Mock()
+    mock_comp.qualified_name = "dds__badge"
+    mock_comp.gallery_basic_kwargs = {}
+
+    with pytest.raises(AssertionError, match="Canvas failed to render component"):
+        plugin.run_assessment(mock_comp, "broken_variant", "light")
+
+
 def test_strict_html_parser_xhtml_self_closing_void_elements():
     """Verify StrictHTMLParser does not raise errors on XHTML self-closing void elements (#96)."""
-    from dj_design_system.testing.plugins import StrictHTMLParser
-
     parser = StrictHTMLParser()
     parser.feed(
         '<div><input type="range" /><br /><img src="foo.png" /><source srcset="test.webp" /></div>'
@@ -281,8 +299,6 @@ def test_strict_html_parser_xhtml_self_closing_void_elements():
 
 def test_strict_html_parser_detects_real_errors_with_void_elements():
     """Verify StrictHTMLParser still detects real errors when void elements are present."""
-    from dj_design_system.testing.plugins import StrictHTMLParser
-
     # Mismatched tags around void element
     parser = StrictHTMLParser()
     parser.feed('<div><span><input type="checkbox" /></div></span>')
@@ -298,8 +314,6 @@ def test_strict_html_parser_detects_real_errors_with_void_elements():
 
 def test_strict_html_parser_flags_explicit_closing_void_elements():
     """Verify that explicit closing tags on void elements (e.g. </input>) are flagged as errors."""
-    from dj_design_system.testing.plugins import StrictHTMLParser
-
     parser = StrictHTMLParser()
     parser.feed('<div><input type="text"></input></div>')
     parser.close()

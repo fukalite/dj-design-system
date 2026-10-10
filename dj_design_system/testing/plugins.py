@@ -5,6 +5,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
 
+from dj_design_system.data import ComponentInfo
 from dj_design_system.testing.engine import AssessmentPlugin
 from dj_design_system.testing.visual import ScreenshotMismatch, compare_images
 
@@ -20,18 +21,26 @@ except ImportError:
 class PlaywrightAssessmentPlugin(AssessmentPlugin):
     """Base class for Playwright-based assessment plugins."""
 
-    def __init__(self, page: Any, base_url: str):
+    def __init__(self, page: Any, base_url: str) -> None:
         self.page = page
         self.base_url = base_url.rstrip("/")
 
-    def _resolve_kwargs(self, component: Any, variant: str) -> dict[str, Any]:
+    def _resolve_kwargs(self, component: ComponentInfo, variant: str) -> dict[str, Any]:
+        cfg = getattr(component, "gallery_config", None)
+        if cfg is not None and isinstance(
+            getattr(cfg, "variants", None), (list, tuple)
+        ):
+            variant_obj = cfg.get_variant(variant)
+            return dict(variant_obj.kwargs) if variant_obj else {}
         if variant == "basic":
             return component.gallery_basic_kwargs
         elif variant == "maximal":
             return component.gallery_maximal_kwargs
         return {}
 
-    def _navigate_to_component(self, component: Any, variant: str, theme: str) -> Any:
+    def _navigate_to_component(
+        self, component: ComponentInfo, variant: str, theme: str
+    ) -> Any:
         kwargs = self._resolve_kwargs(component, variant)
         params: dict[str, str] = {"component": component.qualified_name}
 
@@ -46,6 +55,8 @@ class PlaywrightAssessmentPlugin(AssessmentPlugin):
                 else:
                     params[key] = str(value)
 
+        if variant and variant not in ("basic", "maximal"):
+            params["_dds_variant"] = variant
         params["_dds_theme"] = theme
         url = f"{self.base_url}/_canvas/?{urllib.parse.urlencode(params, doseq=True)}"
         return self.page.goto(url)
@@ -64,7 +75,7 @@ class VisualRegressionPlugin(PlaywrightAssessmentPlugin):
         threshold: float = 0.1,
         update_snapshots: bool = False,
         enable_diff: bool = True,
-    ):
+    ) -> None:
         try:
             import playwright  # noqa: F401
         except ImportError:
@@ -86,7 +97,9 @@ class VisualRegressionPlugin(PlaywrightAssessmentPlugin):
                 "Install them with `pip install pixelmatch Pillow` or disable diffs."
             )
 
-    def run_assessment(self, component: Any, variant: str, theme: str) -> None:
+    def run_assessment(
+        self, component: ComponentInfo, variant: str, theme: str
+    ) -> None:
         """Run a visual regression assessment."""
         self._navigate_to_component(component, variant, theme)
         wrapper = self.page.locator(".canvas-wrapper")
@@ -134,7 +147,7 @@ class AccessibilityPlugin(PlaywrightAssessmentPlugin):
         page: Any,
         base_url: str = "http://localhost:8000",
         disabled_rules: list[str] | None = None,
-    ):
+    ) -> None:
         try:
             import playwright  # noqa: F401
         except ImportError:
@@ -145,7 +158,10 @@ class AccessibilityPlugin(PlaywrightAssessmentPlugin):
         super().__init__(page, base_url)
         self.disabled_rules = disabled_rules or []
 
-    def run_assessment(self, component: Any, variant: str, theme: str) -> None:
+    def run_assessment(
+        self, component: ComponentInfo, variant: str, theme: str
+    ) -> None:
+        """Run axe-core accessibility assessment on the rendered component."""
         try:
             from axe_playwright_python.sync_playwright import (  # type: ignore[import-untyped]
                 Axe,
@@ -173,6 +189,8 @@ class AccessibilityPlugin(PlaywrightAssessmentPlugin):
 
 
 class StrictHTMLParser(HTMLParser):
+    """HTMLParser subclass that records unclosed, orphaned, or mismatched tags."""
+
     def __init__(self) -> None:
         super().__init__()
         self.stack: list[str] = []
@@ -226,7 +244,7 @@ class StrictHTMLParser(HTMLParser):
 class HTMLValidationPlugin(PlaywrightAssessmentPlugin):
     """Plugin that parses the component's HTML to detect structural issues like unclosed tags."""
 
-    def __init__(self, page: Any, base_url: str = "http://localhost:8000"):
+    def __init__(self, page: Any, base_url: str = "http://localhost:8000") -> None:
         try:
             import playwright  # noqa: F401
         except ImportError:
@@ -236,9 +254,18 @@ class HTMLValidationPlugin(PlaywrightAssessmentPlugin):
             )
         super().__init__(page, base_url)
 
-    def run_assessment(self, component: Any, variant: str, theme: str) -> None:
+    def run_assessment(
+        self, component: ComponentInfo, variant: str, theme: str
+    ) -> None:
+        """Validate that the canvas response contains no render errors or structural HTML errors."""
         response = self._navigate_to_component(component, variant, theme)
         html_content = response.text()
+
+        if 'class="gallery-canvas-error"' in html_content:
+            raise AssertionError(
+                f"Canvas failed to render component '{component.qualified_name}' "
+                f"(variant='{variant}', theme='{theme}'):\n{html_content}"
+            )
 
         parser = StrictHTMLParser()
         parser.feed(html_content)

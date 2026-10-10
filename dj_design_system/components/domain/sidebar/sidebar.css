@@ -133,4 +133,10 @@
     padding-block: var(--_sidebar-padding-block);
     padding-inline: var(--_sidebar-padding-inline);
   }
+
+  @media (min-width: 48.0625rem) {
+    [data-shell-sidebar] .dds-sidebar [data-sidebar-header] {
+      display: none;
+    }
+  }
 }

@@ -50,9 +50,6 @@ class SearchBox(components.TagComponent):
         {% dds__search_box "Filter components..." shortcut_hint="⌘K" %}
     """
 
-    template_name = "dj_design_system/components/domain/search_box/search_box.html"
-    _template_name = template_name
-
     placeholder = parameters.StrParam(
         description="Search input placeholder text.",
         default=DEFAULT_PLACEHOLDER,
@@ -91,10 +88,6 @@ class SearchBox(components.TagComponent):
 
     class Meta:
         positional_args = ["placeholder"]
-
-    class Media:
-        css = "dj_design_system/components/domain/search_box/search_box.css"
-        js = "dj_design_system/components/domain/search_box/search_box.js"
 
     def get_context(self) -> dict[str, typing.Any]:
         """Build the normalized template context and serialized search index JSON.

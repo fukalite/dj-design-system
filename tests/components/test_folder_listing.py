@@ -128,9 +128,11 @@ class TestFolderListingDiscoveryAndMetadata:
         )
 
     def test_template_media_and_positional_args(self) -> None:
-        """Verify FolderListing declares co-located template_name, Media.css, and positional_args."""
-        assert folder_listing_module.FolderListing.template_name == TEMPLATE_PATH
-        assert folder_listing_module.FolderListing.Media.css == CSS_MEDIA_PATH
+        """Verify FolderListing relies on co-located template_name, Media.css, and positional_args."""
+        reg = _make_registry()
+        info = reg.get_by_name(name=COMPONENT_NAME, app_label=APP_LABEL)
+        assert info.template_name == TEMPLATE_PATH
+        assert info.media.css == [CSS_MEDIA_PATH]
         assert folder_listing_module.FolderListing.get_positional_args() == [
             "title",
             "items",

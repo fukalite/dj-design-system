@@ -111,10 +111,12 @@ class TestSplitPaneDiscoveryAndMetadata:
         assert split_pane_module.SplitPane.has_slots() is True
 
     def test_template_media_and_slots_metadata(self) -> None:
-        """Verify SplitPane declares co-located template_name, Media.css/js, and primary/secondary slots."""
-        assert split_pane_module.SplitPane.template_name == TEMPLATE_PATH
-        assert split_pane_module.SplitPane.Media.css == CSS_MEDIA_PATH
-        assert split_pane_module.SplitPane.Media.js == JS_MEDIA_PATH
+        """Verify SplitPane relies on co-located template_name, Media.css/js, and primary/secondary slots."""
+        reg = _make_registry()
+        info = reg.get_by_name(name=COMPONENT_NAME, app_label=APP_LABEL)
+        assert info.template_name == TEMPLATE_PATH
+        assert info.media.css == [CSS_MEDIA_PATH]
+        assert info.media.js == [JS_MEDIA_PATH]
         slots_spec = split_pane_module.SplitPane.get_slots()
         assert set(slots_spec.keys()) == {"primary", "secondary"}
         assert slots_spec["primary"].required is False
@@ -217,7 +219,7 @@ class TestSplitPaneParametersAndContext:
     def test_slots_and_direct_content_fallback_and_surface_flags(self) -> None:
         """Verify primary slot overrides content fallback, and empty surface strings disable surface attributes."""
         comp_fallback = split_pane_module.SplitPane(
-            content="<p>Direct primary</p>",
+            content=safestring.SafeString("<p>Direct primary</p>"),
             primary_surface="",
             secondary_surface="",
             primary_label="Left",
@@ -235,10 +237,10 @@ class TestSplitPaneParametersAndContext:
         assert ctx_fallback["resolved_resizer_label"] == "Resize panes"
 
         comp_slots = split_pane_module.SplitPane(
-            content="<p>Ignored fallback</p>",
+            content=safestring.SafeString("<p>Ignored fallback</p>"),
             slots={
-                "primary": "<p>Slot primary</p>",
-                "secondary": "<p>Slot secondary</p>",
+                "primary": safestring.SafeString("<p>Slot primary</p>"),
+                "secondary": safestring.SafeString("<p>Slot secondary</p>"),
             },
         )
         assert isinstance(comp_slots.slots["primary"], safestring.SafeString)

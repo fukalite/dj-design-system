@@ -2,8 +2,6 @@
 
 import typing
 
-from django.utils import safestring
-
 from dj_design_system import components, parameters, slots
 
 
@@ -21,9 +19,6 @@ class FormField(components.BlockComponent):
     tokens. Pass the control markup via ``{% slot "control" %}`` (or as default
     block content when instantiating in Python).
     """
-
-    template_name = "dj_design_system/components/elements/form_field/form_field.html"
-    _template_name = template_name
 
     label = parameters.StrParam(description="Field label text.")
     field_id = parameters.StrParam(
@@ -61,30 +56,6 @@ class FormField(components.BlockComponent):
                 description="Form control widget markup (falls back to default block content if omitted).",
             ),
         }
-
-    class Media:
-        css = "dj_design_system/components/elements/form_field/form_field.css"
-
-    def __init__(
-        self,
-        content: safestring.SafeString | str | None = None,
-        *,
-        slots: dict[str, safestring.SafeString] | None = None,
-        **kwargs: typing.Any,
-    ) -> None:
-        """Initialise the form field component and preserve fallback block content.
-
-        Args:
-            content: Optional fallback control markup when ``slots["control"]`` is omitted.
-            slots: Optional mapping of named slot values.
-            **kwargs: Component parameter keyword arguments.
-        """
-        super().__init__(content=content, slots=slots, **kwargs)
-        self.slots = {
-            name: safestring.mark_safe(s=val) if val else val
-            for name, val in (self.slots or {}).items()
-        }
-        self.content = safestring.mark_safe(s=content) if content is not None else ""
 
     def get_context(self) -> dict[str, typing.Any]:
         """Build template context with pre-computed boolean flags and slot fallbacks.

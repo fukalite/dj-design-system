@@ -37,9 +37,6 @@ class Sidebar(components.BlockComponent):
         {% enddds__sidebar %}
     """
 
-    template_name = "dj_design_system/components/domain/sidebar/sidebar.html"
-    _template_name = template_name
-
     brand_name = parameters.StrParam(
         description="Design system title shown in the sidebar header.",
         default=DEFAULT_BRAND_NAME,
@@ -93,17 +90,14 @@ class Sidebar(components.BlockComponent):
             ),
         }
 
-    class Media:
-        css = "dj_design_system/components/domain/sidebar/sidebar.css"
-
     def __init__(
         self,
         content: safestring.SafeString | str | None = None,
         *,
-        slots: dict[str, safestring.SafeString] | None = None,
+        slots: dict[str, safestring.SafeString | str] | None = None,
         **kwargs: typing.Any,
     ) -> None:
-        """Initialise the sidebar component, normalising variant objects and safe slots.
+        """Initialise the sidebar component, normalising variant objects.
 
         Args:
             content: Optional additional body markup rendered after the nav tree.
@@ -122,19 +116,11 @@ class Sidebar(components.BlockComponent):
                     kwargs["active_variant"],
                 )
             )
-        normalized_slots = {
-            name: safestring.SafeString(val) if val else val
-            for name, val in (slots or {}).items()
-        }
-        normalized_content = (
-            safestring.SafeString(content) if content is not None else ""
-        )
         super().__init__(
-            content=normalized_content,
-            slots=normalized_slots,
+            content=content,
+            slots=slots,
             **kwargs,
         )
-        self.content = normalized_content
 
     def get_context(self) -> dict[str, typing.Any]:
         """Compute normalized template context for the sidebar landmark and slots.
@@ -148,9 +134,7 @@ class Sidebar(components.BlockComponent):
         brand_url = self.brand_url or DEFAULT_BRAND_URL
         aria_label = self.aria_label or DEFAULT_ARIA_LABEL
         nodes = list(self.nodes) if self.nodes is not None else []
-        search_index = (
-            list(self.search_index) if self.search_index is not None else []
-        )
+        search_index = list(self.search_index) if self.search_index is not None else []
         has_header_slot = bool(self.slots and self.slots.get("header"))
         has_footer_slot = bool(self.slots and self.slots.get("footer"))
         has_content = bool(self.content and str(self.content).strip())

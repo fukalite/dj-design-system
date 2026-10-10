@@ -41,5 +41,9 @@ def test_all_components(page, live_server):
         ),
     ]
 
-    engine = IterationEngine(components=component_registry.list_all())
+    components = [c for c in component_registry.list_all() if not c.is_internal]
+    engine = IterationEngine(
+        components=components,
+        variants=["basic", "maximal"],
+    )
     engine.run_plugins(plugins)

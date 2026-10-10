@@ -1,11 +1,11 @@
 # Theme Select (`dds__theme_select`)
 
-The `dds__theme_select` domain component renders an accessible theme selector control inside a `<dds-theme-select>` Light DOM custom element. It displays a contextual `sun` or `moon` icon alongside a native `<select data-theme-select>` dropdown for switching gallery or canvas themes.
+The `dds__theme_select` domain component renders an accessible consumer theme selector control inside a `<dds-theme-select>` Light DOM custom element. It displays an icon alongside a native `<select data-theme-select>` dropdown for switching configured consumer component themes (`GALLERY_THEMES`).
 
 ## When to Use
 
-- Allowing users to switch the active gallery shell theme in the topbar (`dds__toolbar`) or preview theme in the sandbox toolbar.
-- Presenting a list of `Theme` dataclass objects, `{ "value", "label" }` dictionaries, or theme identifier strings with automatic icon resolution (`moon` when `"dark"` is in the theme identifier, `sun` otherwise).
+- Allowing users to switch the active consumer component preview theme in the topbar (`dds__toolbar`) or sandbox toolbar.
+- Presenting a list of `Theme` dataclass objects, `{ "value", "label" }` dictionaries, or theme identifier strings.
 
 ## Parameters
 

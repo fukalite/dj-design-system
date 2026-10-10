@@ -1,7 +1,5 @@
 """Built-in interactive canvas widget domain component for the dds gallery."""
 
-import html
-import re
 import typing
 
 from dj_design_system import components, parameters
@@ -17,11 +15,6 @@ DEFAULT_VIEWPORT = "responsive"
 DEFAULT_BACKGROUND = "white"
 DEFAULT_ZOOM = "100"
 DEFAULT_TITLE = "Component preview"
-HTML_TAG_PATTERN = r"<[^>]+>"
-HIGHLIGHT_DIV_MARKER = '<div class="highlight"'
-PRE_TAG_MARKER = "<pre"
-SPAN_TAG_MARKER = '<span class="'
-HTML_ENTITY_LT_MARKER = "&lt;"
 LINE_BREAK_CHARS = "\r\n"
 ARIA_TRUE = "true"
 ARIA_FALSE = "false"
@@ -47,8 +40,8 @@ class CanvasWidget(components.TagComponent):
             resize correlation.
         iframe_src: URL for the isolated preview iframe.
         iframe_srcdoc: Inline HTML document string for srcdoc preview embedding.
-        source_code: Raw or highlighted template source code snippet.
-        rendered_html: Raw or highlighted rendered HTML output snippet.
+        source_code: Raw template source code snippet.
+        rendered_html: Raw rendered HTML output snippet.
         mode: Initial active panel mode (``'preview'``, ``'code'``, or ``'html'``).
         viewport: Initial viewport width preset (``'responsive'`` or pixel width
             string such as ``'768'``).
@@ -65,11 +58,6 @@ class CanvasWidget(components.TagComponent):
 
         {% dds__canvas_widget iframe_srcdoc="<button>Hello</button>" background="dark" viewport="768" zoom="125" %}
     """
-
-    template_name = (
-        "dj_design_system/components/domain/canvas_widget/canvas_widget.html"
-    )
-    _template_name = template_name
 
     canvas_id = parameters.StrParam(
         default=DEFAULT_CANVAS_ID,
@@ -92,12 +80,12 @@ class CanvasWidget(components.TagComponent):
     source_code = parameters.StrParam(
         default="",
         required=False,
-        description="Raw or highlighted template source code snippet.",
+        description="Raw template source code snippet.",
     )
     rendered_html = parameters.StrParam(
         default="",
         required=False,
-        description="Raw or highlighted rendered HTML output snippet.",
+        description="Raw rendered HTML output snippet.",
     )
     mode = parameters.StrParam(
         default=DEFAULT_MODE,
@@ -144,12 +132,6 @@ class CanvasWidget(components.TagComponent):
     class Meta:
         positional_args = ["iframe_src"]
 
-    class Media:
-        css = (
-            "dj_design_system/components/domain/canvas_widget/canvas_widget.css"
-        )
-        js = "dj_design_system/components/domain/canvas_widget/canvas_widget.js"
-
     def __init__(self, **kwargs: typing.Any) -> None:
         """Initialise the canvas widget, normalising numeric or percentage zoom inputs.
 
@@ -179,18 +161,12 @@ class CanvasWidget(components.TagComponent):
         resolved_canvas_id = (
             str(self.canvas_id) if self.canvas_id else DEFAULT_CANVAS_ID
         )
-        resolved_mode = (
-            str(self.mode) if self.mode in MODE_CHOICES else DEFAULT_MODE
-        )
-        resolved_viewport = (
-            str(self.viewport) if self.viewport else DEFAULT_VIEWPORT
-        )
+        resolved_mode = str(self.mode) if self.mode in MODE_CHOICES else DEFAULT_MODE
+        resolved_viewport = str(self.viewport) if self.viewport else DEFAULT_VIEWPORT
         resolved_background = (
             str(self.background) if self.background else DEFAULT_BACKGROUND
         )
-        resolved_zoom = (
-            str(self.zoom).rstrip("%") if self.zoom else DEFAULT_ZOOM
-        )
+        resolved_zoom = str(self.zoom).rstrip("%") if self.zoom else DEFAULT_ZOOM
         resolved_title = str(self.title) if self.title else DEFAULT_TITLE
 
         iframe_src = str(self.iframe_src) if self.iframe_src else ""
@@ -198,43 +174,10 @@ class CanvasWidget(components.TagComponent):
         sandbox_attrs = str(self.sandbox_attrs) if self.sandbox_attrs else ""
 
         raw_source_code = str(self.source_code) if self.source_code else ""
-        if (
-            HIGHLIGHT_DIV_MARKER in raw_source_code
-            or PRE_TAG_MARKER in raw_source_code
-            or SPAN_TAG_MARKER in raw_source_code
-        ):
-            stripped_source = re.sub(
-                pattern=HTML_TAG_PATTERN,
-                repl="",
-                string=raw_source_code,
-            )
-            normalized_source_code = html.unescape(s=stripped_source).strip(
-                LINE_BREAK_CHARS
-            )
-        else:
-            normalized_source_code = raw_source_code.strip(LINE_BREAK_CHARS)
+        normalized_source_code = raw_source_code.strip(LINE_BREAK_CHARS)
 
-        raw_rendered_html = (
-            str(self.rendered_html) if self.rendered_html else ""
-        )
-        if (
-            HIGHLIGHT_DIV_MARKER in raw_rendered_html
-            or PRE_TAG_MARKER in raw_rendered_html
-            or (
-                SPAN_TAG_MARKER in raw_rendered_html
-                and HTML_ENTITY_LT_MARKER in raw_rendered_html
-            )
-        ):
-            stripped_rendered = re.sub(
-                pattern=HTML_TAG_PATTERN,
-                repl="",
-                string=raw_rendered_html,
-            )
-            normalized_rendered_html = html.unescape(s=stripped_rendered).strip(
-                LINE_BREAK_CHARS
-            )
-        else:
-            normalized_rendered_html = raw_rendered_html.strip(LINE_BREAK_CHARS)
+        raw_rendered_html = str(self.rendered_html) if self.rendered_html else ""
+        normalized_rendered_html = raw_rendered_html.strip(LINE_BREAK_CHARS)
 
         has_src = bool(iframe_src)
         has_srcdoc = bool(iframe_srcdoc)

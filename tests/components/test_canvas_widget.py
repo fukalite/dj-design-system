@@ -24,15 +24,9 @@ APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "canvas_widget"
 QUALIFIED_NAME = "dds__canvas_widget"
 RELATIVE_PATH = "domain.canvas_widget"
-TEMPLATE_PATH = (
-    "dj_design_system/components/domain/canvas_widget/canvas_widget.html"
-)
-CSS_MEDIA_PATH = (
-    "dj_design_system/components/domain/canvas_widget/canvas_widget.css"
-)
-JS_MEDIA_PATH = (
-    "dj_design_system/components/domain/canvas_widget/canvas_widget.js"
-)
+TEMPLATE_PATH = "dj_design_system/components/domain/canvas_widget/canvas_widget.html"
+CSS_MEDIA_PATH = "dj_design_system/components/domain/canvas_widget/canvas_widget.css"
+JS_MEDIA_PATH = "dj_design_system/components/domain/canvas_widget/canvas_widget.js"
 
 ROOT_DIR = pathlib.Path(__file__).resolve().parent.parent.parent
 CANVAS_WIDGET_DIR = (
@@ -76,9 +70,7 @@ def _render_template(
         compiled = template.Template(
             template_string="{% load design_components %}" + source
         )
-        return compiled.render(
-            context=template.Context(dict_=context_data or {})
-        )
+        return compiled.render(context=template.Context(dict_=context_data or {}))
     finally:
         if previous is None:
             engine.template_libraries.pop("design_components", None)
@@ -117,20 +109,19 @@ class TestCanvasWidgetDiscoveryAndMetadata:
         self,
     ) -> None:
         """Verify CanvasWidget is exported in dj_design_system.components.domain.canvas_widget."""
-        assert (
-            canvas_widget_package.CanvasWidget
-            is canvas_widget_module.CanvasWidget
-        )
+        assert canvas_widget_package.CanvasWidget is canvas_widget_module.CanvasWidget
         assert issubclass(
             canvas_widget_module.CanvasWidget,
             components_base.TagComponent,
         )
 
     def test_template_media_and_positional_args_metadata(self) -> None:
-        """Verify CanvasWidget declares co-located template_name, Media.css/js, and positional_args."""
-        assert canvas_widget_module.CanvasWidget.template_name == TEMPLATE_PATH
-        assert canvas_widget_module.CanvasWidget.Media.css == CSS_MEDIA_PATH
-        assert canvas_widget_module.CanvasWidget.Media.js == JS_MEDIA_PATH
+        """Verify CanvasWidget relies on co-located template_name, Media.css/js, and positional_args."""
+        reg = _make_registry()
+        info = reg.get_by_name(name=COMPONENT_NAME, app_label=APP_LABEL)
+        assert info.template_name == TEMPLATE_PATH
+        assert info.media.css == [CSS_MEDIA_PATH]
+        assert info.media.js == [JS_MEDIA_PATH]
         assert canvas_widget_module.CanvasWidget.get_positional_args() == [
             "iframe_src",
         ]
@@ -154,9 +145,7 @@ class TestCanvasWidgetDiscoveryAndMetadata:
         own_private_methods = [
             name
             for name, attr in canvas_widget_module.CanvasWidget.__dict__.items()
-            if name.startswith("_")
-            and not name.startswith("__")
-            and callable(attr)
+            if name.startswith("_") and not name.startswith("__") and callable(attr)
         ]
         assert not own_private_methods
         py_text = _read_text(path=CANVAS_WIDGET_PY_PATH)
@@ -211,33 +200,25 @@ class TestCanvasWidgetParametersAndContext:
         assert comp_pct.zoom == "200"
         assert comp_pct.get_context()["resolved_zoom"] == "200"
 
-    def test_strips_highlighted_html_tags_and_unescapes_entities_for_code_blocks(
+    def test_preserves_literal_html_tags_in_source_and_rendered_html(
         self,
     ) -> None:
-        """Verify highlighted <div class="highlight"> / <pre> snippets strip tags and unescape entities."""
-        highlighted_source = (
-            '<div class="highlight"><pre><span></span>'
-            "{% dds__button &#39;Save&#39; variant=&quot;primary&quot; %}"
-            "</pre></div>"
+        """Verify literal <span class="..."> and <pre> tags in raw source_code and rendered_html are preserved without regex stripping."""
+        raw_source = (
+            "{% dds__button 'Save' %}\n<span class=\"dds-badge\">Preview</span>"
         )
-        highlighted_html = (
-            "<pre><code>&lt;button class=&quot;dds-button&quot;&gt;"
-            "Save &amp; Close&lt;/button&gt;</code></pre>"
+        raw_html = (
+            '<div class="highlight"><pre><code>literal pre block</code></pre></div>\n'
+            '<span class="dds-badge">&lt;escaped&gt;</span>'
         )
         comp = canvas_widget_module.CanvasWidget(
-            source_code=highlighted_source,
-            rendered_html=highlighted_html,
+            source_code=raw_source,
+            rendered_html=raw_html,
             mode="code",
         )
         ctx = comp.get_context()
-        assert (
-            ctx["normalized_source_code"]
-            == '{% dds__button \'Save\' variant="primary" %}'
-        )
-        assert (
-            ctx["normalized_rendered_html"]
-            == '<button class="dds-button">Save & Close</button>'
-        )
+        assert ctx["normalized_source_code"] == raw_source
+        assert ctx["normalized_rendered_html"] == raw_html
         assert ctx["has_source_code"] is True
         assert ctx["has_rendered_html"] is True
         assert ctx["show_mode_toggles"] is True
@@ -247,14 +228,6 @@ class TestCanvasWidgetParametersAndContext:
         assert ctx["preview_aria_pressed"] == "false"
         assert ctx["code_aria_pressed"] == "true"
         assert ctx["html_aria_pressed"] == "false"
-
-        nowrap_comp = canvas_widget_module.CanvasWidget(
-            source_code='<span class="cp">{%</span> <span class="k">alert</span> <span class="cp">%}</span>',
-            rendered_html='<span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;</span>Hi<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>',
-        )
-        nowrap_ctx = nowrap_comp.get_context()
-        assert nowrap_ctx["normalized_source_code"] == "{% alert %}"
-        assert nowrap_ctx["normalized_rendered_html"] == "<div>Hi</div>"
 
     def test_preserves_plain_rendered_html_and_respects_show_toggles_flag(
         self,
@@ -363,9 +336,7 @@ class TestCanvasWidgetRenderingAndTemplate:
         assert 'sandbox="allow-scripts"' in html
         assert 'title="Button preview"' in html
         assert '<div data-canvas-panel="code" data-surface="code">' in html
-        assert (
-            '<div data-canvas-panel="html" data-surface="code" hidden>' in html
-        )
+        assert '<div data-canvas-panel="html" data-surface="code" hidden>' in html
         assert "<dds-code-block" in html
         assert "Template Source" in html
         assert "Output HTML" in html
@@ -385,10 +356,7 @@ class TestCanvasWidgetRenderingAndTemplate:
         )
         assert 'srcdoc="&lt;button&gt;Inline&lt;/button&gt;"' in html
         assert "<script>" not in html
-        assert (
-            'title="&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;"'
-            in html
-        )
+        assert 'title="&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;"' in html
         assert 'data-canvas-id="id&quot; onload=&quot;alert(1)"' in html
 
     def test_template_contains_no_filters_and_no_bem(self) -> None:
@@ -435,13 +403,9 @@ class TestCanvasWidgetStylesheet:
             css_text=css_text,
             selector="dds-canvas-widget,\n  .dds-canvas-widget",
         )
-        root_props = _extract_defined_properties(
-            block_text="\n".join(root_blocks)
-        )
+        root_props = _extract_defined_properties(block_text="\n".join(root_blocks))
         tier_3_props = {
-            name: value
-            for name, value in root_props.items()
-            if name.startswith("--_")
+            name: value for name, value in root_props.items() if name.startswith("--_")
         }
         assert tier_3_props
         for name, value in tier_3_props.items():
@@ -545,15 +509,11 @@ class TestCanvasWidgetTypeScriptCustomElement:
         """Verify canvas_widget.ts defines DDSCanvasWidgetElement, AbortController, and registration."""
         assert CANVAS_WIDGET_TS_PATH.is_file()
         ts_text = _read_text(path=CANVAS_WIDGET_TS_PATH)
-        assert (
-            "import type { DDSCustomElement } from '../../types.js';" in ts_text
-        )
+        assert "import type { DDSCustomElement } from '../../types.js';" in ts_text
         assert "export class DDSCanvasWidgetElement" in ts_text
         assert "extends HTMLElement" in ts_text
         assert "implements DDSCustomElement {" in ts_text
-        assert (
-            "private abortController: AbortController | null = null;" in ts_text
-        )
+        assert "private abortController: AbortController | null = null;" in ts_text
         assert "this.abortController?.abort();" in ts_text
         assert "this.abortController = new AbortController();" in ts_text
         assert "connectedCallback(): void {" in ts_text
@@ -601,3 +561,12 @@ class TestCanvasWidgetTypeScriptCustomElement:
             "this.style.setProperty('--_canvas-widget-viewport-width', width);"
             in ts_text
         )
+        assert "this.syncIframeHeight();" in ts_text
+        assert "'.canvas-wrapper--basic'" in ts_text
+        assert "'dds:sandbox-bg'" in ts_text
+        assert "'dds:sandbox-viewport'" in ts_text
+        assert "'dds:sandbox-zoom'" in ts_text
+        assert "'dds:sandbox-toggle'" in ts_text
+        assert "applyIframeEnhancements" in ts_text
+        assert "'dds-outline-style'" in ts_text
+        assert "'dds-measure-style'" in ts_text

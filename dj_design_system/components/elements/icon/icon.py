@@ -53,8 +53,6 @@ class Icon(components.TagComponent):
         label: Optional accessible label for non-decorative icons.
     """
 
-    template_name = "dj_design_system/components/elements/icon/icon.html"
-
     name = parameters.StrParam(
         description="Icon identifier.",
         choices=list(ICON_NAMES),
@@ -73,9 +71,6 @@ class Icon(components.TagComponent):
 
     class Meta:
         positional_args = ["name"]
-
-    class Media:
-        css = "dj_design_system/components/elements/icon/icon.css"
 
     def get_context(self) -> dict[str, typing.Any]:
         """Build the template context with resolved accessibility attributes.

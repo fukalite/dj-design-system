@@ -25,7 +25,7 @@ config = gallery.GalleryConfig(
         gallery.Variant(
             name="basic",
             label="Light Theme Active",
-            description="Standard light/dark theme selector with Light selected and sun icon.",
+            description="Standard theme selector with Light selected.",
             kwargs={
                 "themes": list(STANDARD_THEMES),
                 "active_theme": "light",
@@ -34,7 +34,7 @@ config = gallery.GalleryConfig(
         gallery.Variant(
             name="dark_active",
             label="Dark Theme Active",
-            description="Theme selector with Dark selected and moon icon.",
+            description="Theme selector with Dark selected.",
             kwargs={
                 "themes": list(STANDARD_THEMES),
                 "active_theme": "dark",

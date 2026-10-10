@@ -82,9 +82,7 @@ def _make_registry() -> registry_service.ComponentRegistry:
     return reg
 
 
-def _render_template(
-    source: str, context: dict[str, object] | None = None
-) -> str:
+def _render_template(source: str, context: dict[str, object] | None = None) -> str:
     """Render a Django template string with built-in dds component tags registered."""
     reg = _make_registry()
     library = template.Library()
@@ -108,9 +106,7 @@ def _read_text(path: pathlib.Path) -> str:
 def _extract_rule_blocks(css_text: str, selector: str) -> list[str]:
     """Extract CSS declaration blocks for a specific selector."""
     escaped = re.escape(pattern=selector)
-    pattern = re.compile(
-        pattern=rf"{escaped}\s*\{{([^}}]*)\}}", flags=re.DOTALL
-    )
+    pattern = re.compile(pattern=rf"{escaped}\s*\{{([^}}]*)\}}", flags=re.DOTALL)
     return pattern.findall(string=css_text)
 
 
@@ -128,19 +124,19 @@ class TestParamsFormDiscoveryAndMetadata:
 
     def test_exported_from_package_init(self) -> None:
         """Verify ParamsForm is exported in dj_design_system.components.domain.params_form."""
-        assert (
-            params_form_package.ParamsForm is params_form_module.ParamsForm
-        )
+        assert params_form_package.ParamsForm is params_form_module.ParamsForm
         assert issubclass(
             params_form_module.ParamsForm,
             components.TagComponent,
         )
 
     def test_template_media_and_positional_args(self) -> None:
-        """Verify ParamsForm declares co-located template_name, Media.css, Media.js, and positional_args."""
-        assert params_form_module.ParamsForm.template_name == TEMPLATE_PATH
-        assert params_form_module.ParamsForm.Media.css == CSS_MEDIA_PATH
-        assert params_form_module.ParamsForm.Media.js == JS_MEDIA_PATH
+        """Verify ParamsForm relies on co-located template_name, Media.css, Media.js, and positional_args."""
+        reg = _make_registry()
+        info = reg.get_by_name(name=COMPONENT_NAME, app_label=APP_LABEL)
+        assert info.template_name == TEMPLATE_PATH
+        assert info.media.css == [CSS_MEDIA_PATH]
+        assert info.media.js == [JS_MEDIA_PATH]
         assert params_form_module.ParamsForm.get_positional_args() == [
             "param_rows",
         ]
@@ -176,10 +172,7 @@ class TestParamsFormParametersAndContext:
         assert ctx["active_variant"] == ""
         assert ctx["has_active_variant"] is False
         assert ctx["hx_target"] == "closest [data-gallery-sandbox-body]"
-        assert (
-            ctx["empty_message"]
-            == "This component has no configurable parameters."
-        )
+        assert ctx["empty_message"] == "This component has no configurable parameters."
 
     def test_normalises_active_variant_object_in_init(self) -> None:
         """Verify active_variant accepts a Variant dataclass or object with a name attribute."""
@@ -272,6 +265,7 @@ class TestParamsFormParametersAndContext:
         assert rows[0]["required"] is True
         assert rows[0]["errors"] == []
         assert rows[0]["error"] == ""
+        assert rows[0]["has_field_html"] is True
         assert isinstance(rows[0]["field_html"], safestring.SafeString)
         assert 'name="label"' in rows[0]["field_html"]
 
@@ -281,6 +275,7 @@ class TestParamsFormParametersAndContext:
         assert rows[1]["required"] is False
         assert rows[1]["errors"] == ["Enter a whole number."]
         assert rows[1]["error"] == "Enter a whole number."
+        assert rows[1]["has_field_html"] is True
 
         assert rows[2]["name"] == "custom_dict"
         assert rows[2]["label"] == "Custom Dict Field"
@@ -289,10 +284,8 @@ class TestParamsFormParametersAndContext:
         assert rows[2]["required"] is True
         assert rows[2]["errors"] == ["First error.", "Second error."]
         assert rows[2]["error"] == "First error. Second error."
-        assert (
-            rows[2]["field_html"]
-            == '<input type="text" id="custom-id" name="custom_dict">'
-        )
+        assert rows[2]["has_field_html"] is False
+        assert rows[2]["field_html"] == ""
 
         assert rows[3]["name"] == "obj_param"
         assert rows[3]["label"] == "obj_param"
@@ -300,10 +293,8 @@ class TestParamsFormParametersAndContext:
         assert rows[3]["description"] == "Direct row description."
         assert rows[3]["required"] is False
         assert rows[3]["errors"] == []
-        assert (
-            rows[3]["field_html"]
-            == '<input type="text" id="id_obj_param" name="obj_param">'
-        )
+        assert rows[3]["has_field_html"] is False
+        assert rows[3]["field_html"] == ""
 
     def test_invalid_parameter_types_raise_type_error(self) -> None:
         """Verify invalid parameter types raise TypeError."""
@@ -315,17 +306,16 @@ class TestParamsFormParametersAndContext:
             params_form_module.ParamsForm(active_theme=123)
 
     def test_python_module_purity_and_no_private_methods(self) -> None:
-        """Verify params_form.py has no private helper methods, service imports, or comments."""
+        """Verify params_form.py has no private helper methods, service imports, HTML tags, or comments."""
         py_text = _read_text(path=PARAMS_FORM_PY_PATH)
         assert "format_html" not in py_text
+        assert "<input" not in py_text
         assert "dj_design_system.services" not in py_text
         assert "#" not in py_text
         private_methods = [
             name
             for name, value in params_form_module.ParamsForm.__dict__.items()
-            if name.startswith("_")
-            and not name.startswith("__")
-            and callable(value)
+            if name.startswith("_") and not name.startswith("__") and callable(value)
         ]
         assert private_methods == []
 
@@ -375,14 +365,12 @@ class TestParamsFormRenderingAndTemplate:
             },
         )
         assert (
-            '<dds-params-form class="dds-params-form" data-surface="sandbox">'
-            in html
+            '<dds-params-form class="dds-params-form" data-surface="sandbox">' in html
         )
-        assert "<form method=\"get\"" in html
+        assert '<form method="get"' in html
         assert "data-params-form" in html
         assert (
-            'action="/gallery/components/button/" '
-            'hx-get="/gallery/components/button/"'
+            'action="/gallery/components/button/" hx-get="/gallery/components/button/"'
         ) in html
         assert 'hx-replace-url="true"' in html
         assert 'hx-target="closest [data-gallery-sandbox-body]"' in html
@@ -393,9 +381,7 @@ class TestParamsFormRenderingAndTemplate:
         ) in html
         assert '<input type="hidden" name="_iss" value="1">' in html
         assert '<input type="hidden" name="_dds_theme" value="dark">' in html
-        assert (
-            '<input type="hidden" name="_dds_variant" value="primary">' in html
-        )
+        assert '<input type="hidden" name="_dds_variant" value="primary">' in html
         assert "<l-stack data-params-fields>" in html
         assert 'class="dds-form-field"' in html
         assert (
@@ -403,10 +389,7 @@ class TestParamsFormRenderingAndTemplate:
             in html
         )
         assert "<p>Primary button text.</p>" in html
-        assert (
-            '<input type="text" id="id_label" name="label" value="Submit">'
-            in html
-        )
+        assert '<input type="text" id="id_label" name="label" value="Submit">' in html
         assert 'data-invalid="true"' in html
         assert '<p role="alert">Enter a whole number.</p>' in html
         assert "data-params-empty" not in html
@@ -439,8 +422,7 @@ class TestParamsFormRenderingAndTemplate:
             context={"param_rows": []},
         )
         assert (
-            '<dds-params-form class="dds-params-form" data-surface="sandbox">'
-            in html
+            '<dds-params-form class="dds-params-form" data-surface="sandbox">' in html
         )
         assert "<p data-params-empty>No editable params.</p>" in html
         assert "<form" not in html
@@ -519,15 +501,11 @@ class TestParamsFormStylesheet:
             css_text=css_text,
             selector="dds-params-form,\n  .dds-params-form",
         )
-        root_props = _extract_defined_properties(
-            block_text="\n".join(root_blocks)
-        )
+        root_props = _extract_defined_properties(block_text="\n".join(root_blocks))
         assert root_props
         for name, value in root_props.items():
             assert name.startswith("--_params-form-")
-            match = re.fullmatch(
-                pattern=r"var\((--dds-[a-z0-9-]+)\)", string=value
-            )
+            match = re.fullmatch(pattern=r"var\((--dds-[a-z0-9-]+)\)", string=value)
             assert match is not None
             assert match.group(1) in defined_tier_2
 
@@ -595,19 +573,13 @@ class TestParamsFormTypeScriptCustomElement:
         """Verify params_form.ts defines DDSParamsFormElement with AbortController and debounce cleanup."""
         assert PARAMS_FORM_TS_PATH.is_file()
         ts_text = _read_text(path=PARAMS_FORM_TS_PATH)
-        assert (
-            "import type { DDSCustomElement } from '../../types.js';"
-            in ts_text
-        )
+        assert "import type { DDSCustomElement } from '../../types.js';" in ts_text
         assert (
             "export class DDSParamsFormElement" in ts_text
             and "extends HTMLElement" in ts_text
             and "implements DDSCustomElement" in ts_text
         )
-        assert (
-            "private abortController: AbortController | null = null;"
-            in ts_text
-        )
+        assert "private abortController: AbortController | null = null;" in ts_text
         assert "private debounceTimer: number | null = null;" in ts_text
         assert "connectedCallback(): void" in ts_text
         assert "disconnectedCallback(): void" in ts_text
@@ -617,13 +589,11 @@ class TestParamsFormTypeScriptCustomElement:
         assert "this.clearDebounceTimer();" in ts_text
         assert "window.clearTimeout(this.debounceTimer);" in ts_text
         assert (
-            "this.querySelector<HTMLFormElement>('form[data-params-form]')"
-            in ts_text
+            "this.querySelector<HTMLFormElement>('form[data-params-form]')" in ts_text
         )
         assert "if (!customElements.get('dds-params-form'))" in ts_text
         assert (
-            "customElements.define('dds-params-form', DDSParamsFormElement);"
-            in ts_text
+            "customElements.define('dds-params-form', DDSParamsFormElement);" in ts_text
         )
 
     def test_params_form_ts_serialization_reset_and_events(self) -> None:
@@ -655,4 +625,3 @@ class TestParamsFormTypeScriptCustomElement:
         for line in ts_text.splitlines():
             assert len(line) <= 80
             assert line == line.rstrip()
-
