@@ -7,6 +7,7 @@ There are clear styleguides to follow, you can find them in `conductor/code_styl
 - **Workflow Mimicry**: Your work must be visible to the user. Make edits using the first class IDE tooling.
 - **Blockers**: If you are blocked from working this way (e.g., security restrictions, environment issues), raise the issue immediately so it can be fixed together with the user.
 - **No Unilateral API Changes**: Never unilaterally modify component APIs, parameter definitions, method signatures, or public interfaces. Always discuss and obtain explicit confirmation before altering existing component contracts.
+- **Strict Main Branch Protection**: Never commit or push directly to `main` at all costs. Work must always be performed on an isolated feature branch or stacked branch, and pushed to remote with explicit refspecs (`git push -u origin <branch>:<branch>`). If on `main`, immediately branch off before committing.
 
 ## Conductor Phase Gating & Track Commit
 - **Strict Phase Checkpoints**: When executing Conductor tracks, complete the active phase and HALT immediately. Present a concise phase summary. Never begin work on a subsequent phase without direct, explicit permission.
