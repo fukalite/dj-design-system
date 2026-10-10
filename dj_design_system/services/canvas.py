@@ -20,6 +20,7 @@ from dj_design_system.components import BaseComponent, BlockComponent
 from dj_design_system.data import (
     BLOCK_CONTENT_PLACEHOLDER,
     CanvasSpec,
+    ComponentInfo,
     ComponentMedia,
     GalleryParameter,
 )
@@ -496,11 +497,10 @@ def build_canvas_url(
     return f"{base_url}{sep}{query_str}"
 
 
-def resolve_component(name: str, registry: ComponentRegistry):
+def resolve_component(name: str, registry: ComponentRegistry) -> ComponentInfo:
     """Look up a component by name, raising ``ValueError`` on failure."""
     try:
-        # Check for fully qualified name matches first
-        for info in registry.list_all():
+        for info in reversed(registry.list_ordered()):
             if info.qualified_name == name:
                 return info
 

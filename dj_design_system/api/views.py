@@ -14,6 +14,7 @@ from dj_design_system.api.serializers import (
 )
 from dj_design_system.exceptions import ComponentValidationError
 from dj_design_system.services import media as media_service
+from dj_design_system.services import visibility as visibility_service
 from dj_design_system.services.canvas import (
     build_canvas_url,
     get_component_media,
@@ -37,7 +38,7 @@ class ComponentRegistryView(View):
         return self.serializer_class(*args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        components = self.registry.list_all()
+        components = visibility_service.get_gallery_components(registry=self.registry)
         serializer = self.get_serializer(components)
         return JsonResponse(serializer.data, safe=False)
 

@@ -77,6 +77,13 @@ class ComponentMedia:
         return bool(self.css or self.js)
 
 
+BUILTIN_APP_LABEL = "dj_design_system"
+"""App label of the package itself; its components are built-ins."""
+
+BUILTIN_PREFIX = "dds"
+"""Qualified-name prefix for built-in components, e.g. ``dds__button``."""
+
+
 @dataclass(frozen=True)
 class ComponentInfo:
     """Metadata about a discovered component."""
@@ -88,6 +95,18 @@ class ComponentInfo:
     namespace_prefix: str | None = None
     namespace_remaining_parts: tuple[str, ...] | None = None
     flatten_strategy: FlattenStrategy = FlattenStrategy.NONE
+
+    @cached_property
+    def is_internal(self) -> bool:
+        """Return True for built-in components and those with ``Meta.internal = True``.
+
+        Internal components are registered only under their qualified name,
+        ignored by short-name lookups, and excluded from ``get_merged_media()``.
+        """
+        meta = self.component_class.__dict__.get("Meta")
+        return self.app_label == BUILTIN_APP_LABEL or bool(
+            getattr(meta, "internal", False)
+        )
 
     @property
     def gallery_basic_kwargs(self) -> dict[str, Any]:

@@ -65,3 +65,9 @@ scratch/
 **/snapshots/diff/
 /*.png
 /demo_*.py
+
+# Gallery visual regression run output (actual screenshots and failure diffs)
+tests/e2e/visual/output/
+
+# Compiled TypeScript Web Component outputs for built-in dds components
+dj_design_system/components/**/*.js
