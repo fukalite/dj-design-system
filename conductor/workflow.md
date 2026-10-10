@@ -225,12 +225,17 @@ that also concludes a phase in `plan.md`.
 
 11. **Phase Code Review & Delivery Protocol (`complete-work`):**
     When delivering phase work or preparing a Pull Request:
-    - **Single Review Pass (No Duplication):** The code review step is executed once via the `complete-work` skill pipeline, preventing duplicate review passes:
+    - **Single Review Pass (No Duplication):** The code review step is executed once via the `complete-work` skill pipeline, preventing duplicate review passes.
+    - **Supported Track Delivery Modes**:
+      - **Phase 2+ on an Existing Track PR**: If the active branch already has an open PR, `complete-work` detects it automatically, skips the draft prompt, commits the new phase changes, runs `/code-review`, audits via `gemini-reviewer` against the PR base branch, pushes to update the existing PR, and verifies CI.
+      - **Phase 1 of a New Clean Track**: If starting fresh, `complete-work` branches off the latest `origin/main`, prompts for draft preference, commits, runs the review cycle, opens a new PR targeting `main`, and drives CI to green.
+      - **Chained / Stacked PRs**: If stacking work onto an upstream track or phase branch, `complete-work` branches from the parent, scopes local `gemini-reviewer` to `origin/<parent-branch>...HEAD`, creates the stacked PR targeting `--base <parent-branch>`, and monitors CI.
+    - **Standard Sequence**:
       1. Ensure working on a feature branch (NEVER on `main`).
       2. Initial phase commit with passing tests.
       3. Run `/code-review` skill once to apply styleguide refactorings, then commit fixes.
       4. Run local `gemini-reviewer` subagent loop, applying fixes and re-auditing until an all-clear verdict is issued.
-      5. Push branch with explicit refspec (`git push -u origin <branch>:<branch>`) and create PR (draft by default, prompting user).
+      5. Push branch with explicit refspec (`git push -u origin <branch>:<branch>`) and create or update PR.
       6. Wait for CI checks, trigger `/review` on draft PR, and iterate on remote feedback until all checks are green and zero comments remain.
 
 ### Quality Gates
