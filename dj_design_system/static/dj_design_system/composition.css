@@ -1,0 +1,168 @@
+@layer reset, tokens, global, composition, blocks, utilities;
+
+@layer composition {
+  l-stack,
+  .l-stack {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+
+  l-stack > *,
+  .l-stack > * {
+    margin-block: 0;
+  }
+
+  l-stack > * + *,
+  .l-stack > * + * {
+    margin-block-start: var(--space, var(--dds-space-gap-default));
+  }
+
+  l-cluster,
+  .l-cluster {
+    align-items: var(--align, center);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space, var(--dds-space-gap-default));
+    justify-content: var(--justify, flex-start);
+  }
+
+  l-sidebar,
+  .l-sidebar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space, var(--dds-space-gap-default));
+  }
+
+  l-sidebar > :first-child,
+  .l-sidebar > :first-child {
+    flex-basis: var(--side-width, var(--dds-layout-sidebar-width));
+    flex-grow: 1;
+  }
+
+  l-sidebar > :last-child,
+  .l-sidebar > :last-child {
+    flex-basis: 0;
+    flex-grow: 999;
+    min-inline-size: var(--content-min, 50%);
+  }
+
+  l-switcher,
+  .l-switcher {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space, var(--dds-space-gap-default));
+  }
+
+  l-switcher > *,
+  .l-switcher > * {
+    flex-basis: calc((var(--measure, var(--dds-layout-prose-measure)) - 100%) * 999);
+    flex-grow: 1;
+  }
+
+  l-box,
+  .l-box {
+    background-color: var(--dds-surface-bg-color);
+    border-color: var(--dds-surface-border-color);
+    border-radius: var(--dds-surface-border-radius);
+    border-style: var(--dds-surface-border-style);
+    border-width: var(--dds-surface-border-width);
+    color: var(--dds-text-default-color);
+    display: block;
+    padding: var(--space, var(--dds-space-inset-default));
+  }
+
+  l-center,
+  .l-center {
+    box-sizing: content-box;
+    display: block;
+    margin-inline: auto;
+    max-inline-size: var(--measure, var(--dds-layout-prose-measure));
+    padding-inline: var(--space, 0);
+  }
+
+  l-cover,
+  .l-cover {
+    display: flex;
+    flex-direction: column;
+    min-block-size: var(--min-height, 100vh);
+    padding: var(--space, var(--dds-space-inset-default));
+  }
+
+  l-cover > *,
+  .l-cover > * {
+    margin-block: var(--space, var(--dds-space-gap-default));
+  }
+
+  l-cover > :first-child:not([data-cover-target]),
+  .l-cover > :first-child:not([data-cover-target]) {
+    margin-block-start: 0;
+  }
+
+  l-cover > :last-child:not([data-cover-target]),
+  .l-cover > :last-child:not([data-cover-target]) {
+    margin-block-end: 0;
+  }
+
+  l-cover > [data-cover-target],
+  .l-cover > [data-cover-target] {
+    margin-block: auto;
+  }
+
+  l-frame,
+  .l-frame {
+    align-items: center;
+    aspect-ratio: var(--n, 16) / var(--d, 9);
+    display: flex;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  l-frame > img,
+  l-frame > video,
+  .l-frame > img,
+  .l-frame > video {
+    block-size: 100%;
+    inline-size: 100%;
+    object-fit: cover;
+  }
+
+  l-grid,
+  .l-grid {
+    display: grid;
+    gap: var(--space, var(--dds-space-gap-default));
+    grid-template-columns: repeat(auto-fit, minmax(min(var(--min, 15rem), 100%), 1fr));
+  }
+
+  l-reel,
+  .l-reel {
+    display: flex;
+    gap: var(--space, var(--dds-space-gap-default));
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-color: var(--dds-surface-border-color) transparent;
+  }
+
+  l-reel > *,
+  .l-reel > * {
+    flex: 0 0 var(--item-width, auto);
+  }
+
+  l-imposter,
+  .l-imposter {
+    inset-block-start: 50%;
+    inset-inline-start: 50%;
+    /* Unit on 0px is required by CSS Values & Units inside calc(100% - ...) */
+    max-block-size: calc(100% - (var(--margin, 0px) * 2));
+    max-inline-size: calc(100% - (var(--margin, 0px) * 2));
+    overflow: auto;
+    position: absolute;
+    transform: translate(-50%, -50%);
+  }
+
+  l-imposter[data-fixed],
+  .l-imposter[data-fixed] {
+    position: fixed;
+  }
+}

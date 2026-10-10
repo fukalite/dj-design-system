@@ -1,3 +1,7 @@
+@layer reset, tokens, global, composition, blocks, utilities;
+@import 'tokens.css';
+@import 'composition.css';
+
 /* Django Design System — Gallery
  *
  * Pure CSS, no external dependencies.
