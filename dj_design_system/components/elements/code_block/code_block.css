@@ -19,6 +19,7 @@
     --_code-block-copy-focus-outline-width: var(--dds-state-focus-outline-width);
     --_code-block-copy-gap: var(--dds-space-2xs);
     --_code-block-copy-hover-bg-color: var(--dds-state-hover-bg-color);
+    --_code-block-copy-overlay-inset: var(--dds-space-xs);
     --_code-block-copy-padding-block: var(--dds-space-3xs);
     --_code-block-copy-padding-inline: var(--dds-space-xs);
     --_code-block-copy-text-color: var(--dds-state-interactive-text-color);
@@ -53,6 +54,12 @@
     display: block;
     margin: 0;
     overflow: hidden;
+    position: relative;
+  }
+
+  [data-surface='code'] > dds-code-block {
+    border-radius: 0;
+    border-width: 0;
   }
 
   dds-code-block > header {
@@ -98,6 +105,12 @@
     transition-duration: var(--_code-block-copy-transition-duration);
     transition-property: background-color, border-color, color;
     transition-timing-function: var(--_code-block-copy-transition-easing);
+  }
+
+  dds-code-block [data-copy-overlay] {
+    inset-block-start: var(--_code-block-copy-overlay-inset);
+    inset-inline-end: var(--_code-block-copy-overlay-inset);
+    position: absolute;
   }
 
   dds-code-block [data-copy-trigger]:hover {

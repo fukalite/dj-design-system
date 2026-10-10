@@ -7,6 +7,15 @@
     --_gallery-shell-bg-color: var(--dds-surface-bg-color);
     --_gallery-shell-border-color: var(--dds-surface-border-color);
     --_gallery-shell-border-style: var(--dds-surface-border-style);
+    --_gallery-shell-docs-divider-width: var(--dds-control-border-width);
+    --_gallery-shell-docs-heading-color: var(--dds-text-prominent-color);
+    --_gallery-shell-docs-heading-font: var(--dds-text-control-font);
+    --_gallery-shell-docs-heading-font-size: var(--dds-text-control-size);
+    --_gallery-shell-docs-heading-font-weight: var(--dds-text-overline-weight);
+    --_gallery-shell-docs-heading-letter-spacing: var(--dds-text-overline-letter-spacing);
+    --_gallery-shell-docs-heading-line-height: var(--dds-text-control-line-height);
+    --_gallery-shell-docs-section-gap: var(--dds-space-md);
+    --_gallery-shell-docs-stack-gap: var(--dds-space-xl);
     --_gallery-shell-font: var(--dds-text-body-font);
     --_gallery-shell-font-size: var(--dds-text-body-size);
     --_gallery-shell-font-weight: var(--dds-text-body-weight);
@@ -21,6 +30,19 @@
     --_gallery-shell-sidebar-shadow-shape: var(--dds-surface-overlay-shadow-shape);
     --_gallery-shell-sidebar-width: var(--dds-layout-sidebar-width);
     --_gallery-shell-sidebar-z-index: var(--dds-surface-sidebar-z-index);
+    --_gallery-shell-tab-bg-color: var(--dds-state-interactive-bg-color);
+    --_gallery-shell-tab-border-width: var(--dds-state-focus-outline-width);
+    --_gallery-shell-tab-font-size: var(--dds-text-overline-size);
+    --_gallery-shell-tab-hover-bg-color: var(--dds-state-hover-bg-color);
+    --_gallery-shell-tab-hover-text-color: var(--dds-state-hover-text-color);
+    --_gallery-shell-tab-padding-block: var(--dds-space-sm);
+    --_gallery-shell-tab-padding-inline: var(--dds-space-md);
+    --_gallery-shell-tab-selected-border-color: var(--dds-control-accent-color);
+    --_gallery-shell-tab-selected-text-color: var(--dds-text-prominent-color);
+    --_gallery-shell-tab-text-color: var(--dds-text-muted-color);
+    --_gallery-shell-tabs-bg-color: var(--dds-surface-stage-bg-color);
+    --_gallery-shell-tabs-gap: var(--dds-space-2xs);
+    --_gallery-shell-tabs-padding-inline: var(--dds-space-lg);
     --_gallery-shell-text-color: var(--dds-text-default-color);
     --_gallery-shell-topbar-z-index: var(--dds-surface-topbar-z-index);
     --_gallery-shell-transition-duration: var(--dds-state-entry-duration);
@@ -51,7 +73,6 @@
 
   dds-gallery-shell [data-shell-body],
   .dds-gallery-shell [data-shell-body] {
-    --space: 0;
     align-items: stretch;
     flex: 1 1 0;
     flex-wrap: nowrap;
@@ -105,6 +126,114 @@
     z-index: var(--_gallery-shell-main-z-index);
   }
 
+  dds-gallery-shell [data-shell-main]:has(> dds-split-pane),
+  .dds-gallery-shell [data-shell-main]:has(> dds-split-pane) {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+  }
+
+  dds-gallery-shell [data-component-tabs],
+  .dds-gallery-shell [data-component-tabs] {
+    background-color: var(--_gallery-shell-tabs-bg-color);
+    border-block-end-color: var(--_gallery-shell-border-color);
+    border-block-end-style: var(--_gallery-shell-border-style);
+    border-block-end-width: var(--_gallery-shell-docs-divider-width);
+    flex-shrink: 0;
+    margin: 0;
+    padding-inline: var(--_gallery-shell-tabs-padding-inline);
+  }
+
+  dds-gallery-shell [data-component-tabs] [role='tablist'],
+  .dds-gallery-shell [data-component-tabs] [role='tablist'] {
+    --space: var(--_gallery-shell-tabs-gap);
+    border-bottom-width: 0;
+    margin: 0;
+  }
+
+  dds-gallery-shell [data-component-tabs] [role='tab'],
+  .dds-gallery-shell [data-component-tabs] [role='tab'] {
+    background-color: var(--_gallery-shell-tab-bg-color);
+    border-bottom-color: var(--_gallery-shell-tab-bg-color);
+    border-bottom-width: var(--_gallery-shell-tab-border-width);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    color: var(--_gallery-shell-tab-text-color);
+    font-family: var(--_gallery-shell-docs-heading-font);
+    font-size: var(--_gallery-shell-tab-font-size);
+    font-weight: var(--_gallery-shell-docs-heading-font-weight);
+    letter-spacing: var(--_gallery-shell-docs-heading-letter-spacing);
+    line-height: var(--_gallery-shell-docs-heading-line-height);
+    padding-block: var(--_gallery-shell-tab-padding-block);
+    padding-inline: var(--_gallery-shell-tab-padding-inline);
+    text-transform: uppercase;
+  }
+
+  dds-gallery-shell [data-component-tabs] [role='tab']:hover,
+  .dds-gallery-shell [data-component-tabs] [role='tab']:hover {
+    background-color: var(--_gallery-shell-tab-hover-bg-color);
+    color: var(--_gallery-shell-tab-hover-text-color);
+  }
+
+  dds-gallery-shell [data-component-tabs] [role='tab'][aria-selected='true'],
+  .dds-gallery-shell [data-component-tabs] [role='tab'][aria-selected='true'] {
+    background-color: var(--_gallery-shell-tab-bg-color);
+    border-bottom-color: var(--_gallery-shell-tab-selected-border-color);
+    color: var(--_gallery-shell-tab-selected-text-color);
+  }
+
+  dds-gallery-shell [data-docs-stack],
+  .dds-gallery-shell [data-docs-stack] {
+    --space: var(--_gallery-shell-docs-stack-gap);
+  }
+
+  dds-gallery-shell [data-docs-section] > l-stack,
+  .dds-gallery-shell [data-docs-section] > l-stack {
+    --space: var(--_gallery-shell-docs-section-gap);
+  }
+
+  dds-gallery-shell [data-docs-section] .dds-usage-example + .dds-usage-example,
+  .dds-gallery-shell [data-docs-section] .dds-usage-example + .dds-usage-example {
+    margin-block-start: var(--_gallery-shell-docs-section-gap);
+  }
+
+  dds-gallery-shell [data-docs-heading],
+  .dds-gallery-shell [data-docs-heading] {
+    color: var(--_gallery-shell-docs-heading-color);
+    font-family: var(--_gallery-shell-docs-heading-font);
+    font-size: var(--_gallery-shell-docs-heading-font-size);
+    font-weight: var(--_gallery-shell-docs-heading-font-weight);
+    letter-spacing: var(--_gallery-shell-docs-heading-letter-spacing);
+    line-height: var(--_gallery-shell-docs-heading-line-height);
+    margin: 0;
+    text-transform: uppercase;
+  }
+
+  dds-gallery-shell [data-docs-divider],
+  .dds-gallery-shell [data-docs-divider] {
+    border-block-start-color: var(--_gallery-shell-border-color);
+    border-block-start-style: var(--_gallery-shell-border-style);
+    border-block-start-width: var(--_gallery-shell-docs-divider-width);
+    border-bottom: 0;
+    border-inline: 0;
+    margin: 0;
+  }
+
+  dds-gallery-shell [data-sandbox-pane],
+  dds-gallery-shell [data-gallery-sandbox-body],
+  dds-gallery-shell [data-sandbox-stack],
+  .dds-gallery-shell [data-sandbox-pane],
+  .dds-gallery-shell [data-gallery-sandbox-body],
+  .dds-gallery-shell [data-sandbox-stack] {
+    --space: 0;
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    margin: 0;
+    min-block-size: 0;
+  }
+
   @media (max-width: 48rem) {
     dds-gallery-shell [data-shell-sidebar],
     .dds-gallery-shell [data-shell-sidebar] {
@@ -128,16 +257,25 @@
     .dds-gallery-shell [data-shell-main] {
       padding: var(--_gallery-shell-main-padding-compact);
     }
+
+    dds-gallery-shell [data-shell-main]:has(> dds-split-pane),
+    .dds-gallery-shell [data-shell-main]:has(> dds-split-pane) {
+      padding: 0;
+    }
   }
 
   @media (min-width: 48.0625rem) {
     dds-gallery-shell [data-action='toggle-drawer'],
-    .dds-gallery-shell [data-action='toggle-drawer'] {
+    .dds-gallery-shell [data-action='toggle-drawer'],
+    dds-gallery-shell [data-shell-sidebar] [data-sidebar-header],
+    .dds-gallery-shell [data-shell-sidebar] [data-sidebar-header] {
       display: none;
     }
   }
 
-  @media (max-width: 112.499rem) {
+  @media (max-width: 99.9375rem) {
+    dds-gallery-shell dds-split-pane[data-active-pane] [data-split-pane-header],
+    .dds-gallery-shell dds-split-pane[data-active-pane] [data-split-pane-header],
     dds-gallery-shell dds-split-pane[data-active-pane] [data-split-resizer],
     .dds-gallery-shell dds-split-pane[data-active-pane] [data-split-resizer] {
       display: none;
@@ -164,7 +302,9 @@
     }
   }
 
-  @media (min-width: 112.5rem) {
+  @media (min-width: 100rem) {
+    dds-gallery-shell [data-component-tabs],
+    .dds-gallery-shell [data-component-tabs],
     dds-gallery-shell [data-toolbar-actions] .dds-tabs,
     dds-gallery-shell [data-toolbar-actions] dds-tabs,
     .dds-gallery-shell [data-toolbar-actions] .dds-tabs,

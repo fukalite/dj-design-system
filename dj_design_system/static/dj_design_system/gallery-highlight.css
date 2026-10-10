@@ -4,7 +4,7 @@
   :root {
     --hl-block-bg: var(--dds-surface-code-bg-color, #272822);
     --hl-block-border: var(--dds-surface-code-border-color, #383838);
-    --hl-block-text: var(--dds-text-default-color, #f8f8f2);
+    --hl-block-text: var(--dds-surface-code-text-default-color, #f8f8f2);
     --hl-comment: var(--hl-palette-comment);
     --hl-error: var(--hl-palette-error);
     --hl-error-bg: var(--hl-palette-error-bg);

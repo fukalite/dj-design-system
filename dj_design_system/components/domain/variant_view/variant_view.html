@@ -9,6 +9,7 @@
       <div data-variant-description>{{ description_safe }}</div>
     {% endif %}
     {% if has_preview %}
+      <h3 data-variant-subheading>Preview</h3>
       <div data-variant-preview data-surface="stage">
         <iframe src="{{ preview_url }}" name="variant" data-canvas-id="variant" title="{{ iframe_title }}"></iframe>
         {% if has_sandbox_link %}

@@ -248,6 +248,14 @@ class TestCanvasWidgetParametersAndContext:
         assert ctx["code_aria_pressed"] == "true"
         assert ctx["html_aria_pressed"] == "false"
 
+        nowrap_comp = canvas_widget_module.CanvasWidget(
+            source_code='<span class="cp">{%</span> <span class="k">alert</span> <span class="cp">%}</span>',
+            rendered_html='<span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;</span>Hi<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>',
+        )
+        nowrap_ctx = nowrap_comp.get_context()
+        assert nowrap_ctx["normalized_source_code"] == "{% alert %}"
+        assert nowrap_ctx["normalized_rendered_html"] == "<div>Hi</div>"
+
     def test_preserves_plain_rendered_html_and_respects_show_toggles_flag(
         self,
     ) -> None:

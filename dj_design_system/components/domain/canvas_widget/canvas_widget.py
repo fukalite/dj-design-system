@@ -20,6 +20,8 @@ DEFAULT_TITLE = "Component preview"
 HTML_TAG_PATTERN = r"<[^>]+>"
 HIGHLIGHT_DIV_MARKER = '<div class="highlight"'
 PRE_TAG_MARKER = "<pre"
+SPAN_TAG_MARKER = '<span class="'
+HTML_ENTITY_LT_MARKER = "&lt;"
 LINE_BREAK_CHARS = "\r\n"
 ARIA_TRUE = "true"
 ARIA_FALSE = "false"
@@ -199,6 +201,7 @@ class CanvasWidget(components.TagComponent):
         if (
             HIGHLIGHT_DIV_MARKER in raw_source_code
             or PRE_TAG_MARKER in raw_source_code
+            or SPAN_TAG_MARKER in raw_source_code
         ):
             stripped_source = re.sub(
                 pattern=HTML_TAG_PATTERN,
@@ -217,6 +220,10 @@ class CanvasWidget(components.TagComponent):
         if (
             HIGHLIGHT_DIV_MARKER in raw_rendered_html
             or PRE_TAG_MARKER in raw_rendered_html
+            or (
+                SPAN_TAG_MARKER in raw_rendered_html
+                and HTML_ENTITY_LT_MARKER in raw_rendered_html
+            )
         ):
             stripped_rendered = re.sub(
                 pattern=HTML_TAG_PATTERN,

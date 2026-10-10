@@ -338,7 +338,7 @@
     --dds-surface-stage-bg-color: var(--_dds-neutral-50);
     --dds-surface-stage-border-color: var(--_dds-neutral-300);
     --dds-surface-stage-border-radius: var(--_dds-radius-none);
-    --dds-surface-stage-border-style: solid;
+    --dds-surface-stage-border-style: dashed;
     --dds-surface-stage-border-width: var(--_dds-border-width-1);
     --dds-surface-stage-shadow-color: var(--_dds-color-transparent);
     --dds-surface-stage-shadow-shape: var(--_dds-shadow-shape-none);
@@ -485,7 +485,10 @@
 
   [data-surface='code'] {
     --dds-state-active-bg-color: var(--dds-surface-code-state-active-bg-color);
+    --dds-state-active-text-color: var(--dds-surface-code-text-prominent-color);
+    --dds-state-focus-text-color: var(--dds-surface-code-text-prominent-color);
     --dds-state-hover-bg-color: var(--dds-surface-code-state-hover-bg-color);
+    --dds-state-hover-text-color: var(--dds-surface-code-text-prominent-color);
     --dds-state-interactive-text-color: var(--dds-surface-code-state-interactive-text-color);
     --dds-state-selected-bg-color: var(--dds-surface-code-state-selected-bg-color);
     --dds-state-selected-text-color: var(--dds-surface-code-state-selected-text-color);
@@ -541,7 +544,10 @@
 
   [data-surface='sidebar'] {
     --dds-state-active-bg-color: var(--dds-surface-sidebar-state-active-bg-color);
+    --dds-state-active-text-color: var(--dds-surface-sidebar-text-prominent-color);
+    --dds-state-focus-text-color: var(--dds-surface-sidebar-text-prominent-color);
     --dds-state-hover-bg-color: var(--dds-surface-sidebar-state-hover-bg-color);
+    --dds-state-hover-text-color: var(--dds-surface-sidebar-text-prominent-color);
     --dds-state-interactive-text-color: var(--dds-surface-sidebar-state-interactive-text-color);
     --dds-state-selected-bg-color: var(--dds-surface-sidebar-state-selected-bg-color);
     --dds-state-selected-text-color: var(--dds-surface-sidebar-state-selected-text-color);

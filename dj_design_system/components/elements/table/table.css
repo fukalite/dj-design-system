@@ -18,11 +18,12 @@
     --_table-font-family: var(--dds-text-body-font);
     --_table-font-size: var(--dds-text-body-size);
     --_table-font-weight: var(--dds-text-body-weight);
-    --_table-head-bg-color: var(--dds-control-bg-color);
-    --_table-head-color: var(--dds-text-prominent-color);
-    --_table-head-font-size: var(--dds-text-control-size);
-    --_table-head-font-weight: var(--dds-text-control-weight);
-    --_table-head-line-height: var(--dds-text-control-line-height);
+    --_table-head-bg-color: var(--dds-surface-stage-bg-color);
+    --_table-head-color: var(--dds-text-muted-color);
+    --_table-head-font-size: var(--dds-text-overline-size);
+    --_table-head-font-weight: var(--dds-text-overline-weight);
+    --_table-head-letter-spacing: var(--dds-text-overline-letter-spacing);
+    --_table-head-line-height: var(--dds-text-overline-line-height);
     --_table-line-height: var(--dds-text-body-line-height);
     --_table-text-color: var(--dds-text-default-color);
     background-color: var(--_table-bg-color);
@@ -80,7 +81,9 @@
     color: var(--_table-head-color);
     font-size: var(--_table-head-font-size);
     font-weight: var(--_table-head-font-weight);
+    letter-spacing: var(--_table-head-letter-spacing);
     line-height: var(--_table-head-line-height);
+    text-transform: uppercase;
   }
 
   .dds-table tbody tr:last-child td {
