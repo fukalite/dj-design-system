@@ -64,7 +64,7 @@ jobs:
           - python-version: "3.12"
             django-version: "Django>=5.2,<6"
             django-label: "5.2"
-            coverage: true
+            coverage: false
           - python-version: "3.12"
             django-version: "Django>=6.0,<7"
             django-label: "6.0"
@@ -113,7 +113,7 @@ jobs:
 
       - name: Run tests (with coverage)
         if: matrix.coverage
-        run: uv run --no-sync pytest tests/ -m "not e2e" --cov --cov-report=xml
+        run: uv run --no-sync pytest tests/ -m "not e2e" --cov --cov-report=xml --cov-report=json:coverage.json
 
       - name: Run tests
         if: "!matrix.coverage"
@@ -121,11 +121,11 @@ jobs:
 
       - name: Coverage comment
         if: matrix.coverage && github.event_name == 'pull_request'
-        uses: MishaKav/pytest-coverage-comment@v1
-        with:
-          pytest-xml-coverage-path: coverage.xml
-          title: Test Coverage
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: uv run --no-sync python .github/scripts/coverage_comment.py
 
   e2e:
     name: E2E Tests

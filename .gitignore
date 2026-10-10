@@ -30,6 +30,7 @@ site/
 .coverage.*
 htmlcov/
 coverage.xml
+coverage.json
 
 # Databases
 *.db
