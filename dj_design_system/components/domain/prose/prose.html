@@ -1,0 +1,8 @@
+<div class="dds-prose" data-surface="docs"{% if constrain_measure %} data-measure="constrained"{% endif %}>
+  {% if has_title %}
+    <h1 data-prose-title>{{ title }}</h1>
+  {% endif %}
+  {% if has_body %}
+    <div data-prose-body>{{ prose_html }}</div>
+  {% endif %}
+</div>

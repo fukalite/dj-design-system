@@ -1,0 +1,30 @@
+{% load design_components %}
+<header class="dds-toolbar" data-surface="topbar">
+  <l-cluster data-toolbar-inner>
+    <l-cluster data-toolbar-leading>
+      {% if show_menu_toggle %}
+        {% dds__button label="Toggle navigation" icon="menu" icon_only=True variant="ghost" size="sm" action="toggle-drawer" %}
+      {% endif %}
+      <a href="{{ brand_url }}" data-toolbar-brand>{{ brand_name }}</a>
+      {% if has_leading_slot %}
+        <div data-toolbar-breadcrumb>{{ slots.leading }}</div>
+      {% elif has_breadcrumbs %}
+        <div data-toolbar-breadcrumb>{% dds__breadcrumb items=breadcrumbs %}</div>
+      {% endif %}
+    </l-cluster>
+    <l-cluster data-toolbar-actions>
+      {% if show_search %}
+        {% dds__search_box search_index=search_index %}
+      {% endif %}
+      {% if has_themes %}
+        {% dds__theme_select themes=themes active_theme=active_theme %}
+      {% endif %}
+      {% if has_actions_slot %}
+        {{ slots.actions }}
+      {% endif %}
+      {% if has_content %}
+        {{ content }}
+      {% endif %}
+    </l-cluster>
+  </l-cluster>
+</header>
