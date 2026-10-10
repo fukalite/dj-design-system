@@ -1,0 +1,26 @@
+{% load design_components %}
+<dds-tabs class="dds-tabs" data-active-tab="{{ resolved_active }}">
+  <div role="tablist" aria-label="{{ aria_label }}" class="l-cluster">
+    {% for tab in normalized_tabs %}
+      <button type="button" role="tab" id="{{ tab.tab_dom_id }}" data-tab-trigger="{{ tab.id }}" aria-selected="{{ tab.aria_selected }}" aria-controls="{{ tab.panel_dom_id }}" tabindex="{{ tab.tabindex }}">
+        {% if tab.has_icon %}
+          {% dds__icon name=tab.icon size="sm" %}
+        {% endif %}
+        <span>{{ tab.label }}</span>
+        {% if tab.has_badge %}
+          {% dds__badge label=tab.badge %}
+        {% endif %}
+      </button>
+    {% endfor %}
+  </div>
+  {% if has_inline_panels %}
+    {% for tab in normalized_tabs %}
+      {% if tab.has_content %}
+        <div role="tabpanel" id="{{ tab.panel_dom_id }}" data-tab-panel="{{ tab.id }}" aria-labelledby="{{ tab.tab_dom_id }}"{% if not tab.is_active %} hidden{% endif %}>{{ tab.content }}</div>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+  {% if has_slot_content %}
+    {{ content }}
+  {% endif %}
+</dds-tabs>
