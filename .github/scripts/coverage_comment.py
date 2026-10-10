@@ -459,7 +459,14 @@ def main() -> int:
         )
         return 1
 
-    data = json.loads(coverage_path.read_text(encoding="utf-8"))
+    try:
+        data = json.loads(coverage_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        print(
+            f"Error: Failed to parse coverage JSON from '{args.coverage_json}': {exc}",
+            file=sys.stderr,
+        )
+        return 1
 
     repo_root = os.getcwd()
     totals, module_summaries, files_list = parse_coverage_data(
@@ -497,6 +504,13 @@ def main() -> int:
         post_or_update_comment(
             repo=args.repo, pr_number=args.pr, token=args.token, body=markdown
         )
+    except urllib.error.HTTPError as exc:
+        details = exc.read().decode("utf-8", errors="replace")
+        print(
+            f"Error posting PR coverage comment: {exc} - {details}",
+            file=sys.stderr,
+        )
+        return 1
     except Exception as e:
         print(f"Error posting PR coverage comment: {e}", file=sys.stderr)
         return 1

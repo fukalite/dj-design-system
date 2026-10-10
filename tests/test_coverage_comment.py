@@ -1,3 +1,4 @@
+import io
 import json
 import sys
 import urllib.error
@@ -398,3 +399,56 @@ class TestCli:
         assert exit_code == 1
         captured = capsys.readouterr()
         assert "Error: coverage json file not found" in captured.err
+
+    def test_malformed_json_error(self, tmp_path, monkeypatch, capsys):
+        malformed = tmp_path / "coverage.json"
+        malformed.write_text("{not valid json", encoding="utf-8")
+        monkeypatch.setattr(
+            sys,
+            "argv",
+            ["coverage_comment.py", "--coverage-json", str(malformed)],
+        )
+
+        exit_code = coverage_comment.main()
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "Error: Failed to parse coverage JSON" in captured.err
+
+    @patch("coverage_comment.post_or_update_comment")
+    def test_http_error_reporting(
+        self, mock_post, tmp_path, monkeypatch, capsys
+    ):
+        mock_post.side_effect = urllib.error.HTTPError(
+            url="https://api.github.com",
+            code=403,
+            msg="Forbidden",
+            hdrs={},  # type: ignore[arg-type]
+            fp=io.BytesIO(b'{"message": "Resource not accessible by integration"}'),
+        )
+        sample = {
+            "totals": {"num_statements": 10, "covered_lines": 9},
+            "files": {},
+        }
+        cov_file = tmp_path / "coverage.json"
+        cov_file.write_text(json.dumps(sample), encoding="utf-8")
+        monkeypatch.setattr(
+            sys,
+            "argv",
+            [
+                "coverage_comment.py",
+                "--coverage-json",
+                str(cov_file),
+                "--pr",
+                "123",
+                "--repo",
+                "owner/repo",
+                "--token",
+                "ghp_test",
+            ],
+        )
+
+        exit_code = coverage_comment.main()
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "Error posting PR coverage comment: HTTP Error 403: Forbidden" in captured.err
+        assert "Resource not accessible by integration" in captured.err
