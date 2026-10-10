@@ -176,7 +176,7 @@ def parse_coverage_data(
             else fpath.replace("\\", "/")
         )
 
-        mod_name = compute_module_name(rel_path, repo_root)
+        mod_name = compute_module_name(file_path=rel_path, repo_root=repo_root)
         if mod_name not in modules_map:
             modules_map[mod_name] = ModuleSummary(module=mod_name)
 

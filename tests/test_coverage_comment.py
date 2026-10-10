@@ -91,60 +91,60 @@ class TestComputeModuleName:
         assert compute_module_name(file_path="src/main.py") == "src (root)"
 
 
-class TestParseCoverageData:
-    @pytest.fixture
-    def sample_coverage_dict(self):
-        return {
-            "totals": {
-                "covered_lines": 180,
-                "num_statements": 200,
-                "percent_covered": 88.0,
-                "percent_statements_covered": 90.0,
-                "covered_branches": 40,
-                "num_branches": 50,
-                "percent_branches_covered": 80.0,
-            },
-            "files": {
-                "dj_design_system/api/views.py": {
-                    "summary": {
-                        "covered_lines": 80,
-                        "num_statements": 100,
-                        "covered_branches": 15,
-                        "num_branches": 20,
-                    },
-                    "functions": {
-                        "get": {"summary": {"covered_lines": 5, "num_statements": 5}},
-                        "post": {"summary": {"covered_lines": 0, "num_statements": 5}},
-                        "": {"summary": {"covered_lines": 10, "num_statements": 10}},
-                    },
+def make_sample_coverage_dict() -> dict:
+    return {
+        "totals": {
+            "covered_lines": 180,
+            "num_statements": 200,
+            "percent_covered": 88.0,
+            "percent_statements_covered": 90.0,
+            "covered_branches": 40,
+            "num_branches": 50,
+            "percent_branches_covered": 80.0,
+        },
+        "files": {
+            "dj_design_system/api/views.py": {
+                "summary": {
+                    "covered_lines": 80,
+                    "num_statements": 100,
+                    "covered_branches": 15,
+                    "num_branches": 20,
                 },
-                "dj_design_system/views/page.py": {
-                    "summary": {
-                        "covered_lines": 100,
-                        "num_statements": 100,
-                        "covered_branches": 25,
-                        "num_branches": 30,
-                    },
-                    "functions": {
-                        "render": {
-                            "summary": {"covered_lines": 10, "num_statements": 10}
-                        },
-                    },
-                },
-                "dj_design_system/empty.py": {
-                    "summary": {
-                        "covered_lines": 0,
-                        "num_statements": 0,
-                        "covered_branches": 0,
-                        "num_branches": 0,
-                    },
-                    "functions": {},
+                "functions": {
+                    "get": {"summary": {"covered_lines": 5, "num_statements": 5}},
+                    "post": {"summary": {"covered_lines": 0, "num_statements": 5}},
+                    "": {"summary": {"covered_lines": 10, "num_statements": 10}},
                 },
             },
-        }
+            "dj_design_system/views/page.py": {
+                "summary": {
+                    "covered_lines": 100,
+                    "num_statements": 100,
+                    "covered_branches": 25,
+                    "num_branches": 30,
+                },
+                "functions": {
+                    "render": {
+                        "summary": {"covered_lines": 10, "num_statements": 10}
+                    },
+                },
+            },
+            "dj_design_system/empty.py": {
+                "summary": {
+                    "covered_lines": 0,
+                    "num_statements": 0,
+                    "covered_branches": 0,
+                    "num_branches": 0,
+                },
+                "functions": {},
+            },
+        },
+    }
 
-    def test_parse_aggregations(self, sample_coverage_dict):
-        totals, modules, files = parse_coverage_data(data=sample_coverage_dict)
+
+class TestParseCoverageData:
+    def test_parse_aggregations(self):
+        totals, modules, files = parse_coverage_data(data=make_sample_coverage_dict())
 
         assert totals.statements.total == 200
         assert totals.statements.covered == 180
