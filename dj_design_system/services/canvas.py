@@ -778,7 +778,7 @@ def build_canvas_asset_tags(
         '<script{} src="{}"></script>',
         (
             (
-                format_html(' type="module"')
+                mark_safe(' type="module"')
                 if "dj_design_system/components/" in u
                 else "",
                 u,

@@ -19,6 +19,7 @@ from dj_design_system.services.canvas import (
     render_component,
     resolve_from_get_params,
 )
+from dj_design_system.types import Theme
 
 
 # ---------------------------------------------------------------------------
@@ -477,3 +478,37 @@ class TestCoerceSingle:
             ValueError, match="invalid primary key or no matching User found"
         ):
             coerce_single("user", "invalid_pk_abc", spec)
+
+
+class TestBuildCanvasAssetTags:
+    """Test generating asset link/script tags for the canvas iframe."""
+
+    def test_dds_component_script_is_module(self) -> None:
+        """Verify that built-in DDS component scripts receive type='module'."""
+        theme = Theme(value="default", label="Default")
+        media = ComponentMedia(
+            css=[],
+            js=["dj_design_system/components/elements/button/button.js"],
+        )
+        _, js_tags = canvas_service.build_canvas_asset_tags(
+            theme_dict=theme,
+            app_label="dj_design_system",
+            media=media,
+        )
+        assert 'type="module"' in str(js_tags)
+        assert "button.js" in str(js_tags)
+
+    def test_regular_script_is_not_module(self) -> None:
+        """Verify that consumer component scripts are not marked type='module'."""
+        theme = Theme(value="default", label="Default")
+        media = ComponentMedia(
+            css=[],
+            js=["demo_components/custom.js"],
+        )
+        _, js_tags = canvas_service.build_canvas_asset_tags(
+            theme_dict=theme,
+            app_label="demo_components",
+            media=media,
+        )
+        assert 'type="module"' not in str(js_tags)
+        assert "custom.js" in str(js_tags)
