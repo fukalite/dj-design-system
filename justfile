@@ -145,13 +145,12 @@ demo target="demo":
         echo "Starting example project gallery with $SETTINGS..."
     fi
     uv run --no-sync python example_project/manage.py migrate --run-syncdb --settings="$SETTINGS"
-    uv run --no-sync python example_project/manage.py runserver 0.0.0.0:8000 --settings="$SETTINGS" &
-    SERVER_PID=$!
-    echo "Server (PID $SERVER_PID) started at http://localhost:8000/ ..."
-    sleep 2
-    xdg-open "http://localhost:8000/" 2>/dev/null || open "http://localhost:8000/" 2>/dev/null || echo "Open http://localhost:8000/ in your browser"
-    echo "Press Ctrl+C to stop the server"
-    wait $SERVER_PID
+    echo "Starting example project at http://localhost:8000/ (Press Ctrl+C to stop) ..."
+    (
+        sleep 2
+        xdg-open "http://localhost:8000/" 2>/dev/null || open "http://localhost:8000/" 2>/dev/null || echo "Open http://localhost:8000/ in your browser"
+    ) &
+    exec uv run --no-sync python example_project/manage.py runserver 0.0.0.0:8000 --settings="$SETTINGS"
 
 # Fetch, parse, and display unresolved PR comments
 comments pr_number="":
