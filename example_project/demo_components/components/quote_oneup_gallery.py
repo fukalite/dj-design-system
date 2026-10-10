@@ -1,11 +1,12 @@
-from dj_design_system.data import GalleryParameter
-from dj_design_system.gallery import GalleryConfig, Variant
+"""Gallery configuration and variants for QuoteOneUpComponent."""
+
+from dj_design_system import data, gallery
 
 
-config = GalleryConfig(
+config = gallery.GalleryConfig(
     order=5,
     variants=[
-        Variant(
+        gallery.Variant(
             name="basic",
             label="Simple Quote",
             kwargs={
@@ -13,26 +14,31 @@ config = GalleryConfig(
                 "slot__author": "William Shakespeare",
             },
         ),
-        Variant(
+        gallery.Variant(
             name="maximal",
             label="Attributed Literature Quote",
             kwargs={
                 "quote": "To be or not to be, that is the question.",
-                "slot__author": GalleryParameter(
+                "slot__author": data.GalleryParameter(
                     value="<strong>William Shakespeare</strong>",
                     code='"<strong>William Shakespeare</strong>"',
                 ),
-                "slot__source": GalleryParameter(
+                "slot__source": data.GalleryParameter(
                     value="<cite>Hamlet</cite>", code='"<cite>Hamlet</cite>"'
                 ),
             },
         ),
-        Variant(
+        gallery.Variant(
             name="featured",
             label="Hero Editorial Callout",
-            description="Editorial quote formatted within an artistic framed container block.",
+            description=(
+                "Editorial quote formatted within an artistic framed container block."
+            ),
             kwargs={
-                "quote": "Design is not just what it looks like and feels like. Design is how it works.",
+                "quote": (
+                    "Design is not just what it looks like and feels like. "
+                    "Design is how it works."
+                ),
                 "slot__author": "Steve Jobs",
                 "slot__source": "The New York Times",
             },

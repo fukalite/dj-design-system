@@ -1,15 +1,17 @@
-from dj_design_system.components import BlockComponent
-from dj_design_system.parameters import StrParam
-from dj_design_system.slots import Slot
+"""Slotted pull-quote component for example_project.demo_components."""
+
+from dj_design_system import components, parameters, slots
 
 
-class QuoteOneUpComponent(BlockComponent):
-    quote = StrParam("The quote text", required=True)
+class QuoteOneUpComponent(components.BlockComponent):
+    """A pull-quote block component with required ``author`` and optional ``source`` slots."""
+
+    quote = parameters.StrParam("The quote text", required=True)
 
     class Meta:
         name = "quote_oneup"
         positional_args = ["quote"]
         slots = {
-            "author": Slot(required=True),
-            "source": Slot(required=False),
+            "author": slots.Slot(required=True),
+            "source": slots.Slot(required=False),
         }
