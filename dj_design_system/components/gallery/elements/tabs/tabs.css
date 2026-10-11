@@ -113,7 +113,8 @@
       }
     }
 
-    &:not(:has([role='tabpanel'])) {
+    &[data-variant='switcher'],
+    &:not([data-variant]):not(:has([role='tabpanel'])) {
       & [role='tablist'] {
         --space: var(--_tabs-gap);
         margin: 0;

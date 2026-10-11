@@ -105,8 +105,9 @@ class TestBreadcrumbDiscoveryAndMetadata:
     """Verify Breadcrumb exports, metadata, media, and registry discovery."""
 
     def test_exported_from_package_init(self) -> None:
-        """Verify Breadcrumb is exported in dj_design_system.components.gallery.elements.breadcrumb."""
+        """Verify Breadcrumb and BreadcrumbItem are exported in dj_design_system.components.gallery.elements.breadcrumb."""
         assert breadcrumb_package.Breadcrumb is breadcrumb_module.Breadcrumb
+        assert breadcrumb_package.BreadcrumbItem is breadcrumb_module.BreadcrumbItem
         assert issubclass(breadcrumb_module.Breadcrumb, components_base.TagComponent)
 
     def test_template_media_and_positional_args(self) -> None:
@@ -214,6 +215,44 @@ class TestBreadcrumbParametersAndContext:
             },
             {
                 "label": "Getting Started",
+                "url": None,
+                "icon": None,
+                "is_current": True,
+                "has_url": False,
+                "has_icon": False,
+            },
+        ]
+
+    def test_normalizes_breadcrumb_item_dataclasses(self) -> None:
+        """Verify BreadcrumbItem instances normalize with exact fields."""
+        comp = breadcrumb_module.Breadcrumb(
+            items=[
+                breadcrumb_module.BreadcrumbItem(label="Home", url="/", icon="home"),
+                breadcrumb_module.BreadcrumbItem(label="Elements", url="/elements/"),
+                breadcrumb_module.BreadcrumbItem(label="Breadcrumb"),
+            ]
+        )
+        ctx = comp.get_context()
+        assert ctx["has_items"] is True
+        assert ctx["normalized_items"] == [
+            {
+                "label": "Home",
+                "url": "/",
+                "icon": "home",
+                "is_current": False,
+                "has_url": True,
+                "has_icon": True,
+            },
+            {
+                "label": "Elements",
+                "url": "/elements/",
+                "icon": None,
+                "is_current": False,
+                "has_url": True,
+                "has_icon": False,
+            },
+            {
+                "label": "Breadcrumb",
                 "url": None,
                 "icon": None,
                 "is_current": True,
@@ -342,6 +381,33 @@ class TestBreadcrumbRenderingAndTemplate:
         assert 'class="dds-popout-option"' in html
         assert 'href="/gallery/elements/"' in html
 
+    def test_flyout_renders_role_group(self) -> None:
+        """Verify intermediate flyout container renders role='group' for menu semantics."""
+        trail = [
+            {"label": "Home", "url": "/"},
+            {"label": "Elements", "url": "/elements/"},
+            {"label": "Breadcrumb"},
+        ]
+        html = _render_template(
+            source="{% dds__breadcrumb items=trail %}",
+            context={"trail": trail},
+        )
+        assert 'data-breadcrumb-flyout role="group"' in html
+
+    def test_empty_items_renders_no_markup(self) -> None:
+        """Verify empty or None items renders no markup, avoiding empty <nav> landmarks."""
+        html_none = _render_template(
+            source="{% dds__breadcrumb items %}",
+            context={"items": None},
+        )
+        assert html_none.strip() == ""
+
+        html_empty = _render_template(
+            source="{% dds__breadcrumb items %}",
+            context={"items": []},
+        )
+        assert html_empty.strip() == ""
+
     def test_template_contains_no_filters_or_bem(self) -> None:
         """Verify breadcrumb.html loads design_components and has no filters or BEM."""
         template_text = _read_text(path=BREADCRUMB_HTML_PATH)
@@ -389,6 +455,14 @@ class TestBreadcrumbStylesheet:
             "var(--dds-space-",
         ):
             assert required_domain in css_text
+
+    def test_ellipsis_and_link_interactive_states(self) -> None:
+        """Verify breadcrumb.css specifies hover, active, and focus-visible states."""
+        css_text = _read_text(path=BREADCRUMB_CSS_PATH)
+        assert "--_breadcrumb-active-bg-color" in css_text
+        assert "&:hover" in css_text
+        assert "&:active" in css_text
+        assert "&:focus-visible" in css_text
 
     def test_css_boundary_encapsulation(self) -> None:
         """Verify child component selectors do not leak into breadcrumb.css."""

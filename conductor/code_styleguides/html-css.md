@@ -69,6 +69,7 @@ Always prefer native CSS nesting over repeating flat, compound, or descendant se
   .dds-folder-listing [data-folder-grid] { ... }
   .dds-folder-listing [data-folder-grid] > li { ... }
   ```
+- **Variant State Preservation**: When writing nested state rules (`&:hover`, `&:active`, `&:focus-visible`), never blanket-reset background, border, or text properties to neutral or default tokens in a way that overrides variant-specific styling (such as `primary`, `danger`, or status variants). Maintain variant contrast by nesting state rules under variant selectors or referencing variant-aware local CSS variables.
 - **Nesting Depth**: Keep nesting hierarchies shallow and performant. Avoid nesting deeper than 3 levels unless structurally necessary.
 
 ---
@@ -169,6 +170,8 @@ Tier 3: Component-Local Tokens (--_<component>-*) [Private, component root]
 - **Lowercase**: Use lowercase for all element names, attributes, and values.
 - **Quotes**: Double quotes (`""`) for HTML attribute values; single quotes (`''`) for CSS attribute selectors (`[data-state='open']`).
 - **Separation of Concerns**: Markup owns structure, CSS owns presentation, JavaScript/TypeScript owns behaviour.
+- **Framework Attribute Reflection (`{{ attrs }}`)**: In component templates, render parameter-bound HTML and data attributes using `{{ attrs }}` (or specific parameter attribute variables such as `{{ <param>_attr }}`) on the target host/interactive element. Do not write manual `{% if param %}` checks to build HTML attributes or boolean attributes in templates; let the framework parameter engine manage attribute naming, boolean styles, and escaping.
+- **Zero HTML Construction in Python**: Component code must never import `mark_safe`, `format_html`, or return raw HTML strings. HTML generation belongs exclusively in Django templates.
 - **Accessibility (a11y)**:
   - Interactive elements must be keyboard accessible and use appropriate `aria-*` attributes (`aria-label`, `aria-expanded`, `aria-selected`).
   - Provide `alt` text for images and transcripts/labels for icons.

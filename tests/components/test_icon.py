@@ -129,7 +129,7 @@ class TestIconParametersAndContext:
     """Verify parameter validation and get_context() shaping."""
 
     def test_default_parameters_and_decorative_context(self) -> None:
-        """Verify omitted label produces decorative aria-hidden context."""
+        """Verify omitted or whitespace label produces decorative aria-hidden context."""
         comp = Icon(name="eye")
         ctx = comp.get_context()
         assert ctx["name"] == "eye"
@@ -138,6 +138,14 @@ class TestIconParametersAndContext:
         assert ctx["is_decorative"] is True
         assert ctx["aria_hidden"] == "true"
         assert ctx["role"] is None
+
+        # Verify whitespace-only label is treated as decorative
+        whitespace_comp = Icon(name="eye", label="   ")
+        ws_ctx = whitespace_comp.get_context()
+        assert ws_ctx["label"] == ""
+        assert ws_ctx["is_decorative"] is True
+        assert ws_ctx["aria_hidden"] == "true"
+        assert ws_ctx["role"] is None
 
     def test_labelled_icon_context_is_accessible(self) -> None:
         """Verify providing label produces role='img' and omits aria-hidden."""
@@ -181,6 +189,7 @@ class TestIconRendering:
         assert f'data-icon="{icon_name}"' in html
         assert 'data-size="md"' in html
         assert 'viewBox="0 0 24 24"' in html
+        assert 'focusable="false"' in html
         assert any(
             tag in html
             for tag in ("<path ", "<circle ", "<rect ", "<polyline ", "<line ")
@@ -194,17 +203,19 @@ class TestIconRendering:
         assert f'data-size="{size}"' in html
 
     def test_decorative_icon_html_attributes(self) -> None:
-        """Verify decorative icon renders aria-hidden='true' and no role or aria-label."""
+        """Verify decorative icon renders aria-hidden='true', focusable='false', and no role or aria-label."""
         _build_builtin_registry()
         html = Icon(name="folder").render()
+        assert 'focusable="false"' in html
         assert 'aria-hidden="true"' in html
         assert "role=" not in html
         assert "aria-label=" not in html
 
     def test_accessible_icon_html_attributes(self) -> None:
-        """Verify labelled icon renders role='img' and aria-label without aria-hidden."""
+        """Verify labelled icon renders role='img', focusable='false', and aria-label without aria-hidden."""
         _build_builtin_registry()
         html = Icon(name="warning", label="Warning indicator").render()
+        assert 'focusable="false"' in html
         assert 'role="img"' in html
         assert 'aria-label="Warning indicator"' in html
         assert "aria-hidden=" not in html
@@ -243,11 +254,11 @@ class TestIconStylesheetAndColocation:
             "--_icon-size-sm",
             "--_icon-size-md",
             "--_icon-size-lg",
-            "--_icon-color",
         ):
             assert token_name in props
-            assert props[token_name].startswith("var(--dds-")
+            assert props[token_name].startswith("var(--dds-space-")
 
+        assert props.get("--_icon-color") == "currentColor"
         assert props.get("margin") == "0"
         assert props.get("display") == "inline-block"
         assert props.get("vertical-align") == "middle"

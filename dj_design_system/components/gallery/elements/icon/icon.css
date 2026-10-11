@@ -1,36 +1,33 @@
 @layer blocks {
   .dds-icon {
-    --_icon-color: var(--dds-text-default-color);
-    --_icon-size-lg: var(--dds-space-xl);
-    --_icon-size-md: var(--dds-space-lg);
-    --_icon-size-sm: var(--dds-space-md);
+    --_icon-color: currentColor;
     --_icon-size-xs: var(--dds-space-sm);
+    --_icon-size-sm: var(--dds-space-md);
+    --_icon-size-md: var(--dds-space-lg);
+    --_icon-size-lg: var(--dds-space-xl);
+    --_icon-size: var(--_icon-size-md);
     display: inline-block;
     flex-shrink: 0;
-    width: var(--_icon-size-md);
-    height: var(--_icon-size-md);
+    width: var(--_icon-size);
+    height: var(--_icon-size);
     margin: 0;
     color: var(--_icon-color);
     vertical-align: middle;
 
     &[data-size='xs'] {
-      width: var(--_icon-size-xs);
-      height: var(--_icon-size-xs);
+      --_icon-size: var(--_icon-size-xs);
     }
 
     &[data-size='sm'] {
-      width: var(--_icon-size-sm);
-      height: var(--_icon-size-sm);
+      --_icon-size: var(--_icon-size-sm);
     }
 
     &[data-size='md'] {
-      width: var(--_icon-size-md);
-      height: var(--_icon-size-md);
+      --_icon-size: var(--_icon-size-md);
     }
 
     &[data-size='lg'] {
-      width: var(--_icon-size-lg);
-      height: var(--_icon-size-lg);
+      --_icon-size: var(--_icon-size-lg);
     }
   }
 }

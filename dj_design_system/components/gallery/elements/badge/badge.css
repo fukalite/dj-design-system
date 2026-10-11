@@ -34,36 +34,41 @@
     &[data-variant='info'] {
       --_badge-bg-color: var(--dds-status-info-bg-color);
       --_badge-border-color: var(--dds-status-info-border-color);
+      --_badge-border-radius: var(--dds-status-info-border-radius);
+      --_badge-border-width: var(--dds-status-info-border-width);
       --_badge-text-color: var(--dds-status-info-text-color);
     }
 
     &[data-variant='success'] {
       --_badge-bg-color: var(--dds-status-success-bg-color);
       --_badge-border-color: var(--dds-status-success-border-color);
+      --_badge-border-radius: var(--dds-status-success-border-radius);
+      --_badge-border-width: var(--dds-status-success-border-width);
       --_badge-text-color: var(--dds-status-success-text-color);
     }
 
     &[data-variant='warning'] {
       --_badge-bg-color: var(--dds-status-warning-bg-color);
       --_badge-border-color: var(--dds-status-warning-border-color);
+      --_badge-border-radius: var(--dds-status-warning-border-radius);
+      --_badge-border-width: var(--dds-status-warning-border-width);
       --_badge-text-color: var(--dds-status-warning-text-color);
     }
 
     &[data-variant='error'] {
       --_badge-bg-color: var(--dds-status-error-bg-color);
       --_badge-border-color: var(--dds-status-error-border-color);
+      --_badge-border-radius: var(--dds-status-error-border-radius);
+      --_badge-border-width: var(--dds-status-error-border-width);
       --_badge-text-color: var(--dds-status-error-text-color);
     }
 
-    &[data-variant='code'] {
-      --_badge-bg-color: var(--dds-control-bg-color);
-      --_badge-border-color: var(--dds-control-border-color);
-      --_badge-font: var(--dds-text-code-font);
-      --_badge-font-size: var(--dds-text-code-size);
-      --_badge-font-weight: var(--dds-text-code-weight);
-      --_badge-letter-spacing: var(--dds-text-code-letter-spacing);
-      --_badge-line-height: var(--dds-text-code-line-height);
-      --_badge-text-color: var(--dds-text-default-color);
+    & > code {
+      font-family: var(--dds-text-code-font);
+      font-size: var(--dds-text-code-size);
+      font-weight: var(--dds-text-code-weight);
+      line-height: var(--dds-text-code-line-height);
+      letter-spacing: var(--dds-text-code-letter-spacing);
     }
   }
 }

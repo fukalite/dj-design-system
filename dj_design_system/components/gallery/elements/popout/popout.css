@@ -50,7 +50,7 @@
     display: inline-block;
     margin: 0;
 
-    & [data-popout-trigger] {
+    & .dds-popout-trigger {
       display: inline-flex;
       gap: var(--_popout-trigger-gap);
       align-items: center;
@@ -103,7 +103,7 @@
     &[data-state='open'] {
       z-index: var(--_popout-menu-z-index);
 
-      & [data-popout-trigger] {
+      & .dds-popout-trigger {
         border-color: var(--_popout-trigger-open-border-color);
         color: var(--_popout-trigger-open-text-color);
         background-color: var(--_popout-trigger-open-bg-color);
@@ -119,12 +119,16 @@
       flex-direction: column;
       gap: var(--_popout-menu-gap);
       box-sizing: border-box;
+      min-inline-size: 10rem;
+      max-inline-size: min(24rem, calc(100vw - var(--dds-space-md)));
+      max-block-size: 24rem;
       margin: 0;
       padding: var(--_popout-menu-padding);
       border-width: var(--_popout-menu-border-width);
       border-style: var(--_popout-menu-border-style);
       border-color: var(--_popout-menu-border-color);
       border-radius: var(--_popout-menu-border-radius);
+      overflow-y: auto;
       background-color: var(--_popout-menu-bg-color);
       box-shadow: var(--_popout-menu-shadow-shape) var(--_popout-menu-shadow-color);
       backdrop-filter: blur(var(--_popout-menu-bg-blur));

@@ -133,7 +133,9 @@ class TestButtonParametersAndValidation:
         assert ctx["button_type"] == "button"
         assert ctx["disabled"] is False
         assert ctx["pressed"] is None
-        assert ctx["action"] == ""
+        assert ctx["name"] is None
+        assert ctx["value"] is None
+        assert ctx["action"] is None
         assert ctx["is_link"] is False
         assert ctx["resolved_href"] is None
         assert ctx["resolved_target"] is None
@@ -145,6 +147,21 @@ class TestButtonParametersAndValidation:
         assert ctx["show_label"] is True
         assert ctx["icon_size"] == "md"
         assert ctx["has_action"] is False
+
+    def test_form_name_and_value_rendering(self) -> None:
+        """Verify name and value attributes render on <button>."""
+        _build_builtin_registry()
+        html = Button(label="Submit", name="action", value="save").render()
+        assert 'name="action"' in html
+        assert 'value="save"' in html
+
+    def test_mutually_exclusive_href_and_pressed(self) -> None:
+        """Verify setting both href and pressed raises ValueError."""
+        with pytest.raises(
+            expected_exception=ValueError,
+            match="cannot both be set on Button",
+        ):
+            Button(label="Link", href="https://example.com", pressed=True)
 
     def test_validate_params_icon_only_requires_label(self) -> None:
         """Verify icon_only=True without label raises ValueError."""

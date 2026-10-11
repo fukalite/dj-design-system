@@ -99,12 +99,17 @@ class TestFormFieldDiscoveryAndContract:
         slots_spec = form_field_mod.FormField.get_slots()
         assert "control" in slots_spec
         assert slots_spec["control"].required is False
+        assert "description" in slots_spec
+        assert slots_spec["description"].required is False
+        assert "error" in slots_spec
+        assert slots_spec["error"].required is False
 
         instance = form_field_mod.FormField(label="Username")
         assert instance.label == "Username"
         assert instance.field_id == ""
         assert instance.description == ""
         assert instance.error == ""
+        assert instance.required is False
         assert instance.required_field is False
         assert instance.layout == "stacked"
 
@@ -112,20 +117,23 @@ class TestFormFieldDiscoveryAndContract:
             form_field_mod.FormField(label="Username", layout="diagonal")
 
     def test_get_context_computes_boolean_flags(self) -> None:
-        """Verify get_context computes has_field_id, has_description, and has_error."""
+        """Verify get_context computes IDs, boolean flags, and slot fallbacks."""
         minimal = form_field_mod.FormField(label="Bio")
         min_ctx = minimal.get_context()
         assert min_ctx["has_field_id"] is False
         assert min_ctx["has_description"] is False
         assert min_ctx["has_error"] is False
         assert min_ctx["is_inline"] is False
+        assert min_ctx["required"] is False
+        assert min_ctx["description_id"] == ""
+        assert min_ctx["error_id"] == ""
 
         populated = form_field_mod.FormField(
             label="Bio",
             field_id="bio-input",
             description="Max 200 characters.",
             error="Bio cannot be blank.",
-            required_field=True,
+            required=True,
             layout="inline",
         )
         pop_ctx = populated.get_context()
@@ -133,6 +141,9 @@ class TestFormFieldDiscoveryAndContract:
         assert pop_ctx["has_description"] is True
         assert pop_ctx["has_error"] is True
         assert pop_ctx["is_inline"] is True
+        assert pop_ctx["required"] is True
+        assert pop_ctx["description_id"] == "bio-input-description"
+        assert pop_ctx["error_id"] == "bio-input-error"
 
 
 class TestFormFieldRendering:
@@ -150,7 +161,7 @@ class TestFormFieldRendering:
         assert '<div class="dds-form-field" data-layout="stacked">' in html
         assert "data-invalid" not in html
         assert "<l-stack>" in html
-        assert '<label for="user-email">Email</label>' in html
+        assert '<label for="user-email" data-part="label">Email</label>' in html
         assert '<input id="user-email" type="email">' in html
 
     def test_renders_fallback_content_when_control_slot_omitted(self) -> None:
@@ -161,14 +172,14 @@ class TestFormFieldRendering:
             field_id="notes",
         )
         html = component.render()
-        assert '<label for="notes">Notes</label>' in html
+        assert '<label for="notes" data-part="label">Notes</label>' in html
         assert '<textarea id="notes"></textarea>' in html
 
     def test_renders_required_indicator_description_and_error_alert(self) -> None:
         """Verify required asterisk, description paragraph, and error alert paragraph."""
         html = _render_template(
             template_source=(
-                '{% dds__form_field "Password" field_id="pwd" required_field=True '
+                '{% dds__form_field "Password" field_id="pwd" required=True '
                 'description="At least 12 characters." error="Password is too short." %}'
                 '{% slot "control" %}<input id="pwd" type="password">{% endslot %}'
                 "{% enddds__form_field %}"
@@ -179,13 +190,16 @@ class TestFormFieldRendering:
             in html
         )
         assert (
-            '<label for="pwd">Password<span aria-hidden="true">*</span></label>' in html
+            '<label for="pwd" data-part="label">Password<span data-part="required" aria-hidden="true">*</span></label>'
+            in html
         )
+        assert 'id="pwd-description"' in html
         assert "<p>At least 12 characters.</p>" in html
+        assert 'id="pwd-error"' in html
         assert '<p role="alert">Password is too short.</p>' in html
 
     def test_renders_inline_layout_with_cluster_primitive(self) -> None:
-        """Verify inline layout sets data-layout='inline' and uses <l-cluster>."""
+        """Verify inline layout sets data-layout='inline' and uses <l-cluster> with control before label."""
         html = _render_template(
             template_source=(
                 '{% dds__form_field "Subscribe" layout="inline" %}'
@@ -194,9 +208,29 @@ class TestFormFieldRendering:
             )
         )
         assert '<div class="dds-form-field" data-layout="inline">' in html
-        assert "<l-cluster>" in html
-        assert "<label>Subscribe</label>" in html
+        assert '<l-cluster data-part="inline-group">' in html
+        assert '<label data-part="label">Subscribe</label>' in html
         assert '<input type="checkbox">' in html
+        # Ensure control precedes label in inline layout
+        input_pos = html.index('<input type="checkbox">')
+        label_pos = html.index('<label data-part="label">Subscribe</label>')
+        assert input_pos < label_pos
+
+    def test_renders_rich_slots_for_description_and_error(self) -> None:
+        """Verify rich HTML slotted description and error override text parameters."""
+        html = _render_template(
+            template_source=(
+                '{% dds__form_field "Security Code" field_id="sec-code" %}'
+                '{% slot "control" %}<input id="sec-code" type="text">{% endslot %}'
+                '{% slot "description" %}<p>See <a href="/help">help page</a> for info.</p>{% endslot %}'
+                '{% slot "error" %}<p role="alert">Code has expired.</p>{% endslot %}'
+                "{% enddds__form_field %}"
+            )
+        )
+        assert '<div id="sec-code-description" data-part="description">' in html
+        assert '<a href="/help">help page</a>' in html
+        assert '<div id="sec-code-error" data-part="error">' in html
+        assert '<p role="alert">Code has expired.</p>' in html
 
     def test_gallery_variants_render_via_canvas_service(self) -> None:
         """Verify gallery.py and index.md exist and all gallery variants render cleanly."""
@@ -250,17 +284,32 @@ class TestFormFieldCssAndMarkupStandards:
             assert required_domain in root_block
 
     def test_css_styles_child_controls_and_conforms_to_styleguide(self) -> None:
-        """Verify child input/select/textarea rules and surface inheritance."""
+        """Verify child input/select/textarea rules and scoped data-part rules."""
         css_text = CSS_PATH.read_text(encoding="utf-8")
         html_text = HTML_PATH.read_text(encoding="utf-8")
 
         for control_tag in (
-            ".dds-form-field input",
+            ".dds-form-field input:not([type='checkbox']):not([type='radio']):not([type='hidden'])",
             ".dds-form-field select",
             ".dds-form-field textarea",
         ):
             assert conftest.extract_css_rule_blocks(
                 css_text=css_text, selector=control_tag
+            )
+
+        assert conftest.extract_css_rule_blocks(
+            css_text=css_text,
+            selector=".dds-form-field input:is([type='checkbox'], [type='radio'])",
+        )
+
+        # Confirm description, error, and required indicators are scoped via data-part
+        for part_tag in (
+            ".dds-form-field [data-part='label']",
+            ".dds-form-field [data-part='description']",
+            ".dds-form-field [data-part='error']",
+        ):
+            assert conftest.extract_css_rule_blocks(
+                css_text=css_text, selector=part_tag
             )
 
         bem_matches = re.findall(

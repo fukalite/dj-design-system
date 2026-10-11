@@ -1,10 +1,14 @@
 {% load design_components %}
-<div class="dds-notice" data-variant="{{ variant }}" role="{{ role }}">
-  {% dds__icon name=resolved_icon size="md" %}
+<div class="dds-notice" data-variant="{{ variant }}"{% if role %} role="{{ role }}"{% endif %}>
+  {% if show_icon %}
+    {% dds__icon name=resolved_icon size="md" %}
+  {% endif %}
   <l-stack>
     {% if has_title %}
-      <strong>{{ title }}</strong>
+      <strong data-part="title">{{ title }}</strong>
     {% endif %}
-    <div>{{ content }}</div>
+    {% if content %}
+      <div>{{ content }}</div>
+    {% endif %}
   </l-stack>
 </div>

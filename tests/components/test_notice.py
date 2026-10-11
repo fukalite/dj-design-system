@@ -163,27 +163,30 @@ class TestNoticeParametersAndContext:
         assert ctx["resolved_icon"] == "doc"
         assert ctx["role"] == "alert"
 
-    def test_icon_choices_include_empty_string_and_all_icon_names(self) -> None:
-        """Verify icon parameter choices match ['', *ICON_NAMES]."""
-        params = notice_module.Notice.get_params()
-        assert params["icon"].choices == ["", *ICON_NAMES]
+    def test_icon_suppression_and_custom_role_in_context(self) -> None:
+        """Verify icon='none' suppresses the icon and role parameter overrides default role."""
+        comp = notice_module.Notice(variant="warning", icon="none", role="note")
+        ctx = comp.get_context()
+        assert ctx["show_icon"] is False
+        assert ctx["role"] == "note"
+
+    def test_notice_module_does_not_import_icon(self) -> None:
+        """Verify notice.py contains no Python import of the icon component."""
+        source = _read_text(path=NOTICE_DIR / "notice.py")
+        assert "elements import icon" not in source
+        assert "icon_element" not in source
 
     def test_invalid_variant_raises_value_error(self) -> None:
         """Verify an unsupported variant raises ValueError."""
         with pytest.raises(expected_exception=ValueError, match="Expected one of"):
             notice_module.Notice(variant="critical")
 
-    def test_invalid_icon_raises_value_error(self) -> None:
-        """Verify an unknown icon name raises ValueError."""
-        with pytest.raises(expected_exception=ValueError, match="Expected one of"):
-            notice_module.Notice(icon="nonexistent-icon")
-
 
 class TestNoticeRenderingAndTemplate:
     """Verify template tag rendering, icon composition, title branching, and template purity."""
 
     def test_renders_default_info_notice_without_title(self) -> None:
-        """Verify default {% dds__notice %} renders aside with role='note', info icon, and no strong tag."""
+        """Verify default {% dds__notice %} renders with role='note', info icon, and no strong tag."""
         html = _render_template(
             source="{% dds__notice %}Body message.{% enddds__notice %}"
         ).strip()
@@ -205,8 +208,32 @@ class TestNoticeRenderingAndTemplate:
         ).strip()
         assert '<div class="dds-notice" data-variant="error" role="alert">' in html
         assert 'data-icon="code"' in html
-        assert "<strong>Fatal Error</strong>" in html
+        assert '<strong data-part="title">Fatal Error</strong>' in html
         assert "<div>Stack trace details.</div>" in html
+
+    def test_renders_icon_suppressed_notice(self) -> None:
+        """Verify icon='none' omits the dds-icon element from output HTML."""
+        html = _render_template(
+            source='{% dds__notice variant="info" icon="none" %}Unadorned message.{% enddds__notice %}'
+        ).strip()
+        assert '<div class="dds-notice" data-variant="info" role="note">' in html
+        assert "dds-icon" not in html
+        assert "Unadorned message." in html
+
+    def test_renders_custom_role_override(self) -> None:
+        """Verify explicit role parameter overrides default variant role."""
+        html = _render_template(
+            source='{% dds__notice variant="warning" role="note" %}Static note.{% enddds__notice %}'
+        ).strip()
+        assert '<div class="dds-notice" data-variant="warning" role="note">' in html
+
+    def test_slotted_strong_content_not_scoped_as_title(self) -> None:
+        """Verify inline bold tags in slotted content are preserved without data-part='title'."""
+        html = _render_template(
+            source='{% dds__notice title="Attention" %}Please review <strong>bold term</strong>.{% enddds__notice %}'
+        )
+        assert '<strong data-part="title">Attention</strong>' in html
+        assert "<strong>bold term</strong>" in html
 
     def test_escapes_html_in_title(self) -> None:
         """Verify HTML characters in title parameter are escaped."""
@@ -215,7 +242,10 @@ class TestNoticeRenderingAndTemplate:
             context={"raw_title": "<script>alert(1)</script>"},
         )
         assert "<script>" not in html
-        assert "<strong>&lt;script&gt;alert(1)&lt;/script&gt;</strong>" in html
+        assert (
+            '<strong data-part="title">&lt;script&gt;alert(1)&lt;/script&gt;</strong>'
+            in html
+        )
 
     def test_template_contains_no_filters_or_bem(self) -> None:
         """Verify notice.html loads design_components and has zero template filters or BEM classes."""
@@ -279,6 +309,16 @@ class TestNoticeStylesheet:
             == f"var(--dds-status-{status}-border-color)"
         )
         assert props["--_notice-text-color"] == f"var(--dds-status-{status}-text-color)"
+
+    def test_css_scopes_title_and_does_not_clobber_global_strong(self) -> None:
+        """Verify notice.css scopes heading to [data-part='title'] and avoids global strong."""
+        css_text = _read_text(path=NOTICE_CSS_PATH)
+        assert _extract_rule_blocks(
+            css_text=css_text, selector=".dds-notice [data-part='title']"
+        )
+        assert not _extract_rule_blocks(
+            css_text=css_text, selector=".dds-notice strong"
+        )
 
 
 class TestNoticeGalleryAndDocs:

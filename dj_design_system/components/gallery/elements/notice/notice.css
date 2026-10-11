@@ -11,13 +11,13 @@
     --_notice-gap: var(--dds-space-gap-default);
     --_notice-letter-spacing: var(--dds-text-body-letter-spacing);
     --_notice-line-height: var(--dds-text-body-line-height);
-    --_notice-padding-block: var(--dds-space-md);
-    --_notice-padding-inline: var(--dds-space-lg);
+    --_notice-padding-block: var(--dds-space-inset-compact);
+    --_notice-padding-inline: var(--dds-space-inset-default);
     --_notice-shadow-color: var(--dds-status-info-shadow-color);
     --_notice-shadow-shape: var(--dds-status-info-shadow-shape);
     --_notice-stack-gap: var(--dds-space-gap-tight);
     --_notice-text-color: var(--dds-status-info-text-color);
-    --_notice-title-font-weight: var(--dds-text-control-weight);
+    --_notice-title-font-weight: var(--dds-text-heading-weight);
     display: flex;
     gap: var(--_notice-gap);
     align-items: flex-start;
@@ -51,7 +51,7 @@
     &[data-variant='success'] {
       --_notice-bg-color: var(--dds-status-success-bg-color);
       --_notice-border-color: var(--dds-status-success-border-color);
-      --_notice-border-radius: var(--dds-status-info-border-radius);
+      --_notice-border-radius: var(--dds-status-success-border-radius);
       --_notice-border-style: var(--dds-status-success-border-style);
       --_notice-border-width: var(--dds-status-success-border-width);
       --_notice-shadow-color: var(--dds-status-success-shadow-color);
@@ -87,7 +87,7 @@
       min-inline-size: 0;
     }
 
-    & strong {
+    & [data-part='title'] {
       display: block;
       font-weight: var(--_notice-title-font-weight);
     }

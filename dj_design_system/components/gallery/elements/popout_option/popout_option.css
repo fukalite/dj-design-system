@@ -24,7 +24,9 @@
     --_popout-option-padding-inline: var(--dds-space-sm);
     --_popout-option-selected-bg-color: var(--dds-state-selected-bg-color);
     --_popout-option-selected-text-color: var(--dds-state-selected-text-color);
-    --_popout-option-text-color: var(--dds-text-default-color);
+    --_popout-option-shortcut-font: var(--dds-text-code-font);
+    --_popout-option-shortcut-size: var(--dds-text-caption-size);
+    --_popout-option-text-color: var(--dds-state-interactive-text-color);
     --_popout-option-transition-duration: var(--dds-state-entry-duration);
     --_popout-option-transition-easing: var(--dds-state-entry-easing);
     display: flex;
@@ -55,12 +57,12 @@
     transition-timing-function: var(--_popout-option-transition-easing);
     user-select: none;
 
-    &:hover:not(:disabled) {
+    &:hover:not(:disabled):not([aria-disabled='true']) {
       color: var(--_popout-option-hover-text-color);
       background-color: var(--_popout-option-hover-bg-color);
     }
 
-    &:active:not(:disabled) {
+    &:active:not(:disabled):not([aria-disabled='true']) {
       color: var(--_popout-option-active-text-color);
       background-color: var(--_popout-option-active-bg-color);
     }
@@ -75,12 +77,36 @@
     &[aria-checked='true'] {
       color: var(--_popout-option-selected-text-color);
       background-color: var(--_popout-option-selected-bg-color);
+
+      &:hover:not(:disabled):not([aria-disabled='true']) {
+        color: var(--_popout-option-hover-text-color);
+        background-color: var(--_popout-option-hover-bg-color);
+      }
+
+      &:active:not(:disabled):not([aria-disabled='true']) {
+        color: var(--_popout-option-active-text-color);
+        background-color: var(--_popout-option-active-bg-color);
+      }
     }
 
-    &:disabled {
+    &:disabled,
+    &[aria-disabled='true'] {
       color: var(--_popout-option-disabled-text-color);
       opacity: var(--_popout-option-disabled-opacity);
       cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    & [data-part='shortcut'] {
+      margin-inline-start: auto;
+      opacity: 0.7;
+      font-family: var(--_popout-option-shortcut-font);
+      font-size: var(--_popout-option-shortcut-size);
+
+      & kbd {
+        font-family: inherit;
+        font-size: inherit;
+      }
     }
   }
 }

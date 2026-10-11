@@ -79,8 +79,10 @@ class Icon(components.TagComponent):
             Dictionary containing component parameters and accessibility state.
         """
         context = super().get_context()
-        is_decorative = not self.label
+        resolved_label = (self.label or "").strip()
+        is_decorative = not resolved_label
         context["size"] = self.size or DEFAULT_ICON_SIZE
+        context["label"] = resolved_label
         context["is_decorative"] = is_decorative
         context["aria_hidden"] = "true" if is_decorative else None
         context["role"] = None if is_decorative else "img"

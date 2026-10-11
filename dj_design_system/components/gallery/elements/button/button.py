@@ -57,12 +57,14 @@ class Button(components.TagComponent):
         description="Visual button style.",
         default=DEFAULT_VARIANT,
         required=False,
+        data_attr=True,
         choices=list(BUTTON_VARIANTS),
     )
     size = parameters.StrParam(
         description="Button size.",
         default=DEFAULT_SIZE,
         required=False,
+        data_attr=True,
         choices=list(BUTTON_SIZES),
     )
     icon = parameters.StrParam(
@@ -98,24 +100,42 @@ class Button(components.TagComponent):
         required=False,
         choices=list(BUTTON_TYPES),
     )
+    name = parameters.StrParam(
+        description="Form submission name attribute.",
+        default=None,
+        required=False,
+        attr=True,
+    )
+    value = parameters.StrParam(
+        description="Form submission value attribute.",
+        default=None,
+        required=False,
+        attr=True,
+    )
     disabled = parameters.BoolParam(
         description="Whether interaction is disabled.",
         default=False,
         required=False,
+        attr=True,
+        attr_style="boolean",
     )
     pressed = parameters.BoolParam(
         description="Optional toggle state for aria-pressed ('true'/'false').",
         default=None,
         required=False,
+        attr="aria-pressed",
+        attr_style="string",
     )
     action = parameters.StrParam(
         description="Optional data-action hook for parent web components.",
-        default="",
+        default=None,
         required=False,
+        data_attr=True,
     )
 
     class Meta:
         positional_args = ["label"]
+        mutually_exclusive = [("href", "pressed")]
 
     def validate_params(self) -> None:
         """Validate accessibility and content invariants across button parameters.
@@ -163,6 +183,8 @@ class Button(components.TagComponent):
         context["variant"] = variant
         context["size"] = size
         context["button_type"] = button_type
+        context["name"] = self.name
+        context["value"] = self.value
         context["is_link"] = is_link
         context["resolved_href"] = resolved_href
         context["resolved_target"] = resolved_target

@@ -1,5 +1,6 @@
 @layer blocks {
   .dds-breadcrumb {
+    --_breadcrumb-active-bg-color: var(--dds-state-active-bg-color);
     --_breadcrumb-border-radius: var(--dds-control-border-radius);
     --_breadcrumb-current-color: var(--dds-text-prominent-color);
     --_breadcrumb-current-weight: var(--dds-text-control-weight);
@@ -53,6 +54,7 @@
         align-items: center;
         padding-block: var(--_breadcrumb-item-padding-block);
         padding-inline: var(--_breadcrumb-item-padding-inline);
+        border-radius: var(--_breadcrumb-border-radius);
       }
 
       & > span {
@@ -94,13 +96,32 @@
       border-width: 0;
       border-radius: var(--_breadcrumb-border-radius);
       color: var(--_breadcrumb-link-color);
-      background-color: var(--_breadcrumb-hover-bg-color);
+      background-color: transparent;
       font-family: var(--_breadcrumb-font);
       font-size: var(--_breadcrumb-font-size);
       font-weight: var(--_breadcrumb-current-weight);
       line-height: var(--_breadcrumb-line-height);
-      appearance: none;
       cursor: pointer;
+      transition-duration: var(--_breadcrumb-transition-duration);
+      transition-property: background-color, color;
+      transition-timing-function: var(--_breadcrumb-transition-easing);
+      appearance: none;
+
+      &:hover {
+        color: var(--_breadcrumb-hover-color);
+        background-color: var(--_breadcrumb-hover-bg-color);
+      }
+
+      &:active {
+        background-color: var(--_breadcrumb-active-bg-color);
+      }
+
+      &:focus-visible {
+        outline-width: var(--_breadcrumb-focus-outline-width);
+        outline-style: var(--_breadcrumb-focus-outline-style);
+        outline-color: var(--_breadcrumb-focus-outline-color);
+        outline-offset: var(--_breadcrumb-focus-outline-offset);
+      }
     }
 
     & [data-breadcrumb-flyout] {

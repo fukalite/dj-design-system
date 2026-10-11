@@ -52,7 +52,7 @@ export class DDSTabsElement extends HTMLElement implements DDSCustomElement {
   private getTabs(): HTMLElement[] {
     return Array.from(
       this.querySelectorAll<HTMLElement>('[role="tab"][data-tab-trigger]'),
-    );
+    ).filter((tab) => tab.closest('dds-tabs') === this);
   }
 
   /**
@@ -63,7 +63,7 @@ export class DDSTabsElement extends HTMLElement implements DDSCustomElement {
   private getPanels(): HTMLElement[] {
     return Array.from(
       this.querySelectorAll<HTMLElement>('[role="tabpanel"][data-tab-panel]'),
-    );
+    ).filter((panel) => panel.closest('dds-tabs') === this);
   }
 
   /**
@@ -76,7 +76,7 @@ export class DDSTabsElement extends HTMLElement implements DDSCustomElement {
       event.target instanceof Element
         ? event.target.closest<HTMLElement>('[role="tab"][data-tab-trigger]')
         : null;
-    if (target === null || !this.contains(target)) {
+    if (target === null || target.closest('dds-tabs') !== this) {
       return;
     }
     const tabId = target.dataset.tabTrigger;
@@ -95,7 +95,7 @@ export class DDSTabsElement extends HTMLElement implements DDSCustomElement {
       event.target instanceof Element
         ? event.target.closest<HTMLElement>('[role="tab"][data-tab-trigger]')
         : null;
-    if (target === null || !this.contains(target)) {
+    if (target === null || target.closest('dds-tabs') !== this) {
       return;
     }
 

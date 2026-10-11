@@ -1,12 +1,13 @@
 # Popout Option (`dds__popout_option`)
 
-The `dds__popout_option` component renders an individual selectable option (`<button role="menuitemradio">`) or navigation item (`<a role="menuitem">`) inside a `dds__popout` menu.
+The `dds__popout_option` component renders an individual selectable option (`<button role="menuitemradio">`), action item (`<button role="menuitem">`), or navigation item (`<a role="menuitem">`) inside a `dds__popout` menu.
 
 ## When to Use
 
 - Rendering selectable radio-style options (`selected=True`/`False`) inside a `{% dds__popout %}` menu.
-- Rendering navigation links (`href="..."`) inside a breadcrumb flyout or action menu.
-- Disabling unavailable options (`disabled=True`), which automatically suppresses `href` link rendering.
+- Rendering action items (`role="menuitem"`) inside an action or overflow menu.
+- Rendering navigation links (`href="..."`) inside a breadcrumb flyout or navigation menu.
+- Disabling unavailable options (`disabled=True`), which marks links as `aria-disabled="true"` or disables buttons.
 
 ## Parameters
 
@@ -14,10 +15,12 @@ The `dds__popout_option` component renders an individual selectable option (`<bu
 | :--- | :--- | :--- | :--- |
 | `label` | `str` | Required | Visible option text label (positional argument 1). |
 | `value` | `str` | `""` | Option value payload; falls back to `label` when empty. |
-| `icon` | `str` | `""` | Optional leading icon name from `ICON_NAMES`. |
-| `selected` | `bool` | `False` | Sets `aria-checked="true"` when selected. |
-| `disabled` | `bool` | `False` | Disables the option and forces `<button disabled>`. |
-| `href` | `str` | `""` | Optional URL; renders `<a role="menuitem">` when not disabled. |
+| `role` | `str` | `""` | ARIA menu item role (`"menuitem"`, `"menuitemradio"`, or `"menuitemcheckbox"`). Defaults to `"menuitem"` for links and `"menuitemradio"` for buttons. |
+| `icon` | `str` | `""` | Optional leading icon name. |
+| `shortcut` | `str` | `""` | Optional keyboard shortcut hint (e.g. `"⌘K"`). |
+| `selected` | `bool` | `False` | Sets `aria-checked="true"` when selected on checkable options. |
+| `disabled` | `bool` | `False` | Disables the option (`aria-disabled="true"` on links, `disabled` on buttons). |
+| `href` | `str` | `""` | Optional destination URL; renders an `<a>` element. |
 
 ## Template Usage
 

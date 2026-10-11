@@ -3,7 +3,6 @@
 import typing
 
 from dj_design_system import components, parameters
-from dj_design_system.components.gallery.elements import icon as icon_element
 
 
 DEFAULT_VARIANT = "info"
@@ -48,10 +47,14 @@ class Notice(components.BlockComponent):
         required=False,
     )
     icon = parameters.StrParam(
-        description="Optional icon override; defaults to variant status icon.",
+        description="Optional icon override; pass 'none' to suppress the icon.",
         default="",
         required=False,
-        choices=["", *icon_element.ICON_NAMES],
+    )
+    role = parameters.StrParam(
+        description="Optional ARIA role override ('note', 'alert', 'region', or '').",
+        default="",
+        required=False,
     )
 
     def get_context(self) -> dict[str, typing.Any]:
@@ -59,18 +62,29 @@ class Notice(components.BlockComponent):
 
         Returns:
             Dictionary containing component parameters, ``resolved_icon``,
-            ``role``, and ``has_title``.
+            ``show_icon``, ``role``, and ``has_title``.
         """
         context = super().get_context()
         variant = self.variant if self.variant is not None else DEFAULT_VARIANT
-        resolved_icon = str(self.icon) if self.icon else str(variant)
-        role = "alert" if variant in ALERT_VARIANTS else "note"
+        show_icon = self.icon != "none"
+        resolved_icon = (
+            self.icon
+            if self.icon and self.icon != "none"
+            else variant
+        )
+        resolved_role = (
+            self.role
+            if self.role
+            else ("alert" if variant in ALERT_VARIANTS else "note")
+        )
         has_title = bool(self.title)
 
         context["variant"] = variant
         context["title"] = self.title if self.title is not None else ""
         context["content"] = self.content if self.content is not None else ""
+        context["show_icon"] = show_icon
         context["resolved_icon"] = resolved_icon
-        context["role"] = role
+        context["icon"] = self.icon if self.icon is not None else ""
+        context["role"] = resolved_role
         context["has_title"] = has_title
         return context

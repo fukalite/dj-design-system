@@ -9,7 +9,6 @@ from django.utils import safestring
 
 from dj_design_system import data, gallery
 from dj_design_system.components import base as components_base
-from dj_design_system.components.gallery.elements import icon as icon_module
 from dj_design_system.components.gallery.elements import popout as popout_package
 from dj_design_system.components.gallery.elements import (
     popout_option as popout_option_package,
@@ -201,7 +200,7 @@ class TestPopoutParametersAndContext:
         assert ctx["aria_label"] == "More actions"
 
     def test_trigger_slot_declaration_and_invalid_choices(self) -> None:
-        """Verify trigger and menu slot metadata and choice validation for icon and align."""
+        """Verify trigger and menu slot metadata and choice validation for align and role."""
         slots_spec = popout_module.Popout.get_slots()
         assert "trigger" in slots_spec
         assert slots_spec["trigger"].required is False
@@ -209,13 +208,13 @@ class TestPopoutParametersAndContext:
         assert slots_spec["menu"].required is False
 
         params = popout_module.Popout.get_params()
-        assert params["icon"].choices == ["", *icon_module.ICON_NAMES]
         assert params["align"].choices == ["start", "end"]
+        assert params["role"].choices == ["menu", "dialog", "region", "none"]
 
         with pytest.raises(expected_exception=ValueError, match="Expected one of"):
             popout_module.Popout(label="Theme", align="center")
         with pytest.raises(expected_exception=ValueError, match="Expected one of"):
-            popout_module.Popout(label="Theme", icon="invalid-icon")
+            popout_module.Popout(label="Theme", role="invalid-role")
 
 
 class TestPopoutOptionParametersAndContext:
@@ -227,7 +226,10 @@ class TestPopoutOptionParametersAndContext:
         ctx = comp.get_context()
         assert ctx["label"] == "Light"
         assert ctx["value"] == ""
+        assert ctx["role"] == ""
+        assert ctx["resolved_role"] == "menuitemradio"
         assert ctx["icon"] == ""
+        assert ctx["shortcut"] == ""
         assert ctx["selected"] is False
         assert ctx["disabled"] is False
         assert ctx["href"] == ""
@@ -235,6 +237,7 @@ class TestPopoutOptionParametersAndContext:
         assert ctx["resolved_value"] == "Light"
         assert ctx["aria_checked"] == "false"
         assert ctx["has_icon"] is False
+        assert ctx["has_shortcut"] is False
 
     def test_selected_custom_value_and_icon_context(self) -> None:
         """Verify explicit value, selected=True, and icon context flags."""
@@ -251,24 +254,26 @@ class TestPopoutOptionParametersAndContext:
         assert ctx["is_link"] is False
 
     def test_href_and_disabled_interaction(self) -> None:
-        """Verify is_link is True only when href is provided and disabled is False."""
+        """Verify is_link is True when href is provided, retaining link semantics when disabled."""
         link_ctx = popout_option_module.PopoutOption(
             label="Docs",
             href="/docs/",
         ).get_context()
         assert link_ctx["is_link"] is True
+        assert link_ctx["resolved_role"] == "menuitem"
 
         disabled_link_ctx = popout_option_module.PopoutOption(
             label="Docs",
             href="/docs/",
             disabled=True,
         ).get_context()
-        assert disabled_link_ctx["is_link"] is False
+        assert disabled_link_ctx["is_link"] is True
+        assert disabled_link_ctx["disabled"] is True
 
-    def test_invalid_icon_raises_value_error(self) -> None:
-        """Verify invalid icon name on PopoutOption raises ValueError."""
+    def test_invalid_role_raises_value_error(self) -> None:
+        """Verify invalid role on PopoutOption raises ValueError."""
         with pytest.raises(expected_exception=ValueError, match="Expected one of"):
-            popout_option_module.PopoutOption(label="Option", icon="nonexistent")
+            popout_option_module.PopoutOption(label="Option", role="invalid-role")
 
 
 class TestPopoutAndOptionRendering:
@@ -293,8 +298,8 @@ class TestPopoutAndOptionRendering:
             in html
         )
         assert (
-            '<button type="button" data-popout-trigger aria-haspopup="true" '
-            'aria-expanded="false">' in html
+            '<button type="button" class="dds-popout-trigger" data-popout-trigger '
+            'aria-haspopup="true" aria-expanded="false">' in html
         )
         assert 'data-icon="sun"' in html
         assert "<span>Theme</span>" in html
@@ -321,8 +326,8 @@ class TestPopoutAndOptionRendering:
             '<dds-popout class="dds-popout" data-align="end" data-state="open">' in html
         )
         assert (
-            '<button type="button" data-popout-trigger aria-haspopup="true" '
-            'aria-expanded="true" aria-label="More options">' in html
+            '<button type="button" class="dds-popout-trigger" data-popout-trigger '
+            'aria-haspopup="true" aria-expanded="true" aria-label="More options">' in html
         )
         assert 'data-icon="menu"' in html
         assert "<span>More options</span>" not in html
@@ -374,6 +379,19 @@ class TestPopoutAndOptionRendering:
         )
         assert 'data-icon="external-link"' in link_html
         assert "<span>Docs</span>" in link_html
+
+        shortcut_html = _render_template(
+            source='{% dds__popout_option "Search" shortcut="⌘K" role="menuitem" %}'
+        )
+        assert 'role="menuitem"' in shortcut_html
+        assert 'aria-checked' not in shortcut_html
+        assert '<kbd>⌘K</kbd>' in shortcut_html
+
+        disabled_link = _render_template(
+            source='{% dds__popout_option "Disabled link" href="/docs/" disabled=True %}'
+        )
+        assert 'aria-disabled="true"' in disabled_link
+        assert 'tabindex="-1"' in disabled_link
 
 
 class TestPopoutStylesheetsAndTypeScriptContract:

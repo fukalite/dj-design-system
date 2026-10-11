@@ -31,6 +31,17 @@
     --_code-block-header-gap: var(--dds-space-gap-default);
     --_code-block-header-padding-block: var(--dds-space-xs);
     --_code-block-header-padding-inline: var(--dds-space-md);
+    --_code-block-hl-comment: var(--dds-syntax-comment, #75715e);
+    --_code-block-hl-error: var(--dds-syntax-error, #960050);
+    --_code-block-hl-error-bg: var(--dds-syntax-error-bg, #1e0010);
+    --_code-block-hl-function: var(--dds-syntax-function, #a6e22e);
+    --_code-block-hl-keyword: var(--dds-syntax-keyword, #66d9ef);
+    --_code-block-hl-line-bg: var(--dds-syntax-line-bg, #49483e);
+    --_code-block-hl-literal: var(--dds-syntax-literal, #ae81ff);
+    --_code-block-hl-name: var(--dds-syntax-name, #f8f8f2);
+    --_code-block-hl-operator: var(--dds-syntax-operator, #f92672);
+    --_code-block-hl-string: var(--dds-syntax-string, #e6db74);
+    --_code-block-hl-tag-delimiter: var(--dds-syntax-tag-delimiter, #ff79c6);
     --_code-block-label-color: var(--dds-text-muted-color);
     --_code-block-label-font: var(--dds-text-caption-font);
     --_code-block-label-font-size: var(--dds-text-caption-size);
@@ -43,6 +54,7 @@
     --_code-block-padding-inline: var(--dds-space-lg);
     --_code-block-shadow-color: var(--dds-surface-shadow-color);
     --_code-block-shadow-shape: var(--dds-surface-shadow-shape);
+    --_code-block-strong-weight: var(--dds-text-title-weight);
     --_code-block-text-color: var(--dds-text-default-color);
     position: relative;
     display: block;
@@ -147,6 +159,10 @@
       tab-size: 4;
     }
 
+    &:has([data-copy-overlay]) pre {
+      padding-inline-end: calc(var(--_code-block-padding-inline) + 4.5rem);
+    }
+
     & code {
       padding: 0;
       color: inherit;
@@ -165,48 +181,48 @@
       }
 
       & .hll {
-        background-color: var(--hl-line-bg);
+        background-color: var(--_code-block-hl-line-bg);
       }
 
       & :is(.c, .cm, .c1, .cs) {
-        color: var(--hl-comment);
+        color: var(--_code-block-hl-comment);
       }
 
       & .err {
-        color: var(--hl-error);
-        background-color: var(--hl-error-bg);
+        color: var(--_code-block-hl-error);
+        background-color: var(--_code-block-hl-error-bg);
       }
 
       & :is(.k, .kc, .kd, .kp, .kr, .kt) {
-        color: var(--hl-keyword);
+        color: var(--_code-block-hl-keyword);
       }
 
       & :is(.kn, .o, .ow, .nt) {
-        color: var(--hl-operator);
+        color: var(--_code-block-hl-operator);
       }
 
       & :is(.l, .m, .mf, .mh, .mi, .mo, .il, .se) {
-        color: var(--hl-literal);
+        color: var(--_code-block-hl-literal);
       }
 
       & :is(.s, .ld, .sb, .sc, .sd, .s2, .sh, .si, .sx, .sr, .s1, .ss) {
-        color: var(--hl-string);
+        color: var(--_code-block-hl-string);
       }
 
       & :is(.n, .p, .nb, .ni, .nl, .nn, .nv, .py, .w, .bp, .vc, .vg, .vi) {
-        color: var(--hl-name);
+        color: var(--_code-block-hl-name);
       }
 
       & .no {
-        color: var(--hl-keyword);
+        color: var(--_code-block-hl-keyword);
       }
 
       & :is(.na, .nc, .nd, .ne, .nf, .nx) {
-        color: var(--hl-function);
+        color: var(--_code-block-hl-function);
       }
 
       & span.cp {
-        color: var(--hl-tag-delimiter);
+        color: var(--_code-block-hl-tag-delimiter);
       }
 
       & .ge {
@@ -214,7 +230,7 @@
       }
 
       & .gs {
-        font-weight: var(--dds-text-title-weight);
+        font-weight: var(--_code-block-strong-weight);
       }
     }
   }

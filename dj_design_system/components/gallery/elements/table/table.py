@@ -58,10 +58,14 @@ class Table(components.BlockComponent):
                 required=True,
                 description="Table body rows (<tr> with <td> cells).",
             ),
+            "foot": slots.Slot(
+                required=False,
+                description="Optional table footer rows (<tr> with <td> or <th> cells).",
+            ),
         }
 
     def get_context(self) -> dict[str, typing.Any]:
-        """Compute template context including caption flag and slot mapping.
+        """Compute template context including caption presence flag.
 
         Returns:
             A context dictionary containing parameters, ``has_caption``, and
@@ -69,5 +73,4 @@ class Table(components.BlockComponent):
         """
         context = super().get_context()
         context["has_caption"] = bool(self.caption)
-        context["slots"] = self.slots
         return context

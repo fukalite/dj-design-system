@@ -22,7 +22,7 @@
                 <td>
                     <code data-param-name>{{ row.name }}</code>
                 </td>
-                <td>{% dds__badge label=row.type_name variant="code" %}</td>
+                <td>{% dds__badge label=row.type_name is_code=True %}</td>
                 <td>{% dds__badge label=row.required_label variant=row.required_variant %}</td>
                 <td>
                     {% if row.has_default %}
@@ -35,7 +35,7 @@
                     {% if row.has_choices %}
                         <l-cluster data-param-choices>
                         {% for choice in row.choices %}
-                            {% dds__badge label=choice variant="code" %}
+                            {% dds__badge label=choice is_code=True %}
                         {% endfor %}
                         </l-cluster>
                     {% else %}

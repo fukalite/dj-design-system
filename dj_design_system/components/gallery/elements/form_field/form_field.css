@@ -28,7 +28,6 @@
     --_form-field-disabled-border-color: var(--dds-state-disabled-border-color);
     --_form-field-disabled-opacity: var(--dds-state-disabled-opacity);
     --_form-field-disabled-text-color: var(--dds-state-disabled-text-color);
-    --_form-field-error-bg-color: var(--dds-status-error-bg-color);
     --_form-field-error-border-color: var(--dds-status-error-border-color);
     --_form-field-error-text-color: var(--dds-status-error-text-color);
     --_form-field-focus-border-color: var(--dds-state-focus-border-color);
@@ -47,11 +46,11 @@
       --space: var(--_form-field-gap);
     }
 
-    & l-cluster {
+    & [data-part='inline-group'] {
       --space: var(--_form-field-inline-gap);
     }
 
-    & label {
+    & [data-part='label'] {
       display: inline-flex;
       gap: var(--_form-field-required-gap);
       color: var(--_form-field-label-color);
@@ -61,12 +60,12 @@
       line-height: var(--_form-field-control-line-height);
       letter-spacing: var(--_form-field-control-letter-spacing);
 
-      & span {
+      & [data-part='required'] {
         color: var(--_form-field-error-text-color);
       }
     }
 
-    & input,
+    & input:not([type='checkbox']):not([type='radio']):not([type='hidden']),
     & select,
     & textarea {
       box-sizing: border-box;
@@ -105,8 +104,20 @@
       }
     }
 
+    & input:is([type='checkbox'], [type='radio']) {
+      margin: 0;
+      accent-color: var(--_form-field-control-accent-color);
+
+      &:focus-visible {
+        outline-width: var(--_form-field-focus-outline-width);
+        outline-style: var(--_form-field-focus-outline-style);
+        outline-color: var(--_form-field-focus-outline-color);
+        outline-offset: var(--_form-field-focus-outline-offset);
+      }
+    }
+
     &[data-layout='inline'] {
-      & input,
+      & input:not([type='checkbox']):not([type='radio']):not([type='hidden']),
       & select,
       & textarea {
         inline-size: auto;
@@ -114,15 +125,14 @@
     }
 
     &[data-invalid='true'] {
-      & input,
+      & input:not([type='checkbox']):not([type='radio']):not([type='hidden']),
       & select,
       & textarea {
         border-color: var(--_form-field-error-border-color);
       }
     }
 
-    & p {
-      margin: 0;
+    & [data-part='description'] {
       color: var(--_form-field-description-color);
       font-family: var(--_form-field-caption-font);
       font-size: var(--_form-field-caption-size);
@@ -130,8 +140,21 @@
       line-height: var(--_form-field-caption-line-height);
       letter-spacing: var(--_form-field-caption-letter-spacing);
 
-      &[role='alert'] {
-        color: var(--_form-field-error-text-color);
+      & p {
+        margin: 0;
+      }
+    }
+
+    & [data-part='error'] {
+      color: var(--_form-field-error-text-color);
+      font-family: var(--_form-field-caption-font);
+      font-size: var(--_form-field-caption-size);
+      font-weight: var(--_form-field-caption-weight);
+      line-height: var(--_form-field-caption-line-height);
+      letter-spacing: var(--_form-field-caption-letter-spacing);
+
+      & p {
+        margin: 0;
       }
     }
   }

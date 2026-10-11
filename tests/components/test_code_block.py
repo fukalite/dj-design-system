@@ -271,6 +271,18 @@ class TestCodeBlockRenderingAndTemplate:
         ).strip()
         assert 'data-flush="true"' in html
 
+    def test_renders_language_header_when_show_header_true_without_title(
+        self,
+    ) -> None:
+        """Verify show_header=True renders header with language label even when title is omitted."""
+        html = _render_template(
+            source='{% dds__code_block code="print(1)" language="python" show_header=True %}'
+        ).strip()
+        assert '<header class="l-cluster">' in html
+        assert "<span data-code-label>python</span>" in html
+        assert "data-copy-trigger" in html
+        assert "data-copy-overlay" not in html
+
 
 class TestCodeBlockStylesheet:
     """Verify CUBE CSS @layer blocks, Tier 3 tokens, pre/code resets, and formatting in code_block.css."""
@@ -334,6 +346,13 @@ class TestCodeBlockStylesheet:
         assert "[data-surface=" not in css_text
         assert "data-flush='true'" in css_text
 
+    def test_syntax_highlighting_uses_tier_3_tokens_exclusively(self) -> None:
+        """Verify code rules do not consume foreign --hl-* or Tier 2 tokens directly."""
+        css_text = _read_text(path=CODE_BLOCK_CSS_PATH)
+        assert "var(--hl-" not in css_text
+        assert "font-weight: var(--_code-block-strong-weight);" in css_text
+        assert "--_code-block-hl-comment" in css_text
+
 
 class TestCodeBlockCustomElementTypeScript:
     """Verify Light DOM <dds-code-block> TypeScript source contract."""
@@ -393,3 +412,5 @@ class TestCodeBlockGalleryAndDocs:
         assert "dds__code_block" in doc_text
         assert "dds-code-block" in doc_text
         assert "dds:copy" in doc_text
+        assert "show_header" in doc_text
+        assert "flush" in doc_text

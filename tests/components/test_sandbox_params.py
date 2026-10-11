@@ -393,7 +393,8 @@ class TestSandboxParamsRenderingAndTemplate:
         assert "<l-stack data-params-fields>" in html
         assert 'class="dds-form-field"' in html
         assert (
-            '<label for="id_label">label<span aria-hidden="true">*</span></label>'
+            '<label for="id_label" data-part="label">'
+            'label<span data-part="required" aria-hidden="true">*</span></label>'
             in html
         )
         assert "<p>Primary button text.</p>" in html

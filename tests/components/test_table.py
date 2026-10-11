@@ -116,6 +116,7 @@ class TestTableParametersAndContext:
         assert context["density"] == DENSITY_DEFAULT
         assert context["slots"]["head"] == ""
         assert context["slots"]["body"] == BODY_HTML
+        assert context["slots"]["foot"] == ""
 
     def test_caption_and_compact_density_context(self) -> None:
         """Verify non-empty caption sets has_caption True and compact density is preserved."""
@@ -125,6 +126,7 @@ class TestTableParametersAndContext:
             slots={
                 "head": mark_safe(s=HEAD_HTML),
                 "body": mark_safe(s=BODY_HTML),
+                "foot": mark_safe(s="<tr><td>Total</td><td>1</td></tr>"),
             },
         )
         context = instance.get_context()
@@ -133,6 +135,7 @@ class TestTableParametersAndContext:
         assert context["density"] == DENSITY_COMPACT
         assert context["slots"]["head"] == HEAD_HTML
         assert context["slots"]["body"] == BODY_HTML
+        assert context["slots"]["foot"] == "<tr><td>Total</td><td>1</td></tr>"
 
     def test_invalid_density_raises_value_error(self) -> None:
         """Verify an unsupported density choice raises ValueError."""
@@ -161,7 +164,10 @@ class TestTableRendering:
                 f"{{% end{QUALIFIED_TAG} %}}"
             )
         )
-        assert f'<div class="dds-table" data-density="{DENSITY_COMPACT}">' in html
+        assert (
+            f'<div class="dds-table" data-density="{DENSITY_COMPACT}" '
+            f'tabindex="0" role="region" aria-label="{CAPTION_TEXT}">' in html
+        )
         assert f"<caption>{CAPTION_TEXT}</caption>" in html
         assert "<thead>" in html
         assert HEAD_HTML in html
@@ -177,11 +183,28 @@ class TestTableRendering:
                 f"{{% end{QUALIFIED_TAG} %}}"
             )
         )
-        assert f'<div class="dds-table" data-density="{DENSITY_DEFAULT}">' in html
+        assert (
+            f'<div class="dds-table" data-density="{DENSITY_DEFAULT}" '
+            'tabindex="0" role="region" aria-label="Data table">' in html
+        )
         assert "<caption>" not in html
         assert "<thead>" not in html
         assert "<tbody>" in html
         assert BODY_HTML in html
+
+    def test_renders_foot_slot(self) -> None:
+        """Verify foot slot renders inside tfoot."""
+        foot_html = '<tr><th scope="row">Total</th><td>1</td></tr>'
+        html = _render_template(
+            source=(
+                f"{{% {QUALIFIED_TAG} %}}"
+                f'{{% slot "body" %}}{BODY_HTML}{{% endslot %}}'
+                f'{{% slot "foot" %}}{foot_html}{{% endslot %}}'
+                f"{{% end{QUALIFIED_TAG} %}}"
+            )
+        )
+        assert "<tfoot>" in html
+        assert foot_html in html
 
     def test_template_tag_missing_body_slot_raises_syntax_error(self) -> None:
         """Verify template rendering without the body slot raises TemplateSyntaxError."""
@@ -208,7 +231,10 @@ class TestTableRendering:
             },
         )
         html = instance.render()
-        assert f'<div class="dds-table" data-density="{DENSITY_COMPACT}">' in html
+        assert (
+            f'<div class="dds-table" data-density="{DENSITY_COMPACT}" '
+            f'tabindex="0" role="region" aria-label="{CAPTION_TEXT}">' in html
+        )
         assert f"<caption>{CAPTION_TEXT}</caption>" in html
         assert HEAD_HTML in html
         assert BODY_HTML in html

@@ -1,4 +1,4 @@
-<div class="dds-table" data-density="{{ density }}">
+<div class="dds-table" data-density="{{ density }}" tabindex="0" role="region" {% if has_caption %}aria-label="{{ caption }}"{% else %}aria-label="Data table"{% endif %}>
   <table>
     {% if has_caption %}
       <caption>{{ caption }}</caption>
@@ -11,5 +11,10 @@
     <tbody>
       {{ slots.body }}
     </tbody>
+    {% if slots.foot %}
+      <tfoot>
+        {{ slots.foot }}
+      </tfoot>
+    {% endif %}
   </table>
 </div>

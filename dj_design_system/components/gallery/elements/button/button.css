@@ -80,22 +80,35 @@
     }
 
     &[data-variant='primary'] {
+      --_button-active-bg-color: var(--dds-state-selected-bg-color);
+      --_button-active-border-color: var(--dds-state-selected-border-color);
+      --_button-active-text-color: var(--dds-state-selected-text-color);
       --_button-bg-color: var(--dds-state-selected-bg-color);
       --_button-border-color: var(--dds-state-selected-border-color);
+      --_button-hover-bg-color: var(--dds-state-selected-bg-color);
+      --_button-hover-border-color: var(--dds-state-selected-border-color);
+      --_button-hover-text-color: var(--dds-state-selected-text-color);
       --_button-text-color: var(--dds-state-selected-text-color);
     }
 
     &[data-variant='ghost'] {
       --_button-bg-color: var(--dds-state-interactive-bg-color);
       --_button-border-color: var(--dds-state-interactive-bg-color);
+      --_button-hover-border-color: var(--dds-state-interactive-bg-color);
       --_button-shadow-color: var(--dds-state-interactive-shadow-color);
       --_button-shadow-shape: var(--dds-state-interactive-shadow-shape);
       --_button-text-color: var(--dds-state-interactive-text-color);
     }
 
     &[data-variant='danger'] {
+      --_button-active-bg-color: var(--dds-status-error-bg-color);
+      --_button-active-border-color: var(--dds-status-error-border-color);
+      --_button-active-text-color: var(--dds-status-error-text-color);
       --_button-bg-color: var(--dds-status-error-bg-color);
       --_button-border-color: var(--dds-status-error-border-color);
+      --_button-hover-bg-color: var(--dds-status-error-bg-color);
+      --_button-hover-border-color: var(--dds-status-error-border-color);
+      --_button-hover-text-color: var(--dds-status-error-text-color);
       --_button-text-color: var(--dds-status-error-text-color);
     }
 

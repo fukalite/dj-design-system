@@ -12,7 +12,6 @@ BADGE_VARIANTS: tuple[str, ...] = (
     "success",
     "warning",
     "error",
-    "code",
 )
 
 
@@ -29,13 +28,18 @@ class Badge(components.TagComponent):
         - ``success``: Positive status, active state, or completion indicator.
         - ``warning``: Caution or deprecation indicator.
         - ``error``: Required parameter indicator, error state, or critical status.
-        - ``code``: Monospace technical pill for parameter types and code identifiers.
+
+    Parameters:
+        label: Badge text content. Positional argument 1.
+        variant: Semantic status style (``"neutral"``, ``"info"``, ``"success"``, ``"warning"``, ``"error"``).
+        is_code: Render badge text as inline monospace code.
 
     Example usage::
 
         {% dds__badge "Optional" %}
         {% dds__badge "Required" variant="error" %}
-        {% dds__badge "str" variant="code" %}
+        {% dds__badge "str" is_code=True %}
+        {% dds__badge "DeprecatedType" variant="warning" is_code=True %}
     """
 
     label = parameters.StrParam(description="Badge text content.")
@@ -45,6 +49,11 @@ class Badge(components.TagComponent):
         required=False,
         choices=list(BADGE_VARIANTS),
     )
+    is_code = parameters.BoolParam(
+        description="Render badge text as inline monospace code.",
+        default=False,
+        required=False,
+    )
 
     class Meta:
         positional_args = ["label"]
@@ -53,11 +62,12 @@ class Badge(components.TagComponent):
         """Return the normalized template context for rendering the badge.
 
         Returns:
-            Dictionary containing ``label`` and resolved ``variant``.
+            Dictionary containing ``label``, resolved ``variant``, and ``is_code`` flag.
         """
         context = super().get_context()
         context["label"] = self.label
         context["variant"] = (
             self.variant if self.variant is not None else DEFAULT_VARIANT
         )
+        context["is_code"] = bool(self.is_code)
         return context

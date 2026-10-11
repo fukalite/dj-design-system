@@ -52,6 +52,8 @@ export class DDSPopoutElement extends HTMLElement implements DDSCustomElement {
       (event: KeyboardEvent) => {
         if (event.key === 'Escape' && this.dataset.state === 'open') {
           this.setOpenState(false);
+          const trigger =
+            this.querySelector<HTMLElement>('[data-popout-trigger]');
           trigger?.focus();
         }
       },
@@ -116,9 +118,20 @@ export class DDSPopoutElement extends HTMLElement implements DDSCustomElement {
       return;
     }
 
-    const options = menu.querySelectorAll<HTMLElement>('[data-popout-option]');
-    for (const item of options) {
-      item.setAttribute('aria-checked', item === optionEl ? 'true' : 'false');
+    const role = optionEl.getAttribute('role');
+    if (role === 'menuitemradio') {
+      const radioOptions = menu.querySelectorAll<HTMLElement>(
+        '[data-popout-option][role="menuitemradio"]',
+      );
+      for (const item of radioOptions) {
+        item.setAttribute(
+          'aria-checked',
+          item === optionEl ? 'true' : 'false',
+        );
+      }
+    } else if (role === 'menuitemcheckbox') {
+      const isChecked = optionEl.getAttribute('aria-checked') === 'true';
+      optionEl.setAttribute('aria-checked', String(!isChecked));
     }
 
     this.dispatchEvent(
