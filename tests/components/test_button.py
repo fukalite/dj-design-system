@@ -106,7 +106,7 @@ class TestButtonExportsAndDiscovery:
         assert info.app_label == "dj_design_system"
         assert info.relative_path == "gallery.elements.button"
         assert info.qualified_name == "dds__button"
-        assert info.is_internal is True
+        assert info.is_builtin is True
         assert (
             info.template_name
             == "dj_design_system/components/gallery/elements/button/button.html"

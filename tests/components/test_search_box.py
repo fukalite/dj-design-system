@@ -115,7 +115,7 @@ class TestSearchBoxDiscoveryAndExports:
         assert info.component_class is search_box_module.SearchBox
         assert info.qualified_name == "dds__search_box"
         assert info.relative_path == "gallery.domain.search_box"
-        assert info.is_internal is True
+        assert info.is_builtin is True
         assert (
             info.template_name
             == "dj_design_system/components/gallery/domain/search_box/search_box.html"

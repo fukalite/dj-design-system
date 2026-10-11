@@ -17,6 +17,7 @@ from django.utils.html import format_html, format_html_join
 from django.utils.safestring import SafeData, SafeString, mark_safe
 
 from dj_design_system.components import BaseComponent, BlockComponent
+from dj_design_system.constants import BUILTIN_APP_LABEL, BUILTIN_GALLERY_CSS
 from dj_design_system.data import (
     BLOCK_CONTENT_PLACEHOLDER,
     CanvasSpec,
@@ -743,10 +744,10 @@ def build_canvas_asset_tags(
 
     extra_css: list[str] = []
     extra_js: list[str] = []
-    if app_label == "dj_design_system":
-        internal_media = registry.get_internal_media()
-        extra_css = ["dj_design_system/gallery.css", *internal_media.css]
-        extra_js = list(internal_media.js)
+    if app_label == BUILTIN_APP_LABEL:
+        builtin_media = registry.get_builtin_media()
+        extra_css = [BUILTIN_GALLERY_CSS, *builtin_media.css]
+        extra_js = list(builtin_media.js)
 
     all_css_urls = list(
         dict.fromkeys(

@@ -118,7 +118,7 @@ class TestToolbarDiscoveryAndMetadata:
         assert info.component_class is toolbar_module.Toolbar
         assert info.qualified_name == QUALIFIED_NAME
         assert info.relative_path == RELATIVE_PATH
-        assert info.is_internal is True
+        assert info.is_builtin is True
         assert info.media.css == [CSS_MEDIA_PATH]
 
     def test_no_private_helper_methods_or_mark_safe_in_component(self) -> None:

@@ -8,7 +8,7 @@
         <link rel="stylesheet" href="{% static 'dj_design_system/gallery.css' %}">
         <link rel="stylesheet"
               href="{% static 'dj_design_system/gallery-highlight.css' %}">
-        {% internal_component_stylesheets %}
+        {% builtin_component_stylesheets %}
         {% component_stylesheets %}
         {% block extra_css %}{% endblock %}
     </head>
@@ -28,7 +28,7 @@
         {% if request.csp_nonce %} nonce="{{ request.csp_nonce }}"{% endif %}></script>
 <script src="{% static 'dj_design_system/gallery-snapshot-notice.js' %}"
         {% if request.csp_nonce %} nonce="{{ request.csp_nonce }}"{% endif %}></script>
-{% internal_component_scripts %}
+{% builtin_component_scripts %}
 {% component_scripts %}
 </body>
 </html>

@@ -1,9 +1,12 @@
 import pytest
 from django.test import override_settings
 
+from dj_design_system.constants import BUILTIN_APP_LABEL, BUILTIN_GALLERY_CSS
+from dj_design_system.data import ComponentMedia
 from dj_design_system.services.canvas_renderer import (
     build_canvas_bg_styles,
     build_canvas_srcdoc,
+    build_markdown_canvas_media,
     render_canvas_block,
 )
 from dj_design_system.settings import get_backgrounds, get_theme
@@ -147,3 +150,47 @@ class TestBuildCanvasBgStyles:
 
     def test_no_nonce(self):
         assert build_canvas_bg_styles().startswith("<style>")
+
+
+class TestBuildMarkdownCanvasMedia:
+    def test_consumer_app_includes_merged_media_only(self):
+        class MockRegistry:
+            def get_merged_media(self):
+                return ComponentMedia(
+                    css=["app/component.css"], js=["app/component.js"]
+                )
+
+            def get_builtin_media(self):
+                return ComponentMedia(
+                    css=["builtin/button.css"], js=["builtin/button.js"]
+                )
+
+        css_tags, js_tags = build_markdown_canvas_media(
+            app_label="my_app", registry=MockRegistry()
+        )
+        assert "app/component.css" in css_tags
+        assert "app/component.js" in js_tags
+        assert BUILTIN_GALLERY_CSS not in css_tags
+        assert "builtin/button.css" not in css_tags
+        assert "builtin/button.js" not in js_tags
+
+    def test_builtin_app_includes_gallery_css_and_builtin_media(self):
+        class MockRegistry:
+            def get_merged_media(self):
+                return ComponentMedia(
+                    css=["app/component.css"], js=["app/component.js"]
+                )
+
+            def get_builtin_media(self):
+                return ComponentMedia(
+                    css=["builtin/button.css"], js=["builtin/button.js"]
+                )
+
+        css_tags, js_tags = build_markdown_canvas_media(
+            app_label=BUILTIN_APP_LABEL, registry=MockRegistry()
+        )
+        assert BUILTIN_GALLERY_CSS in css_tags
+        assert "builtin/button.css" in css_tags
+        assert "builtin/button.js" in js_tags
+        assert "app/component.css" in css_tags
+        assert "app/component.js" in js_tags
