@@ -31,14 +31,14 @@ INDENT_PER_LEVEL_PX = 16
 def builtin_component_stylesheets() -> str:
     """Output ``<link>`` tags for all built-in ``dds`` component stylesheets."""
     media = component_registry.get_builtin_media()
-    return media_service.build_link_tags(media.css)
+    return media_service.build_link_tags(css_paths=media.css)
 
 
 @register.simple_tag
 def gallery_extra_stylesheets() -> str:
     """Output ``<link>`` tags for user-configured gallery extra stylesheets."""
     extra_paths = dds_settings.GALLERY_EXTRA_CSS or []
-    return media_service.build_link_tags(extra_paths)
+    return media_service.build_link_tags(css_paths=extra_paths)
 
 
 @register.simple_tag(takes_context=True)

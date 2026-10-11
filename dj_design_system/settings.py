@@ -198,7 +198,7 @@ def get_theme(identifier: str) -> Theme | None:
 def get_default_theme() -> Theme:
     """Return the default theme as a dict."""
     val = dds_settings.GALLERY_DEFAULT_THEME
-    theme = get_theme(val)
+    theme = get_theme(identifier=val)
     if theme:
         return theme
     themes = get_themes()

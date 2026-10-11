@@ -514,7 +514,8 @@ def build_component_page_context(
 
     try:
         raw_rendered_html = canvas_service.render_component(
-            sandbox_spec, registry_service.component_registry
+            spec=sandbox_spec,
+            registry=registry_service.component_registry,
         ).strip()
     except Exception as exc:
         raw_rendered_html = f"<!-- Error rendering component: {exc} -->"
@@ -531,11 +532,14 @@ def build_component_page_context(
     context["active_theme"] = active_theme
     context["sandbox_active_theme"] = active_theme
 
-    component_label = navigation_service.to_display_label(info.name, component=info)
+    component_label = navigation_service.to_display_label(
+        name=info.name,
+        component=info,
+    )
     crumbs = navigation_service.build_breadcrumbs(
-        app_label,
-        path_parts[:-1] if path_parts else [],
-        component_label,
+        app_label=app_label,
+        path_parts=path_parts[:-1] if path_parts else [],
+        current_label=component_label,
     )
     if active_variant:
         crumbs[-1]["url"] = node.url

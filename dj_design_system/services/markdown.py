@@ -48,7 +48,7 @@ def render_markdown_doc(
         }
     return mark_safe(
         markdown_lib.markdown(
-            content,
+            text=content,
             extensions=extensions,
             extension_configs=extension_configs,
         )
