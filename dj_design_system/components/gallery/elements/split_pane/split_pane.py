@@ -1,4 +1,4 @@
-"""Built-in resizable split pane domain component for the dds gallery."""
+"""Built-in resizable split pane element component for the dds gallery."""
 
 import typing
 
@@ -10,8 +10,6 @@ DEFAULT_ORIENTATION = "horizontal"
 DEFAULT_INITIAL_RATIO = 50
 DEFAULT_MIN_RATIO = 20
 DEFAULT_MAX_RATIO = 80
-DEFAULT_PRIMARY_SURFACE = "docs"
-DEFAULT_SECONDARY_SURFACE = "sandbox"
 DEFAULT_RESIZER_LABEL = "Resize panes"
 
 
@@ -25,8 +23,7 @@ class SplitPane(components.BlockComponent):
     (``[data-split-pane="secondary"]``).
 
     Supports both ``"horizontal"`` (side-by-side) and ``"vertical"`` (stacked)
-    orientations, clamped ratio bounds (10% to 90%), optional pane header
-    labels, and configurable ``data-surface`` tokens on each pane.
+    orientations, clamped ratio bounds (10% to 90%), and slotted pane content.
 
     Args:
         orientation: Split orientation (``'horizontal'`` for side-by-side or
@@ -34,20 +31,16 @@ class SplitPane(components.BlockComponent):
         initial_ratio: Initial primary pane percentage (clamped within bounds).
         min_ratio: Minimum primary pane percentage (clamped to 10-90).
         max_ratio: Maximum primary pane percentage (clamped to min_ratio-90).
-        primary_surface: Optional ``data-surface`` attribute for the primary pane.
-        secondary_surface: Optional ``data-surface`` attribute for the secondary pane.
-        primary_label: Optional header label for the primary pane.
-        secondary_label: Optional header label for the secondary pane.
         resizer_label: Accessible label for the resize separator handle.
 
     Example usage::
 
-        {% dds__split_pane orientation="horizontal" initial_ratio=60 primary_label="Preview" secondary_label="Controls" %}
+        {% dds__split_pane orientation="horizontal" initial_ratio=60 %}
             {% slot "primary" %}
-                <div>Canvas preview</div>
+                <div>Primary pane content</div>
             {% endslot %}
             {% slot "secondary" %}
-                <div>Parameter controls</div>
+                <div>Secondary pane content</div>
             {% endslot %}
         {% enddds__split_pane %}
     """
@@ -71,26 +64,6 @@ class SplitPane(components.BlockComponent):
     max_ratio = parameters.IntParam(
         description="Maximum primary pane percentage.",
         default=DEFAULT_MAX_RATIO,
-        required=False,
-    )
-    primary_surface = parameters.StrParam(
-        description="Optional data-surface attribute for the primary pane.",
-        default=DEFAULT_PRIMARY_SURFACE,
-        required=False,
-    )
-    secondary_surface = parameters.StrParam(
-        description="Optional data-surface attribute for the secondary pane.",
-        default=DEFAULT_SECONDARY_SURFACE,
-        required=False,
-    )
-    primary_label = parameters.StrParam(
-        description="Optional header label for the primary pane.",
-        default="",
-        required=False,
-    )
-    secondary_label = parameters.StrParam(
-        description="Optional header label for the secondary pane.",
-        default="",
         required=False,
     )
     resizer_label = parameters.StrParam(
@@ -137,23 +110,7 @@ class SplitPane(components.BlockComponent):
         primary_slot_val = self.slots.get("primary") if self.slots else None
         primary_content = primary_slot_val if primary_slot_val else (self.content or "")
         secondary_content = (self.slots.get("secondary") if self.slots else None) or ""
-        primary_label = self.primary_label or ""
-        secondary_label = self.secondary_label or ""
-        primary_surface = (
-            self.primary_surface
-            if self.primary_surface is not None
-            else DEFAULT_PRIMARY_SURFACE
-        )
-        secondary_surface = (
-            self.secondary_surface
-            if self.secondary_surface is not None
-            else DEFAULT_SECONDARY_SURFACE
-        )
         resolved_resizer_label = self.resizer_label or DEFAULT_RESIZER_LABEL
-        has_primary_label = bool(primary_label)
-        has_secondary_label = bool(secondary_label)
-        has_primary_surface = bool(primary_surface)
-        has_secondary_surface = bool(secondary_surface)
 
         context["resolved_orientation"] = resolved_orientation
         context["separator_aria_orientation"] = separator_aria_orientation
@@ -162,15 +119,7 @@ class SplitPane(components.BlockComponent):
         context["resolved_ratio"] = resolved_ratio
         context["primary_content"] = primary_content
         context["secondary_content"] = secondary_content
-        context["primary_label"] = primary_label
-        context["secondary_label"] = secondary_label
-        context["primary_surface"] = primary_surface
-        context["secondary_surface"] = secondary_surface
         context["resolved_resizer_label"] = resolved_resizer_label
-        context["has_primary_label"] = has_primary_label
-        context["has_secondary_label"] = has_secondary_label
-        context["has_primary_surface"] = has_primary_surface
-        context["has_secondary_surface"] = has_secondary_surface
         context["slots"] = self.slots
         context["content"] = self.content or ""
         return context

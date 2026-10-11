@@ -84,6 +84,7 @@ def _extract_rule_blocks(css_text: str, selector: str) -> list[str]:
     """Extract CSS declaration blocks for a specific selector."""
     return conftest.extract_css_rule_blocks(css_text=css_text, selector=selector)
 
+
 def _extract_defined_properties(block_text: str) -> dict[str, str]:
     """Extract custom property definitions from a CSS block string."""
     matches = re.findall(

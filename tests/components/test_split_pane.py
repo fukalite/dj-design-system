@@ -9,8 +9,10 @@ from django.utils import safestring
 
 from dj_design_system import data, gallery
 from dj_design_system.components import base as components_base
-from dj_design_system.components.gallery.domain import split_pane as split_pane_package
-from dj_design_system.components.gallery.domain.split_pane import (
+from dj_design_system.components.gallery.elements import (
+    split_pane as split_pane_package,
+)
+from dj_design_system.components.gallery.elements.split_pane import (
     split_pane as split_pane_module,
 )
 from dj_design_system.services import canvas as canvas_service
@@ -22,14 +24,18 @@ from tests import conftest
 APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "split_pane"
 QUALIFIED_NAME = "dds__split_pane"
-RELATIVE_PATH = "gallery.domain.split_pane"
-TEMPLATE_PATH = "dj_design_system/components/gallery/domain/split_pane/split_pane.html"
-CSS_MEDIA_PATH = "dj_design_system/components/gallery/domain/split_pane/split_pane.css"
-JS_MEDIA_PATH = "dj_design_system/components/gallery/domain/split_pane/split_pane.js"
+RELATIVE_PATH = "gallery.elements.split_pane"
+TEMPLATE_PATH = (
+    "dj_design_system/components/gallery/elements/split_pane/split_pane.html"
+)
+CSS_MEDIA_PATH = (
+    "dj_design_system/components/gallery/elements/split_pane/split_pane.css"
+)
+JS_MEDIA_PATH = "dj_design_system/components/gallery/elements/split_pane/split_pane.js"
 
 ROOT_DIR = pathlib.Path(__file__).resolve().parent.parent.parent
 SPLIT_PANE_DIR = (
-    ROOT_DIR / "dj_design_system" / "components" / "gallery" / "domain" / "split_pane"
+    ROOT_DIR / "dj_design_system" / "components" / "gallery" / "elements" / "split_pane"
 )
 SPLIT_PANE_PY_PATH = SPLIT_PANE_DIR / "split_pane.py"
 SPLIT_PANE_HTML_PATH = SPLIT_PANE_DIR / "split_pane.html"
@@ -86,6 +92,7 @@ def _extract_rule_blocks(css_text: str, selector: str) -> list[str]:
     """Extract CSS declaration blocks for a specific selector."""
     return conftest.extract_css_rule_blocks(css_text=css_text, selector=selector)
 
+
 def _extract_defined_properties(block_text: str) -> dict[str, str]:
     """Extract property definitions from a CSS block string."""
     matches = re.findall(
@@ -99,7 +106,7 @@ class TestSplitPaneDiscoveryAndMetadata:
     """Verify SplitPane exports, metadata, media, slots, and registry discovery."""
 
     def test_exported_from_package_init_and_subclasses_block_component(self) -> None:
-        """Verify SplitPane is exported in dj_design_system.components.gallery.domain.split_pane."""
+        """Verify SplitPane is exported in dj_design_system.components.gallery.elements.split_pane."""
         assert split_pane_package.SplitPane is split_pane_module.SplitPane
         assert issubclass(
             split_pane_module.SplitPane,
@@ -162,15 +169,7 @@ class TestSplitPaneParametersAndContext:
         assert ctx["resolved_ratio"] == 50
         assert ctx["primary_content"] == ""
         assert ctx["secondary_content"] == ""
-        assert ctx["primary_label"] == ""
-        assert ctx["secondary_label"] == ""
-        assert ctx["primary_surface"] == "docs"
-        assert ctx["secondary_surface"] == "sandbox"
         assert ctx["resolved_resizer_label"] == "Resize panes"
-        assert ctx["has_primary_label"] is False
-        assert ctx["has_secondary_label"] is False
-        assert ctx["has_primary_surface"] is True
-        assert ctx["has_secondary_surface"] is True
         assert ctx["slots"] == {"primary": "", "secondary": ""}
         assert ctx["content"] == ""
 
@@ -213,25 +212,17 @@ class TestSplitPaneParametersAndContext:
         assert ctx_inverted["resolved_max_ratio"] == 65
         assert ctx_inverted["resolved_ratio"] == 65
 
-    def test_slots_and_direct_content_fallback_and_surface_flags(self) -> None:
-        """Verify primary slot overrides content fallback, and empty surface strings disable surface attributes."""
+    def test_slots_and_direct_content_fallback(self) -> None:
+        """Verify primary slot overrides content fallback."""
         comp_fallback = split_pane_module.SplitPane(
             content=safestring.SafeString("<p>Direct primary</p>"),
-            primary_surface="",
-            secondary_surface="",
-            primary_label="Left",
-            secondary_label="Right",
-            resizer_label="",
+            resizer_label="Adjust",
         )
         ctx_fallback = comp_fallback.get_context()
         assert isinstance(comp_fallback.content, safestring.SafeString)
         assert ctx_fallback["primary_content"] == "<p>Direct primary</p>"
         assert ctx_fallback["secondary_content"] == ""
-        assert ctx_fallback["has_primary_surface"] is False
-        assert ctx_fallback["has_secondary_surface"] is False
-        assert ctx_fallback["has_primary_label"] is True
-        assert ctx_fallback["has_secondary_label"] is True
-        assert ctx_fallback["resolved_resizer_label"] == "Resize panes"
+        assert ctx_fallback["resolved_resizer_label"] == "Adjust"
 
         comp_slots = split_pane_module.SplitPane(
             content=safestring.SafeString("<p>Ignored fallback</p>"),
@@ -275,15 +266,12 @@ class TestSplitPaneRenderingAndTemplate:
         assert 'data-min-ratio="20"' in html
         assert 'data-max-ratio="80"' in html
         assert 'style="--_split-pane-ratio: 50%;"' in html
-        assert '<div data-split-pane="primary" data-surface="docs">' in html
-        assert '<div data-split-pane="secondary" data-surface="sandbox">' in html
-        assert "data-split-pane-header" not in html
         assert (
-            '<div data-split-pane-body tabindex="0"><div class="pane-a">Pane A</div></div>'
+            '<div data-split-pane="primary"><div class="pane-a">Pane A</div></div>'
             in html
         )
         assert (
-            '<div data-split-pane-body tabindex="0"><div class="pane-b">Pane B</div></div>'
+            '<div data-split-pane="secondary"><div class="pane-b">Pane B</div></div>'
             in html
         )
         assert "data-split-resizer" in html
@@ -295,18 +283,16 @@ class TestSplitPaneRenderingAndTemplate:
         assert 'aria-valuemax="80"' in html
         assert 'aria-valuenow="50"' in html
 
-    def test_renders_vertical_split_pane_with_labels_and_custom_surfaces(
+    def test_renders_vertical_split_pane_with_slotted_surfaces(
         self,
     ) -> None:
-        """Verify vertical orientation, pane headers, custom surfaces, and omitted surface when empty."""
+        """Verify vertical orientation and slotted child surface composition."""
         html = _render_template(
             source=(
                 '{% dds__split_pane orientation="vertical" initial_ratio=65 '
-                'min_ratio=25 max_ratio=75 primary_surface="stage" '
-                'secondary_surface="" primary_label="Canvas" '
-                'secondary_label="Markup" resizer_label="Adjust split" %}'
-                '{% slot "primary" %}<p>Top</p>{% endslot %}'
-                '{% slot "secondary" %}<p>Bottom</p>{% endslot %}'
+                'min_ratio=25 max_ratio=75 resizer_label="Adjust split" %}'
+                '{% slot "primary" %}<div data-surface="stage"><p>Top</p></div>{% endslot %}'
+                '{% slot "secondary" %}<div data-surface="code"><p>Bottom</p></div>{% endslot %}'
                 "{% enddds__split_pane %}"
             ),
         )
@@ -314,37 +300,31 @@ class TestSplitPaneRenderingAndTemplate:
         assert 'data-min-ratio="25"' in html
         assert 'data-max-ratio="75"' in html
         assert 'style="--_split-pane-ratio: 65%;"' in html
-        assert '<div data-split-pane="primary" data-surface="stage">' in html
-        assert '<div data-split-pane="secondary">' in html
-        assert "<div data-split-pane-header>Canvas</div>" in html
-        assert "<div data-split-pane-header>Markup</div>" in html
+        assert (
+            '<div data-split-pane="primary"><div data-surface="stage"><p>Top</p></div></div>'
+            in html
+        )
+        assert (
+            '<div data-split-pane="secondary"><div data-surface="code"><p>Bottom</p></div></div>'
+            in html
+        )
         assert 'aria-orientation="horizontal"' in html
         assert 'aria-label="Adjust split"' in html
         assert 'aria-valuemin="25"' in html
         assert 'aria-valuemax="75"' in html
         assert 'aria-valuenow="65"' in html
 
-    def test_escapes_untrusted_labels_and_surfaces(self) -> None:
-        """Verify untrusted strings in labels and surface attributes are HTML-escaped."""
+    def test_escapes_untrusted_resizer_label(self) -> None:
+        """Verify untrusted strings in resizer_label are HTML-escaped."""
         html = _render_template(
             source=(
-                "{% dds__split_pane primary_label=primary_label "
-                "secondary_label=secondary_label "
-                "primary_surface=primary_surface "
-                "resizer_label=resizer_label %}"
+                "{% dds__split_pane resizer_label=resizer_label %}"
                 "{% enddds__split_pane %}"
             ),
             context_data={
-                "primary_label": "<script>alert(1)</script>",
-                "secondary_label": "<b>Unsafe</b>",
-                "primary_surface": 'docs" data-evil="1',
                 "resizer_label": 'Resize "unsafe"',
             },
         )
-        assert "<script>alert(1)</script>" not in html
-        assert "&lt;script&gt;alert(1)&lt;/script&gt;" in html
-        assert "&lt;b&gt;Unsafe&lt;/b&gt;" in html
-        assert 'data-surface="docs&quot; data-evil=&quot;1"' in html
         assert 'aria-label="Resize &quot;unsafe&quot;"' in html
 
     def test_template_contains_no_filters_and_no_bem(self) -> None:
@@ -414,7 +394,7 @@ class TestSplitPaneGalleryAndDocs:
             component_name=COMPONENT_NAME,
         )
         assert isinstance(cfg, gallery.GalleryConfig)
-        assert cfg.group == "Domain"
+        assert cfg.group == "Elements"
         assert len(cfg.variants) >= 3
         for variant in cfg.variants:
             spec = data.CanvasSpec(
@@ -440,10 +420,6 @@ class TestSplitPaneGalleryAndDocs:
             "initial_ratio",
             "min_ratio",
             "max_ratio",
-            "primary_surface",
-            "secondary_surface",
-            "primary_label",
-            "secondary_label",
             "resizer_label",
             "primary",
             "secondary",

@@ -3,12 +3,7 @@
                 data-min-ratio="{{ resolved_min_ratio }}"
                 data-max-ratio="{{ resolved_max_ratio }}"
                 style="--_split-pane-ratio: {{ resolved_ratio }}%;">
-  <div data-split-pane="primary"{% if has_primary_surface %} data-surface="{{ primary_surface }}"{% endif %}>
-    {% if has_primary_label %}
-      <div data-split-pane-header>{{ primary_label }}</div>
-    {% endif %}
-    <div data-split-pane-body tabindex="0">{{ primary_content }}</div>
-  </div>
+  <div data-split-pane="primary">{{ primary_content }}</div>
   <div data-split-resizer
        role="separator"
        tabindex="0"
@@ -17,10 +12,5 @@
        aria-valuemin="{{ resolved_min_ratio }}"
        aria-valuemax="{{ resolved_max_ratio }}"
        aria-valuenow="{{ resolved_ratio }}"></div>
-  <div data-split-pane="secondary"{% if has_secondary_surface %} data-surface="{{ secondary_surface }}"{% endif %}>
-    {% if has_secondary_label %}
-      <div data-split-pane-header>{{ secondary_label }}</div>
-    {% endif %}
-    <div data-split-pane-body tabindex="0">{{ secondary_content }}</div>
-  </div>
+  <div data-split-pane="secondary">{{ secondary_content }}</div>
 </dds-split-pane>

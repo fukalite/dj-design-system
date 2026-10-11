@@ -157,7 +157,20 @@
     border-block-start-width: var(--_gallery-shell-docs-divider-width);
   }
 
-  [data-sandbox-pane],
+  [data-docs-pane],
+  [data-sandbox-pane] {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    box-sizing: border-box;
+    inline-size: 100%;
+    min-inline-size: 0;
+    block-size: 100%;
+    min-block-size: 0;
+    margin: 0;
+    overflow: hidden;
+  }
+
   [data-gallery-sandbox-body],
   [data-sandbox-stack] {
     --space: 0;
@@ -166,9 +179,42 @@
     flex-direction: column;
     min-block-size: 0;
     margin: 0;
+    overflow: auto;
+  }
+
+  [data-gallery-pane-header] {
+    flex-shrink: 0;
+    margin: 0;
+    padding-block: var(--dds-space-sm);
+    padding-inline: var(--dds-space-lg);
+    color: var(--dds-text-muted-color);
+    background-color: var(--dds-surface-bg-color);
+    font-family: var(--dds-text-overline-font);
+    font-size: var(--dds-text-overline-size);
+    font-weight: var(--dds-text-overline-weight);
+    line-height: var(--dds-text-overline-line-height);
+    letter-spacing: var(--dds-text-overline-letter-spacing);
+    text-transform: uppercase;
+    border-block-end-width: var(--dds-control-border-width);
+    border-block-end-style: var(--dds-control-border-style);
+    border-block-end-color: var(--dds-surface-border-color);
+  }
+
+  [data-gallery-pane-body] {
+    flex: 1 1 auto;
+    box-sizing: border-box;
+    min-inline-size: 0;
+    min-block-size: 0;
+    margin: 0;
+    padding: var(--dds-space-inset-page);
+    overflow: auto;
   }
 
   @media (max-width: 48rem) {
+    [data-gallery-pane-body] {
+      padding: var(--dds-space-inset-default);
+    }
+
     dds-gallery-shell [data-shell-sidebar],
     .dds-gallery-shell [data-shell-sidebar] {
       position: fixed;
@@ -209,6 +255,32 @@
     dds-gallery-shell [data-component-tabs],
     .dds-gallery-shell [data-component-tabs] {
       display: none;
+    }
+  }
+
+  @media (max-width: 99.9375rem) {
+    dds-gallery-shell [data-gallery-pane-header] {
+      display: none;
+    }
+
+    dds-gallery-shell dds-split-pane[data-active-pane] > [data-split-resizer] {
+      display: none;
+    }
+
+    dds-gallery-shell dds-split-pane[data-active-pane='docs'] > [data-split-pane='primary'] {
+      flex: 1 1 100%;
+    }
+
+    dds-gallery-shell dds-split-pane[data-active-pane='docs'] > [data-split-pane='secondary'] {
+      display: none;
+    }
+
+    dds-gallery-shell dds-split-pane[data-active-pane='sandbox'] > [data-split-pane='primary'] {
+      display: none;
+    }
+
+    dds-gallery-shell dds-split-pane[data-active-pane='sandbox'] > [data-split-pane='secondary'] {
+      flex: 1 1 100%;
     }
   }
 
