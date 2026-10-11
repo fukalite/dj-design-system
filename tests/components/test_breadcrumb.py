@@ -9,9 +9,11 @@ from django import template
 
 from dj_design_system import gallery
 from dj_design_system.components import base as components_base
-from dj_design_system.components.elements import breadcrumb as breadcrumb_package
-from dj_design_system.components.elements import icon as icon_package
-from dj_design_system.components.elements.breadcrumb import (
+from dj_design_system.components.gallery.elements import (
+    breadcrumb as breadcrumb_package,
+)
+from dj_design_system.components.gallery.elements import icon as icon_package
+from dj_design_system.components.gallery.elements.breadcrumb import (
     breadcrumb as breadcrumb_module,
 )
 from dj_design_system.services import registry as registry_service
@@ -21,14 +23,19 @@ from tests import conftest
 APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "breadcrumb"
 QUALIFIED_NAME = "dds__breadcrumb"
-RELATIVE_PATH = "elements.breadcrumb"
-TEMPLATE_PATH = "dj_design_system/components/elements/breadcrumb/breadcrumb.html"
-CSS_MEDIA_PATH = "dj_design_system/components/elements/breadcrumb/breadcrumb.css"
+RELATIVE_PATH = "gallery.elements.breadcrumb"
+TEMPLATE_PATH = (
+    "dj_design_system/components/gallery/elements/breadcrumb/breadcrumb.html"
+)
+CSS_MEDIA_PATH = (
+    "dj_design_system/components/gallery/elements/breadcrumb/breadcrumb.css"
+)
 
 BREADCRUMB_DIR = (
     pathlib.Path(__file__).resolve().parent.parent.parent
     / "dj_design_system"
     / "components"
+    / "gallery"
     / "elements"
     / "breadcrumb"
 )
@@ -100,7 +107,7 @@ class TestBreadcrumbDiscoveryAndMetadata:
     """Verify Breadcrumb exports, metadata, media, and registry discovery."""
 
     def test_exported_from_package_init(self) -> None:
-        """Verify Breadcrumb is exported in dj_design_system.components.elements.breadcrumb."""
+        """Verify Breadcrumb is exported in dj_design_system.components.gallery.elements.breadcrumb."""
         assert breadcrumb_package.Breadcrumb is breadcrumb_module.Breadcrumb
         assert issubclass(breadcrumb_module.Breadcrumb, components_base.TagComponent)
 

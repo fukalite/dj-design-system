@@ -6,9 +6,7 @@ from dj_design_system import gallery
 config = gallery.GalleryConfig(
     order=2,
     variants=[
-        gallery.Variant(
-            name="basic", label="Default Badge", kwargs={"text": "New"}
-        ),
+        gallery.Variant(name="basic", label="Default Badge", kwargs={"text": "New"}),
         gallery.Variant(
             name="maximal",
             kwargs={

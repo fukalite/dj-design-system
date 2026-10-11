@@ -9,10 +9,10 @@ import pytest
 from django import template
 
 from dj_design_system import components, gallery, parameters, slots
-from dj_design_system.components.domain import (
+from dj_design_system.components.gallery.domain import (
     params_table as params_table_package,
 )
-from dj_design_system.components.domain.params_table import (
+from dj_design_system.components.gallery.domain.params_table import (
     params_table as params_table_module,
 )
 from dj_design_system.services import registry as registry_service
@@ -22,18 +22,19 @@ from tests import conftest
 APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "params_table"
 QUALIFIED_NAME = "dds__params_table"
-RELATIVE_PATH = "domain.params_table"
+RELATIVE_PATH = "gallery.domain.params_table"
 TEMPLATE_PATH = (
-    "dj_design_system/components/domain/params_table/params_table.html"
+    "dj_design_system/components/gallery/domain/params_table/params_table.html"
 )
 CSS_MEDIA_PATH = (
-    "dj_design_system/components/domain/params_table/params_table.css"
+    "dj_design_system/components/gallery/domain/params_table/params_table.css"
 )
 
 PARAMS_TABLE_DIR = (
     pathlib.Path(__file__).resolve().parent.parent.parent
     / "dj_design_system"
     / "components"
+    / "gallery"
     / "domain"
     / "params_table"
 )
@@ -86,9 +87,7 @@ def _make_registry() -> registry_service.ComponentRegistry:
     return reg
 
 
-def _render_template(
-    source: str, context: dict[str, object] | None = None
-) -> str:
+def _render_template(source: str, context: dict[str, object] | None = None) -> str:
     """Render a Django template string with built-in dds component tags registered."""
     reg = _make_registry()
     library = template.Library()
@@ -112,9 +111,7 @@ def _read_text(path: pathlib.Path) -> str:
 def _extract_rule_blocks(css_text: str, selector: str) -> list[str]:
     """Extract CSS declaration blocks for a specific selector."""
     escaped = re.escape(pattern=selector)
-    pattern = re.compile(
-        pattern=rf"{escaped}\s*\{{([^}}]*)\}}", flags=re.DOTALL
-    )
+    pattern = re.compile(pattern=rf"{escaped}\s*\{{([^}}]*)\}}", flags=re.DOTALL)
     return pattern.findall(string=css_text)
 
 
@@ -131,11 +128,8 @@ class TestParamsTableDiscoveryAndMetadata:
     """Verify ParamsTable exports, metadata, media, and registry discovery."""
 
     def test_exported_from_package_init(self) -> None:
-        """Verify ParamsTable is exported in dj_design_system.components.domain.params_table."""
-        assert (
-            params_table_package.ParamsTable
-            is params_table_module.ParamsTable
-        )
+        """Verify ParamsTable is exported in dj_design_system.components.gallery.domain.params_table."""
+        assert params_table_package.ParamsTable is params_table_module.ParamsTable
         assert issubclass(
             params_table_module.ParamsTable,
             components.TagComponent,
@@ -416,9 +410,7 @@ class TestParamsTableParametersAndContext:
         private_methods = [
             name
             for name, value in params_table_module.ParamsTable.__dict__.items()
-            if name.startswith("_")
-            and not name.startswith("__")
-            and callable(value)
+            if name.startswith("_") and not name.startswith("__") and callable(value)
         ]
         assert private_methods == []
 
@@ -462,22 +454,12 @@ class TestParamsTableRenderingAndTemplate:
         assert "<code data-param-name>label</code>" in html
         assert "<code data-param-name>variant</code>" in html
         assert '<span class="dds-badge" data-variant="code">str</span>' in html
-        assert (
-            '<span class="dds-badge" data-variant="error">Required</span>'
-            in html
-        )
-        assert (
-            '<span class="dds-badge" data-variant="neutral">Optional</span>'
-            in html
-        )
+        assert '<span class="dds-badge" data-variant="error">Required</span>' in html
+        assert '<span class="dds-badge" data-variant="neutral">Optional</span>' in html
         assert "<code data-param-default>primary</code>" in html
         assert "<l-cluster data-param-choices>" in html
-        assert (
-            '<span class="dds-badge" data-variant="code">primary</span>' in html
-        )
-        assert (
-            '<span class="dds-badge" data-variant="code">ghost</span>' in html
-        )
+        assert '<span class="dds-badge" data-variant="code">primary</span>' in html
+        assert '<span class="dds-badge" data-variant="code">ghost</span>' in html
         assert "<span data-param-empty>—</span>" in html
         assert "<span data-param-description>Button text.</span>" in html
         assert "data-params-empty" not in html
@@ -601,15 +583,11 @@ class TestParamsTableStylesheet:
             css_text=css_text,
             selector=".dds-params-table",
         )
-        root_props = _extract_defined_properties(
-            block_text="\n".join(root_blocks)
-        )
+        root_props = _extract_defined_properties(block_text="\n".join(root_blocks))
         assert root_props
         for name, value in root_props.items():
             assert name.startswith("--_params-table-")
-            match = re.fullmatch(
-                pattern=r"var\((--dds-[a-z0-9-]+)\)", string=value
-            )
+            match = re.fullmatch(pattern=r"var\((--dds-[a-z0-9-]+)\)", string=value)
             assert match is not None
             assert match.group(1) in defined_tier_2
 

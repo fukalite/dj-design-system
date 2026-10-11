@@ -7,9 +7,9 @@ import pytest
 from django import template
 
 from dj_design_system import components, gallery
-from dj_design_system.components.elements import button as button_package
-from dj_design_system.components.elements import icon as icon_package
-from dj_design_system.components.elements.button import button as button_module
+from dj_design_system.components.gallery.elements import button as button_package
+from dj_design_system.components.gallery.elements import icon as icon_package
+from dj_design_system.components.gallery.elements.button import button as button_module
 from dj_design_system.services import registry as registry_service
 from dj_design_system.templatetags import design_components
 from tests import conftest
@@ -24,6 +24,7 @@ BUTTON_DIR = (
     pathlib.Path(__file__).resolve().parent.parent.parent
     / "dj_design_system"
     / "components"
+    / "gallery"
     / "elements"
     / "button"
 )
@@ -103,15 +104,15 @@ class TestButtonExportsAndDiscovery:
         info = reg.get_by_name(name="button", app_label="dj_design_system")
         assert info.component_class is Button
         assert info.app_label == "dj_design_system"
-        assert info.relative_path == "elements.button"
+        assert info.relative_path == "gallery.elements.button"
         assert info.qualified_name == "dds__button"
         assert info.is_internal is True
         assert (
             info.template_name
-            == "dj_design_system/components/elements/button/button.html"
+            == "dj_design_system/components/gallery/elements/button/button.html"
         )
         assert info.media.css == [
-            "dj_design_system/components/elements/button/button.css"
+            "dj_design_system/components/gallery/elements/button/button.css"
         ]
         assert Button.get_positional_args() == ["label"]
 

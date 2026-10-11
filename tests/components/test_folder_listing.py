@@ -9,10 +9,10 @@ from django import template
 
 from dj_design_system import data, gallery, types
 from dj_design_system.components import base as components_base
-from dj_design_system.components.domain import (
+from dj_design_system.components.gallery.domain import (
     folder_listing as folder_listing_package,
 )
-from dj_design_system.components.domain.folder_listing import (
+from dj_design_system.components.gallery.domain.folder_listing import (
     folder_listing as folder_listing_module,
 )
 from dj_design_system.services import registry as registry_service
@@ -22,18 +22,19 @@ from tests import conftest
 APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "folder_listing"
 QUALIFIED_NAME = "dds__folder_listing"
-RELATIVE_PATH = "domain.folder_listing"
+RELATIVE_PATH = "gallery.domain.folder_listing"
 TEMPLATE_PATH = (
-    "dj_design_system/components/domain/folder_listing/folder_listing.html"
+    "dj_design_system/components/gallery/domain/folder_listing/folder_listing.html"
 )
 CSS_MEDIA_PATH = (
-    "dj_design_system/components/domain/folder_listing/folder_listing.css"
+    "dj_design_system/components/gallery/domain/folder_listing/folder_listing.css"
 )
 
 FOLDER_LISTING_DIR = (
     pathlib.Path(__file__).resolve().parent.parent.parent
     / "dj_design_system"
     / "components"
+    / "gallery"
     / "domain"
     / "folder_listing"
 )
@@ -117,10 +118,9 @@ class TestFolderListingDiscoveryAndMetadata:
     """Verify FolderListing exports, metadata, media, and registry discovery."""
 
     def test_exported_from_package_init(self) -> None:
-        """Verify FolderListing is exported in dj_design_system.components.domain.folder_listing."""
+        """Verify FolderListing is exported in dj_design_system.components.gallery.domain.folder_listing."""
         assert (
-            folder_listing_package.FolderListing
-            is folder_listing_module.FolderListing
+            folder_listing_package.FolderListing is folder_listing_module.FolderListing
         )
         assert issubclass(
             folder_listing_module.FolderListing,
@@ -325,9 +325,7 @@ class TestFolderListingParametersAndContext:
         private_methods = [
             name
             for name, value in folder_listing_module.FolderListing.__dict__.items()
-            if name.startswith("_")
-            and not name.startswith("__")
-            and callable(value)
+            if name.startswith("_") and not name.startswith("__") and callable(value)
         ]
         assert private_methods == []
 
@@ -357,7 +355,7 @@ class TestFolderListingRenderingAndTemplate:
         )
         assert '<section class="dds-folder-listing" data-surface="docs">' in html
         assert "<l-stack>" in html
-        assert '<h1 data-folder-title>Components</h1>' in html
+        assert "<h1 data-folder-title>Components</h1>" in html
         assert '<ul class="l-grid" data-folder-grid>' in html
         assert (
             '<a href="/gallery/elements/" data-folder-card data-node-kind="folder">'
@@ -387,7 +385,7 @@ class TestFolderListingRenderingAndTemplate:
             ),
             context={"empty_items": []},
         )
-        assert '<h1 data-folder-title>Empty</h1>' in html
+        assert "<h1 data-folder-title>Empty</h1>" in html
         assert "<p data-folder-empty>Nothing here yet.</p>" in html
         assert "data-folder-grid" not in html
         assert 'class="dds-notice"' in html
@@ -515,9 +513,7 @@ class TestFolderListingGalleryAndDocs:
                     "empty_message": variant.kwargs.get(
                         "empty_message", "This folder is empty."
                     ),
-                    "show_debug_hint": variant.kwargs.get(
-                        "show_debug_hint", False
-                    ),
+                    "show_debug_hint": variant.kwargs.get("show_debug_hint", False),
                 },
             )
             assert 'class="dds-folder-listing"' in rendered

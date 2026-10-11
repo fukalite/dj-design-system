@@ -9,8 +9,8 @@ from django import template
 
 from dj_design_system import data, gallery, types
 from dj_design_system.components import base as components_base
-from dj_design_system.components.domain import nav_tree as nav_tree_package
-from dj_design_system.components.domain.nav_tree import (
+from dj_design_system.components.gallery.domain import nav_tree as nav_tree_package
+from dj_design_system.components.gallery.domain.nav_tree import (
     nav_tree as nav_tree_module,
 )
 from dj_design_system.services import registry as registry_service
@@ -20,15 +20,16 @@ from tests import conftest
 APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "nav_tree"
 QUALIFIED_NAME = "dds__nav_tree"
-RELATIVE_PATH = "domain.nav_tree"
-TEMPLATE_PATH = "dj_design_system/components/domain/nav_tree/nav_tree.html"
-CSS_MEDIA_PATH = "dj_design_system/components/domain/nav_tree/nav_tree.css"
-JS_MEDIA_PATH = "dj_design_system/components/domain/nav_tree/nav_tree.js"
+RELATIVE_PATH = "gallery.domain.nav_tree"
+TEMPLATE_PATH = "dj_design_system/components/gallery/domain/nav_tree/nav_tree.html"
+CSS_MEDIA_PATH = "dj_design_system/components/gallery/domain/nav_tree/nav_tree.css"
+JS_MEDIA_PATH = "dj_design_system/components/gallery/domain/nav_tree/nav_tree.js"
 
 NAV_TREE_DIR = (
     pathlib.Path(__file__).resolve().parent.parent.parent
     / "dj_design_system"
     / "components"
+    / "gallery"
     / "domain"
     / "nav_tree"
 )
@@ -163,7 +164,7 @@ class TestNavTreeDiscoveryAndMetadata:
     """Verify NavTree exports, metadata, media, and registry discovery."""
 
     def test_exported_from_package_init(self) -> None:
-        """Verify NavTree is exported in dj_design_system.components.domain.nav_tree."""
+        """Verify NavTree is exported in dj_design_system.components.gallery.domain.nav_tree."""
         assert nav_tree_package.NavTree is nav_tree_module.NavTree
         assert issubclass(nav_tree_module.NavTree, components_base.TagComponent)
 
@@ -237,7 +238,7 @@ class TestNavTreeParametersAndContext:
         assert button_node["depth"] == 2
         assert button_node["is_active"] is True
         assert button_node["is_open"] is True
-        assert button_node["resolved_icon"] == "folder"
+        assert button_node["resolved_icon"] == "component"
 
         primary_node = button_node["children"][0]
         assert primary_node["node_kind"] == "leaf"
@@ -336,7 +337,9 @@ class TestNavTreeParametersAndContext:
         assert "format_html" not in py_text
         assert "mark_safe" not in py_text
         assert "Icon(" not in py_text
-        private_defs = re.findall(pattern=r"def _(?![_a-z]+__)[a-z0-9_]+", string=py_text)
+        private_defs = re.findall(
+            pattern=r"def _(?![_a-z]+__)[a-z0-9_]+", string=py_text
+        )
         assert not private_defs
 
 
@@ -351,8 +354,7 @@ class TestNavTreeRenderingAndTemplate:
         )
         assert '<dds-nav-tree class="dds-nav-tree">' in html
         assert (
-            '<nav class="dds-nav-tree-nav" aria-label="Component navigation">'
-            in html
+            '<nav class="dds-nav-tree-nav" aria-label="Component navigation">' in html
         )
         assert "<div data-nav-group>" in html
         assert (
@@ -530,9 +532,7 @@ class TestNavTreeTypeScriptCustomElement:
         """Verify nav_tree.ts defines DDSNavTreeElement with AbortController and dds:nav-toggle."""
         assert NAV_TREE_TS_PATH.is_file()
         ts_text = _read_text(path=NAV_TREE_TS_PATH)
-        assert (
-            "import type { DDSCustomElement } from '../../types.js';" in ts_text
-        )
+        assert "import type { DDSCustomElement } from '../../types.js';" in ts_text
         assert (
             "export class DDSNavTreeElement extends HTMLElement implements DDSCustomElement"
             in ts_text
@@ -558,14 +558,10 @@ class TestNavTreeTypeScriptCustomElement:
         assert "childrenEl.hidden = !expanded;" in ts_text
         assert "'dds:nav-toggle'" in ts_text
         assert (
-            "detail: { folderId: folder.dataset.folderId ?? '', expanded }"
-            in ts_text
+            "detail: { folderId: folder.dataset.folderId ?? '', expanded }" in ts_text
         )
         assert "if (!customElements.get('dds-nav-tree'))" in ts_text
-        assert (
-            "customElements.define('dds-nav-tree', DDSNavTreeElement);"
-            in ts_text
-        )
+        assert "customElements.define('dds-nav-tree', DDSNavTreeElement);" in ts_text
 
     def test_nav_tree_ts_enforces_light_dom_encapsulation_and_styleguide(
         self,
@@ -580,4 +576,3 @@ class TestNavTreeTypeScriptCustomElement:
         for line in ts_text.splitlines():
             assert len(line) <= 80
             assert line == line.rstrip()
-

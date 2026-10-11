@@ -25,8 +25,7 @@ config = gallery.GalleryConfig(
             kwargs={
                 "level": "error",
                 "content": (
-                    "Authentication cluster connection lost. "
-                    "Attempting auto-reconnect."
+                    "Authentication cluster connection lost. Attempting auto-reconnect."
                 ),
             },
             show_in_nav=True,

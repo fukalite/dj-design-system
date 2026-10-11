@@ -8,8 +8,8 @@ from django import template as django_template
 from django.utils import safestring
 
 from dj_design_system import components
-from dj_design_system.components.elements import table as table_package
-from dj_design_system.components.elements.table import table as table_module
+from dj_design_system.components.gallery.elements import table as table_package
+from dj_design_system.components.gallery.elements.table import table as table_module
 from dj_design_system.services import registry as registry_service
 from tests import conftest
 
@@ -30,17 +30,18 @@ mark_safe = safestring.mark_safe
 APP_LABEL = "dj_design_system"
 BODY_HTML = "<tr><td>Alpha</td><td>1</td></tr>"
 CAPTION_TEXT = "Quarterly metrics"
-CSS_REL_PATH = "dj_design_system/components/elements/table/table.css"
+CSS_REL_PATH = "dj_design_system/components/gallery/elements/table/table.css"
 HEAD_HTML = '<tr><th scope="col">Name</th><th scope="col">Value</th></tr>'
 QUALIFIED_TAG = "dds__table"
 TABLE_DIR = (
     pathlib.Path(__file__).resolve().parent.parent.parent
     / "dj_design_system"
     / "components"
+    / "gallery"
     / "elements"
     / "table"
 )
-TEMPLATE_REL_PATH = "dj_design_system/components/elements/table/table.html"
+TEMPLATE_REL_PATH = "dj_design_system/components/gallery/elements/table/table.html"
 
 
 def _render_template(source: str, context_data: dict[str, object] | None = None) -> str:

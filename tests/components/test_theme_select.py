@@ -8,8 +8,10 @@ from django import template
 
 from dj_design_system import data, gallery, types
 from dj_design_system.components import base as components_base
-from dj_design_system.components.domain import theme_select as theme_select_package
-from dj_design_system.components.domain.theme_select import (
+from dj_design_system.components.gallery.domain import (
+    theme_select as theme_select_package,
+)
+from dj_design_system.components.gallery.domain.theme_select import (
     theme_select as theme_select_module,
 )
 from dj_design_system.services import canvas as canvas_service
@@ -20,15 +22,22 @@ from tests import conftest
 APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "theme_select"
 QUALIFIED_NAME = "dds__theme_select"
-RELATIVE_PATH = "domain.theme_select"
-TEMPLATE_PATH = "dj_design_system/components/domain/theme_select/theme_select.html"
-CSS_MEDIA_PATH = "dj_design_system/components/domain/theme_select/theme_select.css"
-JS_MEDIA_PATH = "dj_design_system/components/domain/theme_select/theme_select.js"
+RELATIVE_PATH = "gallery.domain.theme_select"
+TEMPLATE_PATH = (
+    "dj_design_system/components/gallery/domain/theme_select/theme_select.html"
+)
+CSS_MEDIA_PATH = (
+    "dj_design_system/components/gallery/domain/theme_select/theme_select.css"
+)
+JS_MEDIA_PATH = (
+    "dj_design_system/components/gallery/domain/theme_select/theme_select.js"
+)
 
 THEME_SELECT_DIR = (
     pathlib.Path(__file__).resolve().parent.parent.parent
     / "dj_design_system"
     / "components"
+    / "gallery"
     / "domain"
     / "theme_select"
 )
@@ -94,7 +103,7 @@ class TestThemeSelectDiscoveryAndMetadata:
     """Verify ThemeSelect class exports, metadata, media, and registry discovery."""
 
     def test_exported_from_package_init(self) -> None:
-        """Verify ThemeSelect is exported in dj_design_system.components.domain.theme_select."""
+        """Verify ThemeSelect is exported in dj_design_system.components.gallery.domain.theme_select."""
         assert theme_select_package.ThemeSelect is theme_select_module.ThemeSelect
         assert issubclass(theme_select_module.ThemeSelect, components_base.TagComponent)
 

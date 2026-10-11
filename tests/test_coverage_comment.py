@@ -56,9 +56,7 @@ class TestComputeModuleName:
             == "dj_design_system/management"
         )
         assert (
-            coverage_comment.compute_module_name(
-                file_path="dj_design_system/apps.py"
-            )
+            coverage_comment.compute_module_name(file_path="dj_design_system/apps.py")
             == "dj_design_system (root)"
         )
         assert (
@@ -78,9 +76,7 @@ class TestComputeModuleName:
 
     def test_generic_paths(self):
         assert (
-            coverage_comment.compute_module_name(
-                file_path="src/components/button.py"
-            )
+            coverage_comment.compute_module_name(file_path="src/components/button.py")
             == "src/components"
         )
         assert (
@@ -122,9 +118,7 @@ def make_sample_coverage_dict() -> dict:
                     "num_branches": 30,
                 },
                 "functions": {
-                    "render": {
-                        "summary": {"covered_lines": 10, "num_statements": 10}
-                    },
+                    "render": {"summary": {"covered_lines": 10, "num_statements": 10}},
                 },
             },
             "dj_design_system/empty.py": {
@@ -176,9 +170,7 @@ class TestGenerateCoverageMarkdown:
     def test_markdown_structure(self):
         totals = coverage_comment.CoverageTotals(
             lines=coverage_comment.MetricCount(total=1000, covered=900, pct=90.0),
-            statements=coverage_comment.MetricCount(
-                total=1000, covered=900, pct=90.0
-            ),
+            statements=coverage_comment.MetricCount(total=1000, covered=900, pct=90.0),
             branches=coverage_comment.MetricCount(total=200, covered=170, pct=85.0),
             functions=coverage_comment.MetricCount(total=50, covered=48, pct=96.0),
             overall_pct=89.2,
@@ -305,7 +297,9 @@ class TestGitHubApiIntegration:
     @patch("urllib.request.urlopen")
     def test_find_existing_coverage_comment_malformed_json(self, mock_urlopen):
         mock_resp = MagicMock()
-        mock_resp.read.return_value = b"<html><head><title>502 Bad Gateway</title></head></html>"
+        mock_resp.read.return_value = (
+            b"<html><head><title>502 Bad Gateway</title></head></html>"
+        )
         mock_urlopen.return_value.__enter__.return_value = mock_resp
         assert (
             coverage_comment.find_existing_coverage_comment(
@@ -348,8 +342,7 @@ class TestGitHubApiIntegration:
         req = mock_urlopen.call_args[0][0]
         assert req.get_method() == "POST"
         assert (
-            req.full_url
-            == "https://api.github.com/repos/owner/repo/issues/42/comments"
+            req.full_url == "https://api.github.com/repos/owner/repo/issues/42/comments"
         )
 
 
@@ -415,9 +408,7 @@ class TestCli:
         assert "Error: Failed to parse coverage JSON" in captured.err
 
     @patch("coverage_comment.post_or_update_comment")
-    def test_http_error_reporting(
-        self, mock_post, tmp_path, monkeypatch, capsys
-    ):
+    def test_http_error_reporting(self, mock_post, tmp_path, monkeypatch, capsys):
         mock_post.side_effect = urllib.error.HTTPError(
             url="https://api.github.com",
             code=403,
@@ -450,5 +441,8 @@ class TestCli:
         exit_code = coverage_comment.main()
         assert exit_code == 1
         captured = capsys.readouterr()
-        assert "Error posting PR coverage comment: HTTP Error 403: Forbidden" in captured.err
+        assert (
+            "Error posting PR coverage comment: HTTP Error 403: Forbidden"
+            in captured.err
+        )
         assert "Resource not accessible by integration" in captured.err

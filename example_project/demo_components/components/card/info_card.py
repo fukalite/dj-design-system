@@ -26,9 +26,7 @@ class InfoCardComponent(abstract_card.AbstractCardComponent):
     )
     title = parameters.StrParam("The card heading.")
     body = parameters.StrParam("The card body text.")
-    show_footer = parameters.BoolParam(
-        "Show a decorative footer rule.", required=False
-    )
+    show_footer = parameters.BoolParam("Show a decorative footer rule.", required=False)
 
     class Meta:
         positional_args = ["title", "body"]

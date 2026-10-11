@@ -99,9 +99,10 @@ class TestBuiltinColocationZeroBoilerplate:
         from pathlib import Path
 
         components_root = Path(components_package.__file__).resolve().parent
+        gallery_root = components_root / "gallery"
         component_files = [
-            *sorted((components_root / "elements").glob("*/*.py")),
-            *sorted((components_root / "domain").glob("*/*.py")),
+            *sorted((gallery_root / "elements").glob("*/*.py")),
+            *sorted((gallery_root / "domain").glob("*/*.py")),
         ]
         component_files = [
             p for p in component_files if p.name not in ("__init__.py", "gallery.py")
