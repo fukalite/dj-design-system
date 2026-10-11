@@ -1,80 +1,141 @@
 ---
 trigger: model_decision
-description: When editing HTML or CSS code
+description: When creating, editing, or reviewing HTML or CSS code across templates and stylesheets
 ---
 
-# Google HTML/CSS Style Guide Summary
+# HTML & CSS Styleguide
 
-This document summarizes key rules and best practices from the Google HTML/CSS
-Style Guide.
+This styleguide defines the mandatory HTML and CSS standards for the project. Automated validation is enforced via Stylelint, djLint, and CI.
 
-## 1. General Rules
+---
 
--   **Protocol:** Use HTTPS for all embedded resources.
--   **Indentation:** Indent by 2 spaces. Do not use tabs.
--   **Capitalization:** Use only lowercase for all code (element names,
-    attributes, selectors, properties).
--   **Trailing Whitespace:** Remove all trailing whitespace.
--   **Encoding:** Use UTF-8 (without a BOM). Specify `<meta charset="utf-8">` in
-    HTML.
+## 1. CSS Architecture & Layers (CUBE CSS)
 
-## 2. HTML Style Rules
+All stylesheets are organised into explicit native cascade layers:
+```css
+@layer reset, tokens, global, composition, blocks, utilities;
+```
 
--   **Document Type:** Use `<!doctype html>`.
--   **HTML Validity:** Use valid HTML.
--   **Semantics:** Use HTML elements according to their intended purpose (e.g.,
-    use `<p>` for paragraphs, not for spacing).
--   **Multimedia Fallback:** Provide `alt` text for images and
-    transcripts/captions for audio/video.
--   **Separation of Concerns:** Strictly separate structure (HTML), presentation
-    (CSS), and behavior (JavaScript). Link to CSS and JS from external files.
--   **`type` Attributes:** Omit `type` attributes for stylesheets (`<link>`) and
-    scripts (`<script>`).
+- **`reset`**: Modern CSS baseline resets.
+- **`tokens`**: Design token definitions (`:root` Tier 1 private and Tier 2 semantic variables).
+- **`global`**: Fundamental page and document defaults.
+- **`composition`**: Every Layout layout primitives (`<l-*>`, `.l-*`).
+- **`blocks`**: Component-scoped CSS modules (`<name>.css`).
+- **`utilities`**: Pure utility classes (used sparingly).
 
-## 3. HTML Formatting Rules
+---
 
--   **General:** Use a new line for every block, list, or table element, and
-    indent its children.
--   **Quotation Marks:** Use double quotation marks (`""`) for attribute values.
+## 2. Native CSS Nesting (`&`)
 
-## 4. CSS Style Rules
+Always prefer native CSS nesting over repeating flat, compound, or descendant selectors at the same level.
 
--   **CSS Validity:** Use valid CSS.
--   **Class Naming:** Use meaningful, generic names. Separate words with a
-    hyphen (`-`).
-    -   **Good:** `.video-player`, `.site-navigation`
-    -   **Bad:** `.vid`, `.red-text`
--   **ID Selectors:** Avoid using ID selectors for styling. Prefer class
-    selectors.
--   **Shorthand Properties:** Use shorthand properties where possible (e.g.,
-    `padding`, `font`).
--   **`0` and Units:** Omit units for `0` values (e.g., `margin: 0;`).
--   **Leading `0`s:** Always include leading `0`s for decimal values (e.g.,
-    `font-size: 0.8em;`).
--   **Hexadecimal Notation:** Use 3-character hex notation where possible (e.g.,
-    `#fff`).
--   **`!important`:** Avoid using `!important`.
--   **Nested CSS Preference:** Prefer native CSS nesting, using `&` where appropriate (e.g., `&:hover`, `&[data-state]`, `& > *`, `&::before`), rather than multiple classes at the same level or repeating flat compound selectors.
+- **Pseudo-classes and States**: Nest under the parent rule with `&`:
+  ```css
+  /* Good */
+  .dds-card {
+    background-color: var(--_card-bg-color);
 
-## 5. CSS Formatting Rules
+    &:hover {
+      background-color: var(--_card-hover-bg-color);
+    }
 
--   **Declaration Grouping & Order:** Group declarations by type and order them strictly as follows (do not add section comments; preserve the order):
-    1. **Positioning:** `position`, `top`, `right`, `bottom`, `left`, `inset`, `inset-block`, `inset-inline`, `z-index`.
-    2. **Display & Box Model:** `display`, `flex`, `grid`, `gap`, `align-items`, `justify-content`, `box-sizing`, `width`, `height`, `margin`, `padding`, `border`, `border-radius`, `overflow`, etc.
-    3. **Colour & Visuals:** `color`, `background`, `background-color`, `box-shadow`, `opacity`, etc.
-    4. **Typography:** `font`, `font-family`, `font-size`, `font-weight`, `line-height`, `letter-spacing`, `text-align`, `white-space`, etc.
-    5. **Other / Misc:** `cursor`, `transition`, `animation`, `transform`, `pointer-events`, `appearance`, etc.
--   **Indentation:** Indent all block content.
--   **Semicolons:** Use a semicolon after every declaration.
--   **Spacing:**
-    -   Use a space after a property name's colon (`font-weight: bold;`).
-    -   Use a space between the last selector and the opening brace (`.foo {`).
-    -   Start a new line for each selector and declaration.
--   **Rule Separation:** Separate rules with a new line.
--   **Quotation Marks:** Use single quotes (`''`) for attribute selectors and
-    property values (e.g., `[type='text']`).
+    &:focus-visible {
+      outline-width: var(--_card-focus-outline-width);
+    }
+  }
 
-**BE CONSISTENT.** When editing code, match the existing style.
+  /* Bad */
+  .dds-card { ... }
+  .dds-card:hover { ... }
+  .dds-card:focus-visible { ... }
+  ```
+- **Direct & Descendant Elements**: Group and nest internal child selectors within their enclosing container:
+  ```css
+  /* Good */
+  .dds-folder-listing {
+    ...
+    & > l-stack { ... }
+    & [data-folder-title] { ... }
+    & [data-folder-grid] {
+      ...
+      & > li { ... }
+    }
+  }
 
-*Source:
-[Google HTML/CSS Style Guide](https://google.github.io/styleguide/htmlcssguide.html)*
+  /* Bad */
+  .dds-folder-listing { ... }
+  .dds-folder-listing > l-stack { ... }
+  .dds-folder-listing [data-folder-title] { ... }
+  .dds-folder-listing [data-folder-grid] { ... }
+  .dds-folder-listing [data-folder-grid] > li { ... }
+  ```
+- **Nesting Depth**: Keep nesting hierarchies shallow and performant. Avoid nesting deeper than 3 levels unless structurally necessary.
+
+---
+
+## 3. Component Boundary Encapsulation (Zero Leakage)
+
+Component styles must stop strictly at the component root boundary.
+
+- **No Piercing Child Components**: Never target or alter elements inside a child component from a parent component's CSS.
+  - *Example*: A gallery or layout stylesheet must not style `dds-code-block code`, `dds-icon svg`, or `.dds-button span`.
+  - Child components are independent units that own and encapsulate their internal DOM, typography, and syntax highlighting.
+- **Root Zero Margins**: Components must never set outer margins on their own root selector (`margin: 0` on root). Outer spacing and alignment are the exclusive responsibility of parent Every Layout primitives (`<l-stack>`, `<l-cluster>`, etc.).
+- **Scoped Theme Variables**: If a parent must influence a child, pass values via CSS custom property overrides on the component element or use `data-*` attributes.
+
+---
+
+## 4. Stylelint & Quality Constraints
+
+Automated linting is enforced via `just check` (`npx stylelint "dj_design_system/**/*.css"`) and runs on every CI pull request.
+
+- **Strictly No BEM**: Never use `__` (element) or `--` (modifier) naming in CSS classes. Enforced via `selector-class-pattern`.
+  - Use semantic tags (`pre`, `code`, `header`), `data-*` attributes (`[data-surface='code']`, `[data-variant='primary']`), or `aria-*` attributes (`[aria-selected='true']`).
+- **No `!important`**: Forbidden without exception (`declaration-no-important`).
+- **No ID Selectors**: Forbidden in CSS rules (`selector-max-id: 0`).
+- **No Duplicate or Unknown Properties**: Clean, valid CSS only.
+
+---
+
+## 5. Declaration Grouping & Property Order
+
+Declarations within every CSS rule must be grouped by type and strictly ordered as follows. Do not add section comments; preserve the order directly:
+
+1. **Positioning**:
+   `position`, `top`, `right`, `bottom`, `left`, `inset`, `inset-block`, `inset-inline`, `z-index`.
+2. **Display & Box Model**:
+   `display`, `flex`, `flex-*`, `grid`, `grid-*`, `gap`, `align-items`, `justify-content`, `order`, `box-sizing`, `width`, `min-width`, `max-width`, `height`, `min-height`, `max-height`, `inline-size`, `block-size`, `margin`, `margin-block`, `margin-inline`, `padding`, `padding-block`, `padding-inline`, `border`, `border-radius`, `outline`, `overflow`, `overflow-x`, `overflow-y`, `contain`.
+3. **Colour & Visuals**:
+   `color`, `background`, `background-color`, `box-shadow`, `opacity`, `visibility`.
+4. **Typography**:
+   `font`, `font-family`, `font-size`, `font-weight`, `font-style`, `font-variant`, `line-height`, `letter-spacing`, `text-align`, `text-decoration`, `text-transform`, `white-space`, `tab-size`.
+5. **Other / Misc**:
+   `cursor`, `transition`, `transition-*`, `animation`, `transform`, `pointer-events`, `appearance`, `user-select`.
+
+*(Use `npx stylelint --fix` to format automatically).*
+
+---
+
+## 6. Design Tokens Over Magic Numbers
+
+Never hard-code magic numbers or raw colour codes in component stylesheets or layouts.
+
+- **Tokens Required**:
+  - Colours: `var(--dds-surface-*)`, `var(--dds-text-*)`, `var(--dds-state-*)`, `var(--dds-control-*)`.
+  - Spacing & Insets: `var(--dds-space-*)`, `var(--dds-space-gap-*)`, `var(--dds-space-inset-*)`.
+  - Typography: `var(--dds-text-<role>-<prop>)`, `var(--dds-font-*)`.
+  - Border Widths: `var(--dds-surface-*-border-width)`, `var(--dds-control-border-width)`.
+  - Border Radii: `var(--dds-surface-border-radius)`, `var(--dds-control-border-radius)`.
+- **Private Tier 3 Tokens**: Component-local CSS must map all internal properties to `--_<component>-*` variables declared at the component root and sourced exclusively from Tier 2 `--dds-*` tokens.
+
+---
+
+## 7. HTML Standards & Semantics
+
+- **Valid HTML5**: Use semantic elements for their intended purpose (`<nav>`, `<header>`, `<main>`, `<article>`, `<button>`, `<a>`).
+- **Lowercase**: Use lowercase for all element names, attributes, and values.
+- **Quotes**: Double quotes (`""`) for HTML attribute values; single quotes (`''`) for CSS attribute selectors (`[data-state='open']`).
+- **Separation of Concerns**: Markup owns structure, CSS owns presentation, JavaScript/TypeScript owns behaviour.
+- **Accessibility (a11y)**:
+  - Interactive elements must be keyboard accessible and use appropriate `aria-*` attributes (`aria-label`, `aria-expanded`, `aria-selected`).
+  - Provide `alt` text for images and transcripts/labels for icons.

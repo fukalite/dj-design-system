@@ -77,18 +77,24 @@ Python unit and integration tests remain under `tests/` so `ComponentRegistry.au
 
 ---
 
-## 5. CSS Architecture: CUBE CSS & `@layer`
+## 5. CSS Architecture: CUBE CSS, Nesting & Stylelint
 
-- **Strictly No BEM:** Never use `__` (element) or `--` (modifier) class naming anywhere in `dds` components or stylesheets.
+All component and layout CSS must strictly follow [html-css.md](html-css.md). Key invariants:
+- **Strictly No BEM:** Never use `__` (element) or `--` (modifier) class naming anywhere in `dds` components or stylesheets. Enforced by Stylelint.
 - **Cascade Layers:** All gallery CSS is organised into explicit native `@layer` blocks:
   ```css
   @layer reset, tokens, global, composition, blocks, utilities;
   ```
+- **Native CSS Nesting:** Always prefer native nesting (`&`) for pseudo-classes, states, and internal descendants rather than repeating flat selectors at the same level.
+- **Component Boundary Encapsulation (Zero Leakage):**
+  - Never reach into a child component's internal selectors from a parent component or layout CSS.
+  - Components encapsulate their own internal markup, typography, and syntax highlighting.
+  - Components must never set outer margins (`margin: 0` on root); parent layout primitives (`<l-*>`) manage spacing.
 - **One CSS Module per Component (`@layer blocks`):**
   - Each component's `<name>.css` wraps its rules in `@layer blocks { ... }`.
   - All rules are scoped under the component root selector (`dds-<name>` for interactive Web Components, or `.dds-<name>` for purely static components).
   - Style internal elements using semantic HTML descendants, `aria-*` attributes (`[aria-selected='true']`), or `data-*` state/variant attributes (`[data-variant='ghost']`, `[data-state='open']`).
-  - Never reach into a child component's internal selectors from a parent component's CSS.
+- **Declaration Grouping & Property Order:** Strictly follow the 5-group property order (Positioning -> Display & Box -> Colour -> Type -> Other). Verified via `just check` (`stylelint`).
 
 ---
 
