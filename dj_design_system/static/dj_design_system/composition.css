@@ -16,10 +16,10 @@
 
   l-cluster,
   .l-cluster {
-    align-items: var(--align, center);
     display: flex;
     flex-wrap: wrap;
     gap: var(--space, var(--dds-space-gap-default));
+    align-items: var(--align, center);
     justify-content: var(--justify, flex-start);
   }
 
@@ -32,14 +32,14 @@
 
   l-sidebar > :first-child,
   .l-sidebar > :first-child {
-    flex-basis: var(--side-width, var(--dds-layout-sidebar-width));
     flex-grow: 1;
+    flex-basis: var(--side-width, var(--dds-layout-sidebar-width));
   }
 
   l-sidebar > :last-child,
   .l-sidebar > :last-child {
-    flex-basis: 0;
     flex-grow: 999;
+    flex-basis: 0;
     min-inline-size: var(--content-min, 50%);
   }
 
@@ -52,28 +52,28 @@
 
   l-switcher > *,
   .l-switcher > * {
-    flex-basis: calc((var(--measure, var(--dds-layout-prose-measure)) - 100%) * 999);
     flex-grow: 1;
+    flex-basis: calc((var(--measure, var(--dds-layout-prose-measure)) - 100%) * 999);
   }
 
   l-box,
   .l-box {
-    background-color: var(--dds-surface-bg-color);
-    border-color: var(--dds-surface-border-color);
-    border-radius: var(--dds-surface-border-radius);
-    border-style: var(--dds-surface-border-style);
-    border-width: var(--dds-surface-border-width);
-    color: var(--dds-text-default-color);
     display: block;
     padding: var(--space, var(--dds-space-inset-default));
+    border-width: var(--dds-surface-border-width);
+    border-style: var(--dds-surface-border-style);
+    border-color: var(--dds-surface-border-color);
+    border-radius: var(--dds-surface-border-radius);
+    color: var(--dds-text-default-color);
+    background-color: var(--dds-surface-bg-color);
   }
 
   l-center,
   .l-center {
-    box-sizing: content-box;
     display: block;
-    margin-inline: auto;
+    box-sizing: content-box;
     max-inline-size: var(--measure, var(--dds-layout-prose-measure));
+    margin-inline: auto;
     padding-inline: var(--space, 0);
   }
 
@@ -107,28 +107,28 @@
 
   l-frame,
   .l-frame {
-    align-items: center;
-    aspect-ratio: var(--n, 16) / var(--d, 9);
-    display: flex;
-    justify-content: center;
-    overflow: hidden;
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: var(--n, 16) / var(--d, 9);
+    overflow: hidden;
   }
 
   l-frame > img,
   l-frame > video,
   .l-frame > img,
   .l-frame > video {
-    block-size: 100%;
     inline-size: 100%;
+    block-size: 100%;
     object-fit: cover;
   }
 
   l-grid,
   .l-grid {
     display: grid;
-    gap: var(--space, var(--dds-space-gap-default));
     grid-template-columns: repeat(auto-fit, minmax(min(var(--min, 15rem), 100%), 1fr));
+    gap: var(--space, var(--dds-space-gap-default));
   }
 
   l-reel,
@@ -147,13 +147,13 @@
 
   l-imposter,
   .l-imposter {
+    position: absolute;
     inset-block-start: 50%;
     inset-inline-start: 50%;
+    max-inline-size: calc(100% - (var(--margin, 0px) * 2));
     /* Unit on 0px is required by CSS Values & Units inside calc(100% - ...) */
     max-block-size: calc(100% - (var(--margin, 0px) * 2));
-    max-inline-size: calc(100% - (var(--margin, 0px) * 2));
     overflow: auto;
-    position: absolute;
     transform: translate(-50%, -50%);
   }
 

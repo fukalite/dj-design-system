@@ -19,21 +19,21 @@
     --_sandbox-params-row-padding-block: var(--dds-space-sm);
     --_sandbox-params-row-padding-inline: var(--dds-space-inset-compact);
     --_sandbox-params-text-color: var(--dds-text-default-color);
-    background-color: var(--_sandbox-params-bg-color);
+    display: block;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border-width: var(--_sandbox-params-border-width);
+    border-style: var(--_sandbox-params-border-style);
     border-color: var(--_sandbox-params-border-color);
     border-radius: var(--_sandbox-params-border-radius);
-    border-style: var(--_sandbox-params-border-style);
-    border-width: var(--_sandbox-params-border-width);
-    box-sizing: border-box;
     color: var(--_sandbox-params-text-color);
-    display: block;
+    background-color: var(--_sandbox-params-bg-color);
     font-family: var(--_sandbox-params-font);
     font-size: var(--_sandbox-params-font-size);
     font-weight: var(--_sandbox-params-font-weight);
-    letter-spacing: var(--_sandbox-params-letter-spacing);
     line-height: var(--_sandbox-params-line-height);
-    margin: 0;
-    padding: 0;
+    letter-spacing: var(--_sandbox-params-letter-spacing);
   }
 
   dds-sandbox-params [data-params-form],
@@ -48,12 +48,12 @@
 
   dds-sandbox-params [data-params-fields] > *,
   .dds-sandbox-params [data-params-fields] > * {
-    border-block-end-color: var(--_sandbox-params-border-color);
-    border-block-end-style: var(--_sandbox-params-border-style);
-    border-block-end-width: var(--_sandbox-params-row-border-width);
     margin: 0;
     padding-block: var(--_sandbox-params-row-padding-block);
     padding-inline: var(--_sandbox-params-row-padding-inline);
+    border-block-end-color: var(--_sandbox-params-border-color);
+    border-block-end-style: var(--_sandbox-params-border-style);
+    border-block-end-width: var(--_sandbox-params-row-border-width);
   }
 
   dds-sandbox-params [data-params-fields] > :last-child,
@@ -63,9 +63,9 @@
 
   dds-sandbox-params [data-params-empty],
   .dds-sandbox-params [data-params-empty] {
-    color: var(--_sandbox-params-empty-color);
     margin: 0;
     padding-block: var(--_sandbox-params-empty-padding-block);
     padding-inline: var(--_sandbox-params-row-padding-inline);
+    color: var(--_sandbox-params-empty-color);
   }
 }

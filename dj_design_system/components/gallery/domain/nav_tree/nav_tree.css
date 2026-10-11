@@ -34,14 +34,14 @@
     --_nav-tree-transition-duration: var(--dds-state-entry-duration);
     --_nav-tree-transition-easing: var(--dds-state-entry-easing);
     --_nav-tree-variant-text-color: var(--dds-text-muted-color);
-    color: var(--_nav-tree-text-color);
     display: block;
+    margin: 0;
+    color: var(--_nav-tree-text-color);
     font-family: var(--_nav-tree-font);
     font-size: var(--_nav-tree-font-size);
     font-weight: var(--_nav-tree-font-weight);
-    letter-spacing: var(--_nav-tree-letter-spacing);
     line-height: var(--_nav-tree-line-height);
-    margin: 0;
+    letter-spacing: var(--_nav-tree-letter-spacing);
   }
 
   .dds-nav-tree-nav {
@@ -49,8 +49,8 @@
     flex: 1 1 0;
     flex-direction: column;
     gap: var(--_nav-tree-gap);
-    margin: 0;
     min-block-size: 0;
+    margin: 0;
     overflow-y: auto;
   }
 
@@ -78,22 +78,22 @@
   }
 
   dds-nav-tree [data-nav-row] {
-    align-items: center;
     display: flex;
     gap: var(--_nav-tree-gap);
+    align-items: center;
     margin: 0;
   }
 
   dds-nav-tree [data-nav-link] {
-    align-items: center;
-    border-radius: var(--_nav-tree-border-radius);
-    color: var(--_nav-tree-text-color);
     display: flex;
     flex: 1;
     gap: var(--_nav-tree-item-gap);
+    align-items: center;
     min-inline-size: 0;
     padding-block: var(--_nav-tree-padding-block);
     padding-inline: var(--_nav-tree-padding-inline);
+    border-radius: var(--_nav-tree-border-radius);
+    color: var(--_nav-tree-text-color);
     text-decoration: none;
     transition-duration: var(--_nav-tree-transition-duration);
     transition-property: background-color, color;
@@ -105,8 +105,8 @@
     font-family: var(--_nav-tree-group-font);
     font-size: var(--_nav-tree-group-font-size);
     font-weight: var(--_nav-tree-group-font-weight);
-    letter-spacing: var(--_nav-tree-group-letter-spacing);
     line-height: var(--_nav-tree-group-line-height);
+    letter-spacing: var(--_nav-tree-group-letter-spacing);
     text-transform: uppercase;
   }
 
@@ -127,8 +127,8 @@
   }
 
   dds-nav-tree [data-nav-link]:hover {
-    background-color: var(--_nav-tree-hover-bg-color);
     color: var(--_nav-tree-hover-text-color);
+    background-color: var(--_nav-tree-hover-bg-color);
   }
 
   dds-nav-tree [data-nav-link]:active {
@@ -137,39 +137,39 @@
 
   dds-nav-tree [data-nav-link][aria-current='page'],
   dds-nav-tree [data-nav-link][data-active='true'] {
-    background-color: var(--_nav-tree-active-bg-color);
     color: var(--_nav-tree-active-text-color);
+    background-color: var(--_nav-tree-active-bg-color);
   }
 
   dds-nav-tree [data-nav-link]:focus-visible,
   dds-nav-tree [data-nav-toggle]:focus-visible {
+    outline-width: var(--_nav-tree-focus-outline-width);
+    outline-style: var(--_nav-tree-focus-outline-style);
     outline-color: var(--_nav-tree-focus-outline-color);
     outline-offset: var(--_nav-tree-focus-outline-offset);
-    outline-style: var(--_nav-tree-focus-outline-style);
-    outline-width: var(--_nav-tree-focus-outline-width);
   }
 
   dds-nav-tree [data-nav-toggle] {
-    align-items: center;
-    appearance: none;
-    background-color: transparent;
-    border-radius: var(--_nav-tree-border-radius);
-    border-width: 0;
-    color: var(--_nav-tree-group-text-color);
-    cursor: pointer;
     display: inline-flex;
     flex-shrink: 0;
+    align-items: center;
     justify-content: center;
     margin: 0;
     padding: var(--_nav-tree-toggle-padding);
+    border-width: 0;
+    border-radius: var(--_nav-tree-border-radius);
+    color: var(--_nav-tree-group-text-color);
+    background-color: transparent;
+    appearance: none;
+    cursor: pointer;
     transition-duration: var(--_nav-tree-transition-duration);
     transition-property: background-color, color, transform;
     transition-timing-function: var(--_nav-tree-transition-easing);
   }
 
   dds-nav-tree [data-nav-toggle]:hover {
-    background-color: var(--_nav-tree-hover-bg-color);
     color: var(--_nav-tree-hover-text-color);
+    background-color: var(--_nav-tree-hover-bg-color);
   }
 
   dds-nav-tree [data-nav-folder][data-state='open'] > [data-nav-row] [data-nav-toggle] {

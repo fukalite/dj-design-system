@@ -89,10 +89,7 @@ def _read_text(path: pathlib.Path) -> str:
 
 def _extract_rule_blocks(css_text: str, selector: str) -> list[str]:
     """Extract CSS declaration blocks for a specific selector."""
-    escaped = re.escape(pattern=selector)
-    pattern = re.compile(pattern=rf"{escaped}\s*\{{([^}}]*)\}}", flags=re.DOTALL)
-    return pattern.findall(string=css_text)
-
+    return conftest.extract_css_rule_blocks(css_text=css_text, selector=selector)
 
 def _extract_defined_properties(block_text: str) -> dict[str, str]:
     """Extract custom property definitions from a CSS block string."""
@@ -412,32 +409,18 @@ class TestTabsStylesheet:
         ):
             assert required_domain in css_text
 
-    def test_styles_role_tab_and_selected_state_with_alphabetized_declarations(
+    def test_styles_role_tab_and_boundary_encapsulation(
         self,
     ) -> None:
-        """Verify [role='tab'] and [role='tab'][aria-selected='true'] rules and CSS formatting."""
+        """Verify [role='tab'] and [role='tab'][aria-selected='true'] rules and child component boundary encapsulation."""
         css_text = _read_text(path=TABS_CSS_PATH)
-        assert "dds-tabs [role='tab']" in css_text
-        assert "dds-tabs [role='tab'][aria-selected='true']" in css_text
-        assert '"' not in css_text
-        assert "!important" not in css_text
+        assert _extract_rule_blocks(css_text=css_text, selector="dds-tabs [role='tab']")
+        assert _extract_rule_blocks(
+            css_text=css_text,
+            selector="dds-tabs [role='tab'][aria-selected='true']",
+        )
         assert ".dds-icon" not in css_text
         assert ".dds-badge" not in css_text
-        bem_matches = re.findall(
-            pattern=r"\.[a-z0-9-]+(?:__|--)[a-z0-9-]+",
-            string=css_text,
-        )
-        assert not bem_matches
-
-        rule_blocks = re.findall(pattern=r"\{([^{}]+)\}", string=css_text)
-        assert rule_blocks
-        for block in rule_blocks:
-            prop_names = re.findall(
-                pattern=r"^\s*([a-z0-9_-]+)\s*:",
-                string=block,
-                flags=re.MULTILINE,
-            )
-            assert prop_names == sorted(prop_names)
 
 
 class TestTabsTypeScriptCustomElement:

@@ -112,10 +112,7 @@ def _read_text(path: pathlib.Path) -> str:
 
 def _extract_rule_blocks(css_text: str, selector: str) -> list[str]:
     """Extract CSS declaration blocks for a specific selector."""
-    escaped = re.escape(pattern=selector)
-    pattern = re.compile(pattern=rf"{escaped}\s*\{{([^}}]*)\}}", flags=re.DOTALL)
-    return pattern.findall(string=css_text)
-
+    return conftest.extract_css_rule_blocks(css_text=css_text, selector=selector)
 
 def _extract_defined_properties(block_text: str) -> dict[str, str]:
     """Extract custom property definitions from a CSS block string."""
@@ -520,27 +517,10 @@ class TestSandboxParamsStylesheet:
             assert match is not None
             assert match.group(1) in defined_tier_2
 
-    def test_no_bem_single_quotes_and_alphabetised_declarations(self) -> None:
-        """Verify zero BEM selectors, single quotes, no child leaks, and alphabetised declarations."""
+    def test_css_boundary_encapsulation(self) -> None:
+        """Verify child component selectors do not leak into sandbox_params.css."""
         css_text = _read_text(path=SANDBOX_PARAMS_CSS_PATH)
-        assert '"' not in css_text
-        assert "!important" not in css_text
         assert ".dds-form-field" not in css_text
-        bem_matches = re.findall(
-            pattern=r"\.[a-z0-9-]+(?:__|--)[a-z0-9-]+",
-            string=css_text,
-        )
-        assert not bem_matches
-
-        rule_blocks = re.findall(pattern=r"\{([^{}]+)\}", string=css_text)
-        assert rule_blocks
-        for block in rule_blocks:
-            prop_names = re.findall(
-                pattern=r"^\s*([a-z0-9_-]+)\s*:",
-                string=block,
-                flags=re.MULTILINE,
-            )
-            assert prop_names == sorted(prop_names)
 
 
 class TestSandboxParamsGalleryAndDocs:

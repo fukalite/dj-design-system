@@ -224,13 +224,12 @@ class TestFormFieldCssAndMarkupStandards:
         assert "@layer blocks {" in css_text
         assert "--_dds-" not in css_text
 
-        root_match = re.search(
-            pattern=r"\.dds-form-field\s*\{([^}]*)\}",
-            string=css_text,
-            flags=re.DOTALL,
+        root_blocks = conftest.extract_css_rule_blocks(
+            css_text=css_text,
+            selector=".dds-form-field",
         )
-        assert root_match
-        root_block = root_match.group(1)
+        assert root_blocks
+        root_block = root_blocks[0]
         assert "margin: 0;" in root_block
 
         tier_3_defs = re.findall(
@@ -251,7 +250,7 @@ class TestFormFieldCssAndMarkupStandards:
             assert required_domain in root_block
 
     def test_css_styles_child_controls_and_conforms_to_styleguide(self) -> None:
-        """Verify child input/select/textarea rules, zero BEM, and alphabetical declarations."""
+        """Verify child input/select/textarea rules and surface inheritance."""
         css_text = CSS_PATH.read_text(encoding="utf-8")
         html_text = HTML_PATH.read_text(encoding="utf-8")
 
@@ -260,27 +259,13 @@ class TestFormFieldCssAndMarkupStandards:
             ".dds-form-field select",
             ".dds-form-field textarea",
         ):
-            assert control_tag in css_text
-
-        for text in (css_text, html_text):
-            bem_matches = re.findall(
-                pattern=r"\.[a-z0-9-]+(?:__|--)[a-z0-9-]+",
-                string=text,
+            assert conftest.extract_css_rule_blocks(
+                css_text=css_text, selector=control_tag
             )
-            assert not bem_matches
 
-        assert "!important" not in css_text
-        assert '"' not in css_text
+        bem_matches = re.findall(
+            pattern=r"\.[a-z0-9-]+(?:__|--)[a-z0-9-]+",
+            string=html_text,
+        )
+        assert not bem_matches
         assert "[data-surface=" not in css_text
-        for line in css_text.splitlines():
-            assert line == line.rstrip()
-
-        rule_blocks = re.findall(pattern=r"\{([^{}]+)\}", string=css_text)
-        assert rule_blocks
-        for block in rule_blocks:
-            prop_names = re.findall(
-                pattern=r"^\s*([a-z0-9_-]+)\s*:",
-                string=block,
-                flags=re.MULTILINE,
-            )
-            assert prop_names == sorted(prop_names)

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import OrderedDict
+from collections.abc import Sequence
 from functools import lru_cache
 from html.parser import HTMLParser
 from pathlib import Path
@@ -598,7 +599,9 @@ def build_breadcrumbs(
     return crumbs
 
 
-def normalize_folder_items(items: list[Any]) -> list[dict[str, Any]]:
+def normalize_folder_items(
+    *, items: Sequence[NavNode | dict[str, Any] | Any]
+) -> list[dict[str, Any]]:
     """Normalise child navigation nodes into card view models for folder listing."""
     normalized: list[dict[str, Any]] = []
     for raw_item in items:

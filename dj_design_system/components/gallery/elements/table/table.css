@@ -26,67 +26,67 @@
     --_table-head-line-height: var(--dds-text-overline-line-height);
     --_table-line-height: var(--dds-text-body-line-height);
     --_table-text-color: var(--dds-text-default-color);
-    background-color: var(--_table-bg-color);
+    margin: 0;
+    border-width: var(--_table-border-width);
+    border-style: var(--_table-border-style);
     border-color: var(--_table-border-color);
     border-radius: var(--_table-border-radius);
-    border-style: var(--_table-border-style);
-    border-width: var(--_table-border-width);
-    margin: 0;
     overflow-x: auto;
-  }
+    background-color: var(--_table-bg-color);
 
-  .dds-table[data-density='compact'] {
-    --_table-cell-padding-block: var(--dds-space-2xs);
-    --_table-cell-padding-inline: var(--dds-space-sm);
-  }
+    &[data-density='compact'] {
+      --_table-cell-padding-block: var(--dds-space-2xs);
+      --_table-cell-padding-inline: var(--dds-space-sm);
+    }
 
-  .dds-table table {
-    border-collapse: collapse;
-    color: var(--_table-text-color);
-    font-family: var(--_table-font-family);
-    font-size: var(--_table-font-size);
-    font-weight: var(--_table-font-weight);
-    line-height: var(--_table-line-height);
-    margin: 0;
-    width: 100%;
-  }
+    & table {
+      width: 100%;
+      margin: 0;
+      color: var(--_table-text-color);
+      font-family: var(--_table-font-family);
+      font-size: var(--_table-font-size);
+      font-weight: var(--_table-font-weight);
+      line-height: var(--_table-line-height);
+      border-collapse: collapse;
+    }
 
-  .dds-table caption {
-    caption-side: bottom;
-    color: var(--_table-caption-color);
-    font-family: var(--_table-caption-font);
-    font-size: var(--_table-caption-size);
-    font-weight: var(--_table-caption-weight);
-    line-height: var(--_table-caption-line-height);
-    padding-block: var(--_table-caption-padding-block);
-    text-align: left;
-  }
+    & caption {
+      padding-block: var(--_table-caption-padding-block);
+      color: var(--_table-caption-color);
+      font-family: var(--_table-caption-font);
+      font-size: var(--_table-caption-size);
+      font-weight: var(--_table-caption-weight);
+      line-height: var(--_table-caption-line-height);
+      text-align: left;
+      caption-side: bottom;
+    }
 
-  .dds-table thead {
-    background-color: var(--_table-head-bg-color);
-  }
+    & thead {
+      background-color: var(--_table-head-bg-color);
+    }
 
-  .dds-table th,
-  .dds-table td {
-    border-bottom-color: var(--_table-border-color);
-    border-bottom-style: var(--_table-border-style);
-    border-bottom-width: var(--_table-border-width);
-    padding-block: var(--_table-cell-padding-block);
-    padding-inline: var(--_table-cell-padding-inline);
-    text-align: left;
-    vertical-align: top;
-  }
+    & th,
+    & td {
+      padding-block: var(--_table-cell-padding-block);
+      padding-inline: var(--_table-cell-padding-inline);
+      border-bottom-width: var(--_table-border-width);
+      border-bottom-style: var(--_table-border-style);
+      border-bottom-color: var(--_table-border-color);
+      text-align: left;
+      vertical-align: top;
+    }
 
-  .dds-table th {
-    color: var(--_table-head-color);
-    font-size: var(--_table-head-font-size);
-    font-weight: var(--_table-head-font-weight);
-    letter-spacing: var(--_table-head-letter-spacing);
-    line-height: var(--_table-head-line-height);
-    text-transform: uppercase;
-  }
+    & th {
+      color: var(--_table-head-color);
+      font-size: var(--_table-head-font-size);
+      font-weight: var(--_table-head-font-weight);
+      line-height: var(--_table-head-line-height);
+      letter-spacing: var(--_table-head-letter-spacing);
+      text-transform: uppercase;
+    }
 
-  .dds-table tbody tr:last-child td {
-    border-bottom-width: 0;
+    & tbody tr:last-child td {
+      border-bottom-width: 0;
+    }
   }
 }

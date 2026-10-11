@@ -43,61 +43,61 @@
     --_canvas-widget-toggles-padding-inline: var(--dds-space-inset-compact);
     --_canvas-widget-transition-duration: var(--dds-state-entry-duration);
     --_canvas-widget-transition-easing: var(--dds-state-entry-easing);
+    display: block;
+    box-sizing: border-box;
+    margin: 0;
+    border-width: var(--_canvas-widget-border-width);
+    border-style: var(--_canvas-widget-border-style);
     border-color: var(--_canvas-widget-border-color);
     border-radius: var(--_canvas-widget-border-radius);
-    border-style: var(--_canvas-widget-border-style);
-    border-width: var(--_canvas-widget-border-width);
-    box-sizing: border-box;
-    color: var(--_canvas-widget-text-color);
-    display: block;
-    margin: 0;
     overflow: hidden;
+    color: var(--_canvas-widget-text-color);
   }
 
   dds-canvas-widget[data-canvas-id='sandbox'],
   .dds-canvas-widget[data-canvas-id='sandbox'] {
-    border-block-start-width: 0;
-    border-inline-width: 0;
-    border-radius: 0;
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
+    border-inline-width: 0;
+    border-radius: 0;
+    border-block-start-width: 0;
   }
 
   dds-canvas-widget [data-canvas-toggles],
   .dds-canvas-widget [data-canvas-toggles] {
     --space: var(--_canvas-widget-toggle-gap);
     align-items: center;
-    background-color: var(--_canvas-widget-toggles-bg-color);
-    border-block-end-color: var(--_canvas-widget-border-color);
-    border-block-end-style: var(--_canvas-widget-border-style);
-    border-block-end-width: var(--_canvas-widget-border-width);
     justify-content: flex-end;
     margin: 0;
     padding-block: var(--_canvas-widget-toggles-padding-block);
     padding-inline: var(--_canvas-widget-toggles-padding-inline);
+    background-color: var(--_canvas-widget-toggles-bg-color);
+    border-block-end-color: var(--_canvas-widget-border-color);
+    border-block-end-style: var(--_canvas-widget-border-style);
+    border-block-end-width: var(--_canvas-widget-border-width);
   }
 
   dds-canvas-widget [data-canvas-mode],
   .dds-canvas-widget [data-canvas-mode] {
-    align-items: center;
-    background-color: var(--_canvas-widget-control-bg-color);
-    border-color: var(--_canvas-widget-control-border-color);
-    border-radius: var(--_canvas-widget-control-border-radius);
-    border-style: var(--_canvas-widget-control-border-style);
-    border-width: var(--_canvas-widget-control-border-width);
-    color: var(--_canvas-widget-text-color);
-    cursor: pointer;
     display: inline-flex;
-    font-family: var(--_canvas-widget-control-font);
-    font-size: var(--_canvas-widget-control-font-size);
-    font-weight: var(--_canvas-widget-control-font-weight);
     gap: var(--_canvas-widget-toggle-gap);
-    letter-spacing: var(--_canvas-widget-control-letter-spacing);
-    line-height: var(--_canvas-widget-control-line-height);
+    align-items: center;
     margin: 0;
     padding-block: var(--_canvas-widget-toggle-padding-block);
     padding-inline: var(--_canvas-widget-toggle-padding-inline);
+    border-width: var(--_canvas-widget-control-border-width);
+    border-style: var(--_canvas-widget-control-border-style);
+    border-color: var(--_canvas-widget-control-border-color);
+    border-radius: var(--_canvas-widget-control-border-radius);
+    color: var(--_canvas-widget-text-color);
+    background-color: var(--_canvas-widget-control-bg-color);
+    font-family: var(--_canvas-widget-control-font);
+    font-size: var(--_canvas-widget-control-font-size);
+    font-weight: var(--_canvas-widget-control-font-weight);
+    line-height: var(--_canvas-widget-control-line-height);
+    letter-spacing: var(--_canvas-widget-control-letter-spacing);
+    cursor: pointer;
     transition-duration: var(--_canvas-widget-transition-duration);
     transition-property: background-color, border-color, color;
     transition-timing-function: var(--_canvas-widget-transition-easing);
@@ -105,41 +105,41 @@
 
   dds-canvas-widget [data-canvas-mode]:hover,
   .dds-canvas-widget [data-canvas-mode]:hover {
-    background-color: var(--_canvas-widget-hover-bg-color);
     border-color: var(--_canvas-widget-hover-border-color);
     color: var(--_canvas-widget-hover-text-color);
+    background-color: var(--_canvas-widget-hover-bg-color);
   }
 
   dds-canvas-widget [data-canvas-mode][aria-pressed='true'],
   .dds-canvas-widget [data-canvas-mode][aria-pressed='true'] {
-    background-color: var(--_canvas-widget-selected-bg-color);
     border-color: var(--_canvas-widget-selected-border-color);
     color: var(--_canvas-widget-selected-text-color);
+    background-color: var(--_canvas-widget-selected-bg-color);
   }
 
   dds-canvas-widget [data-canvas-mode]:focus-visible,
   .dds-canvas-widget [data-canvas-mode]:focus-visible {
+    outline-width: var(--_canvas-widget-focus-outline-width);
+    outline-style: var(--_canvas-widget-focus-outline-style);
     outline-color: var(--_canvas-widget-focus-outline-color);
     outline-offset: var(--_canvas-widget-focus-outline-offset);
-    outline-style: var(--_canvas-widget-focus-outline-style);
-    outline-width: var(--_canvas-widget-focus-outline-width);
   }
 
   dds-canvas-widget [data-canvas-stage],
   .dds-canvas-widget [data-canvas-stage] {
-    background-color: var(--_canvas-widget-stage-bg-color);
     box-sizing: border-box;
     margin: 0;
-    overflow-x: auto;
     padding: var(--_canvas-widget-stage-padding);
+    overflow-x: auto;
+    background-color: var(--_canvas-widget-stage-bg-color);
   }
 
   dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-stage]:not([hidden]),
   .dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-stage]:not([hidden]) {
-    align-items: stretch;
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
+    align-items: stretch;
     padding: 0;
   }
 
@@ -162,8 +162,8 @@
   .dds-canvas-widget [data-canvas-viewport] {
     box-sizing: border-box;
     inline-size: var(--_canvas-widget-viewport-width, 100%);
-    margin-inline: auto;
     max-inline-size: 100%;
+    margin-inline: auto;
     transition-duration: var(--_canvas-widget-transition-duration);
     transition-property: inline-size;
     transition-timing-function: var(--_canvas-widget-transition-easing);
@@ -171,35 +171,35 @@
 
   dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-viewport],
   .dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-viewport] {
-    block-size: 100%;
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
+    block-size: 100%;
   }
 
   dds-canvas-widget [data-canvas-iframe],
   .dds-canvas-widget [data-canvas-iframe] {
-    block-size: var(--_canvas-widget-iframe-height, 10rem);
-    border: 0;
     display: block;
     inline-size: 100%;
+    block-size: var(--_canvas-widget-iframe-height, 10rem);
     margin: 0;
+    border: 0;
   }
 
   dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-iframe],
   .dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-iframe] {
-    block-size: 100%;
     flex: 1 1 auto;
+    block-size: 100%;
   }
 
   dds-canvas-widget [data-canvas-panel],
   .dds-canvas-widget [data-canvas-panel] {
+    margin: 0;
+    color: var(--_canvas-widget-code-text-color);
     background-color: var(--_canvas-widget-code-bg-color);
     border-block-start-color: var(--_canvas-widget-code-border-color);
     border-block-start-style: var(--_canvas-widget-border-style);
     border-block-start-width: var(--_canvas-widget-border-width);
-    color: var(--_canvas-widget-code-text-color);
-    margin: 0;
   }
 
   dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-panel]:not([hidden]),

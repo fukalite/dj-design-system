@@ -35,27 +35,27 @@
     --_split-pane-text-color: var(--dds-text-default-color);
     --_split-pane-transition-duration: var(--dds-state-entry-duration);
     --_split-pane-transition-easing: var(--dds-state-entry-easing);
-    align-items: stretch;
-    background-color: var(--_split-pane-bg-color);
-    border-color: var(--_split-pane-border-color);
-    border-radius: var(--_split-pane-border-radius);
-    border-style: var(--_split-pane-border-style);
-    border-width: var(--_split-pane-border-width);
-    box-sizing: border-box;
-    color: var(--_split-pane-text-color);
     display: flex;
     flex: 1 1 0;
     flex-direction: row;
+    align-items: stretch;
+    box-sizing: border-box;
+    inline-size: 100%;
+    min-inline-size: 0;
+    min-block-size: 0;
+    margin: 0;
+    border-width: var(--_split-pane-border-width);
+    border-style: var(--_split-pane-border-style);
+    border-color: var(--_split-pane-border-color);
+    border-radius: var(--_split-pane-border-radius);
+    overflow: hidden;
+    color: var(--_split-pane-text-color);
+    background-color: var(--_split-pane-bg-color);
     font-family: var(--_split-pane-font);
     font-size: var(--_split-pane-font-size);
     font-weight: var(--_split-pane-font-weight);
-    inline-size: 100%;
-    letter-spacing: var(--_split-pane-letter-spacing);
     line-height: var(--_split-pane-line-height);
-    margin: 0;
-    min-block-size: 0;
-    min-inline-size: 0;
-    overflow: hidden;
+    letter-spacing: var(--_split-pane-letter-spacing);
   }
 
   dds-split-pane[data-orientation='vertical'],
@@ -65,15 +65,15 @@
 
   dds-split-pane [data-split-pane],
   .dds-split-pane [data-split-pane] {
-    background-color: var(--_split-pane-bg-color);
-    box-sizing: border-box;
-    color: var(--_split-pane-text-color);
     display: flex;
     flex-direction: column;
-    margin: 0;
-    min-block-size: 0;
+    box-sizing: border-box;
     min-inline-size: 0;
+    min-block-size: 0;
+    margin: 0;
     overflow: hidden;
+    color: var(--_split-pane-text-color);
+    background-color: var(--_split-pane-bg-color);
   }
 
   dds-split-pane [data-split-pane='primary'],
@@ -88,32 +88,32 @@
 
   dds-split-pane [data-split-pane-header],
   .dds-split-pane [data-split-pane-header] {
-    background-color: var(--_split-pane-header-bg-color);
-    border-block-end-color: var(--_split-pane-header-border-color);
-    border-block-end-style: var(--_split-pane-border-style);
-    border-block-end-width: var(--_split-pane-header-border-width);
-    color: var(--_split-pane-header-text-color);
     flex-shrink: 0;
-    font-family: var(--_split-pane-header-font);
-    font-size: var(--_split-pane-header-font-size);
-    font-weight: var(--_split-pane-header-font-weight);
-    letter-spacing: var(--_split-pane-header-letter-spacing);
-    line-height: var(--_split-pane-header-line-height);
     margin: 0;
     padding-block: var(--_split-pane-header-padding-block);
     padding-inline: var(--_split-pane-header-padding-inline);
+    color: var(--_split-pane-header-text-color);
+    background-color: var(--_split-pane-header-bg-color);
+    font-family: var(--_split-pane-header-font);
+    font-size: var(--_split-pane-header-font-size);
+    font-weight: var(--_split-pane-header-font-weight);
+    line-height: var(--_split-pane-header-line-height);
+    letter-spacing: var(--_split-pane-header-letter-spacing);
     text-transform: uppercase;
+    border-block-end-color: var(--_split-pane-header-border-color);
+    border-block-end-style: var(--_split-pane-border-style);
+    border-block-end-width: var(--_split-pane-header-border-width);
   }
 
   dds-split-pane [data-split-pane-body],
   .dds-split-pane [data-split-pane-body] {
-    box-sizing: border-box;
     flex: 1 1 auto;
-    margin: 0;
-    min-block-size: 0;
+    box-sizing: border-box;
     min-inline-size: 0;
-    overflow: auto;
+    min-block-size: 0;
+    margin: 0;
     padding: var(--_split-pane-body-padding);
+    overflow: auto;
   }
 
   dds-split-pane [data-split-pane='secondary'] [data-split-pane-body],
@@ -132,12 +132,12 @@
 
   dds-split-pane [data-split-resizer],
   .dds-split-pane [data-split-resizer] {
-    background-color: var(--_split-pane-resizer-bg-color);
-    cursor: col-resize;
+    position: relative;
     flex: 0 0 var(--_split-pane-resizer-size);
     inline-size: var(--_split-pane-resizer-size);
     margin: 0;
-    position: relative;
+    background-color: var(--_split-pane-resizer-bg-color);
+    cursor: col-resize;
     touch-action: none;
     transition-duration: var(--_split-pane-transition-duration);
     transition-property: background-color;
@@ -147,9 +147,9 @@
 
   dds-split-pane[data-orientation='vertical'] [data-split-resizer],
   .dds-split-pane[data-orientation='vertical'] [data-split-resizer] {
+    inline-size: 100%;
     block-size: var(--_split-pane-resizer-size);
     cursor: row-resize;
-    inline-size: 100%;
   }
 
   dds-split-pane [data-split-resizer]:hover,
@@ -166,11 +166,11 @@
 
   dds-split-pane [data-split-resizer]:focus-visible,
   .dds-split-pane [data-split-resizer]:focus-visible {
-    background-color: var(--_split-pane-resizer-active-bg-color);
+    outline-width: var(--_split-pane-focus-outline-width);
+    outline-style: var(--_split-pane-focus-outline-style);
     outline-color: var(--_split-pane-focus-outline-color);
     outline-offset: var(--_split-pane-focus-outline-offset);
-    outline-style: var(--_split-pane-focus-outline-style);
-    outline-width: var(--_split-pane-focus-outline-width);
+    background-color: var(--_split-pane-resizer-active-bg-color);
   }
 
   @media (max-width: 99.9375rem) {

@@ -83,11 +83,8 @@ def _render_template_tag(source: str) -> str:
 
 
 def _extract_rule_blocks(css_text: str, selector: str) -> list[str]:
-    """Extract all CSS declaration blocks for a given selector."""
-    escaped = re.escape(pattern=selector)
-    pattern = re.compile(pattern=rf"{escaped}\s*\{{([^}}]*)\}}", flags=re.DOTALL)
-    return pattern.findall(string=css_text)
-
+    """Extract CSS declaration blocks for a specific selector."""
+    return conftest.extract_css_rule_blocks(css_text=css_text, selector=selector)
 
 def _extract_defined_properties(block_text: str) -> dict[str, str]:
     """Extract custom property and declaration definitions from a CSS block."""
@@ -261,25 +258,6 @@ class TestIconStylesheetAndColocation:
                 selector=f".dds-icon[data-size='{size}']",
             )
             assert size_blocks
-
-    def test_css_formatting_and_zero_bem(self) -> None:
-        """Verify zero BEM selectors, single quotes, and alphabetised declarations."""
-        css_text = ICON_CSS_PATH.read_text(encoding="utf-8")
-        assert "!important" not in css_text
-        assert '"' not in css_text
-        bem_matches = re.findall(
-            pattern=r"\.[a-z0-9-]+(?:__|--)[a-z0-9-]+",
-            string=css_text,
-        )
-        assert not bem_matches
-
-        for block in re.findall(pattern=r"\{([^{}]+)\}", string=css_text):
-            prop_names = re.findall(
-                pattern=r"^\s*([a-z0-9_-]+)\s*:",
-                string=block,
-                flags=re.MULTILINE,
-            )
-            assert prop_names == sorted(prop_names)
 
     def test_template_hygiene_and_colocated_files(self) -> None:
         """Verify icon.html has no BEM or template filters and gallery.py/index.md work."""

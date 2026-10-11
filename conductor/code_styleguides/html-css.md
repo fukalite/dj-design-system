@@ -54,10 +54,16 @@ Style Guide.
 -   **Hexadecimal Notation:** Use 3-character hex notation where possible (e.g.,
     `#fff`).
 -   **`!important`:** Avoid using `!important`.
+-   **Nested CSS Preference:** Prefer native CSS nesting, using `&` where appropriate (e.g., `&:hover`, `&[data-state]`, `& > *`, `&::before`), rather than multiple classes at the same level or repeating flat compound selectors.
 
 ## 5. CSS Formatting Rules
 
--   **Declaration Order:** Alphabetize declarations within a rule.
+-   **Declaration Grouping & Order:** Group declarations by type and order them strictly as follows (do not add section comments; preserve the order):
+    1. **Positioning:** `position`, `top`, `right`, `bottom`, `left`, `inset`, `inset-block`, `inset-inline`, `z-index`.
+    2. **Display & Box Model:** `display`, `flex`, `grid`, `gap`, `align-items`, `justify-content`, `box-sizing`, `width`, `height`, `margin`, `padding`, `border`, `border-radius`, `overflow`, etc.
+    3. **Colour & Visuals:** `color`, `background`, `background-color`, `box-shadow`, `opacity`, etc.
+    4. **Typography:** `font`, `font-family`, `font-size`, `font-weight`, `line-height`, `letter-spacing`, `text-align`, `white-space`, etc.
+    5. **Other / Misc:** `cursor`, `transition`, `animation`, `transform`, `pointer-events`, `appearance`, etc.
 -   **Indentation:** Indent all block content.
 -   **Semicolons:** Use a semicolon after every declaration.
 -   **Spacing:**

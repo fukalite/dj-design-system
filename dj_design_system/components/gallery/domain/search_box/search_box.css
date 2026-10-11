@@ -70,175 +70,161 @@
     --_search-box-shortcut-padding-inline: var(--dds-space-2xs);
     --_search-box-transition-duration: var(--dds-state-entry-duration);
     --_search-box-transition-easing: var(--dds-state-entry-easing);
+    position: relative;
     display: block;
     margin: 0;
-    position: relative;
-  }
 
-  dds-search-box [data-search-field],
-  .dds-search-box [data-search-field] {
-    align-items: center;
-    background-color: var(--_search-box-field-bg-color);
-    border-color: var(--_search-box-field-border-color);
-    border-radius: var(--_search-box-field-border-radius);
-    border-style: var(--_search-box-field-border-style);
-    border-width: var(--_search-box-field-border-width);
-    box-shadow: var(--_search-box-field-shadow-shape) var(--_search-box-field-shadow-color);
-    box-sizing: border-box;
-    color: var(--_search-box-icon-color);
-    display: flex;
-    gap: var(--_search-box-field-gap);
-    inline-size: 100%;
-    margin: 0;
-    padding-block: var(--_search-box-field-padding-block);
-    padding-inline: var(--_search-box-field-padding-inline);
-    transition-duration: var(--_search-box-transition-duration);
-    transition-property: background-color, border-color, box-shadow;
-    transition-timing-function: var(--_search-box-transition-easing);
-  }
+    & [data-search-field] {
+      display: flex;
+      gap: var(--_search-box-field-gap);
+      align-items: center;
+      box-sizing: border-box;
+      inline-size: 100%;
+      margin: 0;
+      padding-block: var(--_search-box-field-padding-block);
+      padding-inline: var(--_search-box-field-padding-inline);
+      border-width: var(--_search-box-field-border-width);
+      border-style: var(--_search-box-field-border-style);
+      border-color: var(--_search-box-field-border-color);
+      border-radius: var(--_search-box-field-border-radius);
+      color: var(--_search-box-icon-color);
+      background-color: var(--_search-box-field-bg-color);
+      box-shadow: var(--_search-box-field-shadow-shape) var(--_search-box-field-shadow-color);
+      transition-duration: var(--_search-box-transition-duration);
+      transition-property: background-color, border-color, box-shadow;
+      transition-timing-function: var(--_search-box-transition-easing);
 
-  dds-search-box [data-search-field]:hover,
-  .dds-search-box [data-search-field]:hover {
-    border-color: var(--_search-box-field-hover-border-color);
-  }
+      &:hover {
+        border-color: var(--_search-box-field-hover-border-color);
+      }
 
-  dds-search-box [data-search-field]:focus-within,
-  .dds-search-box [data-search-field]:focus-within {
-    border-color: var(--_search-box-field-focus-border-color);
-    outline-color: var(--_search-box-field-focus-outline-color);
-    outline-offset: var(--_search-box-field-focus-outline-offset);
-    outline-style: var(--_search-box-field-focus-outline-style);
-    outline-width: var(--_search-box-field-focus-outline-width);
-  }
+      &:focus-within {
+        border-color: var(--_search-box-field-focus-border-color);
+        outline-width: var(--_search-box-field-focus-outline-width);
+        outline-style: var(--_search-box-field-focus-outline-style);
+        outline-color: var(--_search-box-field-focus-outline-color);
+        outline-offset: var(--_search-box-field-focus-outline-offset);
+      }
+    }
 
-  dds-search-box [data-search-input],
-  .dds-search-box [data-search-input] {
-    appearance: none;
-    background-color: transparent;
-    border-width: 0;
-    color: var(--_search-box-field-text-color);
-    flex: 1 1 auto;
-    font-family: var(--_search-box-font);
-    font-size: var(--_search-box-font-size);
-    font-weight: var(--_search-box-font-weight);
-    inline-size: 100%;
-    letter-spacing: var(--_search-box-letter-spacing);
-    line-height: var(--_search-box-line-height);
-    margin: 0;
-    min-inline-size: 0;
-    outline: none;
-    padding: 0;
-  }
+    & [data-search-input] {
+      flex: 1 1 auto;
+      inline-size: 100%;
+      min-inline-size: 0;
+      margin: 0;
+      padding: 0;
+      border-width: 0;
+      outline: none;
+      color: var(--_search-box-field-text-color);
+      background-color: transparent;
+      font-family: var(--_search-box-font);
+      font-size: var(--_search-box-font-size);
+      font-weight: var(--_search-box-font-weight);
+      line-height: var(--_search-box-line-height);
+      letter-spacing: var(--_search-box-letter-spacing);
+      appearance: none;
 
-  dds-search-box [data-search-input]::placeholder,
-  .dds-search-box [data-search-input]::placeholder {
-    color: var(--_search-box-placeholder-color);
-  }
+      &::placeholder {
+        color: var(--_search-box-placeholder-color);
+      }
+    }
 
-  dds-search-box [data-search-shortcut],
-  .dds-search-box [data-search-shortcut] {
-    background-color: var(--_search-box-shortcut-bg-color);
-    border-color: var(--_search-box-shortcut-border-color);
-    border-radius: var(--_search-box-shortcut-border-radius);
-    border-style: var(--_search-box-shortcut-border-style);
-    border-width: var(--_search-box-shortcut-border-width);
-    color: var(--_search-box-shortcut-color);
-    flex: 0 0 auto;
-    font-family: var(--_search-box-shortcut-font);
-    font-size: var(--_search-box-shortcut-font-size);
-    line-height: var(--_search-box-shortcut-line-height);
-    margin: 0;
-    padding-block: var(--_search-box-shortcut-padding-block);
-    padding-inline: var(--_search-box-shortcut-padding-inline);
-    user-select: none;
-  }
+    & [data-search-shortcut] {
+      flex: 0 0 auto;
+      margin: 0;
+      padding-block: var(--_search-box-shortcut-padding-block);
+      padding-inline: var(--_search-box-shortcut-padding-inline);
+      border-width: var(--_search-box-shortcut-border-width);
+      border-style: var(--_search-box-shortcut-border-style);
+      border-color: var(--_search-box-shortcut-border-color);
+      border-radius: var(--_search-box-shortcut-border-radius);
+      color: var(--_search-box-shortcut-color);
+      background-color: var(--_search-box-shortcut-bg-color);
+      font-family: var(--_search-box-shortcut-font);
+      font-size: var(--_search-box-shortcut-font-size);
+      line-height: var(--_search-box-shortcut-line-height);
+      user-select: none;
+    }
 
-  dds-search-box [data-search-results],
-  .dds-search-box [data-search-results] {
-    backdrop-filter: blur(var(--_search-box-results-bg-blur));
-    background-color: var(--_search-box-results-bg-color);
-    border-color: var(--_search-box-results-border-color);
-    border-radius: var(--_search-box-results-border-radius);
-    border-style: var(--_search-box-results-border-style);
-    border-width: var(--_search-box-results-border-width);
-    box-shadow: var(--_search-box-results-shadow-shape) var(--_search-box-results-shadow-color);
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    gap: var(--_search-box-results-gap);
-    inset-block-start: calc(100% + var(--_search-box-results-offset));
-    inset-inline-end: 0;
-    inset-inline-start: 0;
-    margin: 0;
-    overflow-y: auto;
-    padding: var(--_search-box-results-padding);
-    position: absolute;
-    z-index: var(--_search-box-results-z-index);
-  }
+    & [data-search-results] {
+      position: absolute;
+      inset-block-start: calc(100% + var(--_search-box-results-offset));
+      inset-inline-start: 0;
+      inset-inline-end: 0;
+      z-index: var(--_search-box-results-z-index);
+      display: flex;
+      flex-direction: column;
+      gap: var(--_search-box-results-gap);
+      box-sizing: border-box;
+      margin: 0;
+      padding: var(--_search-box-results-padding);
+      border-width: var(--_search-box-results-border-width);
+      border-style: var(--_search-box-results-border-style);
+      border-color: var(--_search-box-results-border-color);
+      border-radius: var(--_search-box-results-border-radius);
+      overflow-y: auto;
+      background-color: var(--_search-box-results-bg-color);
+      box-shadow: var(--_search-box-results-shadow-shape) var(--_search-box-results-shadow-color);
+      backdrop-filter: blur(var(--_search-box-results-bg-blur));
 
-  dds-search-box [data-search-results][hidden],
-  .dds-search-box [data-search-results][hidden] {
-    display: none;
-  }
+      &[hidden] {
+        display: none;
+      }
+    }
 
-  dds-search-box [role='option'],
-  .dds-search-box [role='option'] {
-    border-radius: var(--_search-box-result-border-radius);
-    color: var(--_search-box-result-text-color);
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    font-family: var(--_search-box-font);
-    font-size: var(--_search-box-font-size);
-    font-weight: var(--_search-box-font-weight);
-    gap: var(--_search-box-result-gap);
-    letter-spacing: var(--_search-box-letter-spacing);
-    line-height: var(--_search-box-line-height);
-    margin: 0;
-    padding-block: var(--_search-box-result-padding-block);
-    padding-inline: var(--_search-box-result-padding-inline);
-    text-decoration: none;
-    transition-duration: var(--_search-box-transition-duration);
-    transition-property: background-color, color;
-    transition-timing-function: var(--_search-box-transition-easing);
-  }
+    & [role='option'] {
+      display: flex;
+      flex-direction: column;
+      gap: var(--_search-box-result-gap);
+      margin: 0;
+      padding-block: var(--_search-box-result-padding-block);
+      padding-inline: var(--_search-box-result-padding-inline);
+      border-radius: var(--_search-box-result-border-radius);
+      color: var(--_search-box-result-text-color);
+      font-family: var(--_search-box-font);
+      font-size: var(--_search-box-font-size);
+      font-weight: var(--_search-box-font-weight);
+      line-height: var(--_search-box-line-height);
+      letter-spacing: var(--_search-box-letter-spacing);
+      text-decoration: none;
+      cursor: pointer;
+      transition-duration: var(--_search-box-transition-duration);
+      transition-property: background-color, color;
+      transition-timing-function: var(--_search-box-transition-easing);
 
-  dds-search-box [role='option']:hover,
-  .dds-search-box [role='option']:hover {
-    background-color: var(--_search-box-result-hover-bg-color);
-    color: var(--_search-box-result-hover-text-color);
-  }
+      &:hover {
+        color: var(--_search-box-result-hover-text-color);
+        background-color: var(--_search-box-result-hover-bg-color);
+      }
 
-  dds-search-box [role='option'][aria-selected='true'],
-  .dds-search-box [role='option'][aria-selected='true'] {
-    background-color: var(--_search-box-result-active-bg-color);
-    color: var(--_search-box-result-active-text-color);
-  }
+      &[aria-selected='true'] {
+        color: var(--_search-box-result-active-text-color);
+        background-color: var(--_search-box-result-active-bg-color);
+      }
+    }
 
-  dds-search-box [data-search-breadcrumb],
-  .dds-search-box [data-search-breadcrumb] {
-    color: var(--_search-box-meta-color);
-    font-family: var(--_search-box-meta-font);
-    font-size: var(--_search-box-meta-font-size);
-    font-weight: var(--_search-box-meta-font-weight);
-    letter-spacing: var(--_search-box-meta-letter-spacing);
-    line-height: var(--_search-box-meta-line-height);
-  }
+    & [data-search-breadcrumb] {
+      color: var(--_search-box-meta-color);
+      font-family: var(--_search-box-meta-font);
+      font-size: var(--_search-box-meta-font-size);
+      font-weight: var(--_search-box-meta-font-weight);
+      line-height: var(--_search-box-meta-line-height);
+      letter-spacing: var(--_search-box-meta-letter-spacing);
+    }
 
-  dds-search-box [data-search-empty],
-  .dds-search-box [data-search-empty] {
-    color: var(--_search-box-empty-color);
-    font-family: var(--_search-box-font);
-    font-size: var(--_search-box-font-size);
-    line-height: var(--_search-box-line-height);
-    margin: 0;
-    padding: var(--_search-box-empty-padding);
-    text-align: center;
-  }
+    & [data-search-empty] {
+      margin: 0;
+      padding: var(--_search-box-empty-padding);
+      color: var(--_search-box-empty-color);
+      font-family: var(--_search-box-font);
+      font-size: var(--_search-box-font-size);
+      line-height: var(--_search-box-line-height);
+      text-align: center;
+    }
 
-  dds-search-box mark,
-  .dds-search-box mark {
-    background-color: var(--_search-box-highlight-bg-color);
-    color: var(--_search-box-highlight-text-color);
+    & mark {
+      color: var(--_search-box-highlight-text-color);
+      background-color: var(--_search-box-highlight-bg-color);
+    }
   }
 }

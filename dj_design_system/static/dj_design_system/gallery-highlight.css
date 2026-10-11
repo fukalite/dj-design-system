@@ -51,8 +51,8 @@
   }
 
   :is(.dds-code-block code, .gallery-highlight code) .err {
-    background-color: var(--hl-error-bg);
     color: var(--hl-error);
+    background-color: var(--hl-error-bg);
   }
 
   :is(.dds-code-block code, .gallery-highlight code) :is(.k, .kc, .kd, .kp, .kr, .kt) {
@@ -96,19 +96,19 @@
   }
 
   .dds-prose .gallery-highlight {
-    background-color: var(--hl-block-bg);
-    border-color: var(--hl-block-border);
-    border-radius: var(--dds-control-border-radius);
-    border-style: solid;
-    border-width: 1px;
     margin-block: var(--dds-space-sm);
     margin-inline: 0;
+    border-width: 1px;
+    border-style: solid;
+    border-color: var(--hl-block-border);
+    border-radius: var(--dds-control-border-radius);
     overflow-x: auto;
+    background-color: var(--hl-block-bg);
   }
 
   .dds-prose .gallery-highlight pre {
-    border-radius: 0;
-    border-width: 0;
     margin: 0;
+    border-width: 0;
+    border-radius: 0;
   }
 }

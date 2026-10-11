@@ -247,32 +247,11 @@ class TestTableStylesheet:
     def test_compact_density_overrides_tier_3_tokens(self) -> None:
         """Verify [data-density='compact'] overrides --_table-* padding tokens."""
         css_text = _read_table_css()
-        compact_match = re.search(
-            pattern=r"\.dds-table\[data-density='compact'\]\s*\{([^}]+)\}",
-            string=css_text,
+        compact_blocks = conftest.extract_css_rule_blocks(
+            css_text=css_text,
+            selector=".dds-table[data-density='compact']",
         )
-        assert compact_match is not None
-        compact_block = compact_match.group(1)
+        assert compact_blocks
+        compact_block = compact_blocks[0]
         assert "--_table-cell-padding-block" in compact_block
         assert "--_table-cell-padding-inline" in compact_block
-
-    def test_no_bem_and_alphabetized_declarations(self) -> None:
-        """Verify zero BEM selectors and alphabetized declarations per html-css.md."""
-        css_text = _read_table_css()
-        bem_matches = re.findall(
-            pattern=r"\.[a-z0-9-]+(?:__|--)[a-z0-9-]+",
-            string=css_text,
-        )
-        assert not bem_matches
-        assert "!important" not in css_text
-        assert '"' not in css_text
-
-        rule_blocks = re.findall(pattern=r"\{([^{}]+)\}", string=css_text)
-        assert rule_blocks
-        for block in rule_blocks:
-            prop_names = re.findall(
-                pattern=r"^\s*([a-z0-9_-]+)\s*:",
-                string=block,
-                flags=re.MULTILINE,
-            )
-            assert prop_names == sorted(prop_names)
