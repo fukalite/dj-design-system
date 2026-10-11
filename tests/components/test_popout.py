@@ -9,13 +9,13 @@ from django.utils import safestring
 
 from dj_design_system import data, gallery
 from dj_design_system.components import base as components_base
-from dj_design_system.components.elements import icon as icon_module
-from dj_design_system.components.elements import popout as popout_package
-from dj_design_system.components.elements import (
+from dj_design_system.components.gallery.elements import icon as icon_module
+from dj_design_system.components.gallery.elements import popout as popout_package
+from dj_design_system.components.gallery.elements import (
     popout_option as popout_option_package,
 )
-from dj_design_system.components.elements.popout import popout as popout_module
-from dj_design_system.components.elements.popout_option import (
+from dj_design_system.components.gallery.elements.popout import popout as popout_module
+from dj_design_system.components.gallery.elements.popout_option import (
     popout_option as popout_option_module,
 )
 from dj_design_system.services import canvas as canvas_service
@@ -26,7 +26,7 @@ from tests import conftest
 
 APP_LABEL = "dj_design_system"
 ROOT_DIR = pathlib.Path(__file__).resolve().parent.parent.parent
-ELEMENTS_DIR = ROOT_DIR / "dj_design_system" / "components" / "elements"
+ELEMENTS_DIR = ROOT_DIR / "dj_design_system" / "components" / "gallery" / "elements"
 
 POPOUT_DIR = ELEMENTS_DIR / "popout"
 POPOUT_PY_PATH = POPOUT_DIR / "popout.py"
@@ -119,31 +119,31 @@ class TestPopoutDiscoveryAndExports:
         popout_info = reg.get_by_name(name="popout", app_label=APP_LABEL)
         assert popout_info.component_class is popout_module.Popout
         assert popout_info.qualified_name == "dds__popout"
-        assert popout_info.relative_path == "elements.popout"
+        assert popout_info.relative_path == "gallery.elements.popout"
         assert popout_info.is_internal is True
         assert (
             popout_info.template_name
-            == "dj_design_system/components/elements/popout/popout.html"
+            == "dj_design_system/components/gallery/elements/popout/popout.html"
         )
         assert popout_info.media.css == [
-            "dj_design_system/components/elements/popout/popout.css"
+            "dj_design_system/components/gallery/elements/popout/popout.css"
         ]
         assert popout_info.media.js == [
-            "dj_design_system/components/elements/popout/popout.js"
+            "dj_design_system/components/gallery/elements/popout/popout.js"
         ]
         assert popout_module.Popout.get_positional_args() == ["label"]
 
         option_info = reg.get_by_name(name="popout_option", app_label=APP_LABEL)
         assert option_info.component_class is popout_option_module.PopoutOption
         assert option_info.qualified_name == "dds__popout_option"
-        assert option_info.relative_path == "elements.popout_option"
+        assert option_info.relative_path == "gallery.elements.popout_option"
         assert option_info.is_internal is True
         assert (
             option_info.template_name
-            == "dj_design_system/components/elements/popout_option/popout_option.html"
+            == "dj_design_system/components/gallery/elements/popout_option/popout_option.html"
         )
         assert option_info.media.css == [
-            "dj_design_system/components/elements/popout_option/popout_option.css"
+            "dj_design_system/components/gallery/elements/popout_option/popout_option.css"
         ]
         assert popout_option_module.PopoutOption.get_positional_args() == ["label"]
 

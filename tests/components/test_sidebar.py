@@ -9,8 +9,8 @@ from django.utils import safestring
 
 from dj_design_system import data, gallery
 from dj_design_system.components import base as components_base
-from dj_design_system.components.domain import sidebar as sidebar_package
-from dj_design_system.components.domain.sidebar import sidebar as sidebar_module
+from dj_design_system.components.gallery.domain import sidebar as sidebar_package
+from dj_design_system.components.gallery.domain.sidebar import sidebar as sidebar_module
 from dj_design_system.services import canvas as canvas_service
 from dj_design_system.services import registry as registry_service
 from dj_design_system.services import slot_node
@@ -20,12 +20,12 @@ from tests import conftest
 APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "sidebar"
 QUALIFIED_NAME = "dds__sidebar"
-RELATIVE_PATH = "domain.sidebar"
-TEMPLATE_PATH = "dj_design_system/components/domain/sidebar/sidebar.html"
-CSS_MEDIA_PATH = "dj_design_system/components/domain/sidebar/sidebar.css"
+RELATIVE_PATH = "gallery.domain.sidebar"
+TEMPLATE_PATH = "dj_design_system/components/gallery/domain/sidebar/sidebar.html"
+CSS_MEDIA_PATH = "dj_design_system/components/gallery/domain/sidebar/sidebar.css"
 
 ROOT_DIR = pathlib.Path(__file__).resolve().parent.parent.parent
-SIDEBAR_DIR = ROOT_DIR / "dj_design_system" / "components" / "domain" / "sidebar"
+SIDEBAR_DIR = ROOT_DIR / "dj_design_system" / "components" / "gallery" / "domain" / "sidebar"
 SIDEBAR_PY_PATH = SIDEBAR_DIR / "sidebar.py"
 SIDEBAR_HTML_PATH = SIDEBAR_DIR / "sidebar.html"
 SIDEBAR_CSS_PATH = SIDEBAR_DIR / "sidebar.css"
@@ -129,7 +129,7 @@ class TestSidebarDiscoveryAndMetadata:
     """Verify Sidebar exports, metadata, media, slots, and registry discovery."""
 
     def test_exported_from_package_init_and_subclasses_block_component(self) -> None:
-        """Verify Sidebar is exported in dj_design_system.components.domain.sidebar."""
+        """Verify Sidebar is exported in dj_design_system.components.gallery.domain.sidebar."""
         assert sidebar_package.Sidebar is sidebar_module.Sidebar
         assert issubclass(sidebar_module.Sidebar, components_base.BlockComponent)
         assert sidebar_module.Sidebar.has_slots() is True

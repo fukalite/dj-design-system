@@ -8,10 +8,10 @@ from django import template
 
 from dj_design_system import data, gallery
 from dj_design_system.components import base as components_base
-from dj_design_system.components.domain import (
+from dj_design_system.components.gallery.domain import (
     sandbox_toolbar as sandbox_toolbar_package,
 )
-from dj_design_system.components.domain.sandbox_toolbar import (
+from dj_design_system.components.gallery.domain.sandbox_toolbar import (
     sandbox_toolbar as sandbox_toolbar_module,
 )
 from dj_design_system.services import canvas as canvas_service
@@ -23,19 +23,20 @@ from tests import conftest
 APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "sandbox_toolbar"
 QUALIFIED_NAME = "dds__sandbox_toolbar"
-RELATIVE_PATH = "domain.sandbox_toolbar"
+RELATIVE_PATH = "gallery.domain.sandbox_toolbar"
 TEMPLATE_PATH = (
-    "dj_design_system/components/domain/sandbox_toolbar/sandbox_toolbar.html"
+    "dj_design_system/components/gallery/domain/sandbox_toolbar/sandbox_toolbar.html"
 )
 CSS_MEDIA_PATH = (
-    "dj_design_system/components/domain/sandbox_toolbar/sandbox_toolbar.css"
+    "dj_design_system/components/gallery/domain/sandbox_toolbar/sandbox_toolbar.css"
 )
-JS_MEDIA_PATH = "dj_design_system/components/domain/sandbox_toolbar/sandbox_toolbar.js"
+JS_MEDIA_PATH = "dj_design_system/components/gallery/domain/sandbox_toolbar/sandbox_toolbar.js"
 
 SANDBOX_TOOLBAR_DIR = (
     pathlib.Path(__file__).resolve().parent.parent.parent
     / "dj_design_system"
     / "components"
+    / "gallery"
     / "domain"
     / "sandbox_toolbar"
 )
@@ -109,7 +110,7 @@ class TestSandboxToolbarDiscoveryAndMetadata:
     """Verify SandboxToolbar class exports, metadata, media, and registry discovery."""
 
     def test_exported_from_package_init(self) -> None:
-        """Verify SandboxToolbar is exported in dj_design_system.components.domain.sandbox_toolbar."""
+        """Verify SandboxToolbar is exported in dj_design_system.components.gallery.domain.sandbox_toolbar."""
         assert (
             sandbox_toolbar_package.SandboxToolbar
             is sandbox_toolbar_module.SandboxToolbar

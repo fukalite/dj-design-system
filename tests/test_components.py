@@ -382,7 +382,7 @@ class TestBlockComponentSafeStringAndTemplateFallback:
         self,
     ) -> None:
         class UnboundTemplateComp(TagComponent):
-            template_name = "dj_design_system/components/elements/badge/badge.html"
+            template_name = "dj_design_system/components/gallery/elements/badge/badge.html"
             label = StrParam("Label", default="Badge")
 
         comp = UnboundTemplateComp(label="Unbound")

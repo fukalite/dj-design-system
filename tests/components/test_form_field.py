@@ -8,8 +8,8 @@ from django import template
 from django.utils import safestring
 
 from dj_design_system import data
-from dj_design_system.components.elements import form_field as form_field_pkg
-from dj_design_system.components.elements.form_field import form_field as form_field_mod
+from dj_design_system.components.gallery.elements import form_field as form_field_pkg
+from dj_design_system.components.gallery.elements.form_field import form_field as form_field_mod
 from dj_design_system.services import canvas, registry, slot_node
 from tests import conftest
 
@@ -18,6 +18,7 @@ COMPONENT_DIR = (
     pathlib.Path(__file__).resolve().parent.parent.parent
     / "dj_design_system"
     / "components"
+    / "gallery"
     / "elements"
     / "form_field"
 )
@@ -65,7 +66,7 @@ class TestFormFieldDiscoveryAndContract:
     """Verify component export, registry discovery, parameters, and media declarations."""
 
     def test_exported_in_package_init(self) -> None:
-        """Verify FormField is exported from dj_design_system.components.elements.form_field."""
+        """Verify FormField is exported from dj_design_system.components.gallery.elements.form_field."""
         assert form_field_pkg.FormField is form_field_mod.FormField
 
     def test_discovered_as_dds_form_field(self) -> None:
@@ -83,10 +84,10 @@ class TestFormFieldDiscoveryAndContract:
         info = reg.get_by_name(name="form_field", app_label="dj_design_system")
         assert (
             info.template_name
-            == "dj_design_system/components/elements/form_field/form_field.html"
+            == "dj_design_system/components/gallery/elements/form_field/form_field.html"
         )
         assert (
-            "dj_design_system/components/elements/form_field/form_field.css"
+            "dj_design_system/components/gallery/elements/form_field/form_field.css"
             in info.media.css
         )
 

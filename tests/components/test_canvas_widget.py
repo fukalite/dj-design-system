@@ -8,10 +8,10 @@ from django import template
 
 from dj_design_system import data, gallery
 from dj_design_system.components import base as components_base
-from dj_design_system.components.domain import (
+from dj_design_system.components.gallery.domain import (
     canvas_widget as canvas_widget_package,
 )
-from dj_design_system.components.domain.canvas_widget import (
+from dj_design_system.components.gallery.domain.canvas_widget import (
     canvas_widget as canvas_widget_module,
 )
 from dj_design_system.services import canvas as canvas_service
@@ -23,14 +23,14 @@ from tests import conftest
 APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "canvas_widget"
 QUALIFIED_NAME = "dds__canvas_widget"
-RELATIVE_PATH = "domain.canvas_widget"
-TEMPLATE_PATH = "dj_design_system/components/domain/canvas_widget/canvas_widget.html"
-CSS_MEDIA_PATH = "dj_design_system/components/domain/canvas_widget/canvas_widget.css"
-JS_MEDIA_PATH = "dj_design_system/components/domain/canvas_widget/canvas_widget.js"
+RELATIVE_PATH = "gallery.domain.canvas_widget"
+TEMPLATE_PATH = "dj_design_system/components/gallery/domain/canvas_widget/canvas_widget.html"
+CSS_MEDIA_PATH = "dj_design_system/components/gallery/domain/canvas_widget/canvas_widget.css"
+JS_MEDIA_PATH = "dj_design_system/components/gallery/domain/canvas_widget/canvas_widget.js"
 
 ROOT_DIR = pathlib.Path(__file__).resolve().parent.parent.parent
 CANVAS_WIDGET_DIR = (
-    ROOT_DIR / "dj_design_system" / "components" / "domain" / "canvas_widget"
+    ROOT_DIR / "dj_design_system" / "components" / "gallery" / "domain" / "canvas_widget"
 )
 CANVAS_WIDGET_PY_PATH = CANVAS_WIDGET_DIR / "canvas_widget.py"
 CANVAS_WIDGET_HTML_PATH = CANVAS_WIDGET_DIR / "canvas_widget.html"
@@ -108,7 +108,7 @@ class TestCanvasWidgetDiscoveryAndMetadata:
     def test_exported_from_package_init_and_subclasses_tag_component(
         self,
     ) -> None:
-        """Verify CanvasWidget is exported in dj_design_system.components.domain.canvas_widget."""
+        """Verify CanvasWidget is exported in dj_design_system.components.gallery.domain.canvas_widget."""
         assert canvas_widget_package.CanvasWidget is canvas_widget_module.CanvasWidget
         assert issubclass(
             canvas_widget_module.CanvasWidget,

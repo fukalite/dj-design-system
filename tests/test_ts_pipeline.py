@@ -25,16 +25,16 @@ PYPROJECT_PATH = ROOT_DIR / "pyproject.toml"
 PUBLISH_WORKFLOW_PATH = ROOT_DIR / ".github" / "workflows" / "publish.yml"
 PUBLISH_TEST_WORKFLOW_PATH = ROOT_DIR / ".github" / "workflows" / "publish-test.yml"
 COMPONENTS_DIR = ROOT_DIR / "dj_design_system" / "components"
-SHARED_TYPES_PATH = COMPONENTS_DIR / "types.ts"
+SHARED_TYPES_PATH = COMPONENTS_DIR / "gallery" / "types.ts"
 
-PROBE_COMPONENT_DIR = COMPONENTS_DIR / "elements" / "_ts_probe_widget"
+PROBE_COMPONENT_DIR = COMPONENTS_DIR / "gallery" / "elements" / "_ts_probe_widget"
 PROBE_TS_PATH = PROBE_COMPONENT_DIR / "_ts_probe_widget.ts"
 PROBE_JS_PATH = PROBE_COMPONENT_DIR / "_ts_probe_widget.js"
 PROBE_STATIC_JS_PATH = (
-    "dj_design_system/components/elements/_ts_probe_widget/_ts_probe_widget.js"
+    "dj_design_system/components/gallery/elements/_ts_probe_widget/_ts_probe_widget.js"
 )
 PROBE_STATIC_TS_PATH = (
-    "dj_design_system/components/elements/_ts_probe_widget/_ts_probe_widget.ts"
+    "dj_design_system/components/gallery/elements/_ts_probe_widget/_ts_probe_widget.ts"
 )
 
 PROBE_TS_SOURCE = """/**

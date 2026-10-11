@@ -9,10 +9,10 @@ from django import template
 
 from dj_design_system import data, gallery, types
 from dj_design_system.components import base as components_base
-from dj_design_system.components.domain import (
+from dj_design_system.components.gallery.domain import (
     folder_listing as folder_listing_package,
 )
-from dj_design_system.components.domain.folder_listing import (
+from dj_design_system.components.gallery.domain.folder_listing import (
     folder_listing as folder_listing_module,
 )
 from dj_design_system.services import registry as registry_service
@@ -22,18 +22,19 @@ from tests import conftest
 APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "folder_listing"
 QUALIFIED_NAME = "dds__folder_listing"
-RELATIVE_PATH = "domain.folder_listing"
+RELATIVE_PATH = "gallery.domain.folder_listing"
 TEMPLATE_PATH = (
-    "dj_design_system/components/domain/folder_listing/folder_listing.html"
+    "dj_design_system/components/gallery/domain/folder_listing/folder_listing.html"
 )
 CSS_MEDIA_PATH = (
-    "dj_design_system/components/domain/folder_listing/folder_listing.css"
+    "dj_design_system/components/gallery/domain/folder_listing/folder_listing.css"
 )
 
 FOLDER_LISTING_DIR = (
     pathlib.Path(__file__).resolve().parent.parent.parent
     / "dj_design_system"
     / "components"
+    / "gallery"
     / "domain"
     / "folder_listing"
 )
@@ -117,7 +118,7 @@ class TestFolderListingDiscoveryAndMetadata:
     """Verify FolderListing exports, metadata, media, and registry discovery."""
 
     def test_exported_from_package_init(self) -> None:
-        """Verify FolderListing is exported in dj_design_system.components.domain.folder_listing."""
+        """Verify FolderListing is exported in dj_design_system.components.gallery.domain.folder_listing."""
         assert (
             folder_listing_package.FolderListing
             is folder_listing_module.FolderListing

@@ -7,10 +7,10 @@ import pytest
 from django import template
 
 from dj_design_system import components, data, gallery
-from dj_design_system.components.domain import (
+from dj_design_system.components.gallery.domain import (
     usage_example as usage_example_package,
 )
-from dj_design_system.components.domain.usage_example import (
+from dj_design_system.components.gallery.domain.usage_example import (
     usage_example as usage_example_module,
 )
 from dj_design_system.services import registry as registry_service
@@ -21,18 +21,19 @@ from tests import conftest
 APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "usage_example"
 QUALIFIED_NAME = "dds__usage_example"
-RELATIVE_PATH = "domain.usage_example"
+RELATIVE_PATH = "gallery.domain.usage_example"
 TEMPLATE_PATH = (
-    "dj_design_system/components/domain/usage_example/usage_example.html"
+    "dj_design_system/components/gallery/domain/usage_example/usage_example.html"
 )
 CSS_MEDIA_PATH = (
-    "dj_design_system/components/domain/usage_example/usage_example.css"
+    "dj_design_system/components/gallery/domain/usage_example/usage_example.css"
 )
 
 USAGE_EXAMPLE_DIR = (
     pathlib.Path(__file__).resolve().parent.parent.parent
     / "dj_design_system"
     / "components"
+    / "gallery"
     / "domain"
     / "usage_example"
 )
@@ -114,7 +115,7 @@ class TestUsageExampleDiscoveryAndMetadata:
     """Verify UsageExample exports, metadata, media, and registry discovery."""
 
     def test_exported_from_package_init(self) -> None:
-        """Verify UsageExample is exported in dj_design_system.components.domain.usage_example."""
+        """Verify UsageExample is exported in dj_design_system.components.gallery.domain.usage_example."""
         assert (
             usage_example_package.UsageExample
             is usage_example_module.UsageExample

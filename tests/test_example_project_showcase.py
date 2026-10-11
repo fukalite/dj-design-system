@@ -140,12 +140,17 @@ class TestSettingsDdsGallery:
                 assert len(visible) >= 22
 
                 collections = {
-                    info.relative_path.split(".")[0] for info in visible
+                    info.relative_path.removeprefix("gallery.").split(".")[0]
+                    for info in visible
                 }
                 assert collections == {"domain", "elements"}
 
                 nav_tree = navigation_service.build_navigation()
                 assert [node.slug for node in nav_tree] == ["dj_design_system"]
+                assert [child.slug for child in nav_tree[0].children] == [
+                    "domain",
+                    "elements",
+                ]
 
                 response = client.get(path=urls.reverse(viewname="gallery"))
                 assert response.status_code == 200

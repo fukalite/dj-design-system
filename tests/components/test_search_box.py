@@ -9,8 +9,8 @@ from django import template
 
 from dj_design_system import data, gallery
 from dj_design_system.components import base as components_base
-from dj_design_system.components.domain import search_box as search_box_package
-from dj_design_system.components.domain.search_box import (
+from dj_design_system.components.gallery.domain import search_box as search_box_package
+from dj_design_system.components.gallery.domain.search_box import (
     search_box as search_box_module,
 )
 from dj_design_system.services import canvas as canvas_service
@@ -21,7 +21,7 @@ from tests import conftest
 
 APP_LABEL = "dj_design_system"
 ROOT_DIR = pathlib.Path(__file__).resolve().parent.parent.parent
-DOMAIN_DIR = ROOT_DIR / "dj_design_system" / "components" / "domain"
+DOMAIN_DIR = ROOT_DIR / "dj_design_system" / "components" / "gallery" / "domain"
 
 SEARCH_BOX_DIR = DOMAIN_DIR / "search_box"
 SEARCH_BOX_PY_PATH = SEARCH_BOX_DIR / "search_box.py"
@@ -114,17 +114,17 @@ class TestSearchBoxDiscoveryAndExports:
         info = reg.get_by_name(name="search_box", app_label=APP_LABEL)
         assert info.component_class is search_box_module.SearchBox
         assert info.qualified_name == "dds__search_box"
-        assert info.relative_path == "domain.search_box"
+        assert info.relative_path == "gallery.domain.search_box"
         assert info.is_internal is True
         assert (
             info.template_name
-            == "dj_design_system/components/domain/search_box/search_box.html"
+            == "dj_design_system/components/gallery/domain/search_box/search_box.html"
         )
         assert info.media.css == [
-            "dj_design_system/components/domain/search_box/search_box.css"
+            "dj_design_system/components/gallery/domain/search_box/search_box.css"
         ]
         assert info.media.js == [
-            "dj_design_system/components/domain/search_box/search_box.js"
+            "dj_design_system/components/gallery/domain/search_box/search_box.js"
         ]
         assert search_box_module.SearchBox.get_positional_args() == ["placeholder"]
 

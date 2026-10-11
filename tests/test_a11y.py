@@ -5,7 +5,7 @@ import pytest
 from django.template.loader import render_to_string
 from django.test import RequestFactory
 
-from dj_design_system.components.domain.nav_tree.nav_tree import NavTree
+from dj_design_system.components.gallery.domain.nav_tree.nav_tree import NavTree
 from dj_design_system.data import NavNode
 from dj_design_system.types import NodeType
 from dj_design_system.views.gallery import get_base_context
@@ -144,7 +144,7 @@ class TestNavtreeAccessibility:
 
     def test_variant_select_keyboard_navigation_guard(self):
         """popout.ts must emit dds:popout-select only on explicit option activation."""
-        ts_path = Path("dj_design_system/components/elements/popout/popout.ts")
+        ts_path = Path("dj_design_system/components/gallery/elements/popout/popout.ts")
         content = ts_path.read_text(encoding="utf-8")
 
         assert "handleMenuClick" in content
@@ -153,7 +153,7 @@ class TestNavtreeAccessibility:
 
     def test_toolbar_popouts_escape_key_handler(self):
         """popout.ts must include an Escape key listener to close open popouts and refocus trigger."""
-        ts_path = Path("dj_design_system/components/elements/popout/popout.ts")
+        ts_path = Path("dj_design_system/components/gallery/elements/popout/popout.ts")
         content = ts_path.read_text(encoding="utf-8")
 
         assert "Escape" in content
@@ -241,7 +241,7 @@ class TestNavtreeAccessibility:
     def test_depth_indentation_uses_custom_properties(self):
         """Depth indentation should use CSS custom properties instead of hardcoded pixel values."""
         css_path = Path(
-            "dj_design_system/components/domain/nav_tree/nav_tree.css"
+            "dj_design_system/components/gallery/domain/nav_tree/nav_tree.css"
         )
         content = css_path.read_text(encoding="utf-8")
 

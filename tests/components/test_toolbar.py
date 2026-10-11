@@ -9,8 +9,8 @@ from django.utils import safestring
 
 from dj_design_system import data, gallery
 from dj_design_system.components import base as components_base
-from dj_design_system.components.domain import toolbar as toolbar_package
-from dj_design_system.components.domain.toolbar import toolbar as toolbar_module
+from dj_design_system.components.gallery.domain import toolbar as toolbar_package
+from dj_design_system.components.gallery.domain.toolbar import toolbar as toolbar_module
 from dj_design_system.services import canvas as canvas_service
 from dj_design_system.services import registry as registry_service
 from dj_design_system.services import slot_node
@@ -20,14 +20,15 @@ from tests import conftest
 APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "toolbar"
 QUALIFIED_NAME = "dds__toolbar"
-RELATIVE_PATH = "domain.toolbar"
-TEMPLATE_PATH = "dj_design_system/components/domain/toolbar/toolbar.html"
-CSS_MEDIA_PATH = "dj_design_system/components/domain/toolbar/toolbar.css"
+RELATIVE_PATH = "gallery.domain.toolbar"
+TEMPLATE_PATH = "dj_design_system/components/gallery/domain/toolbar/toolbar.html"
+CSS_MEDIA_PATH = "dj_design_system/components/gallery/domain/toolbar/toolbar.css"
 
 TOOLBAR_DIR = (
     pathlib.Path(__file__).resolve().parent.parent.parent
     / "dj_design_system"
     / "components"
+    / "gallery"
     / "domain"
     / "toolbar"
 )
@@ -94,7 +95,7 @@ class TestToolbarDiscoveryAndMetadata:
     """Verify Toolbar class exports, metadata, media, and registry discovery."""
 
     def test_exported_from_package_init(self) -> None:
-        """Verify Toolbar is exported in dj_design_system.components.domain.toolbar."""
+        """Verify Toolbar is exported in dj_design_system.components.gallery.domain.toolbar."""
         assert toolbar_package.Toolbar is toolbar_module.Toolbar
         assert issubclass(toolbar_module.Toolbar, components_base.BlockComponent)
 

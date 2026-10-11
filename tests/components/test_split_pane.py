@@ -9,8 +9,8 @@ from django.utils import safestring
 
 from dj_design_system import data, gallery
 from dj_design_system.components import base as components_base
-from dj_design_system.components.domain import split_pane as split_pane_package
-from dj_design_system.components.domain.split_pane import (
+from dj_design_system.components.gallery.domain import split_pane as split_pane_package
+from dj_design_system.components.gallery.domain.split_pane import (
     split_pane as split_pane_module,
 )
 from dj_design_system.services import canvas as canvas_service
@@ -22,14 +22,14 @@ from tests import conftest
 APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "split_pane"
 QUALIFIED_NAME = "dds__split_pane"
-RELATIVE_PATH = "domain.split_pane"
-TEMPLATE_PATH = "dj_design_system/components/domain/split_pane/split_pane.html"
-CSS_MEDIA_PATH = "dj_design_system/components/domain/split_pane/split_pane.css"
-JS_MEDIA_PATH = "dj_design_system/components/domain/split_pane/split_pane.js"
+RELATIVE_PATH = "gallery.domain.split_pane"
+TEMPLATE_PATH = "dj_design_system/components/gallery/domain/split_pane/split_pane.html"
+CSS_MEDIA_PATH = "dj_design_system/components/gallery/domain/split_pane/split_pane.css"
+JS_MEDIA_PATH = "dj_design_system/components/gallery/domain/split_pane/split_pane.js"
 
 ROOT_DIR = pathlib.Path(__file__).resolve().parent.parent.parent
 SPLIT_PANE_DIR = (
-    ROOT_DIR / "dj_design_system" / "components" / "domain" / "split_pane"
+    ROOT_DIR / "dj_design_system" / "components" / "gallery" / "domain" / "split_pane"
 )
 SPLIT_PANE_PY_PATH = SPLIT_PANE_DIR / "split_pane.py"
 SPLIT_PANE_HTML_PATH = SPLIT_PANE_DIR / "split_pane.html"
@@ -102,7 +102,7 @@ class TestSplitPaneDiscoveryAndMetadata:
     """Verify SplitPane exports, metadata, media, slots, and registry discovery."""
 
     def test_exported_from_package_init_and_subclasses_block_component(self) -> None:
-        """Verify SplitPane is exported in dj_design_system.components.domain.split_pane."""
+        """Verify SplitPane is exported in dj_design_system.components.gallery.domain.split_pane."""
         assert split_pane_package.SplitPane is split_pane_module.SplitPane
         assert issubclass(
             split_pane_module.SplitPane,

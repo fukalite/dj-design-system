@@ -13,7 +13,11 @@ import markdown as markdown_lib
 from django.apps import apps
 from django.urls import reverse
 
-from dj_design_system.data import NavNode
+from dj_design_system.data import (
+    BUILTIN_APP_LABEL,
+    BUILTIN_GALLERY_SUBFOLDER,
+    NavNode,
+)
 from dj_design_system.services import component_dirs as component_dirs_service
 from dj_design_system.services import visibility as visibility_service
 from dj_design_system.services.registry import component_registry
@@ -69,6 +73,12 @@ def to_display_label(
 def _effective_path_parts(info: ComponentInfo) -> list[str]:
     """Return directory segments for a component, applying the collapsing rule."""
     parts = info.relative_path.split(".") if info.relative_path else []
+    if (
+        info.app_label == BUILTIN_APP_LABEL
+        and parts
+        and parts[0] == BUILTIN_GALLERY_SUBFOLDER
+    ):
+        parts = parts[1:]
     if parts and parts[-1] == info.name:
         parts = parts[:-1]
     return parts
@@ -129,6 +139,12 @@ class _AppTreeBuilder:
 
         collapsed_parts = _effective_path_parts(info)
         raw_parts = info.relative_path.split(".") if info.relative_path else []
+        if (
+            info.app_label == BUILTIN_APP_LABEL
+            and raw_parts
+            and raw_parts[0] == BUILTIN_GALLERY_SUBFOLDER
+        ):
+            raw_parts = raw_parts[1:]
         is_collapsed = len(raw_parts) > len(collapsed_parts)
 
         labels_by_depth: dict[int, str] = {}
@@ -363,6 +379,12 @@ def _build_navigation(
             for dir_parts, md_path in _discover_markdown_files(
                 app_component_paths[app_label]
             ):
+                if (
+                    app_label == BUILTIN_APP_LABEL
+                    and dir_parts
+                    and dir_parts[0] == BUILTIN_GALLERY_SUBFOLDER
+                ):
+                    dir_parts = dir_parts[1:]
                 builder.add_markdown(dir_parts, md_path)
 
         _sort_children(app_node)

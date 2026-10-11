@@ -8,8 +8,8 @@ from django import template
 
 from dj_design_system import gallery
 from dj_design_system.components import base as components_base
-from dj_design_system.components.elements import badge as badge_package
-from dj_design_system.components.elements.badge import badge as badge_module
+from dj_design_system.components.gallery.elements import badge as badge_package
+from dj_design_system.components.gallery.elements.badge import badge as badge_module
 from dj_design_system.services import registry as registry_service
 from tests import conftest
 
@@ -21,9 +21,9 @@ load_gallery_config = gallery.load_gallery_config
 APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "badge"
 QUALIFIED_NAME = "dds__badge"
-RELATIVE_PATH = "elements.badge"
-TEMPLATE_PATH = "dj_design_system/components/elements/badge/badge.html"
-CSS_MEDIA_PATH = "dj_design_system/components/elements/badge/badge.css"
+RELATIVE_PATH = "gallery.elements.badge"
+TEMPLATE_PATH = "dj_design_system/components/gallery/elements/badge/badge.html"
+CSS_MEDIA_PATH = "dj_design_system/components/gallery/elements/badge/badge.css"
 DEFAULT_VARIANT = "neutral"
 EXPECTED_VARIANTS = (
     "neutral",
@@ -39,6 +39,7 @@ BADGE_DIR = (
     pathlib.Path(__file__).resolve().parent.parent.parent
     / "dj_design_system"
     / "components"
+    / "gallery"
     / "elements"
     / "badge"
 )
@@ -96,7 +97,7 @@ class TestBadgeDiscoveryAndMetadata:
     """Verify Badge class exports, metadata, media, and registry discovery."""
 
     def test_exported_from_package_init(self) -> None:
-        """Verify Badge is exported in dj_design_system.components.elements.badge."""
+        """Verify Badge is exported in dj_design_system.components.gallery.elements.badge."""
         assert badge_package.Badge is badge_module.Badge
         assert issubclass(badge_module.Badge, components_base.TagComponent)
 

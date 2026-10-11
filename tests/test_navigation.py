@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from django.test import override_settings
 
-from dj_design_system.components.domain.nav_tree.nav_tree import NavTree
+from dj_design_system.components.gallery.domain.nav_tree.nav_tree import NavTree
 from dj_design_system.data import ComponentInfo, NavNode
 from dj_design_system.services.navigation import (
     NodeType,
@@ -1022,4 +1022,43 @@ def test_leaf_index_doc_folder_renders_doc_icon(tmp_path) -> None:
     html = NavTree(nodes=[app_node], active_path="", active_variant="").render()
     assert 'data-icon="doc"' in html
     assert 'data-depth="2"' in html
+
+
+def test_builtin_gallery_subfolder_omitted_from_navigation_tree():
+    """Verify that internal built-in components under components/gallery/ omit 'gallery' in nav tree."""
+    from django.urls import reverse
+
+    from dj_design_system.services.navigation import _build_navigation, find_node
+
+    with override_settings(
+        DJ_DESIGN_SYSTEM={
+            "GALLERY_SHOW_DDS_COMPONENTS": True,
+            "GALLERY_EXCLUDE_APPS": [
+                "demo_components",
+                "demo_extra",
+                "demo_nav",
+                "demo_single",
+                "broken_components",
+            ],
+        }
+    ):
+        tree = _build_navigation()
+        dds_app = next((n for n in tree if n.slug == "dj_design_system"), None)
+        assert dds_app is not None
+        child_slugs = [c.slug for c in dds_app.children]
+        assert "gallery" not in child_slugs
+        assert "domain" in child_slugs
+        assert "elements" in child_slugs
+
+        elements_node = next(c for c in dds_app.children if c.slug == "elements")
+        button_node = next((c for c in elements_node.children if c.slug == "button"), None)
+        assert button_node is not None
+        expected_url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "dj_design_system", "path": "elements/button"},
+        )
+        assert button_node.url == expected_url
+
+        found = find_node(tree, "dj_design_system", ["elements", "button"])
+        assert found is button_node
 

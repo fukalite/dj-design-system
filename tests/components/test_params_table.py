@@ -9,10 +9,10 @@ import pytest
 from django import template
 
 from dj_design_system import components, gallery, parameters, slots
-from dj_design_system.components.domain import (
+from dj_design_system.components.gallery.domain import (
     params_table as params_table_package,
 )
-from dj_design_system.components.domain.params_table import (
+from dj_design_system.components.gallery.domain.params_table import (
     params_table as params_table_module,
 )
 from dj_design_system.services import registry as registry_service
@@ -22,18 +22,19 @@ from tests import conftest
 APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "params_table"
 QUALIFIED_NAME = "dds__params_table"
-RELATIVE_PATH = "domain.params_table"
+RELATIVE_PATH = "gallery.domain.params_table"
 TEMPLATE_PATH = (
-    "dj_design_system/components/domain/params_table/params_table.html"
+    "dj_design_system/components/gallery/domain/params_table/params_table.html"
 )
 CSS_MEDIA_PATH = (
-    "dj_design_system/components/domain/params_table/params_table.css"
+    "dj_design_system/components/gallery/domain/params_table/params_table.css"
 )
 
 PARAMS_TABLE_DIR = (
     pathlib.Path(__file__).resolve().parent.parent.parent
     / "dj_design_system"
     / "components"
+    / "gallery"
     / "domain"
     / "params_table"
 )
@@ -131,7 +132,7 @@ class TestParamsTableDiscoveryAndMetadata:
     """Verify ParamsTable exports, metadata, media, and registry discovery."""
 
     def test_exported_from_package_init(self) -> None:
-        """Verify ParamsTable is exported in dj_design_system.components.domain.params_table."""
+        """Verify ParamsTable is exported in dj_design_system.components.gallery.domain.params_table."""
         assert (
             params_table_package.ParamsTable
             is params_table_module.ParamsTable

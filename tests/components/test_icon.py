@@ -6,8 +6,8 @@ import re
 import pytest
 from django import template
 
-import dj_design_system.components.elements.icon as icon_package
-import dj_design_system.components.elements.icon.icon as icon_module
+import dj_design_system.components.gallery.elements.icon as icon_package
+import dj_design_system.components.gallery.elements.icon.icon as icon_module
 from dj_design_system import gallery
 from dj_design_system.services import registry as registry_service
 from tests import conftest
@@ -21,6 +21,7 @@ ICON_DIR = (
     pathlib.Path(__file__).resolve().parent.parent.parent
     / "dj_design_system"
     / "components"
+    / "gallery"
     / "elements"
     / "icon"
 )
@@ -114,13 +115,13 @@ class TestIconExportsAndDiscovery:
         info = next(i for i in reg.list_all() if i.name == "icon")
         assert info.component_class is Icon
         assert info.app_label == "dj_design_system"
-        assert info.relative_path == "elements.icon"
+        assert info.relative_path == "gallery.elements.icon"
         assert info.qualified_name == "dds__icon"
         assert info.is_internal is True
         assert (
-            info.template_name == "dj_design_system/components/elements/icon/icon.html"
+            info.template_name == "dj_design_system/components/gallery/elements/icon/icon.html"
         )
-        assert info.media.css == ["dj_design_system/components/elements/icon/icon.css"]
+        assert info.media.css == ["dj_design_system/components/gallery/elements/icon/icon.css"]
 
 
 class TestIconParametersAndContext:

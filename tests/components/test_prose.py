@@ -8,8 +8,8 @@ from django import template
 from django.utils import safestring
 
 from dj_design_system import components, data, gallery
-from dj_design_system.components.domain import prose as prose_package
-from dj_design_system.components.domain.prose import prose as prose_module
+from dj_design_system.components.gallery.domain import prose as prose_package
+from dj_design_system.components.gallery.domain.prose import prose as prose_module
 from dj_design_system.services import canvas as canvas_service
 from dj_design_system.services import registry as registry_service
 from tests import conftest
@@ -18,14 +18,15 @@ from tests import conftest
 APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "prose"
 QUALIFIED_NAME = "dds__prose"
-RELATIVE_PATH = "domain.prose"
-TEMPLATE_PATH = "dj_design_system/components/domain/prose/prose.html"
-CSS_MEDIA_PATH = "dj_design_system/components/domain/prose/prose.css"
+RELATIVE_PATH = "gallery.domain.prose"
+TEMPLATE_PATH = "dj_design_system/components/gallery/domain/prose/prose.html"
+CSS_MEDIA_PATH = "dj_design_system/components/gallery/domain/prose/prose.css"
 
 PROSE_DIR = (
     pathlib.Path(__file__).resolve().parent.parent.parent
     / "dj_design_system"
     / "components"
+    / "gallery"
     / "domain"
     / "prose"
 )
@@ -112,7 +113,7 @@ class TestProseDiscoveryAndMetadata:
     """Verify Prose exports, metadata, media, and registry discovery."""
 
     def test_exported_from_package_init(self) -> None:
-        """Verify Prose is exported in dj_design_system.components.domain.prose."""
+        """Verify Prose is exported in dj_design_system.components.gallery.domain.prose."""
         assert prose_package.Prose is prose_module.Prose
         assert issubclass(prose_module.Prose, components.BlockComponent)
 

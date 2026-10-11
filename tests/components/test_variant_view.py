@@ -9,10 +9,10 @@ from django import template
 from django.utils import safestring
 
 from dj_design_system import components, gallery
-from dj_design_system.components.domain import (
+from dj_design_system.components.gallery.domain import (
     variant_view as variant_view_package,
 )
-from dj_design_system.components.domain.variant_view import (
+from dj_design_system.components.gallery.domain.variant_view import (
     variant_view as variant_view_module,
 )
 from dj_design_system.services import registry as registry_service
@@ -22,18 +22,19 @@ from tests import conftest
 APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "variant_view"
 QUALIFIED_NAME = "dds__variant_view"
-RELATIVE_PATH = "domain.variant_view"
+RELATIVE_PATH = "gallery.domain.variant_view"
 TEMPLATE_PATH = (
-    "dj_design_system/components/domain/variant_view/variant_view.html"
+    "dj_design_system/components/gallery/domain/variant_view/variant_view.html"
 )
 CSS_MEDIA_PATH = (
-    "dj_design_system/components/domain/variant_view/variant_view.css"
+    "dj_design_system/components/gallery/domain/variant_view/variant_view.css"
 )
 
 VARIANT_VIEW_DIR = (
     pathlib.Path(__file__).resolve().parent.parent.parent
     / "dj_design_system"
     / "components"
+    / "gallery"
     / "domain"
     / "variant_view"
 )
@@ -117,7 +118,7 @@ class TestVariantViewDiscoveryAndMetadata:
     """Verify VariantView exports, metadata, media, and registry discovery."""
 
     def test_exported_from_package_init(self) -> None:
-        """Verify VariantView is exported in dj_design_system.components.domain.variant_view."""
+        """Verify VariantView is exported in dj_design_system.components.gallery.domain.variant_view."""
         assert (
             variant_view_package.VariantView
             is variant_view_module.VariantView
