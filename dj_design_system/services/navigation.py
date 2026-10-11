@@ -189,7 +189,7 @@ class _AppTreeBuilder:
         self._attach_variants(node, info)
         parent.children.append(node)
 
-        if is_collapsed:
+        if is_collapsed and not has_custom_group:
             self._nodes_by_path["/".join(raw_parts)] = node
 
     def add_markdown(self, dir_parts: list[str], md_path: Path) -> None:
