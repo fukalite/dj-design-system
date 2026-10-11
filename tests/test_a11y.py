@@ -287,12 +287,9 @@ class TestNavtreeAccessibility:
             base_active_path="app",
             children=[folder],
         )
-        html = NavTree(
-            nodes=[app], active_path="", active_variant=""
-        ).render()
+        html = NavTree(nodes=[app], active_path="", active_variant="").render()
         assert 'data-depth="3"' in html
         assert 'style="' not in html
-
 
     def test_htmx_vendored_locally(self):
         """HTMX should be vendored locally and not loaded from an external CDN."""

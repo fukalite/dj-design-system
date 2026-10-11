@@ -119,10 +119,7 @@ class TestVariantViewDiscoveryAndMetadata:
 
     def test_exported_from_package_init(self) -> None:
         """Verify VariantView is exported in dj_design_system.components.gallery.domain.variant_view."""
-        assert (
-            variant_view_package.VariantView
-            is variant_view_module.VariantView
-        )
+        assert variant_view_package.VariantView is variant_view_module.VariantView
         assert issubclass(
             variant_view_module.VariantView,
             components.TagComponent,
@@ -236,9 +233,7 @@ class TestVariantViewParametersAndContext:
         private_methods = [
             name
             for name, value in variant_view_module.VariantView.__dict__.items()
-            if name.startswith("_")
-            and not name.startswith("__")
-            and callable(value)
+            if name.startswith("_") and not name.startswith("__") and callable(value)
         ]
         assert private_methods == []
 
@@ -270,15 +265,13 @@ class TestVariantViewRenderingAndTemplate:
         assert ">Preset<" in html
         assert "<h2 data-variant-title>Primary Action</h2>" in html
         assert (
-            "<div data-variant-description><p>Primary call to action.</p></div>"
-            in html
+            "<div data-variant-description><p>Primary call to action.</p></div>" in html
         )
         assert "<h3 data-variant-subheading>Preview</h3>" in html
         assert '<div data-variant-preview data-surface="stage">' in html
         assert (
             '<iframe src="/canvas/button/?variant=primary" name="variant" '
-            'data-canvas-id="variant" title="Primary Action preview"></iframe>'
-            in html
+            'data-canvas-id="variant" title="Primary Action preview"></iframe>' in html
         )
         assert "<div data-variant-sandbox-link>" in html
         assert 'href="#custom-sandbox"' in html
@@ -419,15 +412,11 @@ class TestVariantViewGalleryAndDocs:
                 ),
                 context={
                     "variant_label": variant.kwargs.get("variant_label", ""),
-                    "description_html": variant.kwargs.get(
-                        "description_html", ""
-                    ),
+                    "description_html": variant.kwargs.get("description_html", ""),
                     "preview_url": variant.kwargs.get("preview_url", ""),
                     "code": variant.kwargs.get("code", ""),
                     "badge_label": variant.kwargs.get("badge_label", "Variant"),
-                    "sandbox_href": variant.kwargs.get(
-                        "sandbox_href", "#pane-sandbox"
-                    ),
+                    "sandbox_href": variant.kwargs.get("sandbox_href", "#pane-sandbox"),
                 },
             )
             assert 'class="dds-variant-view"' in rendered

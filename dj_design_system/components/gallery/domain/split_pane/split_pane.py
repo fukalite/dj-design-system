@@ -122,12 +122,8 @@ class SplitPane(components.BlockComponent):
         separator_aria_orientation = (
             "vertical" if resolved_orientation == "horizontal" else "horizontal"
         )
-        raw_min = (
-            self.min_ratio if self.min_ratio is not None else DEFAULT_MIN_RATIO
-        )
-        raw_max = (
-            self.max_ratio if self.max_ratio is not None else DEFAULT_MAX_RATIO
-        )
+        raw_min = self.min_ratio if self.min_ratio is not None else DEFAULT_MIN_RATIO
+        raw_max = self.max_ratio if self.max_ratio is not None else DEFAULT_MAX_RATIO
         raw_initial = (
             self.initial_ratio
             if self.initial_ratio is not None
@@ -139,12 +135,8 @@ class SplitPane(components.BlockComponent):
             resolved_min_ratio, min(resolved_max_ratio, int(raw_initial))
         )
         primary_slot_val = self.slots.get("primary") if self.slots else None
-        primary_content = (
-            primary_slot_val if primary_slot_val else (self.content or "")
-        )
-        secondary_content = (
-            self.slots.get("secondary") if self.slots else None
-        ) or ""
+        primary_content = primary_slot_val if primary_slot_val else (self.content or "")
+        secondary_content = (self.slots.get("secondary") if self.slots else None) or ""
         primary_label = self.primary_label or ""
         secondary_label = self.secondary_label or ""
         primary_surface = (

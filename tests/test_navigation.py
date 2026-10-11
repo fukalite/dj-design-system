@@ -1051,14 +1051,29 @@ def test_builtin_gallery_subfolder_omitted_from_navigation_tree():
         assert "elements" in child_slugs
 
         elements_node = next(c for c in dds_app.children if c.slug == "elements")
-        button_node = next((c for c in elements_node.children if c.slug == "button"), None)
+        elements_child_slugs = [c.slug for c in elements_node.children]
+        assert "elements" not in elements_child_slugs
+        button_node = next(
+            (c for c in elements_node.children if c.slug == "button"), None
+        )
         assert button_node is not None
+        assert button_node.node_type == NodeType.COMPONENT
+        assert button_node.has_index_doc is True
         expected_url = reverse(
             "gallery-node",
             kwargs={"app_label": "dj_design_system", "path": "elements/button"},
         )
         assert button_node.url == expected_url
 
+        domain_node = next(c for c in dds_app.children if c.slug == "domain")
+        domain_child_slugs = [c.slug for c in domain_node.children]
+        assert "domain" not in domain_child_slugs
+        canvas_node = next(
+            (c for c in domain_node.children if c.slug == "canvas_widget"), None
+        )
+        assert canvas_node is not None
+        assert canvas_node.node_type == NodeType.COMPONENT
+        assert canvas_node.has_index_doc is True
+
         found = find_node(tree, "dj_design_system", ["elements", "button"])
         assert found is button_node
-

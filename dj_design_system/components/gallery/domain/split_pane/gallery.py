@@ -4,8 +4,7 @@ from dj_design_system import gallery
 
 
 PRIMARY_PREVIEW_HTML = (
-    "<section><h3>Component Canvas</h3>"
-    "<p>Interactive live preview stage.</p></section>"
+    "<section><h3>Component Canvas</h3><p>Interactive live preview stage.</p></section>"
 )
 SECONDARY_CONTROLS_HTML = (
     "<section><h3>Parameter Controls</h3>"

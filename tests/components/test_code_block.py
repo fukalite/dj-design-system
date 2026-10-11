@@ -8,7 +8,9 @@ from django import template
 
 from dj_design_system import data, gallery
 from dj_design_system.components import base as components_base
-from dj_design_system.components.gallery.elements import code_block as code_block_package
+from dj_design_system.components.gallery.elements import (
+    code_block as code_block_package,
+)
 from dj_design_system.components.gallery.elements.code_block import (
     code_block as code_block_module,
 )
@@ -25,8 +27,12 @@ APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "code_block"
 QUALIFIED_NAME = "dds__code_block"
 RELATIVE_PATH = "gallery.elements.code_block"
-TEMPLATE_PATH = "dj_design_system/components/gallery/elements/code_block/code_block.html"
-CSS_MEDIA_PATH = "dj_design_system/components/gallery/elements/code_block/code_block.css"
+TEMPLATE_PATH = (
+    "dj_design_system/components/gallery/elements/code_block/code_block.html"
+)
+CSS_MEDIA_PATH = (
+    "dj_design_system/components/gallery/elements/code_block/code_block.css"
+)
 JS_MEDIA_PATH = "dj_design_system/components/gallery/elements/code_block/code_block.js"
 
 CODE_BLOCK_DIR = (
@@ -236,8 +242,7 @@ class TestCodeBlockRenderingAndTemplate:
         assert "data-copy-trigger" not in html
         assert (
             '<pre><code data-code-content><span class="n">x</span> '
-            '<span class="o">=</span> <span class="mi">1</span></code></pre>'
-            in html
+            '<span class="o">=</span> <span class="mi">1</span></code></pre>' in html
         )
 
     def test_omits_header_when_no_label_and_not_copyable(self) -> None:

@@ -119,9 +119,12 @@ class TestIconExportsAndDiscovery:
         assert info.qualified_name == "dds__icon"
         assert info.is_internal is True
         assert (
-            info.template_name == "dj_design_system/components/gallery/elements/icon/icon.html"
+            info.template_name
+            == "dj_design_system/components/gallery/elements/icon/icon.html"
         )
-        assert info.media.css == ["dj_design_system/components/gallery/elements/icon/icon.css"]
+        assert info.media.css == [
+            "dj_design_system/components/gallery/elements/icon/icon.css"
+        ]
 
 
 class TestIconParametersAndContext:

@@ -81,18 +81,14 @@ class VariantView(components.TagComponent):
         ):
             kwargs["variant_label"] = str(
                 getattr(kwargs["variant_label"], "label", None)
-                or getattr(
-                    kwargs["variant_label"], "name", kwargs["variant_label"]
-                )
+                or getattr(kwargs["variant_label"], "name", kwargs["variant_label"])
             )
         if (
             "code" in kwargs
             and kwargs["code"] is not None
             and not isinstance(kwargs["code"], str)
         ):
-            kwargs["code"] = str(
-                getattr(kwargs["code"], "minimal", kwargs["code"])
-            )
+            kwargs["code"] = str(getattr(kwargs["code"], "minimal", kwargs["code"]))
         super().__init__(**kwargs)
 
     def get_context(self) -> dict[str, typing.Any]:
@@ -108,16 +104,12 @@ class VariantView(components.TagComponent):
         variant_label = self.variant_label or DEFAULT_VARIANT_LABEL
         badge_label = self.badge_label or DEFAULT_VARIANT_LABEL
         raw_desc = self.description_html or ""
-        description_safe = (
-            safestring.SafeString(str(raw_desc)) if raw_desc else ""
-        )
+        description_safe = safestring.SafeString(str(raw_desc)) if raw_desc else ""
         has_description = bool(raw_desc.strip())
         preview_url = self.preview_url or ""
         has_preview = bool(preview_url)
         sandbox_href = (
-            self.sandbox_href
-            if self.sandbox_href is not None
-            else DEFAULT_SANDBOX_HREF
+            self.sandbox_href if self.sandbox_href is not None else DEFAULT_SANDBOX_HREF
         )
         has_sandbox_link = bool(preview_url and sandbox_href)
         code = self.code or ""

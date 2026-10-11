@@ -116,10 +116,7 @@ class TestUsageExampleDiscoveryAndMetadata:
 
     def test_exported_from_package_init(self) -> None:
         """Verify UsageExample is exported in dj_design_system.components.gallery.domain.usage_example."""
-        assert (
-            usage_example_package.UsageExample
-            is usage_example_module.UsageExample
-        )
+        assert usage_example_package.UsageExample is usage_example_module.UsageExample
         assert issubclass(
             usage_example_module.UsageExample,
             components.TagComponent,
@@ -262,9 +259,7 @@ class TestUsageExampleParametersAndContext:
         private_methods = [
             name
             for name, value in usage_example_module.UsageExample.__dict__.items()
-            if name.startswith("_")
-            and not name.startswith("__")
-            and callable(value)
+            if name.startswith("_") and not name.startswith("__") and callable(value)
         ]
         assert private_methods == []
 
@@ -443,9 +438,7 @@ class TestUsageExampleGalleryAndDocs:
                     "code": variant.kwargs.get("code", ""),
                     "preview_url": variant.kwargs.get("preview_url", ""),
                     "canvas_id": variant.kwargs.get("canvas_id", "preview"),
-                    "sandbox_href": variant.kwargs.get(
-                        "sandbox_href", "#pane-sandbox"
-                    ),
+                    "sandbox_href": variant.kwargs.get("sandbox_href", "#pane-sandbox"),
                 },
             )
             assert 'class="dds-usage-example"' in rendered

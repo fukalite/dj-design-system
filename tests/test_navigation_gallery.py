@@ -288,18 +288,14 @@ class TestNavTreeTemplate:
         info = make_info_with_config("button", GalleryConfig(icon="eye"))
         tree = _build_navigation([info])
 
-        html = NavTree(
-            nodes=tree, active_path="", active_variant=""
-        ).render()
+        html = NavTree(nodes=tree, active_path="", active_variant="").render()
         assert 'data-icon="eye"' in html
 
     def test_unknown_custom_icon_falls_back_to_component_icon(self):
         info = make_info_with_config("button", GalleryConfig(icon="mdi-star"))
         tree = _build_navigation([info])
 
-        html = NavTree(
-            nodes=tree, active_path="", active_variant=""
-        ).render()
+        html = NavTree(nodes=tree, active_path="", active_variant="").render()
         assert 'data-icon="component"' in html
 
     def test_variant_child_links_render(self):
@@ -312,9 +308,7 @@ class TestNavTreeTemplate:
         info = make_info_with_config("button", config)
         tree = _build_navigation([info])
 
-        html = NavTree(
-            nodes=tree, active_path="", active_variant=""
-        ).render()
+        html = NavTree(nodes=tree, active_path="", active_variant="").render()
         assert 'data-variant-link="true"' in html
         assert "?variant=primary" in html
         assert "?variant=danger" in html
@@ -350,9 +344,7 @@ class TestNavTreeTemplate:
         info = make_info_with_config("button", config)
         tree = _build_navigation([info])
 
-        html = NavTree(
-            nodes=tree, active_path="", active_variant=""
-        ).render()
+        html = NavTree(nodes=tree, active_path="", active_variant="").render()
         assert 'data-icon="folder"' in html
         assert 'data-icon="code"' in html
 
@@ -360,8 +352,5 @@ class TestNavTreeTemplate:
         info = make_info_with_config("button", GalleryConfig())
         tree = _build_navigation([info])
 
-        html = NavTree(
-            nodes=tree, active_path="", active_variant=""
-        ).render()
+        html = NavTree(nodes=tree, active_path="", active_variant="").render()
         assert 'data-icon="component"' in html
-

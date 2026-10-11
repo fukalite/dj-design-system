@@ -208,13 +208,11 @@ class TestPackageArtifactsAndReleaseWorkflows:
         """Verify Hatch wheel and sdist targets include gitignored component .js bundles."""
         config = tomllib.loads(PYPROJECT_PATH.read_text(encoding="utf-8"))
         targets = config["tool"]["hatch"]["build"]["targets"]
-        assert (
-            "dj_design_system/components/**/*.js"
-            in targets["wheel"].get("artifacts", [])
+        assert "dj_design_system/components/**/*.js" in targets["wheel"].get(
+            "artifacts", []
         )
-        assert (
-            "dj_design_system/components/**/*.js"
-            in targets["sdist"].get("artifacts", [])
+        assert "dj_design_system/components/**/*.js" in targets["sdist"].get(
+            "artifacts", []
         )
 
     @pytest.mark.parametrize(
@@ -237,4 +235,3 @@ class TestPackageArtifactsAndReleaseWorkflows:
         assert tsc_pos < build_pos, (
             f"{workflow_path.name} must compile TypeScript before uv build"
         )
-

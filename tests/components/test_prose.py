@@ -169,7 +169,9 @@ class TestProseParametersAndContext:
 
     def test_block_content_fallback_when_html_omitted(self) -> None:
         """Verify block content is wrapped as SafeString and used when html parameter is empty."""
-        comp = prose_module.Prose(content=safestring.SafeString("<p>Block fallback</p>"))
+        comp = prose_module.Prose(
+            content=safestring.SafeString("<p>Block fallback</p>")
+        )
         assert isinstance(comp.content, safestring.SafeString)
         ctx = comp.get_context()
         assert isinstance(ctx["prose_html"], safestring.SafeString)
@@ -209,9 +211,7 @@ class TestProseParametersAndContext:
         private_methods = [
             name
             for name, value in prose_module.Prose.__dict__.items()
-            if name.startswith("_")
-            and not name.startswith("__")
-            and callable(value)
+            if name.startswith("_") and not name.startswith("__") and callable(value)
         ]
         assert private_methods == []
 
@@ -229,10 +229,7 @@ class TestProseRenderingAndTemplate:
             in html
         )
         assert "<h1 data-prose-title>Guide</h1>" in html
-        assert (
-            "<div data-prose-body><p>Hello <strong>world</strong>.</p></div>"
-            in html
-        )
+        assert "<div data-prose-body><p>Hello <strong>world</strong>.</p></div>" in html
 
     def test_renders_block_content_with_unconstrained_measure(self) -> None:
         """Verify block body content renders without data-measure when measure=False."""
@@ -246,9 +243,7 @@ class TestProseRenderingAndTemplate:
 
     def test_omits_title_and_body_wrappers_when_empty(self) -> None:
         """Verify empty prose component omits both data-prose-title and data-prose-body."""
-        html = _render_template(
-            source="{% dds__prose %}{% enddds__prose %}"
-        ).strip()
+        html = _render_template(source="{% dds__prose %}{% enddds__prose %}").strip()
         assert (
             html
             == '<div class="dds-prose" data-surface="docs" data-measure="constrained">\n  \n  \n</div>'
@@ -273,10 +268,7 @@ class TestProseRenderingAndTemplate:
             },
         )
         assert "<script>" not in html
-        assert (
-            "<h1 data-prose-title>&lt;script&gt;alert(1)&lt;/script&gt;</h1>"
-            in html
-        )
+        assert "<h1 data-prose-title>&lt;script&gt;alert(1)&lt;/script&gt;</h1>" in html
         assert "<div data-prose-body><p><code>dds__prose</code></p></div>" in html
 
     def test_template_contains_no_filters_or_bem(self) -> None:
@@ -323,9 +315,7 @@ class TestProseStylesheet:
         root_props = _extract_defined_properties(block_text="\n".join(root_blocks))
         assert root_props
         assert "--_prose-measure" in root_props
-        assert (
-            root_props["--_prose-measure"] == "var(--dds-layout-prose-measure)"
-        )
+        assert root_props["--_prose-measure"] == "var(--dds-layout-prose-measure)"
         for name, value in root_props.items():
             assert name.startswith("--_prose-")
             match = re.fullmatch(pattern=r"var\((--dds-[a-z0-9-]+)\)", string=value)
@@ -336,9 +326,7 @@ class TestProseStylesheet:
         argnames="element",
         argvalues=EXPECTED_STYLED_ELEMENTS,
     )
-    def test_styles_all_required_descendant_prose_elements(
-        self, element: str
-    ) -> None:
+    def test_styles_all_required_descendant_prose_elements(self, element: str) -> None:
         """Verify prose.css includes scoped rules for all required descendant HTML elements."""
         css_text = _read_text(path=PROSE_CSS_PATH)
         pattern = re.compile(pattern=rf"\.dds-prose\s+{element}\b")

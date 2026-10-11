@@ -150,20 +150,25 @@ class _AppTreeBuilder:
         labels_by_depth: dict[int, str] = {}
         target_parts = list(collapsed_parts)
 
+        has_custom_group = False
         if info.gallery_config.group:
             group_segments = [
                 s.strip() for s in info.gallery_config.group.split("/") if s.strip()
             ]
             for seg in group_segments:
+                seg_slug = seg.lower().replace(" ", "_")
+                if seg_slug in target_parts:
+                    continue
                 depth = len(target_parts)
                 labels_by_depth[depth] = seg
-                target_parts.append(seg.lower().replace(" ", "_"))
+                target_parts.append(seg_slug)
+                has_custom_group = True
 
         parent = self.get_or_create_folder(
             target_parts, labels_by_depth=labels_by_depth
         )
 
-        if is_collapsed and not info.gallery_config.group:
+        if is_collapsed and not has_custom_group:
             raw_path = "/".join(raw_parts)
             if raw_path in self._nodes_by_path:
                 existing = self._nodes_by_path[raw_path]
@@ -184,7 +189,7 @@ class _AppTreeBuilder:
         self._attach_variants(node, info)
         parent.children.append(node)
 
-        if is_collapsed and not info.gallery_config.group:
+        if is_collapsed:
             self._nodes_by_path["/".join(raw_parts)] = node
 
     def add_markdown(self, dir_parts: list[str], md_path: Path) -> None:

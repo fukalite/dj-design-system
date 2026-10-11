@@ -53,9 +53,7 @@ def test_desktop_sandbox_tab(gallery, screenshot_recorder):
 
 def test_sandbox_template_tab(gallery, screenshot_recorder):
     page = gallery(COMPONENT, viewport="wide")
-    page.click(
-        "dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-mode='code']"
-    )
+    page.click("dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-mode='code']")
     page.wait_for_selector(
         "dds-canvas-widget[data-canvas-id='sandbox'] "
         "[data-canvas-panel='code']:not([hidden])"
@@ -65,9 +63,7 @@ def test_sandbox_template_tab(gallery, screenshot_recorder):
 
 def test_sandbox_html_tab(gallery, screenshot_recorder):
     page = gallery(COMPONENT, viewport="wide")
-    page.click(
-        "dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-mode='html']"
-    )
+    page.click("dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-mode='html']")
     page.wait_for_selector(
         "dds-canvas-widget[data-canvas-id='sandbox'] "
         "[data-canvas-panel='html']:not([hidden])"

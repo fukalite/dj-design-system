@@ -337,7 +337,9 @@ class TestNavTreeParametersAndContext:
         assert "format_html" not in py_text
         assert "mark_safe" not in py_text
         assert "Icon(" not in py_text
-        private_defs = re.findall(pattern=r"def _(?![_a-z]+__)[a-z0-9_]+", string=py_text)
+        private_defs = re.findall(
+            pattern=r"def _(?![_a-z]+__)[a-z0-9_]+", string=py_text
+        )
         assert not private_defs
 
 
@@ -352,8 +354,7 @@ class TestNavTreeRenderingAndTemplate:
         )
         assert '<dds-nav-tree class="dds-nav-tree">' in html
         assert (
-            '<nav class="dds-nav-tree-nav" aria-label="Component navigation">'
-            in html
+            '<nav class="dds-nav-tree-nav" aria-label="Component navigation">' in html
         )
         assert "<div data-nav-group>" in html
         assert (
@@ -531,9 +532,7 @@ class TestNavTreeTypeScriptCustomElement:
         """Verify nav_tree.ts defines DDSNavTreeElement with AbortController and dds:nav-toggle."""
         assert NAV_TREE_TS_PATH.is_file()
         ts_text = _read_text(path=NAV_TREE_TS_PATH)
-        assert (
-            "import type { DDSCustomElement } from '../../types.js';" in ts_text
-        )
+        assert "import type { DDSCustomElement } from '../../types.js';" in ts_text
         assert (
             "export class DDSNavTreeElement extends HTMLElement implements DDSCustomElement"
             in ts_text
@@ -559,14 +558,10 @@ class TestNavTreeTypeScriptCustomElement:
         assert "childrenEl.hidden = !expanded;" in ts_text
         assert "'dds:nav-toggle'" in ts_text
         assert (
-            "detail: { folderId: folder.dataset.folderId ?? '', expanded }"
-            in ts_text
+            "detail: { folderId: folder.dataset.folderId ?? '', expanded }" in ts_text
         )
         assert "if (!customElements.get('dds-nav-tree'))" in ts_text
-        assert (
-            "customElements.define('dds-nav-tree', DDSNavTreeElement);"
-            in ts_text
-        )
+        assert "customElements.define('dds-nav-tree', DDSNavTreeElement);" in ts_text
 
     def test_nav_tree_ts_enforces_light_dom_encapsulation_and_styleguide(
         self,
@@ -581,4 +576,3 @@ class TestNavTreeTypeScriptCustomElement:
         for line in ts_text.splitlines():
             assert len(line) <= 80
             assert line == line.rstrip()
-

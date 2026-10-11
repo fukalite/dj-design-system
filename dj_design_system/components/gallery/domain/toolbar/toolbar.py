@@ -112,13 +112,9 @@ class Toolbar(components.BlockComponent):
         context = super().get_context()
         brand_name = self.brand_name or DEFAULT_BRAND_NAME
         brand_url = self.brand_url or DEFAULT_BRAND_URL
-        breadcrumbs = (
-            list(self.breadcrumbs) if self.breadcrumbs is not None else []
-        )
+        breadcrumbs = list(self.breadcrumbs) if self.breadcrumbs is not None else []
         themes = list(self.themes) if self.themes is not None else []
-        search_index = (
-            list(self.search_index) if self.search_index is not None else []
-        )
+        search_index = list(self.search_index) if self.search_index is not None else []
         active_theme = self.active_theme or DEFAULT_ACTIVE_THEME
         has_breadcrumbs = bool(breadcrumbs)
         has_themes = bool(themes)

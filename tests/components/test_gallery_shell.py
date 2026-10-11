@@ -9,7 +9,9 @@ from django.utils import safestring
 
 from dj_design_system import data, gallery
 from dj_design_system.components import base as components_base
-from dj_design_system.components.gallery.domain import gallery_shell as gallery_shell_package
+from dj_design_system.components.gallery.domain import (
+    gallery_shell as gallery_shell_package,
+)
 from dj_design_system.components.gallery.domain.gallery_shell import (
     gallery_shell as gallery_shell_module,
 )
@@ -23,13 +25,24 @@ APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "gallery_shell"
 QUALIFIED_NAME = "dds__gallery_shell"
 RELATIVE_PATH = "gallery.domain.gallery_shell"
-TEMPLATE_PATH = "dj_design_system/components/gallery/domain/gallery_shell/gallery_shell.html"
-CSS_MEDIA_PATH = "dj_design_system/components/gallery/domain/gallery_shell/gallery_shell.css"
-JS_MEDIA_PATH = "dj_design_system/components/gallery/domain/gallery_shell/gallery_shell.js"
+TEMPLATE_PATH = (
+    "dj_design_system/components/gallery/domain/gallery_shell/gallery_shell.html"
+)
+CSS_MEDIA_PATH = (
+    "dj_design_system/components/gallery/domain/gallery_shell/gallery_shell.css"
+)
+JS_MEDIA_PATH = (
+    "dj_design_system/components/gallery/domain/gallery_shell/gallery_shell.js"
+)
 
 ROOT_DIR = pathlib.Path(__file__).resolve().parent.parent.parent
 GALLERY_SHELL_DIR = (
-    ROOT_DIR / "dj_design_system" / "components" / "gallery" / "domain" / "gallery_shell"
+    ROOT_DIR
+    / "dj_design_system"
+    / "components"
+    / "gallery"
+    / "domain"
+    / "gallery_shell"
 )
 GALLERY_SHELL_PY_PATH = GALLERY_SHELL_DIR / "gallery_shell.py"
 GALLERY_SHELL_HTML_PATH = GALLERY_SHELL_DIR / "gallery_shell.html"

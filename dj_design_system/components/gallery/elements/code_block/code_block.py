@@ -72,9 +72,7 @@ class CodeBlock(components.TagComponent):
         title = "" if self.title is None else str(self.title)
         language = "" if self.language is None else str(self.language)
         stripped_code = (
-            str(self.code).strip(LINE_BREAK_CHARS)
-            if self.code is not None
-            else ""
+            str(self.code).strip(LINE_BREAK_CHARS) if self.code is not None else ""
         )
         has_title = bool(title)
         has_language = bool(language)
@@ -146,4 +144,3 @@ class CodeBlock(components.TagComponent):
         except (ValueError, TypeError, pygments_util.ClassNotFound):
             pass
         return safestring.mark_safe(html.escape(s=code))
-

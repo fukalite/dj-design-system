@@ -9,7 +9,9 @@ from django import template
 
 from dj_design_system import gallery
 from dj_design_system.components import base as components_base
-from dj_design_system.components.gallery.elements import breadcrumb as breadcrumb_package
+from dj_design_system.components.gallery.elements import (
+    breadcrumb as breadcrumb_package,
+)
 from dj_design_system.components.gallery.elements import icon as icon_package
 from dj_design_system.components.gallery.elements.breadcrumb import (
     breadcrumb as breadcrumb_module,
@@ -22,8 +24,12 @@ APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "breadcrumb"
 QUALIFIED_NAME = "dds__breadcrumb"
 RELATIVE_PATH = "gallery.elements.breadcrumb"
-TEMPLATE_PATH = "dj_design_system/components/gallery/elements/breadcrumb/breadcrumb.html"
-CSS_MEDIA_PATH = "dj_design_system/components/gallery/elements/breadcrumb/breadcrumb.css"
+TEMPLATE_PATH = (
+    "dj_design_system/components/gallery/elements/breadcrumb/breadcrumb.html"
+)
+CSS_MEDIA_PATH = (
+    "dj_design_system/components/gallery/elements/breadcrumb/breadcrumb.css"
+)
 
 BREADCRUMB_DIR = (
     pathlib.Path(__file__).resolve().parent.parent.parent

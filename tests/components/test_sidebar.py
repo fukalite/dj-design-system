@@ -25,7 +25,9 @@ TEMPLATE_PATH = "dj_design_system/components/gallery/domain/sidebar/sidebar.html
 CSS_MEDIA_PATH = "dj_design_system/components/gallery/domain/sidebar/sidebar.css"
 
 ROOT_DIR = pathlib.Path(__file__).resolve().parent.parent.parent
-SIDEBAR_DIR = ROOT_DIR / "dj_design_system" / "components" / "gallery" / "domain" / "sidebar"
+SIDEBAR_DIR = (
+    ROOT_DIR / "dj_design_system" / "components" / "gallery" / "domain" / "sidebar"
+)
 SIDEBAR_PY_PATH = SIDEBAR_DIR / "sidebar.py"
 SIDEBAR_HTML_PATH = SIDEBAR_DIR / "sidebar.html"
 SIDEBAR_CSS_PATH = SIDEBAR_DIR / "sidebar.css"
@@ -376,9 +378,7 @@ class TestSidebarStylesheet:
         )
         root_props = _extract_defined_properties(block_text="\n".join(root_blocks))
         tier_3_props = {
-            name: value
-            for name, value in root_props.items()
-            if name.startswith("--_")
+            name: value for name, value in root_props.items() if name.startswith("--_")
         }
         assert tier_3_props
         for name, value in tier_3_props.items():

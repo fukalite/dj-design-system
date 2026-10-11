@@ -30,7 +30,9 @@ TEMPLATE_PATH = (
 CSS_MEDIA_PATH = (
     "dj_design_system/components/gallery/domain/sandbox_toolbar/sandbox_toolbar.css"
 )
-JS_MEDIA_PATH = "dj_design_system/components/gallery/domain/sandbox_toolbar/sandbox_toolbar.js"
+JS_MEDIA_PATH = (
+    "dj_design_system/components/gallery/domain/sandbox_toolbar/sandbox_toolbar.js"
+)
 
 SANDBOX_TOOLBAR_DIR = (
     pathlib.Path(__file__).resolve().parent.parent.parent

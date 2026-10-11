@@ -395,9 +395,7 @@ class TestSplitPaneStylesheet:
         )
         root_props = _extract_defined_properties(block_text="\n".join(root_blocks))
         tier_3_props = {
-            name: value
-            for name, value in root_props.items()
-            if name.startswith("--_")
+            name: value for name, value in root_props.items() if name.startswith("--_")
         }
         assert tier_3_props
         for name, value in tier_3_props.items():
@@ -486,10 +484,7 @@ class TestSplitPaneTypeScriptCustomElement:
         """Verify split_pane.ts defines DDSSplitPaneElement, AbortController, and registration."""
         assert SPLIT_PANE_TS_PATH.is_file()
         ts_text = _read_text(path=SPLIT_PANE_TS_PATH)
-        assert (
-            "import type { DDSCustomElement } from '../../types.js';"
-            in ts_text
-        )
+        assert "import type { DDSCustomElement } from '../../types.js';" in ts_text
         assert "export class DDSSplitPaneElement" in ts_text
         assert "extends HTMLElement" in ts_text
         assert "implements DDSCustomElement {" in ts_text
@@ -498,14 +493,10 @@ class TestSplitPaneTypeScriptCustomElement:
         assert "this.abortController = new AbortController();" in ts_text
         assert "connectedCallback(): void {" in ts_text
         assert "disconnectedCallback(): void {" in ts_text
-        assert (
-            "this.querySelector<HTMLElement>('[data-split-resizer]')"
-            in ts_text
-        )
+        assert "this.querySelector<HTMLElement>('[data-split-resizer]')" in ts_text
         assert "if (!customElements.get('dds-split-pane')) {" in ts_text
         assert (
-            "customElements.define('dds-split-pane', DDSSplitPaneElement);"
-            in ts_text
+            "customElements.define('dds-split-pane', DDSSplitPaneElement);" in ts_text
         )
         assert "attachShadow" not in ts_text
         assert "document.querySelector" not in ts_text
@@ -519,14 +510,8 @@ class TestSplitPaneTypeScriptCustomElement:
     ) -> None:
         """Verify split_pane.ts handles pointer drag, keyboard resize, clamping, and dds:split-resize."""
         ts_text = _read_text(path=SPLIT_PANE_TS_PATH)
-        assert (
-            "Number(this.getAttribute('data-min-ratio') ?? '20') || 20"
-            in ts_text
-        )
-        assert (
-            "Number(this.getAttribute('data-max-ratio') ?? '80') || 80"
-            in ts_text
-        )
+        assert "Number(this.getAttribute('data-min-ratio') ?? '20') || 20" in ts_text
+        assert "Number(this.getAttribute('data-max-ratio') ?? '80') || 80" in ts_text
         assert "this.getAttribute('data-orientation') === 'vertical'" in ts_text
         assert "const STEP_PERCENT = 5;" in ts_text
         assert "this.setAttribute('data-dragging', 'true');" in ts_text
@@ -549,12 +534,8 @@ class TestSplitPaneTypeScriptCustomElement:
         ):
             assert f"'{key}'" in ts_text
         assert "event.preventDefault();" in ts_text
-        assert (
-            "this.style.setProperty('--_split-pane-ratio', `${ratio}%`);"
-            in ts_text
-        )
+        assert "this.style.setProperty('--_split-pane-ratio', `${ratio}%`);" in ts_text
         assert "resizer.setAttribute('aria-valuenow', String(ratio));" in ts_text
         assert "'dds:split-resize'" in ts_text
         assert "bubbles: true" in ts_text
         assert "detail: { ratio, orientation }" in ts_text
-

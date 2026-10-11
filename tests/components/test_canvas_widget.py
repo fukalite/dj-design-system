@@ -24,13 +24,24 @@ APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "canvas_widget"
 QUALIFIED_NAME = "dds__canvas_widget"
 RELATIVE_PATH = "gallery.domain.canvas_widget"
-TEMPLATE_PATH = "dj_design_system/components/gallery/domain/canvas_widget/canvas_widget.html"
-CSS_MEDIA_PATH = "dj_design_system/components/gallery/domain/canvas_widget/canvas_widget.css"
-JS_MEDIA_PATH = "dj_design_system/components/gallery/domain/canvas_widget/canvas_widget.js"
+TEMPLATE_PATH = (
+    "dj_design_system/components/gallery/domain/canvas_widget/canvas_widget.html"
+)
+CSS_MEDIA_PATH = (
+    "dj_design_system/components/gallery/domain/canvas_widget/canvas_widget.css"
+)
+JS_MEDIA_PATH = (
+    "dj_design_system/components/gallery/domain/canvas_widget/canvas_widget.js"
+)
 
 ROOT_DIR = pathlib.Path(__file__).resolve().parent.parent.parent
 CANVAS_WIDGET_DIR = (
-    ROOT_DIR / "dj_design_system" / "components" / "gallery" / "domain" / "canvas_widget"
+    ROOT_DIR
+    / "dj_design_system"
+    / "components"
+    / "gallery"
+    / "domain"
+    / "canvas_widget"
 )
 CANVAS_WIDGET_PY_PATH = CANVAS_WIDGET_DIR / "canvas_widget.py"
 CANVAS_WIDGET_HTML_PATH = CANVAS_WIDGET_DIR / "canvas_widget.html"

@@ -25,8 +25,12 @@ APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "params_form"
 QUALIFIED_NAME = "dds__params_form"
 RELATIVE_PATH = "gallery.domain.params_form"
-TEMPLATE_PATH = "dj_design_system/components/gallery/domain/params_form/params_form.html"
-CSS_MEDIA_PATH = "dj_design_system/components/gallery/domain/params_form/params_form.css"
+TEMPLATE_PATH = (
+    "dj_design_system/components/gallery/domain/params_form/params_form.html"
+)
+CSS_MEDIA_PATH = (
+    "dj_design_system/components/gallery/domain/params_form/params_form.css"
+)
 JS_MEDIA_PATH = "dj_design_system/components/gallery/domain/params_form/params_form.js"
 
 PARAMS_FORM_DIR = (

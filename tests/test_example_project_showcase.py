@@ -97,9 +97,7 @@ class TestExampleProjectPedagogicalBreadth:
 
         md_files = list(EXAMPLE_PROJECT_DIR.rglob(pattern="index.md"))
         assert md_files
-        assert any(
-            "```canvas" in md.read_text(encoding="utf-8") for md in md_files
-        )
+        assert any("```canvas" in md.read_text(encoding="utf-8") for md in md_files)
 
 
 class TestSettingsDdsGallery:
@@ -131,9 +129,7 @@ class TestSettingsDdsGallery:
             with test.override_settings(
                 DJ_DESIGN_SYSTEM=settings_dds_gallery.DJ_DESIGN_SYSTEM
             ):
-                assert (
-                    dds_settings_mod.dds_settings.GALLERY_SHOW_DDS_COMPONENTS is True
-                )
+                assert dds_settings_mod.dds_settings.GALLERY_SHOW_DDS_COMPONENTS is True
                 visible = visibility_service.get_gallery_components()
                 visible_apps = {info.app_label for info in visible}
                 assert visible_apps == {"dj_design_system"}
@@ -238,8 +234,6 @@ class TestConsumerDdsComponentShadowing:
             BadgeComponent.__module__ = original_module
 
 
-
-
 class TestUserFacingDocumentation:
     """Verify user-facing docs cover DDS architecture, tokens, and shadowing."""
 
@@ -296,5 +290,3 @@ class TestUserFacingDocumentation:
                 assert resolved.exists(), (
                     f"Broken link {raw_target!r} in {doc_file.relative_to(REPO_ROOT)}"
                 )
-
-

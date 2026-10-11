@@ -9,7 +9,9 @@ from django.utils import safestring
 
 from dj_design_system import data
 from dj_design_system.components.gallery.elements import form_field as form_field_pkg
-from dj_design_system.components.gallery.elements.form_field import form_field as form_field_mod
+from dj_design_system.components.gallery.elements.form_field import (
+    form_field as form_field_mod,
+)
 from dj_design_system.services import canvas, registry, slot_node
 from tests import conftest
 

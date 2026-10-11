@@ -8,7 +8,9 @@ from django import template
 
 from dj_design_system import data, gallery, types
 from dj_design_system.components import base as components_base
-from dj_design_system.components.gallery.domain import theme_select as theme_select_package
+from dj_design_system.components.gallery.domain import (
+    theme_select as theme_select_package,
+)
 from dj_design_system.components.gallery.domain.theme_select import (
     theme_select as theme_select_module,
 )
@@ -21,9 +23,15 @@ APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "theme_select"
 QUALIFIED_NAME = "dds__theme_select"
 RELATIVE_PATH = "gallery.domain.theme_select"
-TEMPLATE_PATH = "dj_design_system/components/gallery/domain/theme_select/theme_select.html"
-CSS_MEDIA_PATH = "dj_design_system/components/gallery/domain/theme_select/theme_select.css"
-JS_MEDIA_PATH = "dj_design_system/components/gallery/domain/theme_select/theme_select.js"
+TEMPLATE_PATH = (
+    "dj_design_system/components/gallery/domain/theme_select/theme_select.html"
+)
+CSS_MEDIA_PATH = (
+    "dj_design_system/components/gallery/domain/theme_select/theme_select.css"
+)
+JS_MEDIA_PATH = (
+    "dj_design_system/components/gallery/domain/theme_select/theme_select.js"
+)
 
 THEME_SELECT_DIR = (
     pathlib.Path(__file__).resolve().parent.parent.parent

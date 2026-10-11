@@ -46,7 +46,10 @@ SAMPLE_NODES: tuple[dict[str, typing.Any], ...] = (
 
 SAMPLE_BREADCRUMBS: tuple[dict[str, str], ...] = (
     {"label": "Domain", "url": "/gallery/dj_design_system/domain/"},
-    {"label": "Gallery Shell", "url": "/gallery/dj_design_system/domain/gallery_shell/"},
+    {
+        "label": "Gallery Shell",
+        "url": "/gallery/dj_design_system/domain/gallery_shell/",
+    },
 )
 
 SAMPLE_THEMES: tuple[dict[str, str], ...] = (
@@ -72,7 +75,7 @@ SAMPLE_SEARCH_INDEX: tuple[dict[str, str], ...] = (
 )
 
 DEFAULT_MAIN_HTML = "<article><h1>Component Documentation</h1><p>Main gallery viewport content.</p></article>"
-CUSTOM_TOPBAR_HTML = '<div data-custom-topbar><strong>Custom Topbar</strong></div>'
+CUSTOM_TOPBAR_HTML = "<div data-custom-topbar><strong>Custom Topbar</strong></div>"
 CUSTOM_SIDEBAR_HTML = '<nav data-custom-sidebar><a href="/docs/" style="color: var(--dds-surface-sidebar-text-default-color);">Overview</a></nav>'
 CUSTOM_ACTIONS_HTML = '<a href="https://example.com" style="color: var(--dds-text-default-color);" data-custom-action>Docs</a>'
 

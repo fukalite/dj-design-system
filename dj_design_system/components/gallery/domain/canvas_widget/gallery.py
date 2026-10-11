@@ -49,8 +49,7 @@ config = gallery.GalleryConfig(
             name="code_mode",
             label="Template Source Mode",
             description=(
-                "Canvas widget opened directly to the template source code "
-                "drawer."
+                "Canvas widget opened directly to the template source code drawer."
             ),
             kwargs={
                 "canvas_id": "code-canvas",

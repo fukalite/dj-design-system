@@ -31,7 +31,7 @@ RICH_SPEC_HTML = (
     "</tbody>"
     "</table>"
     "<hr>"
-    "<p>See the <a href=\"#tokens\">design token reference</a> for details.</p>"
+    '<p>See the <a href="#tokens">design token reference</a> for details.</p>'
 )
 
 config = gallery.GalleryConfig(

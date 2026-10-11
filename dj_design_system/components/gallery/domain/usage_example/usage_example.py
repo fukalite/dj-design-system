@@ -106,9 +106,7 @@ class UsageExample(components.TagComponent):
         preview_url = self.preview_url or ""
         canvas_id = self.canvas_id or DEFAULT_CANVAS_ID
         sandbox_href = (
-            self.sandbox_href
-            if self.sandbox_href is not None
-            else DEFAULT_SANDBOX_HREF
+            self.sandbox_href if self.sandbox_href is not None else DEFAULT_SANDBOX_HREF
         )
         language = self.language or DEFAULT_LANGUAGE
         has_title = bool(title)

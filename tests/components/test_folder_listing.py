@@ -120,8 +120,7 @@ class TestFolderListingDiscoveryAndMetadata:
     def test_exported_from_package_init(self) -> None:
         """Verify FolderListing is exported in dj_design_system.components.gallery.domain.folder_listing."""
         assert (
-            folder_listing_package.FolderListing
-            is folder_listing_module.FolderListing
+            folder_listing_package.FolderListing is folder_listing_module.FolderListing
         )
         assert issubclass(
             folder_listing_module.FolderListing,
@@ -326,9 +325,7 @@ class TestFolderListingParametersAndContext:
         private_methods = [
             name
             for name, value in folder_listing_module.FolderListing.__dict__.items()
-            if name.startswith("_")
-            and not name.startswith("__")
-            and callable(value)
+            if name.startswith("_") and not name.startswith("__") and callable(value)
         ]
         assert private_methods == []
 
@@ -358,7 +355,7 @@ class TestFolderListingRenderingAndTemplate:
         )
         assert '<section class="dds-folder-listing" data-surface="docs">' in html
         assert "<l-stack>" in html
-        assert '<h1 data-folder-title>Components</h1>' in html
+        assert "<h1 data-folder-title>Components</h1>" in html
         assert '<ul class="l-grid" data-folder-grid>' in html
         assert (
             '<a href="/gallery/elements/" data-folder-card data-node-kind="folder">'
@@ -388,7 +385,7 @@ class TestFolderListingRenderingAndTemplate:
             ),
             context={"empty_items": []},
         )
-        assert '<h1 data-folder-title>Empty</h1>' in html
+        assert "<h1 data-folder-title>Empty</h1>" in html
         assert "<p data-folder-empty>Nothing here yet.</p>" in html
         assert "data-folder-grid" not in html
         assert 'class="dds-notice"' in html
@@ -516,9 +513,7 @@ class TestFolderListingGalleryAndDocs:
                     "empty_message": variant.kwargs.get(
                         "empty_message", "This folder is empty."
                     ),
-                    "show_debug_hint": variant.kwargs.get(
-                        "show_debug_hint", False
-                    ),
+                    "show_debug_hint": variant.kwargs.get("show_debug_hint", False),
                 },
             )
             assert 'class="dds-folder-listing"' in rendered
