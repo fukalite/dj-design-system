@@ -3,7 +3,8 @@
 from dj_design_system import gallery
 
 
-DEFAULT_MENU_HTML = (
+from django.utils.safestring import mark_safe
+DEFAULT_MENU_HTML = mark_safe(
     '<button type="button" class="dds-popout-option" role="menuitemradio" '
     'data-popout-option data-value="light" aria-checked="true">'
     "<span>Light</span></button>"
@@ -12,7 +13,7 @@ DEFAULT_MENU_HTML = (
     "<span>Dark</span></button>"
 )
 
-CUSTOM_TRIGGER_HTML = (
+CUSTOM_TRIGGER_HTML = mark_safe(
     '<button type="button" class="dds-button" data-popout-trigger '
     'aria-haspopup="true" aria-expanded="false">'
     "<span>Custom trigger</span></button>"

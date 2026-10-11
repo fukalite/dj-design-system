@@ -60,7 +60,7 @@
     --_dds-green-900: #14291e;
     --_dds-ink-100: #cdd6f4;
     --_dds-ink-300: #a6adc8;
-    --_dds-ink-500: #6c7086;
+    --_dds-ink-500: #9399b2;
     --_dds-ink-700: #313244;
     --_dds-ink-800: #2d2d42;
     --_dds-ink-850: #1e1e2e;
@@ -613,6 +613,8 @@
   }
 
   [data-surface='sidebar'] {
+    --dds-control-bg-color: var(--dds-surface-sidebar-state-hover-bg-color);
+    --dds-control-border-color: var(--dds-surface-sidebar-border-color);
     --dds-state-active-bg-color: var(--dds-surface-sidebar-state-active-bg-color);
     --dds-state-active-text-color: var(--dds-surface-sidebar-text-prominent-color);
     --dds-state-focus-text-color: var(--dds-surface-sidebar-text-prominent-color);

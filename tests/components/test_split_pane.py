@@ -282,11 +282,11 @@ class TestSplitPaneRenderingAndTemplate:
         assert '<div data-split-pane="secondary" data-surface="sandbox">' in html
         assert "data-split-pane-header" not in html
         assert (
-            '<div data-split-pane-body><div class="pane-a">Pane A</div></div>'
+            '<div data-split-pane-body tabindex="0"><div class="pane-a">Pane A</div></div>'
             in html
         )
         assert (
-            '<div data-split-pane-body><div class="pane-b">Pane B</div></div>'
+            '<div data-split-pane-body tabindex="0"><div class="pane-b">Pane B</div></div>'
             in html
         )
         assert "data-split-resizer" in html

@@ -7,7 +7,7 @@
     {% if has_primary_label %}
       <div data-split-pane-header>{{ primary_label }}</div>
     {% endif %}
-    <div data-split-pane-body>{{ primary_content }}</div>
+    <div data-split-pane-body tabindex="0">{{ primary_content }}</div>
   </div>
   <div data-split-resizer
        role="separator"
@@ -21,6 +21,6 @@
     {% if has_secondary_label %}
       <div data-split-pane-header>{{ secondary_label }}</div>
     {% endif %}
-    <div data-split-pane-body>{{ secondary_content }}</div>
+    <div data-split-pane-body tabindex="0">{{ secondary_content }}</div>
   </div>
 </dds-split-pane>

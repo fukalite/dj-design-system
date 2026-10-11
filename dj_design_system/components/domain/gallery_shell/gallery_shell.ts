@@ -31,6 +31,21 @@ export class DDSGalleryShellElement
     this.abortController = new AbortController();
     const { signal } = this.abortController;
 
+    const themeToggles =
+      this.querySelectorAll<HTMLElement>('[data-action="toggle-theme"]');
+    for (const toggle of themeToggles) {
+      toggle.addEventListener('click', () => {
+        const currentTheme = this.dataset.theme || 'light';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        this.dispatchEvent(
+          new CustomEvent('dds:theme-change', {
+            bubbles: true,
+            detail: { theme: newTheme },
+          }),
+        );
+      }, { signal });
+    }
+
     const triggers = this.querySelectorAll<HTMLElement>(
       '[data-action="toggle-drawer"], [data-drawer-toggle]',
     );
@@ -175,6 +190,16 @@ export class DDSGalleryShellElement
     );
     for (const input of themeInputs) {
       input.value = theme;
+    }
+
+    const themeToggles =
+      this.querySelectorAll<HTMLElement>('[data-action="toggle-theme"]');
+    for (const toggle of themeToggles) {
+      const iconUse = toggle.querySelector('use');
+      if (iconUse) {
+        const iconName = theme === 'dark' ? 'moon' : 'sun';
+        iconUse.setAttribute('href', `#dds-icon-${iconName}`);
+      }
     }
 
     const iframes = this.querySelectorAll<HTMLIFrameElement>('iframe[src]');
