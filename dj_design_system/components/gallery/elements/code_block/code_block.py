@@ -45,6 +45,7 @@ class CodeBlock(components.TagComponent):
         description="Code language identifier.",
         default=DEFAULT_LANGUAGE,
         required=False,
+        data_attr=True,
     )
     title = parameters.StrParam(
         description="Optional header title or filename.",
@@ -55,6 +56,12 @@ class CodeBlock(components.TagComponent):
         description="Whether to display the copy-to-clipboard button.",
         default=True,
         required=False,
+    )
+    flush = parameters.BoolParam(
+        description="Whether to render the code block without outer border and border-radius.",
+        default=False,
+        required=False,
+        data_attr=True,
     )
 
     class Meta:

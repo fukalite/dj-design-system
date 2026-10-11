@@ -57,7 +57,7 @@
     position: relative;
   }
 
-  [data-surface='code'] > dds-code-block {
+  dds-code-block[data-flush='true'] {
     border-radius: 0;
     border-width: 0;
   }

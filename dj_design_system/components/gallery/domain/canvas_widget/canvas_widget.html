@@ -18,12 +18,12 @@
   </div>
   {% if has_source_code %}
     <div data-canvas-panel="code" data-surface="code"{% if not is_code_mode %} hidden{% endif %}>
-      {% dds__code_block code=normalized_source_code language="django" title="Template Source" %}
+      {% dds__code_block code=normalized_source_code language="django" title="Template Source" flush=True %}
     </div>
   {% endif %}
   {% if has_rendered_html %}
     <div data-canvas-panel="html" data-surface="code"{% if not is_html_mode %} hidden{% endif %}>
-      {% dds__code_block code=normalized_rendered_html language="html" title="Output HTML" %}
+      {% dds__code_block code=normalized_rendered_html language="html" title="Output HTML" flush=True %}
     </div>
   {% endif %}
 </dds-canvas-widget>

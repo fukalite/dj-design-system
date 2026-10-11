@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 import markdown as markdown_lib
 from django.conf import settings
+from django.utils.safestring import mark_safe
 
 from dj_design_system.services.markdown_canvas import CanvasExtension
 from dj_design_system.services.markdown_links import RelativeLinksExtension
@@ -45,8 +46,10 @@ def render_markdown_doc(
             "noclasses": False,
             "pygments_style": style,
         }
-    return markdown_lib.markdown(
-        content,
-        extensions=extensions,
-        extension_configs=extension_configs,
+    return mark_safe(
+        markdown_lib.markdown(
+            content,
+            extensions=extensions,
+            extension_configs=extension_configs,
+        )
     )

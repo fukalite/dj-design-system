@@ -1,6 +1,7 @@
 @layer reset, tokens, global, composition, blocks, utilities;
 @import 'tokens.css';
 @import 'composition.css';
+@import 'gallery-layout.css';
 
 @layer reset {
   *,

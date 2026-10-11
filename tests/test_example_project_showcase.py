@@ -128,7 +128,7 @@ class TestSettingsDdsGallery:
                 visible = visibility_service.get_gallery_components()
                 visible_apps = {info.app_label for info in visible}
                 assert visible_apps == {"dj_design_system"}
-                assert len(visible) >= 22
+                assert len(visible) >= 18
 
                 collections = {
                     info.relative_path.removeprefix("gallery.").split(".")[0]

@@ -215,7 +215,7 @@ class TestCodeBlockRenderingAndTemplate:
             context={"raw_code": "\n<div>Hello</div>\n"},
         ).strip()
         assert (
-            '<dds-code-block class="dds-code-block" data-surface="code" data-language="django">'
+            '<dds-code-block class="dds-code-block" data-surface="code" data-language="django" data-flush="false">'
             in html
         )
         assert "<header" not in html
@@ -265,6 +265,13 @@ class TestCodeBlockRenderingAndTemplate:
             string=template_text,
         )
         assert not bem_matches
+
+    def test_renders_flush_attribute_when_flush_true(self) -> None:
+        """Verify flush=True sets data-flush='true' on <dds-code-block>."""
+        html = _render_template(
+            source='{% dds__code_block code="x = 1" flush=True %}'
+        ).strip()
+        assert 'data-flush="true"' in html
 
 
 class TestCodeBlockStylesheet:
@@ -328,6 +335,8 @@ class TestCodeBlockStylesheet:
         css_text = _read_text(path=CODE_BLOCK_CSS_PATH)
         assert '"' not in css_text
         assert "!important" not in css_text
+        assert "[data-surface=" not in css_text
+        assert "dds-code-block[data-flush='true']" in css_text
         bem_matches = re.findall(
             pattern=r"\.[a-z0-9-]+(?:__|--)[a-z0-9-]+",
             string=css_text,

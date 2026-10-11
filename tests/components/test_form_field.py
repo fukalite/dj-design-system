@@ -271,6 +271,7 @@ class TestFormFieldCssAndMarkupStandards:
 
         assert "!important" not in css_text
         assert '"' not in css_text
+        assert "[data-surface=" not in css_text
         for line in css_text.splitlines():
             assert line == line.rstrip()
 

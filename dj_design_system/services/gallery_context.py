@@ -16,6 +16,8 @@ from dj_design_system.data import (
     NavNode,
     ParamRowData,
     ParamSpecData,
+    ParamTableRowData,
+    SlotTableRowData,
 )
 from dj_design_system.exceptions import VariantNotFoundError
 from dj_design_system.forms import build_component_form
@@ -478,6 +480,26 @@ def build_component_page_context(
         if issubclass(component_class, BlockComponent) and component_class.has_slots()
         else []
     )
+    context["normalized_params"] = [
+        ParamTableRowData.from_raw(
+            (name, spec),
+            empty_placeholder="—",
+            fallback_type_name="any",
+        ).to_dict()
+        for name, spec in params.items()
+    ]
+    context["normalized_slots"] = [
+        SlotTableRowData.from_raw(
+            (slot_name, slot),
+            empty_placeholder="—",
+        ).to_dict()
+        for slot_name, slot in (
+            component_class.get_slots().items()
+            if issubclass(component_class, BlockComponent)
+            and component_class.has_slots()
+            else []
+        )
+    ]
     context["component_tabs"] = [
         {"id": "docs", "label": "Documentation"},
         {"id": "sandbox", "label": "Sandbox"},

@@ -17,6 +17,7 @@ from dj_design_system.services.navigation import (
     build_navigation,
     build_search_index,
     find_node,
+    normalize_folder_items,
 )
 from dj_design_system.services.registry import component_registry
 from dj_design_system.settings import (
@@ -104,6 +105,7 @@ def _render_folder(request, context, node, app_label, path_parts):
 
     context["folder_label"] = node.label
     context["children"] = node.children
+    context["folder_items"] = normalize_folder_items(node.children)
     context["is_debug"] = settings.DEBUG
     return render(request, "dj_design_system/gallery/folder.html", context)
 

@@ -1,0 +1,16 @@
+{% load design_components %}
+<aside class="dds-sidebar"
+       data-surface="sidebar"
+       aria-label="Component library navigation">
+    <div data-sidebar-header>
+        <a href="{% url 'gallery' %}" data-sidebar-brand>{{ design_system_name }}</a>
+    </div>
+    <div data-sidebar-body>{% dds__nav_tree nodes=nav_tree active_path=active_path active_variant=active_variant %}</div>
+    <div data-sidebar-footer>
+        {% if global_active_theme == 'dark' %}
+            {% dds__button label="Toggle theme" icon_only=True variant="ghost" icon="moon" size="sm" action="toggle-theme" %}
+        {% else %}
+            {% dds__button label="Toggle theme" icon_only=True variant="ghost" icon="sun" size="sm" action="toggle-theme" %}
+        {% endif %}
+    </div>
+</aside>
