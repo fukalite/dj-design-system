@@ -159,6 +159,63 @@
       letter-spacing: inherit;
       white-space: pre;
       tab-size: 4;
+
+      & span {
+        background-color: transparent;
+      }
+
+      & .hll {
+        background-color: var(--hl-line-bg);
+      }
+
+      & :is(.c, .cm, .c1, .cs) {
+        color: var(--hl-comment);
+      }
+
+      & .err {
+        color: var(--hl-error);
+        background-color: var(--hl-error-bg);
+      }
+
+      & :is(.k, .kc, .kd, .kp, .kr, .kt) {
+        color: var(--hl-keyword);
+      }
+
+      & :is(.kn, .o, .ow, .nt) {
+        color: var(--hl-operator);
+      }
+
+      & :is(.l, .m, .mf, .mh, .mi, .mo, .il, .se) {
+        color: var(--hl-literal);
+      }
+
+      & :is(.s, .ld, .sb, .sc, .sd, .s2, .sh, .si, .sx, .sr, .s1, .ss) {
+        color: var(--hl-string);
+      }
+
+      & :is(.n, .p, .nb, .ni, .nl, .nn, .nv, .py, .w, .bp, .vc, .vg, .vi) {
+        color: var(--hl-name);
+      }
+
+      & .no {
+        color: var(--hl-keyword);
+      }
+
+      & :is(.na, .nc, .nd, .ne, .nf, .nx) {
+        color: var(--hl-function);
+      }
+
+      & span.cp {
+        color: var(--hl-tag-delimiter);
+      }
+
+      & .ge {
+        font-style: italic;
+      }
+
+      & .gs {
+        font-weight: var(--dds-text-title-weight);
+      }
     }
   }
 }
