@@ -142,7 +142,7 @@ class TestVariantViewDiscoveryAndMetadata:
         assert info.component_class is variant_view_module.VariantView
         assert info.qualified_name == QUALIFIED_NAME
         assert info.relative_path == RELATIVE_PATH
-        assert info.is_internal is True
+        assert info.is_builtin is True
         assert info.template_name == TEMPLATE_PATH
         assert info.media.css == [CSS_MEDIA_PATH]
 

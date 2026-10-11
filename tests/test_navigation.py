@@ -1032,14 +1032,7 @@ def test_builtin_gallery_subfolder_omitted_from_navigation_tree():
 
     with override_settings(
         DJ_DESIGN_SYSTEM={
-            "GALLERY_SHOW_DDS_COMPONENTS": True,
-            "GALLERY_EXCLUDE_APPS": [
-                "demo_components",
-                "demo_extra",
-                "demo_nav",
-                "demo_single",
-                "broken_components",
-            ],
+            "GALLERY_INCLUDE_APPS": ["dj_design_system"],
         }
     ):
         tree = _build_navigation()

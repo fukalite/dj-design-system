@@ -1,11 +1,13 @@
 import html
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from django.template import Context, Template
 from django.templatetags.static import static
 from django.utils.html import format_html, format_html_join
 
+from dj_design_system.constants import BUILTIN_APP_LABEL, BUILTIN_GALLERY_CSS
 from dj_design_system.services import media as media_service
+from dj_design_system.services.registry import component_registry
 from dj_design_system.settings import (
     dds_settings,
     get_app_html_attrs,
@@ -14,6 +16,10 @@ from dj_design_system.settings import (
     get_default_background,
 )
 from dj_design_system.types import Theme
+
+
+if TYPE_CHECKING:
+    from dj_design_system.services.registry import ComponentRegistry
 
 
 def render_canvas_block(source: str) -> str:
@@ -102,6 +108,38 @@ def build_theme_app_media(
         "", '<script src="{}"></script>', ((u,) for u in js_urls)
     )
     return theme_app_css_tags, theme_app_js_tags
+
+
+def build_markdown_canvas_media(
+    *,
+    app_label: str = "",
+    registry: Optional["ComponentRegistry"] = None,
+) -> tuple[str, str]:
+    """Build component CSS and JS tags for markdown canvas previews.
+
+    Aggregates merged public component media with built-in component media
+    and gallery styling when previewing built-in framework components.
+    """
+    reg = registry if registry is not None else component_registry
+    media = reg.get_merged_media()
+    css_paths = list(media.css)
+    js_paths = list(media.js)
+    if app_label == BUILTIN_APP_LABEL:
+        builtin_media = reg.get_builtin_media()
+        css_paths = list(
+            dict.fromkeys(
+                [
+                    BUILTIN_GALLERY_CSS,
+                    *builtin_media.css,
+                    *css_paths,
+                ]
+            )
+        )
+        js_paths = list(dict.fromkeys([*builtin_media.js, *js_paths]))
+    return (
+        media_service.build_link_tags(css_paths),
+        media_service.build_script_tags(js_paths),
+    )
 
 
 def build_canvas_bg_styles(

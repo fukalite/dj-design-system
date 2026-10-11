@@ -25,14 +25,7 @@ STATICFILES_FINDERS = list(base_settings.STATICFILES_FINDERS)
 
 DJ_DESIGN_SYSTEM = {
     **base_settings.DJ_DESIGN_SYSTEM,
-    "DESIGN_SYSTEM_NAME": "dj-design-system Internal Component Library",
-    "GALLERY_SHOW_DDS_COMPONENTS": True,
-    "GALLERY_EXCLUDE_APPS": [
-        "demo_components",
-        "demo_extra",
-        "demo_nav",
-        "demo_single",
-        "broken_components",
-    ],
+    "DESIGN_SYSTEM_NAME": "dj-design-system Built-in Component Library",
+    "GALLERY_INCLUDE_APPS": ["dj_design_system"],
     "GLOBAL_CSS": ["example_project/theme-dds-consumer.css"],
 }

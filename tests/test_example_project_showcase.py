@@ -108,16 +108,9 @@ class TestSettingsDdsGallery:
         dds_cfg = settings_dds_gallery.DJ_DESIGN_SYSTEM
         assert (
             dds_cfg["DESIGN_SYSTEM_NAME"]
-            == "dj-design-system Internal Component Library"
+            == "dj-design-system Built-in Component Library"
         )
-        assert dds_cfg["GALLERY_SHOW_DDS_COMPONENTS"] is True
-        assert set(dds_cfg["GALLERY_EXCLUDE_APPS"]) == {
-            "demo_components",
-            "demo_extra",
-            "demo_nav",
-            "demo_single",
-            "broken_components",
-        }
+        assert dds_cfg["GALLERY_INCLUDE_APPS"] == ["dj_design_system"]
         assert dds_cfg["GLOBAL_CSS"] == ["example_project/theme-dds-consumer.css"]
 
     def test_navigation_and_views_expose_only_builtin_dds_components(
@@ -129,7 +122,9 @@ class TestSettingsDdsGallery:
             with test.override_settings(
                 DJ_DESIGN_SYSTEM=settings_dds_gallery.DJ_DESIGN_SYSTEM
             ):
-                assert dds_settings_mod.dds_settings.GALLERY_SHOW_DDS_COMPONENTS is True
+                assert dds_settings_mod.dds_settings.GALLERY_INCLUDE_APPS == [
+                    "dj_design_system"
+                ]
                 visible = visibility_service.get_gallery_components()
                 visible_apps = {info.app_label for info in visible}
                 assert visible_apps == {"dj_design_system"}
@@ -244,7 +239,7 @@ class TestUserFacingDocumentation:
         settings_md = (DOCS_DIR / "api" / "settings.md").read_text(encoding="utf-8")
 
         for term in (
-            "GALLERY_SHOW_DDS_COMPONENTS",
+            "GALLERY_INCLUDE_APPS",
             "GALLERY_EXCLUDE_APPS",
             "settings_dds_gallery.py",
             '"prefix": "dds"',
@@ -264,7 +259,7 @@ class TestUserFacingDocumentation:
         ):
             assert term in themes_md
 
-        assert "GALLERY_SHOW_DDS_COMPONENTS" in settings_md
+        assert "GALLERY_INCLUDE_APPS" in settings_md
         assert "GALLERY_EXCLUDE_APPS" in settings_md
 
     def test_relative_markdown_links_resolve_in_updated_docs(self) -> None:

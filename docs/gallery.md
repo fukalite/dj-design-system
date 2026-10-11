@@ -575,7 +575,7 @@ DJ_DESIGN_SYSTEM = {
 | `ENABLE_GALLERY`                    | `bool`                    | `True`                                                     | Enable or disable the gallery entirely.                     |
 | `GALLERY_IS_PUBLIC`                 | `bool`                    | `True`                                                     | When `False`, requires the `can_view_gallery` perm.         |
 | `DESIGN_SYSTEM_NAME`                | `str`                     | `"Django Design System"`                                   | Display name shown in the gallery header.                   |
-| `GALLERY_SHOW_DDS_COMPONENTS`       | `bool`                    | `False`                                                    | When `True`, includes built-in `dds__*` gallery components. |
+| `GALLERY_INCLUDE_APPS`              | `list[str]` or `None`     | `None`                                                     | When set, only components from these apps appear in gallery.|
 | `GALLERY_EXCLUDE_APPS`              | `list[str]`               | `[]`                                                       | App labels excluded from gallery navigation and search.     |
 | `GALLERY_NAV_ORDER`                 | `list[NodeType]` or `str` | `[NodeType.FOLDER, NodeType.COMPONENT, NodeType.DOCUMENT]` | Controls the sort order of nodes in the sidebar.            |
 | `GALLERY_CANVAS_DEFAULT_BACKGROUND` | `str`                     | `"light-grey"`                                             | Default background for the sandbox canvas.                  |
@@ -631,23 +631,16 @@ The gallery UI itself is built entirely from self-contained `dj_design_system` c
 
 Interactive gallery behaviours are implemented as Light DOM Custom Elements (`<dds-gallery-shell>`, `<dds-nav-tree>`, `<dds-search-box>`, `<dds-theme-select>`, `<dds-tabs>`, `<dds-popout>`, `<dds-code-block>`, `<dds-canvas-widget>`, `<dds-sandbox>`, `<dds-sandbox-toolbar>`, `<dds-params-form>`), while structural layout is composed with **Every Layout** primitives (`<l-stack>`, `<l-cluster>`, `<l-sidebar>`, `<l-switcher>`, `<l-box>`, `<l-center>`, `<l-cover>`, `<l-frame>`, `<l-grid>`, `<l-reel>`, `<l-imposter>`) in `@layer composition`.
 
-### Inspecting Built-in `dds` Components (`GALLERY_SHOW_DDS_COMPONENTS` & `GALLERY_EXCLUDE_APPS`)
+### Inspecting Built-in `dds` Components (`GALLERY_INCLUDE_APPS` & `GALLERY_EXCLUDE_APPS`)
 
-By default, `GALLERY_SHOW_DDS_COMPONENTS = False`, so the gallery sidebar and search index display only your project's own Django apps.
+By default, built-in `dj_design_system` components are excluded from consumer galleries, so the gallery sidebar and search index display only your project's own Django apps.
 
-To browse and inspect the built-in `dj_design_system` component library inside the gallery—or to hide specific apps from the gallery—configure `GALLERY_SHOW_DDS_COMPONENTS` and `GALLERY_EXCLUDE_APPS` (see [`example_project/settings_dds_gallery.py`](../example_project/settings_dds_gallery.py)):
+To browse and inspect the built-in `dj_design_system` component library inside the gallery in isolation, use `GALLERY_INCLUDE_APPS` (see [`example_project/settings_dds_gallery.py`](../example_project/settings_dds_gallery.py)):
 
 ```python
 DJ_DESIGN_SYSTEM = {
-    "DESIGN_SYSTEM_NAME": "dj-design-system Internal Component Library",
-    "GALLERY_SHOW_DDS_COMPONENTS": True,
-    "GALLERY_EXCLUDE_APPS": [
-        "demo_components",
-        "demo_extra",
-        "demo_nav",
-        "demo_single",
-        "broken_components",
-    ],
+    "DESIGN_SYSTEM_NAME": "dj-design-system Built-in Component Library",
+    "GALLERY_INCLUDE_APPS": ["dj_design_system"],
 }
 ```
 
