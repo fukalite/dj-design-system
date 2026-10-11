@@ -345,7 +345,7 @@ class TestNavTreeTemplate:
         tree = _build_navigation([info])
 
         html = NavTree(nodes=tree, active_path="", active_variant="").render()
-        assert 'data-icon="folder"' in html
+        assert 'data-icon="component"' in html
         assert 'data-icon="code"' in html
 
     def test_component_without_variants_icon_renders(self):

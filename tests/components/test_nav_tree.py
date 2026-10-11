@@ -238,7 +238,7 @@ class TestNavTreeParametersAndContext:
         assert button_node["depth"] == 2
         assert button_node["is_active"] is True
         assert button_node["is_open"] is True
-        assert button_node["resolved_icon"] == "folder"
+        assert button_node["resolved_icon"] == "component"
 
         primary_node = button_node["children"][0]
         assert primary_node["node_kind"] == "leaf"
