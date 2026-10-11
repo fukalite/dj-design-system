@@ -257,14 +257,11 @@ class BaseComponent:
         return kwargs
 
 
-class BuiltinComponent(BaseComponent):
-    """Marker base class for built-in framework components.
+class BuiltinComponent:
+    """Marker class for built-in framework components.
 
     Not exported in ``dj_design_system.components.__all__``.
     """
-
-    class Meta:
-        abstract = True
 
 
 class TagComponent(BaseComponent):
