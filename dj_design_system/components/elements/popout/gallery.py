@@ -1,9 +1,10 @@
 """Gallery configuration and variants for the built-in dds__popout component."""
 
+from django.utils.safestring import mark_safe
+
 from dj_design_system import gallery
 
 
-from django.utils.safestring import mark_safe
 DEFAULT_MENU_HTML = mark_safe(
     '<button type="button" class="dds-popout-option" role="menuitemradio" '
     'data-popout-option data-value="light" aria-checked="true">'
