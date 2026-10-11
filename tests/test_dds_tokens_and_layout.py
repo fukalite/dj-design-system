@@ -396,7 +396,7 @@ class TestTier2Tokens:
             assert f"--dds-status-{level}-{prop}" in root_props
 
     def test_dark_theme_overrides_tier_2_tokens(self) -> None:
-        """Verify .gallery-theme-dark overrides theme-sensitive Tier 2 tokens across domains."""
+        """Verify .gallery-theme-dark and prefers-color-scheme: dark override Tier 2 tokens."""
         tokens_css = _read_css(path=TOKENS_CSS_PATH)
         dark_blocks = _extract_rule_blocks(
             css_text=tokens_css,
@@ -409,6 +409,17 @@ class TestTier2Tokens:
         assert "--dds-state-hover-bg-color" in dark_props
         assert "--dds-control-bg-color" in dark_props
         assert "--dds-status-error-bg-color" in dark_props
+
+        assert "@media (prefers-color-scheme: dark)" in tokens_css
+        media_dark_blocks = _extract_rule_blocks(
+            css_text=tokens_css,
+            selector=":root:not(.gallery-theme-light)",
+        )
+        assert media_dark_blocks
+        media_dark_props = _extract_defined_properties(
+            block_text="\n".join(media_dark_blocks)
+        )
+        assert media_dark_props == dark_props
 
 
 class TestEveryLayoutComposition:

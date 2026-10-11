@@ -73,8 +73,8 @@ SAMPLE_SEARCH_INDEX: tuple[dict[str, str], ...] = (
 
 DEFAULT_MAIN_HTML = "<article><h1>Component Documentation</h1><p>Main gallery viewport content.</p></article>"
 CUSTOM_TOPBAR_HTML = '<div data-custom-topbar><strong>Custom Topbar</strong></div>'
-CUSTOM_SIDEBAR_HTML = '<nav data-custom-sidebar><a href="/docs/">Overview</a></nav>'
-CUSTOM_ACTIONS_HTML = '<a href="https://example.com" data-custom-action>Docs</a>'
+CUSTOM_SIDEBAR_HTML = '<nav data-custom-sidebar><a href="/docs/" style="color: var(--dds-surface-sidebar-text-default-color);">Overview</a></nav>'
+CUSTOM_ACTIONS_HTML = '<a href="https://example.com" style="color: var(--dds-text-default-color);" data-custom-action>Docs</a>'
 
 
 config = gallery.GalleryConfig(

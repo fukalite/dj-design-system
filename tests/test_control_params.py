@@ -13,6 +13,12 @@ from dj_design_system.services.canvas import (
     RESERVED_CANVAS_PARAMS,
     resolve_from_get_params,
 )
+from dj_design_system.services.canvas import (
+    canvas_bg_class as _canvas_bg_class,
+)
+from dj_design_system.services.canvas import (
+    canvas_mode_class as _canvas_mode_class,
+)
 from dj_design_system.services.control_params import (
     CONTROL_PARAM_NAMES,
     control_param_key,
@@ -20,7 +26,6 @@ from dj_design_system.services.control_params import (
     get_control_param,
 )
 from dj_design_system.services.registry import component_registry
-from dj_design_system.views.canvas import _canvas_bg_class, _canvas_mode_class
 from dj_design_system.views.gallery import get_base_context
 
 

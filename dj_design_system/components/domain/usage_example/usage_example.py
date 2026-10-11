@@ -38,11 +38,6 @@ class UsageExample(components.TagComponent):
         {% dds__usage_example title="Maximal example" code=signature.maximal preview_url=maximal_url canvas_id="maximal" %}
     """
 
-    template_name = (
-        "dj_design_system/components/domain/usage_example/usage_example.html"
-    )
-    _template_name = template_name
-
     title = parameters.StrParam(
         description="Heading for the usage example block (e.g. 'Minimal example').",
         default="",
@@ -73,12 +68,14 @@ class UsageExample(components.TagComponent):
         default=DEFAULT_LANGUAGE,
         required=False,
     )
+    show_sandbox_link = parameters.BoolParam(
+        description="Whether to display the sandbox shortcut button.",
+        default=True,
+        required=False,
+    )
 
     class Meta:
         positional_args = ["title", "code"]
-
-    class Media:
-        css = "dj_design_system/components/domain/usage_example/usage_example.css"
 
     def __init__(self, **kwargs: typing.Any) -> None:
         """Initialise the usage example component and normalise TagSignature code inputs.
@@ -116,7 +113,10 @@ class UsageExample(components.TagComponent):
         language = self.language or DEFAULT_LANGUAGE
         has_title = bool(title)
         has_preview = bool(preview_url)
-        has_sandbox_link = bool(preview_url and sandbox_href)
+        show_sandbox_link = (
+            True if self.show_sandbox_link is None else bool(self.show_sandbox_link)
+        )
+        has_sandbox_link = bool(show_sandbox_link and preview_url and sandbox_href)
         has_code = bool(code.strip())
         iframe_title = f"{title} preview" if title else DEFAULT_IFRAME_TITLE
 
@@ -126,6 +126,7 @@ class UsageExample(components.TagComponent):
         context["canvas_id"] = canvas_id
         context["sandbox_href"] = sandbox_href
         context["language"] = language
+        context["show_sandbox_link"] = show_sandbox_link
         context["has_title"] = has_title
         context["has_preview"] = has_preview
         context["has_sandbox_link"] = has_sandbox_link

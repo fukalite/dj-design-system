@@ -18,8 +18,9 @@ def test_submodule_exports():
     """Functions should be defined in their respective submodules and re-exported."""
     assert hasattr(views.decorators, "gallery_access_required")
     assert hasattr(views.canvas, "canvas_iframe_view")
-    assert hasattr(views.component, "_render_component")
+    assert hasattr(views.component, "render_component_node")
     assert hasattr(views.gallery, "gallery_index")
+
     assert hasattr(views.gallery, "gallery_node")
     assert hasattr(views.gallery, "get_base_context")
     assert views.gallery_access_required is views.decorators.gallery_access_required

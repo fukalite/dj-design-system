@@ -22,3 +22,14 @@
   --dds-state-focus-outline-color: var(--dds-color-accent);
   --dds-state-selected-border-color: var(--dds-color-accent);
 }
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.gallery-theme-light) {
+    --dds-color-accent: #2dd4bf;
+    --dds-color-accent-hover: #5eead4;
+    --dds-control-accent-color: var(--dds-color-accent);
+    --dds-state-focus-border-color: var(--dds-color-accent);
+    --dds-state-focus-outline-color: var(--dds-color-accent);
+    --dds-state-selected-border-color: var(--dds-color-accent);
+  }
+}

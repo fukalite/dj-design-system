@@ -34,11 +34,6 @@ class VariantView(components.TagComponent):
         {% dds__variant_view variant_label=variant description_html=desc_html preview_url=url code=signature %}
     """
 
-    template_name = (
-        "dj_design_system/components/domain/variant_view/variant_view.html"
-    )
-    _template_name = template_name
-
     variant_label = parameters.StrParam(
         description="Display label of the active variant (or Variant instance).",
         default="",
@@ -72,9 +67,6 @@ class VariantView(components.TagComponent):
 
     class Meta:
         positional_args = ["variant_label"]
-
-    class Media:
-        css = "dj_design_system/components/domain/variant_view/variant_view.css"
 
     def __init__(self, **kwargs: typing.Any) -> None:
         """Initialise VariantView and normalise object arguments for variant_label and code.

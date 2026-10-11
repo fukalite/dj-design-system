@@ -128,9 +128,11 @@ class TestVariantViewDiscoveryAndMetadata:
         )
 
     def test_template_media_and_positional_args(self) -> None:
-        """Verify VariantView declares co-located template_name, Media.css, and positional_args."""
-        assert variant_view_module.VariantView.template_name == TEMPLATE_PATH
-        assert variant_view_module.VariantView.Media.css == CSS_MEDIA_PATH
+        """Verify VariantView relies on co-located template_name, Media.css, and positional_args."""
+        reg = _make_registry()
+        info = reg.get_by_name(name=COMPONENT_NAME, app_label=APP_LABEL)
+        assert info.template_name == TEMPLATE_PATH
+        assert info.media.css == [CSS_MEDIA_PATH]
         assert variant_view_module.VariantView.get_positional_args() == [
             "variant_label",
         ]

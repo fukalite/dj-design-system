@@ -36,9 +36,6 @@ class Notice(components.BlockComponent):
         {% enddds__notice %}
     """
 
-    template_name = "dj_design_system/components/elements/notice/notice.html"
-    _template_name = template_name
-
     variant = parameters.StrParam(
         description="Semantic status level.",
         default=DEFAULT_VARIANT,
@@ -56,9 +53,6 @@ class Notice(components.BlockComponent):
         required=False,
         choices=["", *icon_element.ICON_NAMES],
     )
-
-    class Media:
-        css = "dj_design_system/components/elements/notice/notice.css"
 
     def get_context(self) -> dict[str, typing.Any]:
         """Compute template context with resolved icon, ARIA role, and title state.

@@ -45,9 +45,6 @@ class GalleryShell(components.BlockComponent):
         {% enddds__gallery_shell %}
     """
 
-    template_name = "dj_design_system/components/domain/gallery_shell/gallery_shell.html"
-    _template_name = template_name
-
     brand_name = parameters.StrParam(
         description="Design system name.",
         default=DEFAULT_BRAND_NAME,
@@ -114,18 +111,14 @@ class GalleryShell(components.BlockComponent):
             ),
         }
 
-    class Media:
-        css = "dj_design_system/components/domain/gallery_shell/gallery_shell.css"
-        js = "dj_design_system/components/domain/gallery_shell/gallery_shell.js"
-
     def __init__(
         self,
         content: safestring.SafeString | str | None = None,
         *,
-        slots: dict[str, safestring.SafeString] | None = None,
+        slots: dict[str, safestring.SafeString | str] | None = None,
         **kwargs: typing.Any,
     ) -> None:
-        """Initialise the gallery shell component, normalising variant objects and safe slots.
+        """Initialise the gallery shell component, normalising variant objects.
 
         Args:
             content: Optional main body markup when instantiated directly in Python.
@@ -145,19 +138,11 @@ class GalleryShell(components.BlockComponent):
                     kwargs["active_variant"],
                 )
             )
-        normalized_slots = {
-            name: safestring.SafeString(val) if val else val
-            for name, val in (slots or {}).items()
-        }
-        normalized_content = (
-            safestring.SafeString(content) if content is not None else ""
-        )
         super().__init__(
-            content=normalized_content,
-            slots=normalized_slots,
+            content=content,
+            slots=slots,
             **kwargs,
         )
-        self.content = normalized_content
 
     def get_context(self) -> dict[str, typing.Any]:
         """Compute normalized template context for the gallery shell regions and child components.
@@ -170,13 +155,9 @@ class GalleryShell(components.BlockComponent):
         brand_url = self.brand_url or DEFAULT_BRAND_URL
         resolved_theme = self.active_theme or DEFAULT_ACTIVE_THEME
         nodes = list(self.nodes) if self.nodes is not None else []
-        breadcrumbs = (
-            list(self.breadcrumbs) if self.breadcrumbs is not None else []
-        )
+        breadcrumbs = list(self.breadcrumbs) if self.breadcrumbs is not None else []
         themes = list(self.themes) if self.themes is not None else []
-        search_index = (
-            list(self.search_index) if self.search_index is not None else []
-        )
+        search_index = list(self.search_index) if self.search_index is not None else []
         has_topbar_slot = bool(self.slots and self.slots.get("topbar"))
         has_sidebar_slot = bool(self.slots and self.slots.get("sidebar"))
         has_toolbar_actions_slot = bool(

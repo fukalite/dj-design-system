@@ -104,9 +104,11 @@ class TestNoticeDiscoveryAndMetadata:
         assert issubclass(notice_module.Notice, components_base.BlockComponent)
 
     def test_template_and_media_declarations(self) -> None:
-        """Verify Notice declares co-located template_name and Media.css."""
-        assert notice_module.Notice.template_name == TEMPLATE_PATH
-        assert notice_module.Notice.Media.css == CSS_MEDIA_PATH
+        """Verify Notice relies on co-located template_name and Media.css auto-discovery."""
+        reg = _make_registry()
+        info = reg.get_by_name(name=COMPONENT_NAME, app_label=APP_LABEL)
+        assert info.template_name == TEMPLATE_PATH
+        assert info.media.css == [CSS_MEDIA_PATH]
 
     def test_discovered_as_dds_notice_in_registry(self) -> None:
         """Verify ComponentRegistry discovers Notice as internal dds__notice."""
@@ -186,7 +188,7 @@ class TestNoticeRenderingAndTemplate:
         html = _render_template(
             source="{% dds__notice %}Body message.{% enddds__notice %}"
         ).strip()
-        assert '<aside class="dds-notice" data-variant="info" role="note">' in html
+        assert '<div class="dds-notice" data-variant="info" role="note">' in html
         assert 'class="dds-icon"' in html
         assert 'data-icon="info"' in html
         assert 'data-size="md"' in html
@@ -202,7 +204,7 @@ class TestNoticeRenderingAndTemplate:
                 "{% enddds__notice %}"
             )
         ).strip()
-        assert '<aside class="dds-notice" data-variant="error" role="alert">' in html
+        assert '<div class="dds-notice" data-variant="error" role="alert">' in html
         assert 'data-icon="code"' in html
         assert "<strong>Fatal Error</strong>" in html
         assert "<div>Stack trace details.</div>" in html

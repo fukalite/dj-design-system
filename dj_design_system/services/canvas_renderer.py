@@ -3,7 +3,7 @@ from typing import Optional
 
 from django.template import Context, Template
 from django.templatetags.static import static
-from django.utils.html import format_html_join
+from django.utils.html import format_html, format_html_join
 
 from dj_design_system.services import media as media_service
 from dj_design_system.settings import (
@@ -157,10 +157,11 @@ def build_resize_script(iframe_id: str = "") -> str:
 
 
 def _flatten_attrs(attrs: dict[str, str]) -> str:
-    """Convert a dict to an HTML attribute string with leading space."""
+    """Convert a dict of HTML attributes to a safe attribute string with leading space."""
     if not attrs:
         return ""
-    return " " + " ".join(f'{k}="{html.escape(v)}"' for k, v in attrs.items())
+    parts = format_html_join(" ", '{}="{}"', attrs.items())
+    return format_html(" {}", parts)
 
 
 def build_html_attrs(

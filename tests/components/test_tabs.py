@@ -111,10 +111,12 @@ class TestTabsDiscoveryAndMetadata:
         assert issubclass(tabs_module.Tabs, components_base.BlockComponent)
 
     def test_template_media_and_positional_args(self) -> None:
-        """Verify Tabs declares co-located template_name, Media.css, Media.js, and positional_args."""
-        assert tabs_module.Tabs.template_name == TEMPLATE_PATH
-        assert tabs_module.Tabs.Media.css == CSS_MEDIA_PATH
-        assert tabs_module.Tabs.Media.js == JS_MEDIA_PATH
+        """Verify Tabs relies on co-located template_name, Media.css, Media.js, and positional_args."""
+        reg = _make_registry()
+        info = reg.get_by_name(name=COMPONENT_NAME, app_label=APP_LABEL)
+        assert info.template_name == TEMPLATE_PATH
+        assert info.media.css == [CSS_MEDIA_PATH]
+        assert info.media.js == [JS_MEDIA_PATH]
         assert tabs_module.Tabs.get_positional_args() == ["tabs"]
 
     def test_discovered_as_dds_tabs_in_registry(self) -> None:
@@ -243,6 +245,24 @@ class TestTabsParametersAndContext:
         assert ctx["resolved_active"] == "alpha"
         assert ctx["normalized_tabs"][0]["is_active"] is True
         assert ctx["normalized_tabs"][1]["is_active"] is False
+
+    def test_custom_id_prefix_scopes_tab_and_panel_dom_ids(self) -> None:
+        """Verify id_prefix scopes tab_dom_id and panel_dom_id to prevent DOM ID collisions."""
+        comp = tabs_module.Tabs(
+            tabs=[
+                {"id": "docs", "label": "Documentation", "content": "Docs"},
+                {"id": "sandbox", "label": "Sandbox", "content": "Sandbox"},
+            ],
+            id_prefix="component-view",
+        )
+        ctx = comp.get_context()
+        assert ctx["id_prefix"] == "component-view"
+        assert ctx["normalized_tabs"][0]["tab_dom_id"] == "component-view-tab-docs"
+        assert ctx["normalized_tabs"][0]["panel_dom_id"] == "component-view-panel-docs"
+        assert ctx["normalized_tabs"][1]["tab_dom_id"] == "component-view-tab-sandbox"
+        assert (
+            ctx["normalized_tabs"][1]["panel_dom_id"] == "component-view-panel-sandbox"
+        )
 
     def test_invalid_tabs_type_raises_type_error(self) -> None:
         """Verify passing a non-list to tabs raises TypeError."""

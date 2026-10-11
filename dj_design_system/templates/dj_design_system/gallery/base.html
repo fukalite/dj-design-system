@@ -1,6 +1,6 @@
 {% load static design_components dj_design_system_gallery %}
 <!DOCTYPE html>
-<html lang="en" class="{{ theme_body_class }}">
+<html lang="en">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -23,7 +23,6 @@
 {% endslot %}
 {% enddds__gallery_shell %}
 
-{% gallery_search_index_script %}
 {% block extra_js %}{% endblock %}
 <script src="{% static 'dj_design_system/htmx.min.js' %}"
         {% if request.csp_nonce %} nonce="{{ request.csp_nonce }}"{% endif %}></script>
