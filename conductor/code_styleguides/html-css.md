@@ -116,17 +116,50 @@ Declarations within every CSS rule must be grouped by type and strictly ordered 
 
 ---
 
-## 6. Design Tokens Over Magic Numbers
+## 6. Three-Tier Design Token Hierarchy & Usage Boundaries
 
-Never hard-code magic numbers or raw colour codes in component stylesheets or layouts.
+Never hard-code magic numbers or raw colour codes in component stylesheets or layouts. All styling must strictly respect the three-tier token architecture:
 
-- **Tokens Required**:
-  - Colours: `var(--dds-surface-*)`, `var(--dds-text-*)`, `var(--dds-state-*)`, `var(--dds-control-*)`.
-  - Spacing & Insets: `var(--dds-space-*)`, `var(--dds-space-gap-*)`, `var(--dds-space-inset-*)`.
-  - Typography: `var(--dds-text-<role>-<prop>)`, `var(--dds-font-*)`.
-  - Border Widths: `var(--dds-surface-*-border-width)`, `var(--dds-control-border-width)`.
-  - Border Radii: `var(--dds-surface-border-radius)`, `var(--dds-control-border-radius)`.
-- **Private Tier 3 Tokens**: Component-local CSS must map all internal properties to `--_<component>-*` variables declared at the component root and sourced exclusively from Tier 2 `--dds-*` tokens.
+```
+Tier 1: Primitive Tokens (--_dds-*) [Private, :root only]
+   │
+   ▼
+Tier 2: Semantic Tokens (--dds-*) [Public Theming API, :root & surfaces]
+   │
+   ├──▶ Consumed by Layouts & Composition Primitives (<l-*>, layout CSS)
+   │
+   ▼
+Tier 3: Component-Local Tokens (--_<component>-*) [Private, component root]
+   │
+   └──▶ Consumed by Component CSS Declarations (<name>.css)
+```
+
+### Tier 1: Literal / Primitive Tokens (Private, `:root` only)
+- **Format:** `--_dds-<palette-or-scale>-<step>` (leading `_` denotes private to token definition).
+- **Where Defined:** Exclusively on `:root` inside `tokens.css`.
+- **Usage Boundary:** **NEVER referenced outside `tokens.css` `:root` and theme overrides (`.gallery-theme-dark`).** Components, layouts, utilities, and surfaces must never consume Tier 1 tokens directly.
+
+### Tier 2: Semantic Tokens (Public Theming API)
+- **Format:** `--dds-<domain>-<role>-<property>` or `--dds-<domain>-<property>` (e.g. `--dds-surface-code-bg-color`, `--dds-text-body-font`, `--dds-space-md`, `--dds-control-border-width`).
+- **Where Defined:** On `:root` in `tokens.css`. Surface selectors (`[data-surface='...']`) alias `:root` Tier 2 tokens without touching Tier 1 literals.
+- **Usage Boundary:**
+  - Layout stylesheets and Every Layout composition primitives (`<l-*>`) consume Tier 2 tokens directly.
+  - Component stylesheets consume Tier 2 tokens **exclusively to map their Tier 3 tokens** at the component root.
+
+### Tier 3: Component-Local Tokens (Private, `<name>.css`)
+- **Format:** `--_<component>-<prop>` (leading `_` denotes private to the component).
+- **Where Defined:** At the top of `<name>.css` on the component root selector (`dds-<name>` or `.dds-<name>`). **NEVER on `:root`**.
+- **Usage Boundary:**
+  - Every Tier 3 token must map **exclusively from Tier 2 `--dds-*` tokens** (e.g. `--_button-bg-color: var(--dds-state-interactive-bg-color);`).
+  - All declarations inside `<name>.css` must reference **only** the component's own `--_<component>-*` tokens. Never reference Tier 2 `--dds-*` directly inside component rules.
+
+### Token Tier Usage Matrix
+
+| Token Tier | Prefix / Format | Where Defined | Where Referenced | Usable in Component CSS Rules? |
+| :--- | :--- | :--- | :--- | :--- |
+| **Tier 1: Primitive** | `--_dds-*` | `:root` in `tokens.css` | `:root` semantic maps in `tokens.css` | ❌ **Forbidden** |
+| **Tier 2: Semantic** | `--dds-*` | `:root`, surfaces in `tokens.css` | Layouts, `<l-*>`, component root Tier 3 maps | ❌ **Only as Tier 3 source** |
+| **Tier 3: Component** | `--_<component>-*` | Component root in `<name>.css` | Component internal rules in `<name>.css` | ✅ **Exclusively required** |
 
 ---
 
