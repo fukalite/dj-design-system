@@ -40,9 +40,9 @@ Explanation and examples: [`docs/layered-architecture.md`](../../docs/layered-ar
 - No catch-all `utils.py` / `helpers.py` modules. Put helpers in the area module they serve.
 
 ## Signatures
-- Every function in `services/` and `business_logic/`, public or private, is fully type-annotated with precise types (`QuerySet[Feedback]`, `Iterable[User]`, `Feedback | None`, `-> None`). No unexplained `Any`.
-- Public functions take keyword-only arguments.
-- Prefer iterable parameters for bulk actions over single-item functions called in a loop.
+- Every function in `services/` and `business_logic/`, public or private, is fully type-annotated with precise types (`QuerySet[Feedback]`, `Iterable[User]`, `Sequence[NavNode | dict[str, Any]]`, `Feedback | None`, `-> None`). Avoid bare `list[Any]` or unexplained `Any`.
+- Public functions in `services/` and `business_logic/` must take keyword-only arguments (`*`). Callers must always supply keyword arguments.
+- Prefer iterable or sequence parameters (`Sequence[...]`, `Iterable[...]`) for bulk actions over single-item functions called in a loop.
 - Import layer modules with a layer alias: `from app.services import feedback as feedback_service`.
 
 ## Tests

@@ -3,15 +3,25 @@
 import typing
 
 from dj_design_system import components, parameters
-from dj_design_system.components.gallery.elements import icon as icon_element
+
+
+ROLE_MENUITEM = "menuitem"
+ROLE_MENUITEMRADIO = "menuitemradio"
+ROLE_MENUITEMCHECKBOX = "menuitemcheckbox"
+ROLE_CHOICES: tuple[str, ...] = (
+    "",
+    ROLE_MENUITEM,
+    ROLE_MENUITEMRADIO,
+    ROLE_MENUITEMCHECKBOX,
+)
 
 
 class PopoutOption(components.TagComponent):
-    """Polymorphic menu item or selectable radio option inside a ``dds__popout`` menu.
+    """Polymorphic menu item or selectable option inside a ``dds__popout`` menu.
 
     Renders an ``<a class="dds-popout-option" role="menuitem">`` link when
-    ``href`` is non-empty and ``disabled`` is ``False``, or a
-    ``<button type="button" class="dds-popout-option" role="menuitemradio">``
+    ``href`` is non-empty (retaining link semantics with ``aria-disabled="true"``
+    when disabled), or a ``<button type="button" class="dds-popout-option">``
     control otherwise. Emits ``data-popout-option`` and ``data-value`` hooks so
     the parent ``<dds-popout>`` Light DOM custom element can manage selection
     state and dispatch ``dds:popout-select`` events.
@@ -19,15 +29,20 @@ class PopoutOption(components.TagComponent):
     Args:
         label: Visible option text label (also used as fallback for ``value``).
         value: Option value payload; falls back to ``label`` when empty.
-        icon: Optional leading icon name from ``ICON_NAMES``.
+        role: ARIA menu item role (``"menuitem"``, ``"menuitemradio"``, or
+            ``"menuitemcheckbox"``). Defaults to ``"menuitem"`` for links and
+            ``"menuitemradio"`` for buttons.
+        icon: Optional leading icon name.
+        shortcut: Optional keyboard shortcut text hint (e.g. ``"⌘K"``).
         selected: Whether this option is currently checked (``aria-checked="true"``).
-        disabled: Whether this option is disabled (forces ``<button disabled>``).
-        href: Optional link URL; renders an ``<a>`` tag when not disabled.
+        disabled: Whether this option is disabled.
+        href: Optional link URL; renders an ``<a>`` tag.
 
     Example usage::
 
         {% dds__popout_option "Light" value="light" icon="sun" selected=True %}
         {% dds__popout_option "Documentation" href="/docs/" icon="external-link" %}
+        {% dds__popout_option "Quick Open" shortcut="⌘P" role="menuitem" %}
     """
 
     label = parameters.StrParam(description="Option text label.")
@@ -36,11 +51,21 @@ class PopoutOption(components.TagComponent):
         default="",
         required=False,
     )
+    role = parameters.StrParam(
+        description="ARIA menu item role ('menuitem', 'menuitemradio', or 'menuitemcheckbox').",
+        default="",
+        required=False,
+        choices=list(ROLE_CHOICES),
+    )
     icon = parameters.StrParam(
         description="Optional leading icon name.",
         default="",
         required=False,
-        choices=["", *icon_element.ICON_NAMES],
+    )
+    shortcut = parameters.StrParam(
+        description="Optional keyboard shortcut text hint.",
+        default="",
+        required=False,
     )
     selected = parameters.BoolParam(
         description="Whether this option is currently selected.",
@@ -66,17 +91,29 @@ class PopoutOption(components.TagComponent):
 
         Returns:
             Dictionary containing component parameters and pre-computed
-            ``is_link``, ``resolved_value``, ``aria_checked``, and ``has_icon``
-            values.
+            ``is_link``, ``resolved_role``, ``resolved_value``, ``is_checkable``,
+            ``aria_checked``, ``has_icon``, and ``has_shortcut`` values.
         """
         context = super().get_context()
-        is_link = bool(self.href) and not self.disabled
+        is_link = bool(self.href)
         resolved_value = str(self.value) if self.value else str(self.label)
+        if self.role:
+            resolved_role = self.role
+        elif is_link:
+            resolved_role = ROLE_MENUITEM
+        else:
+            resolved_role = ROLE_MENUITEMRADIO
+
+        is_checkable = resolved_role in (ROLE_MENUITEMRADIO, ROLE_MENUITEMCHECKBOX)
         aria_checked = "true" if self.selected else "false"
         has_icon = bool(self.icon)
+        has_shortcut = bool(self.shortcut)
 
         context["is_link"] = is_link
+        context["resolved_role"] = resolved_role
         context["resolved_value"] = resolved_value
+        context["is_checkable"] = is_checkable
         context["aria_checked"] = aria_checked
         context["has_icon"] = has_icon
+        context["has_shortcut"] = has_shortcut
         return context

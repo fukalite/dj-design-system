@@ -448,34 +448,3 @@ class TestEveryLayoutComposition:
             assert custom_prop in composition_css
         assert "var(--dds-space-" in composition_css
         assert "var(--dds-layout-" in composition_css
-
-    def test_no_bem_selectors_in_tokens_or_composition(self) -> None:
-        """Verify zero BEM (__ or --) class selectors exist in tokens.css or composition.css."""
-        for css_path in (TOKENS_CSS_PATH, COMPOSITION_CSS_PATH):
-            css_text = _read_css(path=css_path)
-            bem_matches = re.findall(
-                pattern=r"\.[a-z0-9-]+(?:__|--)[a-z0-9-]+",
-                string=css_text,
-            )
-            assert not bem_matches
-
-    def test_declarations_alphabetized_and_formatted_per_styleguide(self) -> None:
-        """Verify declarations are alphabetized within rules and conform to html-css.md."""
-        for css_path in (TOKENS_CSS_PATH, COMPOSITION_CSS_PATH):
-            css_text = _read_css(path=css_path)
-            assert "!important" not in css_text
-            assert '"' not in css_text
-            for line in css_text.splitlines():
-                assert line == line.rstrip()
-            rule_blocks = re.findall(
-                pattern=r"\{([^{}]+)\}",
-                string=css_text,
-            )
-            assert rule_blocks
-            for block in rule_blocks:
-                prop_names = re.findall(
-                    pattern=r"^\s*([a-z0-9_-]+)\s*:",
-                    string=block,
-                    flags=re.MULTILINE,
-                )
-                assert prop_names == sorted(prop_names)

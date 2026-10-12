@@ -30,6 +30,16 @@ DEFAULT_BODY = safestring.mark_safe(
     )
 )
 
+DEFAULT_FOOT = safestring.mark_safe(
+    s=(
+        "<tr>"
+        '<th scope="row">Total</th>'
+        "<td>2 parameters</td>"
+        "<td></td>"
+        "</tr>"
+    )
+)
+
 config = gallery.GalleryConfig(
     variants=[
         gallery.Variant(
@@ -58,6 +68,17 @@ config = gallery.GalleryConfig(
             description="Table rendered without the optional head slot.",
             kwargs={
                 "slot__body": DEFAULT_BODY,
+            },
+        ),
+        gallery.Variant(
+            name="with_foot",
+            label="Table with Footer",
+            description="Table with header, body, and summary footer rows.",
+            kwargs={
+                "caption": "Parameter inventory",
+                "slot__head": DEFAULT_HEAD,
+                "slot__body": DEFAULT_BODY,
+                "slot__foot": DEFAULT_FOOT,
             },
         ),
     ],

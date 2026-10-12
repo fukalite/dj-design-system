@@ -94,12 +94,22 @@ update-snapshots:
 check:
     uv run --no-sync ruff check .
     uv run --no-sync djlint dj_design_system/templates --check
+    npx stylelint "dj_design_system/**/*.css"
 
 # Auto-fix all fixable lint and formatting issues (run by pre-commit hook)
 fix:
     uv run --no-sync ruff check --fix .
     uv run --no-sync ruff format .
     uv run --no-sync djlint dj_design_system/templates --reformat || true
+    npx stylelint "dj_design_system/**/*.css" --fix || true
+
+# Check CSS formatting with stylelint
+check-css:
+    npx stylelint "dj_design_system/**/*.css"
+
+# Auto-fix CSS formatting with stylelint
+fix-css:
+    npx stylelint "dj_design_system/**/*.css" --fix
 
 # Alias for fix
 fmt: fix

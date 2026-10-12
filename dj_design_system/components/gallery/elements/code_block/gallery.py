@@ -22,9 +22,19 @@ config = gallery.GalleryConfig(
         gallery.Variant(
             name="basic",
             label="Default Django Snippet",
-            description="Code block with default language header label and copy trigger.",
+            description="Code block with floating overlay copy trigger.",
             kwargs={
                 "code": DJANGO_SNIPPET,
+            },
+        ),
+        gallery.Variant(
+            name="language_header",
+            label="With Language Header",
+            description="Code block with explicit show_header displaying language identifier.",
+            kwargs={
+                "code": DJANGO_SNIPPET,
+                "language": "django",
+                "show_header": True,
             },
         ),
         gallery.Variant(

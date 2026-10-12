@@ -31,7 +31,6 @@ EXPECTED_VARIANTS = (
     "success",
     "warning",
     "error",
-    "code",
 )
 STATUS_VARIANTS = ("info", "success", "warning", "error")
 
@@ -79,15 +78,13 @@ def _read_text(path: pathlib.Path) -> str:
 
 def _extract_rule_blocks(css_text: str, selector: str) -> list[str]:
     """Extract CSS declaration blocks for a specific selector."""
-    escaped = re.escape(pattern=selector)
-    pattern = re.compile(pattern=rf"{escaped}\s*\{{([^}}]*)\}}", flags=re.DOTALL)
-    return pattern.findall(string=css_text)
+    return conftest.extract_css_rule_blocks(css_text=css_text, selector=selector)
 
 
 def _extract_defined_properties(block_text: str) -> dict[str, str]:
-    """Extract custom property definitions from a CSS block string."""
+    """Extract property and custom property definitions from a CSS block string."""
     matches = re.findall(
-        pattern=r"(--[a-z0-9_-]+)\s*:\s*([^;]+);",
+        pattern=r"([a-zA-Z0-9_-]+)\s*:\s*([^;]+);",
         string=block_text,
     )
     return {name: value.strip() for name, value in matches}
@@ -124,21 +121,29 @@ class TestBadgeParametersAndContext:
     """Verify Badge parameter validation and get_context() normalization."""
 
     def test_default_variant_and_context(self) -> None:
-        """Verify default variant is 'neutral' and normalized in get_context()."""
+        """Verify default variant is 'neutral' and is_code is False in get_context()."""
         comp = badge_module.Badge(label="Optional")
         ctx = comp.get_context()
         assert ctx["label"] == "Optional"
         assert ctx["variant"] == DEFAULT_VARIANT
+        assert ctx["is_code"] is False
 
     def test_none_variant_normalizes_to_default(self) -> None:
         """Verify passing variant=None resolves to 'neutral' in get_context()."""
         comp = badge_module.Badge(label="Draft", variant=None)
         ctx = comp.get_context()
         assert ctx["variant"] == DEFAULT_VARIANT
+        assert ctx["is_code"] is False
+
+    def test_is_code_parameter_sets_flag_in_context(self) -> None:
+        """Verify is_code=True sets is_code flag in get_context()."""
+        comp = badge_module.Badge(label="str", is_code=True)
+        ctx = comp.get_context()
+        assert ctx["is_code"] is True
 
     @pytest.mark.parametrize("variant", EXPECTED_VARIANTS)
     def test_valid_variants_accepted(self, variant: str) -> None:
-        """Verify all 6 semantic badge variants are accepted and rendered."""
+        """Verify all semantic badge variants are accepted and rendered."""
         comp = badge_module.Badge(label="Status", variant=variant)
         html = comp.render().strip()
         assert html == f'<span class="dds-badge" data-variant="{variant}">Status</span>'
@@ -168,6 +173,26 @@ class TestBadgeRenderingAndTemplate:
             source='{% dds__badge "Required" variant="error" %}'
         ).strip()
         assert html == '<span class="dds-badge" data-variant="error">Required</span>'
+
+    def test_renders_code_tag_when_is_code_is_true(self) -> None:
+        """Verify is_code=True wraps label in semantic <code> tag."""
+        html = badge_module.Badge(label="str", is_code=True).render().strip()
+        assert (
+            html
+            == '<span class="dds-badge" data-variant="neutral"><code>str</code></span>'
+        )
+
+    def test_renders_code_tag_with_status_variant(self) -> None:
+        """Verify is_code=True composes with semantic status variants."""
+        html = (
+            badge_module.Badge(label="DeprecatedType", variant="warning", is_code=True)
+            .render()
+            .strip()
+        )
+        assert (
+            html
+            == '<span class="dds-badge" data-variant="warning"><code>DeprecatedType</code></span>'
+        )
 
     def test_escapes_html_in_label(self) -> None:
         """Verify HTML characters in label are escaped automatically."""
@@ -225,41 +250,30 @@ class TestBadgeStylesheet:
         assert (
             props["--_badge-border-color"] == f"var(--dds-status-{status}-border-color)"
         )
+        assert (
+            props["--_badge-border-radius"]
+            == f"var(--dds-status-{status}-border-radius)"
+        )
+        assert (
+            props["--_badge-border-width"]
+            == f"var(--dds-status-{status}-border-width)"
+        )
         assert props["--_badge-text-color"] == f"var(--dds-status-{status}-text-color)"
 
-    def test_code_variant_remaps_font_to_tier_2_code_tokens(self) -> None:
-        """Verify [data-variant='code'] remaps --_badge-font and code typography tokens."""
+    def test_nested_code_element_styles(self) -> None:
+        """Verify .dds-badge > code sets monospace typography tokens."""
         css_text = _read_text(path=BADGE_CSS_PATH)
         blocks = _extract_rule_blocks(
             css_text=css_text,
-            selector=".dds-badge[data-variant='code']",
+            selector=".dds-badge > code",
         )
         assert blocks
         props = _extract_defined_properties(block_text="\n".join(blocks))
-        assert props["--_badge-bg-color"] == "var(--dds-control-bg-color)"
-        assert props["--_badge-border-color"] == "var(--dds-control-border-color)"
-        assert props["--_badge-font"] == "var(--dds-text-code-font)"
-        assert props["--_badge-text-color"] == "var(--dds-text-default-color)"
-
-    def test_css_formatting_and_no_bem(self) -> None:
-        """Verify zero BEM selectors, single quotes, and alphabetized declarations."""
-        css_text = _read_text(path=BADGE_CSS_PATH)
-        assert '"' not in css_text
-        assert "!important" not in css_text
-        bem_matches = re.findall(
-            pattern=r"\.[a-z0-9-]+(?:__|--)[a-z0-9-]+",
-            string=css_text,
-        )
-        assert not bem_matches
-        rule_blocks = re.findall(pattern=r"\{([^{}]+)\}", string=css_text)
-        assert rule_blocks
-        for block in rule_blocks:
-            prop_names = re.findall(
-                pattern=r"^\s*([a-z0-9_-]+)\s*:",
-                string=block,
-                flags=re.MULTILINE,
-            )
-            assert prop_names == sorted(prop_names)
+        assert props["font-family"] == "var(--dds-text-code-font)"
+        assert props["font-size"] == "var(--dds-text-code-size)"
+        assert props["font-weight"] == "var(--dds-text-code-weight)"
+        assert props["line-height"] == "var(--dds-text-code-line-height)"
+        assert props["letter-spacing"] == "var(--dds-text-code-letter-spacing)"
 
 
 class TestBadgeGalleryAndDocs:

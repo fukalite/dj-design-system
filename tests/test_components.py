@@ -31,6 +31,25 @@ def test_tag_component_cannot_define_slots():
         _ = InvalidTag
 
 
+def test_component_cannot_define_slots_with_same_name_as_params():
+    from dj_design_system.components import BlockComponent
+    from dj_design_system.exceptions import SlotParameterCollisionError
+    from dj_design_system.slots import Slot
+
+    with pytest.raises(
+        SlotParameterCollisionError,
+        match="CollisionComponent cannot define slots and parameters with the same name: 'foo'",
+    ):
+
+        class CollisionComponent(BlockComponent):
+            foo = StrParam("Foo param", required=False)
+
+            class Meta:
+                slots = {"foo": Slot("Foo slot")}
+
+        _ = CollisionComponent
+
+
 # ---------------------------------------------------------------------------
 # Meta.mutually_exclusive
 # ---------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 {% load design_components %}
-<dds-canvas-widget class="dds-canvas-widget" data-canvas-id="{{ resolved_canvas_id }}" data-mode="{{ resolved_mode }}" data-viewport="{{ resolved_viewport }}" data-background="{{ resolved_background }}" data-zoom="{{ resolved_zoom }}">
+<dds-canvas-widget class="dds-canvas-widget" data-canvas-id="{{ resolved_canvas_id }}" data-mode="{{ resolved_mode }}" data-viewport="{{ resolved_viewport }}" data-background="{{ resolved_background }}" data-zoom="{{ resolved_zoom }}" {{ attrs }}>
   {% if show_mode_toggles %}
     <div data-canvas-toggles class="l-cluster" role="group" aria-label="Canvas view mode">
       <button type="button" data-canvas-mode="preview" aria-pressed="{{ preview_aria_pressed }}" title="Preview">{% dds__icon name="eye" size="xs" %}<span>Preview</span></button>
@@ -18,12 +18,12 @@
   </div>
   {% if has_source_code %}
     <div data-canvas-panel="code" data-surface="code"{% if not is_code_mode %} hidden{% endif %}>
-      {% dds__code_block code=normalized_source_code language="django" title="Template Source" %}
+      {% dds__code_block code=normalized_source_code language="django" title="Template Source" flush=True %}
     </div>
   {% endif %}
   {% if has_rendered_html %}
     <div data-canvas-panel="html" data-surface="code"{% if not is_html_mode %} hidden{% endif %}>
-      {% dds__code_block code=normalized_rendered_html language="html" title="Output HTML" %}
+      {% dds__code_block code=normalized_rendered_html language="html" title="Output HTML" flush=True %}
     </div>
   {% endif %}
 </dds-canvas-widget>

@@ -83,10 +83,8 @@ def _render_template_tag(source: str) -> str:
 
 
 def _extract_rule_blocks(css_text: str, selector: str) -> list[str]:
-    """Extract all CSS declaration blocks for a given selector."""
-    escaped = re.escape(pattern=selector)
-    pattern = re.compile(pattern=rf"{escaped}\s*\{{([^}}]*)\}}", flags=re.DOTALL)
-    return pattern.findall(string=css_text)
+    """Extract CSS declaration blocks for a specific selector."""
+    return conftest.extract_css_rule_blocks(css_text=css_text, selector=selector)
 
 
 def _extract_defined_properties(block_text: str) -> dict[str, str]:
@@ -131,7 +129,7 @@ class TestIconParametersAndContext:
     """Verify parameter validation and get_context() shaping."""
 
     def test_default_parameters_and_decorative_context(self) -> None:
-        """Verify omitted label produces decorative aria-hidden context."""
+        """Verify omitted or whitespace label produces decorative aria-hidden context."""
         comp = Icon(name="eye")
         ctx = comp.get_context()
         assert ctx["name"] == "eye"
@@ -140,6 +138,14 @@ class TestIconParametersAndContext:
         assert ctx["is_decorative"] is True
         assert ctx["aria_hidden"] == "true"
         assert ctx["role"] is None
+
+        # Verify whitespace-only label is treated as decorative
+        whitespace_comp = Icon(name="eye", label="   ")
+        ws_ctx = whitespace_comp.get_context()
+        assert ws_ctx["label"] == ""
+        assert ws_ctx["is_decorative"] is True
+        assert ws_ctx["aria_hidden"] == "true"
+        assert ws_ctx["role"] is None
 
     def test_labelled_icon_context_is_accessible(self) -> None:
         """Verify providing label produces role='img' and omits aria-hidden."""
@@ -183,6 +189,7 @@ class TestIconRendering:
         assert f'data-icon="{icon_name}"' in html
         assert 'data-size="md"' in html
         assert 'viewBox="0 0 24 24"' in html
+        assert 'focusable="false"' in html
         assert any(
             tag in html
             for tag in ("<path ", "<circle ", "<rect ", "<polyline ", "<line ")
@@ -196,17 +203,19 @@ class TestIconRendering:
         assert f'data-size="{size}"' in html
 
     def test_decorative_icon_html_attributes(self) -> None:
-        """Verify decorative icon renders aria-hidden='true' and no role or aria-label."""
+        """Verify decorative icon renders aria-hidden='true', focusable='false', and no role or aria-label."""
         _build_builtin_registry()
         html = Icon(name="folder").render()
+        assert 'focusable="false"' in html
         assert 'aria-hidden="true"' in html
         assert "role=" not in html
         assert "aria-label=" not in html
 
     def test_accessible_icon_html_attributes(self) -> None:
-        """Verify labelled icon renders role='img' and aria-label without aria-hidden."""
+        """Verify labelled icon renders role='img', focusable='false', and aria-label without aria-hidden."""
         _build_builtin_registry()
         html = Icon(name="warning", label="Warning indicator").render()
+        assert 'focusable="false"' in html
         assert 'role="img"' in html
         assert 'aria-label="Warning indicator"' in html
         assert "aria-hidden=" not in html
@@ -245,11 +254,11 @@ class TestIconStylesheetAndColocation:
             "--_icon-size-sm",
             "--_icon-size-md",
             "--_icon-size-lg",
-            "--_icon-color",
         ):
             assert token_name in props
-            assert props[token_name].startswith("var(--dds-")
+            assert props[token_name].startswith("var(--dds-space-")
 
+        assert props.get("--_icon-color") == "currentColor"
         assert props.get("margin") == "0"
         assert props.get("display") == "inline-block"
         assert props.get("vertical-align") == "middle"
@@ -261,25 +270,6 @@ class TestIconStylesheetAndColocation:
                 selector=f".dds-icon[data-size='{size}']",
             )
             assert size_blocks
-
-    def test_css_formatting_and_zero_bem(self) -> None:
-        """Verify zero BEM selectors, single quotes, and alphabetised declarations."""
-        css_text = ICON_CSS_PATH.read_text(encoding="utf-8")
-        assert "!important" not in css_text
-        assert '"' not in css_text
-        bem_matches = re.findall(
-            pattern=r"\.[a-z0-9-]+(?:__|--)[a-z0-9-]+",
-            string=css_text,
-        )
-        assert not bem_matches
-
-        for block in re.findall(pattern=r"\{([^{}]+)\}", string=css_text):
-            prop_names = re.findall(
-                pattern=r"^\s*([a-z0-9_-]+)\s*:",
-                string=block,
-                flags=re.MULTILINE,
-            )
-            assert prop_names == sorted(prop_names)
 
     def test_template_hygiene_and_colocated_files(self) -> None:
         """Verify icon.html has no BEM or template filters and gallery.py/index.md work."""

@@ -1,3 +1,4 @@
+import dataclasses
 import json
 import shutil
 import urllib.parse
@@ -8,6 +9,12 @@ from typing import Any
 from dj_design_system.data import ComponentInfo
 from dj_design_system.testing.engine import AssessmentPlugin
 from dj_design_system.testing.visual import ScreenshotMismatch, compare_images
+
+
+def _json_serialise_default(obj: Any) -> Any:
+    if dataclasses.is_dataclass(obj) and not isinstance(obj, type):
+        return dataclasses.asdict(obj)
+    raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
 
 
 try:
@@ -51,7 +58,9 @@ class PlaywrightAssessmentPlugin(AssessmentPlugin):
                 if isinstance(value, bool):
                     params[key] = "true" if value else "false"
                 elif isinstance(value, (list, dict)):
-                    params[key] = json.dumps(value)
+                    params[key] = json.dumps(
+                        value, default=_json_serialise_default
+                    )
                 else:
                     params[key] = str(value)
 

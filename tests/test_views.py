@@ -547,7 +547,7 @@ class TestGalleryComponentFormIntegration:
 
         response = client.get(component.url)
         assert response.status_code == 200
-        assert b"dds-params-form" in response.content
+        assert b"dds-sandbox-params" in response.content
         assert b"hx-get" in response.content
 
     def test_htmx_partial_returns_fragment(self, client):

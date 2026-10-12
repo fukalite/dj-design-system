@@ -74,10 +74,8 @@ def _render_template_tag(
 
 
 def _extract_rule_blocks(css_text: str, selector: str) -> list[str]:
-    """Extract all CSS declaration blocks for a given selector."""
-    escaped = re.escape(pattern=selector)
-    pattern = re.compile(pattern=rf"{escaped}\s*\{{([^}}]*)\}}", flags=re.DOTALL)
-    return pattern.findall(string=css_text)
+    """Extract CSS declaration blocks for a specific selector."""
+    return conftest.extract_css_rule_blocks(css_text=css_text, selector=selector)
 
 
 def _extract_defined_properties(block_text: str) -> dict[str, str]:
@@ -135,7 +133,9 @@ class TestButtonParametersAndValidation:
         assert ctx["button_type"] == "button"
         assert ctx["disabled"] is False
         assert ctx["pressed"] is None
-        assert ctx["action"] == ""
+        assert ctx["name"] is None
+        assert ctx["value"] is None
+        assert ctx["action"] is None
         assert ctx["is_link"] is False
         assert ctx["resolved_href"] is None
         assert ctx["resolved_target"] is None
@@ -147,6 +147,21 @@ class TestButtonParametersAndValidation:
         assert ctx["show_label"] is True
         assert ctx["icon_size"] == "md"
         assert ctx["has_action"] is False
+
+    def test_form_name_and_value_rendering(self) -> None:
+        """Verify name and value attributes render on <button>."""
+        _build_builtin_registry()
+        html = Button(label="Submit", name="action", value="save").render()
+        assert 'name="action"' in html
+        assert 'value="save"' in html
+
+    def test_mutually_exclusive_href_and_pressed(self) -> None:
+        """Verify setting both href and pressed raises ValueError."""
+        with pytest.raises(
+            expected_exception=ValueError,
+            match="cannot both be set on Button",
+        ):
+            Button(label="Link", href="https://example.com", pressed=True)
 
     def test_validate_params_icon_only_requires_label(self) -> None:
         """Verify icon_only=True without label raises ValueError."""
@@ -418,25 +433,6 @@ class TestButtonStylesheetAndColocation:
             "var(--dds-space-",
         ):
             assert required_domain in root_block_text
-
-    def test_css_formatting_and_zero_bem(self) -> None:
-        """Verify zero BEM selectors, single quotes, and alphabetised declarations."""
-        css_text = BUTTON_CSS_PATH.read_text(encoding="utf-8")
-        assert "!important" not in css_text
-        assert '"' not in css_text
-        bem_matches = re.findall(
-            pattern=r"\.[a-z0-9-]+(?:__|--)[a-z0-9-]+",
-            string=css_text,
-        )
-        assert not bem_matches
-
-        for block in re.findall(pattern=r"\{([^{}]+)\}", string=css_text):
-            prop_names = re.findall(
-                pattern=r"^\s*([a-z0-9_-]+)\s*:",
-                string=block,
-                flags=re.MULTILINE,
-            )
-            assert prop_names == sorted(prop_names)
 
     def test_template_hygiene_and_colocated_files(self) -> None:
         """Verify button.html has no BEM or template filters and gallery.py/index.md work."""

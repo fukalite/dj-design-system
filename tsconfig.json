@@ -16,7 +16,8 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": [
-    "dj_design_system/components/**/*.ts"
+    "dj_design_system/components/**/*.ts",
+    "dj_design_system/static/**/*.ts"
   ],
   "exclude": [
     "node_modules",

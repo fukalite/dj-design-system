@@ -46,97 +46,101 @@
     --_popout-trigger-text-color: var(--dds-state-interactive-text-color);
     --_popout-trigger-transition-duration: var(--dds-state-entry-duration);
     --_popout-trigger-transition-easing: var(--dds-state-entry-easing);
+    position: relative;
     display: inline-block;
     margin: 0;
-    position: relative;
-  }
 
-  dds-popout [data-popout-trigger] {
-    align-items: center;
-    appearance: none;
-    background-color: var(--_popout-trigger-bg-color);
-    border-color: var(--_popout-trigger-border-color);
-    border-radius: var(--_popout-trigger-border-radius);
-    border-style: var(--_popout-trigger-border-style);
-    border-width: var(--_popout-trigger-border-width);
-    box-shadow: var(--_popout-trigger-shadow-shape) var(--_popout-trigger-shadow-color);
-    box-sizing: border-box;
-    color: var(--_popout-trigger-text-color);
-    cursor: pointer;
-    display: inline-flex;
-    font-family: var(--_popout-trigger-font);
-    font-size: var(--_popout-trigger-font-size);
-    font-weight: var(--_popout-trigger-font-weight);
-    gap: var(--_popout-trigger-gap);
-    justify-content: center;
-    letter-spacing: var(--_popout-trigger-letter-spacing);
-    line-height: var(--_popout-trigger-line-height);
-    margin: 0;
-    padding-block: var(--_popout-trigger-padding-block);
-    padding-inline: var(--_popout-trigger-padding-inline);
-    transition-duration: var(--_popout-trigger-transition-duration);
-    transition-property: background-color, border-color, box-shadow, color;
-    transition-timing-function: var(--_popout-trigger-transition-easing);
-    user-select: none;
-    white-space: nowrap;
-  }
+    & .dds-popout-trigger {
+      display: inline-flex;
+      gap: var(--_popout-trigger-gap);
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      margin: 0;
+      padding-block: var(--_popout-trigger-padding-block);
+      padding-inline: var(--_popout-trigger-padding-inline);
+      border-width: var(--_popout-trigger-border-width);
+      border-style: var(--_popout-trigger-border-style);
+      border-color: var(--_popout-trigger-border-color);
+      border-radius: var(--_popout-trigger-border-radius);
+      color: var(--_popout-trigger-text-color);
+      background-color: var(--_popout-trigger-bg-color);
+      box-shadow: var(--_popout-trigger-shadow-shape) var(--_popout-trigger-shadow-color);
+      font-family: var(--_popout-trigger-font);
+      font-size: var(--_popout-trigger-font-size);
+      font-weight: var(--_popout-trigger-font-weight);
+      line-height: var(--_popout-trigger-line-height);
+      letter-spacing: var(--_popout-trigger-letter-spacing);
+      white-space: nowrap;
+      appearance: none;
+      cursor: pointer;
+      transition-duration: var(--_popout-trigger-transition-duration);
+      transition-property: background-color, border-color, box-shadow, color;
+      transition-timing-function: var(--_popout-trigger-transition-easing);
+      user-select: none;
 
-  dds-popout [data-popout-trigger]:hover:not(:disabled) {
-    background-color: var(--_popout-trigger-hover-bg-color);
-    border-color: var(--_popout-trigger-hover-border-color);
-    color: var(--_popout-trigger-hover-text-color);
-  }
+      &:hover:not(:disabled) {
+        border-color: var(--_popout-trigger-hover-border-color);
+        color: var(--_popout-trigger-hover-text-color);
+        background-color: var(--_popout-trigger-hover-bg-color);
+      }
 
-  dds-popout [data-popout-trigger]:active:not(:disabled) {
-    background-color: var(--_popout-trigger-active-bg-color);
-    border-color: var(--_popout-trigger-active-border-color);
-    color: var(--_popout-trigger-active-text-color);
-  }
+      &:active:not(:disabled) {
+        border-color: var(--_popout-trigger-active-border-color);
+        color: var(--_popout-trigger-active-text-color);
+        background-color: var(--_popout-trigger-active-bg-color);
+      }
 
-  dds-popout [data-popout-trigger]:focus-visible {
-    border-color: var(--_popout-trigger-focus-border-color);
-    outline-color: var(--_popout-trigger-focus-outline-color);
-    outline-offset: var(--_popout-trigger-focus-outline-offset);
-    outline-style: var(--_popout-trigger-focus-outline-style);
-    outline-width: var(--_popout-trigger-focus-outline-width);
-  }
+      &:focus-visible {
+        border-color: var(--_popout-trigger-focus-border-color);
+        outline-width: var(--_popout-trigger-focus-outline-width);
+        outline-style: var(--_popout-trigger-focus-outline-style);
+        outline-color: var(--_popout-trigger-focus-outline-color);
+        outline-offset: var(--_popout-trigger-focus-outline-offset);
+      }
+    }
 
-  dds-popout[data-state='open'] {
-    z-index: var(--_popout-menu-z-index);
-  }
+    &[data-state='open'] {
+      z-index: var(--_popout-menu-z-index);
 
-  dds-popout[data-state='open'] [data-popout-trigger] {
-    background-color: var(--_popout-trigger-open-bg-color);
-    border-color: var(--_popout-trigger-open-border-color);
-    color: var(--_popout-trigger-open-text-color);
-  }
+      & .dds-popout-trigger {
+        border-color: var(--_popout-trigger-open-border-color);
+        color: var(--_popout-trigger-open-text-color);
+        background-color: var(--_popout-trigger-open-bg-color);
+      }
+    }
 
-  dds-popout [data-popout-menu] {
-    backdrop-filter: blur(var(--_popout-menu-bg-blur));
-    background-color: var(--_popout-menu-bg-color);
-    border-color: var(--_popout-menu-border-color);
-    border-radius: var(--_popout-menu-border-radius);
-    border-style: var(--_popout-menu-border-style);
-    border-width: var(--_popout-menu-border-width);
-    box-shadow: var(--_popout-menu-shadow-shape) var(--_popout-menu-shadow-color);
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    gap: var(--_popout-menu-gap);
-    inset-block-start: calc(100% + var(--_popout-menu-offset));
-    inset-inline-start: 0;
-    margin: 0;
-    padding: var(--_popout-menu-padding);
-    position: absolute;
-    z-index: var(--_popout-menu-z-index);
-  }
+    & [data-popout-menu] {
+      position: absolute;
+      inset-block-start: calc(100% + var(--_popout-menu-offset));
+      inset-inline-start: 0;
+      z-index: var(--_popout-menu-z-index);
+      display: flex;
+      flex-direction: column;
+      gap: var(--_popout-menu-gap);
+      box-sizing: border-box;
+      min-inline-size: 10rem;
+      max-inline-size: min(24rem, calc(100vw - var(--dds-space-md)));
+      max-block-size: 24rem;
+      margin: 0;
+      padding: var(--_popout-menu-padding);
+      border-width: var(--_popout-menu-border-width);
+      border-style: var(--_popout-menu-border-style);
+      border-color: var(--_popout-menu-border-color);
+      border-radius: var(--_popout-menu-border-radius);
+      overflow-y: auto;
+      background-color: var(--_popout-menu-bg-color);
+      box-shadow: var(--_popout-menu-shadow-shape) var(--_popout-menu-shadow-color);
+      backdrop-filter: blur(var(--_popout-menu-bg-blur));
 
-  dds-popout[data-align='end'] [data-popout-menu] {
-    inset-inline-end: 0;
-    inset-inline-start: auto;
-  }
+      &[hidden] {
+        display: none;
+      }
+    }
 
-  dds-popout [data-popout-menu][hidden] {
-    display: none;
+    &[data-align='end'] [data-popout-menu] {
+      inset-inline-start: auto;
+      inset-inline-end: 0;
+    }
   }
 }

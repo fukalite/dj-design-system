@@ -7,7 +7,7 @@ Implements the interactive component sandbox, parameter controls form, resizable
 1. **Interactive Sandbox & Controls (`dj_design_system/components/domain/`):**
    - `split_pane` (`{% dds__split_pane %}` + `<dds-split-pane>`): Resizable two-pane layout separating the preview stage (`data-surface="stage"`) and the parameter inspector (`data-surface="sandbox"`), with pointer drag and keyboard resize support.
    - `sandbox_toolbar` (`{% dds__sandbox_toolbar %}`): Toolbar composing `{% dds__popout %}`, `{% dds__button %}`, and `{% dds__icon %}` for viewport width presets, canvas background selection, theme selection, reset, and new-tab/fullscreen actions.
-   - `params_form` (`{% dds__params_form %}` + `<dds-params-form>`): Live parameter editor form composing `{% dds__form_field %}` that serialises control changes and dispatches `dds:params-change`.
+   - `params_form` (`{% dds__sandbox_params %}` + `<dds-params-form>`): Live parameter editor form composing `{% dds__form_field %}` that serialises control changes and dispatches `dds:params-change`.
 2. **Isolated Canvas Widget (`dj_design_system/components/domain/`):**
    - `canvas_widget` (`{% dds__canvas_widget %}` + `<dds-canvas-widget>`): Isolated preview `<iframe>` container with automatic height resizing, viewport width constraints, background/theme synchronisation, and collapsible source code drawer (`data-surface="code"` composing `{% dds__code_block %}`).
 

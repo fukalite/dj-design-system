@@ -22,7 +22,7 @@
     --hl-palette-function: #a6e22e;
     --hl-palette-keyword: #66d9ef;
     --hl-palette-literal: #ae81ff;
-    --hl-palette-operator: #f92672;
+    --hl-palette-operator: #ff3b81;
     --hl-palette-preproc: #ff79c6;
     --hl-palette-string: #e6db74;
     --hl-palette-text: #f8f8f2;
@@ -33,82 +33,81 @@
 }
 
 @layer blocks {
-  .dds-code-block code,
-  .gallery-highlight code {
-    color: var(--hl-block-text);
-  }
-
-  :is(.dds-code-block code, .gallery-highlight code) span {
-    background-color: transparent;
-  }
-
-  :is(.dds-code-block code, .gallery-highlight code) .hll {
-    background-color: var(--hl-line-bg);
-  }
-
-  :is(.dds-code-block code, .gallery-highlight code) :is(.c, .cm, .c1, .cs) {
-    color: var(--hl-comment);
-  }
-
-  :is(.dds-code-block code, .gallery-highlight code) .err {
-    background-color: var(--hl-error-bg);
-    color: var(--hl-error);
-  }
-
-  :is(.dds-code-block code, .gallery-highlight code) :is(.k, .kc, .kd, .kp, .kr, .kt) {
-    color: var(--hl-keyword);
-  }
-
-  :is(.dds-code-block code, .gallery-highlight code) :is(.kn, .o, .ow, .nt) {
-    color: var(--hl-operator);
-  }
-
-  :is(.dds-code-block code, .gallery-highlight code) :is(.l, .m, .mf, .mh, .mi, .mo, .il, .se) {
-    color: var(--hl-literal);
-  }
-
-  :is(.dds-code-block code, .gallery-highlight code) :is(.s, .ld, .sb, .sc, .sd, .s2, .sh, .si, .sx, .sr, .s1, .ss) {
-    color: var(--hl-string);
-  }
-
-  :is(.dds-code-block code, .gallery-highlight code) :is(.n, .p, .nb, .ni, .nl, .nn, .nv, .py, .w, .bp, .vc, .vg, .vi) {
-    color: var(--hl-name);
-  }
-
-  :is(.dds-code-block code, .gallery-highlight code) .no {
-    color: var(--hl-keyword);
-  }
-
-  :is(.dds-code-block code, .gallery-highlight code) :is(.na, .nc, .nd, .ne, .nf, .nx) {
-    color: var(--hl-function);
-  }
-
-  :is(.dds-code-block code, .gallery-highlight code) span.cp {
-    color: var(--hl-tag-delimiter);
-  }
-
-  :is(.dds-code-block code, .gallery-highlight code) .ge {
-    font-style: italic;
-  }
-
-  :is(.dds-code-block code, .gallery-highlight code) .gs {
-    font-weight: 700;
-  }
-
-  .dds-prose .gallery-highlight {
-    background-color: var(--hl-block-bg);
-    border-color: var(--hl-block-border);
-    border-radius: var(--dds-control-border-radius);
-    border-style: solid;
-    border-width: 1px;
+  .gallery-highlight {
     margin-block: var(--dds-space-sm);
     margin-inline: 0;
+    border-width: var(--dds-surface-code-border-width, 1px);
+    border-style: solid;
+    border-color: var(--hl-block-border);
+    border-radius: var(--dds-control-border-radius);
     overflow-x: auto;
-  }
+    background-color: var(--hl-block-bg);
 
-  .dds-prose .gallery-highlight pre {
-    border-radius: 0;
-    border-width: 0;
-    margin: 0;
+    & pre {
+      margin: 0;
+      border-width: 0;
+      border-radius: 0;
+    }
+
+    & code {
+      color: var(--hl-block-text);
+
+      & span {
+        background-color: transparent;
+      }
+
+      & .hll {
+        background-color: var(--hl-line-bg);
+      }
+
+      & :is(.c, .cm, .c1, .cs) {
+        color: var(--hl-comment);
+      }
+
+      & .err {
+        color: var(--hl-error);
+        background-color: var(--hl-error-bg);
+      }
+
+      & :is(.k, .kc, .kd, .kp, .kr, .kt) {
+        color: var(--hl-keyword);
+      }
+
+      & :is(.kn, .o, .ow, .nt) {
+        color: var(--hl-operator);
+      }
+
+      & :is(.l, .m, .mf, .mh, .mi, .mo, .il, .se) {
+        color: var(--hl-literal);
+      }
+
+      & :is(.s, .ld, .sb, .sc, .sd, .s2, .sh, .si, .sx, .sr, .s1, .ss) {
+        color: var(--hl-string);
+      }
+
+      & :is(.n, .p, .nb, .ni, .nl, .nn, .nv, .py, .w, .bp, .vc, .vg, .vi) {
+        color: var(--hl-name);
+      }
+
+      & .no {
+        color: var(--hl-keyword);
+      }
+
+      & :is(.na, .nc, .nd, .ne, .nf, .nx) {
+        color: var(--hl-function);
+      }
+
+      & span.cp {
+        color: var(--hl-tag-delimiter);
+      }
+
+      & .ge {
+        font-style: italic;
+      }
+
+      & .gs {
+        font-weight: var(--dds-text-title-weight);
+      }
+    }
   }
 }

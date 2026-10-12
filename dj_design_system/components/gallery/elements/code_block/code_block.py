@@ -31,7 +31,9 @@ class CodeBlock(components.TagComponent):
         code: Source code snippet to render.
         language: Code language identifier (defaults to ``"django"``).
         title: Optional header title or filename override.
+        show_header: Explicitly control header display (defaults to True when title is present).
         copyable: Whether to display the copy-to-clipboard trigger button.
+        flush: Whether to render the code block without outer border and border-radius.
 
     Example usage::
 
@@ -45,16 +47,28 @@ class CodeBlock(components.TagComponent):
         description="Code language identifier.",
         default=DEFAULT_LANGUAGE,
         required=False,
+        data_attr=True,
     )
     title = parameters.StrParam(
         description="Optional header title or filename.",
         default="",
         required=False,
     )
+    show_header = parameters.BoolParam(
+        description="Explicitly control header display (defaults to True when title is present).",
+        default=None,
+        required=False,
+    )
     copyable = parameters.BoolParam(
         description="Whether to display the copy-to-clipboard button.",
         default=True,
         required=False,
+    )
+    flush = parameters.BoolParam(
+        description="Whether to render the code block without outer border and border-radius.",
+        default=False,
+        required=False,
+        data_attr=True,
     )
 
     class Meta:
@@ -76,9 +90,11 @@ class CodeBlock(components.TagComponent):
         )
         has_title = bool(title)
         has_language = bool(language)
+        resolved_show_header = (
+            self.show_header if self.show_header is not None else has_title
+        )
         header_label = title if title else language
-        show_header = has_title
-        show_overlay_copy = bool(self.copyable) and not show_header
+        show_overlay_copy = bool(self.copyable) and not resolved_show_header
         highlighted_code = self._highlight_snippet(
             code=stripped_code,
             language=language,
@@ -91,7 +107,7 @@ class CodeBlock(components.TagComponent):
         context["has_title"] = has_title
         context["has_language"] = has_language
         context["header_label"] = header_label
-        context["show_header"] = show_header
+        context["show_header"] = resolved_show_header
         context["show_overlay_copy"] = show_overlay_copy
         return context
 

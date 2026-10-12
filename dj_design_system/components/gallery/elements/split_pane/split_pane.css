@@ -1,0 +1,109 @@
+@layer blocks {
+  dds-split-pane,
+  .dds-split-pane {
+    --_split-pane-bg-color: var(--dds-surface-bg-color);
+    --_split-pane-border-color: var(--dds-surface-border-color);
+    --_split-pane-border-radius: var(--dds-surface-border-radius);
+    --_split-pane-border-style: var(--dds-control-border-style);
+    --_split-pane-border-width: var(--dds-surface-border-width);
+    --_split-pane-focus-outline-color: var(--dds-state-focus-outline-color);
+    --_split-pane-focus-outline-offset: var(--dds-state-focus-outline-offset);
+    --_split-pane-focus-outline-style: var(--dds-state-focus-outline-style);
+    --_split-pane-focus-outline-width: var(--dds-state-focus-outline-width);
+    --_split-pane-font: var(--dds-text-body-font);
+    --_split-pane-font-size: var(--dds-text-body-size);
+    --_split-pane-font-weight: var(--dds-text-body-weight);
+    --_split-pane-letter-spacing: var(--dds-text-body-letter-spacing);
+    --_split-pane-line-height: var(--dds-text-body-line-height);
+    --_split-pane-resizer-active-bg-color: var(--dds-control-accent-color);
+    --_split-pane-resizer-bg-color: var(--dds-surface-border-color);
+    --_split-pane-resizer-hover-bg-color: var(--dds-state-hover-border-color);
+    --_split-pane-resizer-size: var(--dds-control-border-width);
+    --_split-pane-text-color: var(--dds-text-default-color);
+    --_split-pane-transition-duration: var(--dds-state-entry-duration);
+    --_split-pane-transition-easing: var(--dds-state-entry-easing);
+
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: row;
+    align-items: stretch;
+    box-sizing: border-box;
+    inline-size: 100%;
+    min-inline-size: 0;
+    min-block-size: 0;
+    margin: 0;
+    border-width: var(--_split-pane-border-width);
+    border-style: var(--_split-pane-border-style);
+    border-color: var(--_split-pane-border-color);
+    border-radius: var(--_split-pane-border-radius);
+    overflow: hidden;
+    color: var(--_split-pane-text-color);
+    background-color: var(--_split-pane-bg-color);
+    font-family: var(--_split-pane-font);
+    font-size: var(--_split-pane-font-size);
+    font-weight: var(--_split-pane-font-weight);
+    line-height: var(--_split-pane-line-height);
+    letter-spacing: var(--_split-pane-letter-spacing);
+
+    &[data-orientation='vertical'] {
+      flex-direction: column;
+
+      & > [data-split-resizer] {
+        inline-size: 100%;
+        block-size: var(--_split-pane-resizer-size);
+        cursor: row-resize;
+      }
+    }
+
+    & > [data-split-pane] {
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      min-inline-size: 0;
+      min-block-size: 0;
+      margin: 0;
+      overflow: auto;
+      color: var(--_split-pane-text-color);
+      background-color: var(--_split-pane-bg-color);
+    }
+
+    & > [data-split-pane='primary'] {
+      flex: 0 0 var(--_split-pane-ratio);
+    }
+
+    & > [data-split-pane='secondary'] {
+      flex: 1 1 0;
+    }
+
+    & > [data-split-resizer] {
+      position: relative;
+      flex: 0 0 var(--_split-pane-resizer-size);
+      inline-size: var(--_split-pane-resizer-size);
+      margin: 0;
+      background-color: var(--_split-pane-resizer-bg-color);
+      cursor: col-resize;
+      touch-action: none;
+      user-select: none;
+      transition-duration: var(--_split-pane-transition-duration);
+      transition-property: background-color;
+      transition-timing-function: var(--_split-pane-transition-easing);
+
+      &:hover {
+        background-color: var(--_split-pane-resizer-hover-bg-color);
+      }
+
+      &:active,
+      &[data-dragging='true'] {
+        background-color: var(--_split-pane-resizer-active-bg-color);
+      }
+
+      &:focus-visible {
+        outline-width: var(--_split-pane-focus-outline-width);
+        outline-style: var(--_split-pane-focus-outline-style);
+        outline-color: var(--_split-pane-focus-outline-color);
+        outline-offset: var(--_split-pane-focus-outline-offset);
+        background-color: var(--_split-pane-resizer-active-bg-color);
+      }
+    }
+  }
+}

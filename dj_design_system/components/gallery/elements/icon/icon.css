@@ -1,36 +1,33 @@
 @layer blocks {
   .dds-icon {
-    --_icon-color: var(--dds-text-default-color);
-    --_icon-size-lg: var(--dds-space-xl);
-    --_icon-size-md: var(--dds-space-lg);
-    --_icon-size-sm: var(--dds-space-md);
+    --_icon-color: currentColor;
     --_icon-size-xs: var(--dds-space-sm);
-    color: var(--_icon-color);
+    --_icon-size-sm: var(--dds-space-md);
+    --_icon-size-md: var(--dds-space-lg);
+    --_icon-size-lg: var(--dds-space-xl);
+    --_icon-size: var(--_icon-size-md);
     display: inline-block;
     flex-shrink: 0;
-    height: var(--_icon-size-md);
+    width: var(--_icon-size);
+    height: var(--_icon-size);
     margin: 0;
+    color: var(--_icon-color);
     vertical-align: middle;
-    width: var(--_icon-size-md);
-  }
 
-  .dds-icon[data-size='xs'] {
-    height: var(--_icon-size-xs);
-    width: var(--_icon-size-xs);
-  }
+    &[data-size='xs'] {
+      --_icon-size: var(--_icon-size-xs);
+    }
 
-  .dds-icon[data-size='sm'] {
-    height: var(--_icon-size-sm);
-    width: var(--_icon-size-sm);
-  }
+    &[data-size='sm'] {
+      --_icon-size: var(--_icon-size-sm);
+    }
 
-  .dds-icon[data-size='md'] {
-    height: var(--_icon-size-md);
-    width: var(--_icon-size-md);
-  }
+    &[data-size='md'] {
+      --_icon-size: var(--_icon-size-md);
+    }
 
-  .dds-icon[data-size='lg'] {
-    height: var(--_icon-size-lg);
-    width: var(--_icon-size-lg);
+    &[data-size='lg'] {
+      --_icon-size: var(--_icon-size-lg);
+    }
   }
 }

@@ -10,25 +10,45 @@
               href="{% static 'dj_design_system/gallery-highlight.css' %}">
         {% builtin_component_stylesheets %}
         {% component_stylesheets %}
+        {% gallery_extra_stylesheets %}
         {% block extra_css %}{% endblock %}
     </head>
     <body>
-        {% url 'gallery-index' as gallery_root_url %}
-        {% dds__gallery_shell brand_name=design_system_name brand_url=gallery_root_url nodes=nav_tree active_path=active_path active_variant=active_variant breadcrumbs=breadcrumbs themes=available_themes active_theme=global_active_theme search_index=search_index %}
-        {% slot "toolbar_actions" %}
-        {% block toolbar_actions %}{% endblock %}
-    {% endslot %}
-    {% slot "main" %}
-    {% block content %}{% endblock %}
-{% endslot %}
-{% enddds__gallery_shell %}
+        <dds-gallery-shell class="dds-gallery-shell" data-drawer-state="closed" data-theme="{% if global_active_theme %}{{ global_active_theme }}{% elif active_theme %}{{ active_theme }}{% else %}light{% endif %}">
+        <div data-shell-topbar>
+            {% block topbar %}
+                {% include "dj_design_system/gallery/areas/topbar.html" %}
+            {% endblock %}
+        </div>
+        <div class="l-sidebar" data-shell-body>
+            <div class="dds-gallery-shell-backdrop"
+                 data-surface="overlay"
+                 data-shell-backdrop
+                 hidden
+                 aria-hidden="true"></div>
+            <div data-shell-sidebar id="dds-gallery-drawer">
+                {% block sidebar %}
+                    {% include "dj_design_system/gallery/areas/sidebar.html" %}
+                {% endblock %}
+            </div>
+            <main class="dds-gallery-shell-main"
+                  data-surface="docs"
+                  data-shell-main
+                  id="gallery-main-content">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+        </dds-gallery-shell>
 
-{% block extra_js %}{% endblock %}
-<script src="{% static 'dj_design_system/htmx.min.js' %}"
-        {% if request.csp_nonce %} nonce="{{ request.csp_nonce }}"{% endif %}></script>
-<script src="{% static 'dj_design_system/gallery-snapshot-notice.js' %}"
-        {% if request.csp_nonce %} nonce="{{ request.csp_nonce }}"{% endif %}></script>
-{% builtin_component_scripts %}
-{% component_scripts %}
-</body>
+        {% block extra_js %}{% endblock %}
+        <script type="module"
+                src="{% static 'dj_design_system/gallery-shell.js' %}"
+                {% if request.csp_nonce %} nonce="{{ request.csp_nonce }}"{% endif %}></script>
+        <script src="{% static 'dj_design_system/htmx.min.js' %}"
+                {% if request.csp_nonce %} nonce="{{ request.csp_nonce }}"{% endif %}></script>
+        <script src="{% static 'dj_design_system/gallery-snapshot-notice.js' %}"
+                {% if request.csp_nonce %} nonce="{{ request.csp_nonce }}"{% endif %}></script>
+        {% builtin_component_scripts %}
+        {% component_scripts %}
+    </body>
 </html>

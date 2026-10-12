@@ -12,12 +12,8 @@ config = gallery.GalleryConfig(
         gallery.Variant(
             name="basic",
             label="Info",
-            description="Default informational notice with automatic status icon.",
-            kwargs={
-                "variant": "info",
-                "title": "Information",
-                "content": "Component changes are reflected automatically in the preview canvas.",
-            },
+            description="Minimal informational notice with automatic status icon.",
+            kwargs={},
         ),
         gallery.Variant(
             name="success",
@@ -58,6 +54,28 @@ config = gallery.GalleryConfig(
                 "title": "Documentation Tip",
                 "icon": "doc",
                 "content": "Co-locate an index.md file next to your component to publish usage notes.",
+            },
+        ),
+        gallery.Variant(
+            name="no_icon",
+            label="Icon Suppressed",
+            description="Minimal callout without an icon via icon='none'.",
+            kwargs={
+                "variant": "info",
+                "title": "Unadorned Note",
+                "icon": "none",
+                "content": "A simple callout banner without a leading status icon.",
+            },
+        ),
+        gallery.Variant(
+            name="static_warning",
+            label="Static Warning with Role Override",
+            description="Warning notice with role='note' to avoid intrusive live region alerts.",
+            kwargs={
+                "variant": "warning",
+                "title": "Migration Note",
+                "role": "note",
+                "content": "Please migrate to the new component API at your earliest convenience.",
             },
         ),
     ],

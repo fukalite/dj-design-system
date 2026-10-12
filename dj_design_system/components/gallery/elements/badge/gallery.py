@@ -5,6 +5,11 @@ from dj_design_system import gallery
 
 config = gallery.GalleryConfig(
     group="Elements",
+    param_defaults={
+        "label": "Optional",
+        "variant": "neutral",
+        "is_code": False,
+    },
     variants=[
         gallery.Variant(
             name="basic",
@@ -40,13 +45,13 @@ config = gallery.GalleryConfig(
             name="code",
             label="Code",
             description="Monospace badge for parameter types and technical identifiers.",
-            kwargs={"label": "str", "variant": "code"},
+            kwargs={"label": "str", "is_code": True},
         ),
         gallery.Variant(
             name="maximal",
             label="Maximal",
-            description="Badge with explicit semantic variant.",
-            kwargs={"label": "Required", "variant": "error"},
+            description="Status badge combined with technical monospace code formatting.",
+            kwargs={"label": "DeprecatedType", "variant": "warning", "is_code": True},
         ),
     ],
 )
