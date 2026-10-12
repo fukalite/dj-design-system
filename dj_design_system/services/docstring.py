@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import functools
 import html
 import inspect
 import re
@@ -211,18 +212,44 @@ def transform_docstring_to_markdown(*, docstring: str) -> str:
     return "\n".join(output_lines).strip()
 
 
+@functools.lru_cache(maxsize=1)
+def _get_code_block_template() -> Template:
+    template_str = (
+        "{% load design_components %}"
+        "{% dds__code_block code=code language=language %}"
+    )
+    return Template(template_str)
+
+
 def _render_code_block_markup(*, code: str, language: str) -> str:
     """Render a highlighted code block using the built-in dds__code_block component."""
     try:
-        template_str = (
-            "{% load design_components %}"
-            "{% dds__code_block code=code language=language %}"
-        )
-        template = Template(template_str)
+        template = _get_code_block_template()
         return template.render(Context({"code": code, "language": language}))
     except Exception:
         escaped_code = html.escape(code)
         return f'<pre><code class="language-{language}">{escaped_code}</code></pre>'
+
+
+class _CodeBlockStasher:
+    """Stash and restore fenced code blocks around markdown processing."""
+
+    def __init__(self) -> None:
+        self._stash: dict[str, str] = {}
+        self._counter: int = 0
+
+    def replace_fenced_code(self, match: re.Match[str]) -> str:
+        self._counter += 1
+        lang = match.group(1).strip() or "django"
+        code = match.group(2)
+        rendered_block = _render_code_block_markup(code=code, language=lang)
+        token = f"DDS_CODE_STASH_{self._counter}"
+        self._stash[token] = rendered_block
+        return f"\n\n<!--{token}-->\n\n"
+
+    def restore_stash(self, match: re.Match[str]) -> str:
+        token = match.group(1) or match.group(2)
+        return self._stash.get(token, "")
 
 
 def render_docstring(*, docstring: str) -> safestring.SafeString:
@@ -231,30 +258,14 @@ def render_docstring(*, docstring: str) -> safestring.SafeString:
         return safestring.mark_safe("")
 
     markdown_source = transform_docstring_to_markdown(docstring=docstring)
-    stash: dict[str, str] = {}
-    counter = 0
-
-    def _replace_fenced_code(match: re.Match[str]) -> str:
-        nonlocal counter
-        counter += 1
-        lang = match.group(1).strip() or "django"
-        code = match.group(2)
-        rendered_block = _render_code_block_markup(code=code, language=lang)
-        token = f"DDS_CODE_STASH_{counter}"
-        stash[token] = rendered_block
-        return f"\n\n<!--{token}-->\n\n"
+    stasher = _CodeBlockStasher()
 
     processed_markdown = FENCED_CODE_BLOCK_PATTERN.sub(
-        _replace_fenced_code, markdown_source
+        stasher.replace_fenced_code, markdown_source
     )
     rendered_html = markdown_lib.markdown(
         processed_markdown,
         extensions=["tables"],
     )
-
-    def _restore_stash(match: re.Match[str]) -> str:
-        token = match.group(1) or match.group(2)
-        return stash.get(token, "")
-
-    final_html = STASH_TOKEN_PATTERN.sub(_restore_stash, rendered_html)
+    final_html = STASH_TOKEN_PATTERN.sub(stasher.restore_stash, rendered_html)
     return safestring.mark_safe(final_html)

@@ -12,6 +12,7 @@ from urllib.parse import urlencode
 
 import markdown as markdown_lib
 from django.apps import apps
+from django.conf import settings
 from django.urls import reverse
 
 from dj_design_system.constants import (
@@ -24,6 +25,15 @@ from dj_design_system.services import visibility as visibility_service
 from dj_design_system.services.registry import component_registry
 from dj_design_system.settings import dds_settings
 from dj_design_system.types import NodeType
+
+
+DOC_ORDER_MAP: dict[str, int] = {
+    "semantic_tokens": 1,
+    "typography_and_spacing": 2,
+    "layout_primitives": 3,
+    "areas_and_token_delegation": 4,
+    "templates": 5,
+}
 
 
 _SEARCH_INDEX_CACHE_MAXSIZE = 32
@@ -203,14 +213,7 @@ class _AppTreeBuilder:
             parent.index_doc_path = md_path
         else:
             stem = md_path.stem
-            doc_order_map: dict[str, int] = {
-                "semantic_tokens": 1,
-                "typography_and_spacing": 2,
-                "layout_primitives": 3,
-                "areas_and_token_delegation": 4,
-                "templates": 5,
-            }
-            order = doc_order_map.get(stem, 0)
+            order = DOC_ORDER_MAP.get(stem, 0)
             node = NavNode(
                 label=to_display_label(stem),
                 slug=stem,
@@ -344,8 +347,6 @@ def _cached_build_navigation() -> list[NavNode]:
 
 def build_navigation() -> list[NavNode]:
     """Build the full gallery navigation tree from the component registry and markdown files (cached)."""
-    from django.conf import settings
-
     if settings.DEBUG:
         clear_navigation_cache()
     return _cached_build_navigation()
