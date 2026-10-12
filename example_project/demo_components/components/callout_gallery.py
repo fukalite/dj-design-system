@@ -27,7 +27,7 @@ config = GalleryConfig(
                 "title": "Trial ending soon",
                 "tone": "warning",
                 "slot__message": "Your free trial ends in 3 days.",
-                "slot__actions": mark_safe("<a href='#'>Upgrade now</a>"),
+                "slot__actions": mark_safe('<a href="#">Upgrade now</a>'),
             },
         ),
     ],

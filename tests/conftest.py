@@ -90,6 +90,33 @@ def registry_with_demo_single():
     return reg
 
 
+@pytest.fixture()
+def register_gallery_component():
+    """Register components with a GalleryConfig in the global registry.
+
+    Returns a callable ``(component_class, name, config)``; everything it
+    registers is removed again on teardown.
+    """
+    from dj_design_system.services.registry import component_registry
+
+    registered = []
+
+    def _register(component_class, name, config):
+        info = ComponentInfo(
+            component_class=component_class,
+            name=name,
+            app_label="test_app",
+            relative_path="",
+        )
+        info.__dict__["gallery_config"] = config
+        component_registry._components.append(info)
+        registered.append(info)
+
+    yield _register
+    for info in registered:
+        component_registry._components.remove(info)
+
+
 # ---------------------------------------------------------------------------
 # Navigation fixtures
 # ---------------------------------------------------------------------------

@@ -37,17 +37,17 @@ class CalloutComponent(BlockComponent):
 
     def render(self) -> str:
         title = (
-            format_html("<p class='callout__title'>{}</p>", self.title)
+            format_html('<p class="callout__title">{}</p>', self.title)
             if self.title
             else ""
         )
         actions = (
-            format_html("<div class='callout__actions'>{}</div>", self.slots["actions"])
+            format_html('<div class="callout__actions">{}</div>', self.slots["actions"])
             if self.slots.get("actions")
             else ""
         )
         return format_html(
-            "<aside class='callout {}'>{}<div class='callout__message'>{}</div>{}</aside>",
+            '<aside class="callout {}">{}<div class="callout__message">{}</div>{}</aside>',
             self.get_classes_string(),
             title,
             self.slots["message"],
