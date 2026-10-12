@@ -9,12 +9,11 @@ config = GalleryConfig(
             name="basic",
             kwargs={"slot__message": "Your changes have been saved."},
         ),
-        # Deliberately leaves the optional "actions" slot empty: the maximal
-        # usage example should show the callout without it.
+        # Deliberately leaves the optional "title" param and "actions" slot
+        # empty: the maximal usage example should show the callout without them.
         Variant(
             name="maximal",
             kwargs={
-                "title": "Trial ending soon",
                 "tone": "warning",
                 "slot__message": "Your free trial ends in 3 days.",
             },

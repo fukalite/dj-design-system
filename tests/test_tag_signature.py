@@ -690,3 +690,64 @@ class TestMaximalVariantSlots:
 
         assert '{% slot "footer" %}Sample footer content{% endslot %}' in sig.maximal
         assert sig.maximal_spec.params.get("slot__footer") == "Sample footer content"
+
+
+class OptionalParamsComponent(TagComponent):
+    template_format_str = "<p>{label} {size} {note}</p>"
+    label = StrParam("Label")
+    size = StrParam("Size", required=False, default="small")
+    note = StrParam("Note", required=False)
+    heading = StrParam("Heading", required=True)
+
+    class Meta:
+        positional_args = ["label", "note"]
+
+
+class TestMaximalVariantParams:
+    """A ``maximal`` variant that omits an optional param leaves it out."""
+
+    def test_omitted_optional_params_not_generated(self, register_gallery_component):
+        register_gallery_component(
+            OptionalParamsComponent,
+            "optional_params",
+            GalleryConfig(
+                variants=[
+                    Variant(
+                        name="maximal",
+                        kwargs={"label": "Hello", "heading": "Title"},
+                    ),
+                ]
+            ),
+        )
+
+        sig = generate_tag_signature(OptionalParamsComponent)
+
+        assert sig.maximal == '{% optional_params "Hello" heading="Title" %}'
+        assert sig.maximal_spec.positional_args == ("Hello",)
+        assert sig.maximal_spec.params == {"heading": "Title"}
+
+    def test_omitted_required_params_still_generated(self, register_gallery_component):
+        register_gallery_component(
+            OptionalParamsComponent,
+            "optional_params",
+            GalleryConfig(variants=[Variant(name="maximal", kwargs={"size": "big"})]),
+        )
+
+        sig = generate_tag_signature(OptionalParamsComponent)
+
+        assert sig.maximal_spec.positional_args == ("foo",)
+        assert sig.maximal_spec.params == {"size": "big", "heading": "bar"}
+        assert "note" not in sig.maximal
+
+    def test_without_maximal_variant_all_params_generated(
+        self, register_gallery_component
+    ):
+        register_gallery_component(
+            OptionalParamsComponent, "optional_params", GalleryConfig()
+        )
+
+        sig = generate_tag_signature(OptionalParamsComponent)
+
+        assert 'size="small"' in sig.maximal
+        assert "heading=" in sig.maximal
+        assert len(sig.maximal_spec.positional_args) == 2
