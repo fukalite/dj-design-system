@@ -106,6 +106,10 @@
         background-color: var(--_nav-tree-press-bg-color);
       }
 
+      &[data-variant-link='true'] {
+        color: var(--_nav-tree-variant-text-color);
+      }
+
       &[aria-current='page'],
       &[data-active='true'] {
         color: var(--_nav-tree-active-text-color);
@@ -117,10 +121,6 @@
         outline-style: var(--_nav-tree-focus-outline-style);
         outline-color: var(--_nav-tree-focus-outline-color);
         outline-offset: var(--_nav-tree-focus-outline-offset);
-      }
-
-      &[data-variant-link='true'] {
-        color: var(--_nav-tree-variant-text-color);
       }
 
       &[data-depth='1'] {

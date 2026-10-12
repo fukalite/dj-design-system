@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import json
 import logging
 import re
@@ -629,7 +630,14 @@ def _serialise_value(value: object) -> str:
     if isinstance(value, Model):
         return str(value.pk)
     if isinstance(value, (list, dict)):
-        return json.dumps(value)
+        return json.dumps(
+            value,
+            default=lambda o: (
+                dataclasses.asdict(o)
+                if dataclasses.is_dataclass(o) and not isinstance(o, type)
+                else str(o)
+            ),
+        )
     return str(value)
 
 

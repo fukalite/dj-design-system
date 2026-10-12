@@ -58,7 +58,7 @@ config = gallery.GalleryConfig(
                 ),
                 "slot__secondary": (
                     '<div data-surface="code" style="padding: var(--dds-space-inset-page);">'
-                    "<pre><code>&lt;dds-button&gt;Save&lt;/dds-button&gt;</code></pre>"
+                    '<pre tabindex="0"><code>&lt;dds-button&gt;Save&lt;/dds-button&gt;</code></pre>'
                     "</div>"
                 ),
             },

@@ -39,7 +39,7 @@
     --_code-block-hl-line-bg: var(--dds-syntax-line-bg, #49483e);
     --_code-block-hl-literal: var(--dds-syntax-literal, #ae81ff);
     --_code-block-hl-name: var(--dds-syntax-name, #f8f8f2);
-    --_code-block-hl-operator: var(--dds-syntax-operator, #f92672);
+    --_code-block-hl-operator: var(--dds-syntax-operator, #ff3b81);
     --_code-block-hl-string: var(--dds-syntax-string, #e6db74);
     --_code-block-hl-tag-delimiter: var(--dds-syntax-tag-delimiter, #ff79c6);
     --_code-block-label-color: var(--dds-text-muted-color);
