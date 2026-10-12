@@ -531,12 +531,18 @@ def generate_tag_signature(
         basic_kwargs = merge_variant_params(
             component_class, config=config, variant=config.get_variant("basic")
         )
+        maximal_variant = config.get_variant("maximal")
         maximal_kwargs = merge_variant_params(
-            component_class, config=config, variant=config.get_variant("maximal")
+            component_class, config=config, variant=maximal_variant
         )
     except Exception:
         basic_kwargs = {}
         maximal_kwargs = {}
+        maximal_variant = None
+
+    # An explicit "maximal" variant decides which optional slots are filled;
+    # without one, every slot gets placeholder content.
+    fill_optional_slots = maximal_variant is None
 
     basic_slot_overrides = {
         k: basic_kwargs.pop(k)
@@ -612,7 +618,7 @@ def generate_tag_signature(
         is_block,
         is_slotted,
         block_class,
-        required_only=False,
+        required_only=not fill_optional_slots,
         slot_overrides=maximal_slot_overrides,
         content_override=(
             _content_code(maximal_content_override)
@@ -646,7 +652,7 @@ def generate_tag_signature(
                 maximal_slot_params[override_key] = _unwrap_example(
                     maximal_slot_overrides[override_key]
                 )
-            else:
+            elif slot.required or fill_optional_slots:
                 maximal_slot_params[override_key] = (
                     slot.default or f"Sample {slot_name} content"
                 )
