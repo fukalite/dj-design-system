@@ -112,10 +112,7 @@ class TestVariantViews:
         )
         response = client.get(f"{url}?variant=maximal")
         assert response.status_code == 200
-        assert (
-            b'<input type="hidden" name="_iss" value="1"'
-            in response.content
-        )
+        assert b'<input type="hidden" name="_iss" value="1"' in response.content
         assert (
             b'<input type="hidden" name="_dds_variant" value="maximal"'
             in response.content
@@ -315,3 +312,31 @@ class TestNavLinkIsActive:
         node = self._node(NodeType.FOLDER, active_path="app/button")
         assert nav_link_is_active(node, "app/button", None)
         assert not nav_link_is_active(node, "app/button", "danger")
+
+
+class TestOmittedOptionalSlotsInSandbox:
+    """Optional slots a variant leaves empty start empty in the sandbox form."""
+
+    @staticmethod
+    def _url():
+        return reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "callout"},
+        )
+
+    def test_maximal_variant_without_slot_leaves_textarea_empty(self, client: Client):
+        response = client.get(self._url())
+        assert response.status_code == 200
+        form = response.context["form"]
+        assert form.initial.get("slot__actions") == ""
+        assert b"Sample actions content" not in response.content
+
+    def test_variant_without_slot_leaves_textarea_empty(self, client: Client):
+        response = client.get(f"{self._url()}?variant=basic")
+        assert response.status_code == 200
+        assert response.context["form"].initial.get("slot__actions") == ""
+
+    def test_variant_with_slot_prefills_textarea(self, client: Client):
+        response = client.get(f"{self._url()}?variant=with_actions")
+        assert response.status_code == 200
+        assert "Upgrade now" in response.context["form"].initial.get("slot__actions")

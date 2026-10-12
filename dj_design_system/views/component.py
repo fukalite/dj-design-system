@@ -102,6 +102,13 @@ def _get_form_and_sandbox_spec(
                 initial_data[pos_args[i]] = val
         initial_data.update(tag_signature.maximal_spec.params)
 
+    # Optional slots the variant leaves out start empty, matching the preview,
+    # rather than falling back to the form field's sample content.
+    if issubclass(component_class, BlockComponent) and component_class.has_slots():
+        for slot_name, slot in component_class.get_slots().items():
+            if not slot.required:
+                initial_data.setdefault(f"{SLOT_PARAM_PREFIX}{slot_name}", "")
+
     form = (
         form_class(data=request.GET)
         if has_param_in_get
