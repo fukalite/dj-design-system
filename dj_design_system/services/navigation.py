@@ -27,12 +27,41 @@ from dj_design_system.settings import dds_settings
 from dj_design_system.types import NodeType
 
 
+FOLDER_ORDER_MAP: dict[str, int] = {
+    "about": -10,
+    "areas": -5,
+    "areas_and_panes": -5,
+    "docs": 1,
+    "sandbox": 2,
+    "templates": 3,
+}
+
+FOLDER_LABEL_OVERRIDES: dict[str, str] = {
+    "areas": "Areas",
+    "areas_and_panes": "Areas & Panes",
+    "index_pane": "Index",
+}
+
 DOC_ORDER_MAP: dict[str, int] = {
+    # About
     "semantic_tokens": 1,
     "typography_and_spacing": 2,
     "layout_primitives": 3,
-    "areas_and_token_delegation": 4,
-    "templates": 5,
+    # Areas & Panes root documents
+    "topbar": 1,
+    "sidebar": 2,
+    "tabs": 3,
+    # Docs sub-panes
+    "header": 1,
+    "usage": 2,
+    "params": 3,
+    "further": 4,
+    # Sandbox sub-panes
+    "toolbar": 1,
+    "canvas": 2,
+    # Templates sub-templates
+    "folder": 1,
+    "index_pane": 2,
 }
 
 
@@ -78,6 +107,9 @@ def to_display_label(
                 if "verbose_name" in type(cfg).__dict__:
                     return str(cfg.verbose_name)
 
+    if name in FOLDER_LABEL_OVERRIDES:
+        return FOLDER_LABEL_OVERRIDES[name]
+
     return name.replace("_", " ").replace("-", " ").capitalize()
 
 
@@ -119,7 +151,7 @@ class _AppTreeBuilder:
                         path=".".join(path_parts[: depth + 1]),
                     )
                 )
-                order = -10 if path_parts[depth] == "about" else 0
+                order = FOLDER_ORDER_MAP.get(path_parts[depth], 0)
                 node = NavNode(
                     label=label,
                     slug=path_parts[depth],

@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from django.test import override_settings
 
-from dj_design_system.components.gallery.domain.nav_tree.nav_tree import NavTree
+from dj_design_system.components.gallery.composites.nav_tree.nav_tree import NavTree
 from dj_design_system.data import ComponentInfo, NavNode
 from dj_design_system.services.navigation import (
     NodeType,
@@ -1040,7 +1040,7 @@ def test_builtin_gallery_subfolder_omitted_from_navigation_tree():
         assert dds_app is not None
         child_slugs = [c.slug for c in dds_app.children]
         assert "gallery" not in child_slugs
-        assert "domain" in child_slugs
+        assert "composites" in child_slugs
         assert "elements" in child_slugs
 
         elements_node = next(c for c in dds_app.children if c.slug == "elements")
@@ -1058,11 +1058,11 @@ def test_builtin_gallery_subfolder_omitted_from_navigation_tree():
         )
         assert button_node.url == expected_url
 
-        domain_node = next(c for c in dds_app.children if c.slug == "domain")
-        domain_child_slugs = [c.slug for c in domain_node.children]
-        assert "domain" not in domain_child_slugs
+        composites_node = next(c for c in dds_app.children if c.slug == "composites")
+        composites_child_slugs = [c.slug for c in composites_node.children]
+        assert "composites" not in composites_child_slugs
         canvas_node = next(
-            (c for c in domain_node.children if c.slug == "canvas_widget"), None
+            (c for c in composites_node.children if c.slug == "canvas_widget"), None
         )
         assert canvas_node is not None
         assert canvas_node.node_type == NodeType.COMPONENT
@@ -1070,3 +1070,121 @@ def test_builtin_gallery_subfolder_omitted_from_navigation_tree():
 
         found = find_node(tree, "dj_design_system", ["elements", "button"])
         assert found is button_node
+
+
+def test_areas_navigation():
+    """Verify Areas folder hierarchy, labels, and doc paths in navigation."""
+    from django.test import override_settings
+
+    from dj_design_system.services.navigation import (
+        _build_navigation,
+        find_node,
+        to_display_label,
+    )
+
+    assert to_display_label("areas") == "Areas"
+    assert to_display_label("index_pane") == "Index"
+
+    with override_settings(
+        DJ_DESIGN_SYSTEM={
+            "GALLERY_INCLUDE_APPS": ["dj_design_system"],
+        }
+    ):
+        tree = _build_navigation()
+        dds_app = next((n for n in tree if n.slug == "dj_design_system"), None)
+        assert dds_app is not None
+
+        areas_node = next((c for c in dds_app.children if c.slug == "areas"), None)
+        assert areas_node is not None
+        assert areas_node.label == "Areas"
+        assert areas_node.node_type == NodeType.FOLDER
+        assert areas_node.has_index_doc is True
+
+        # Check areas folders and documents
+        child_slugs = [c.slug for c in areas_node.children]
+        assert child_slugs == [
+            "docs",
+            "sandbox",
+            "templates",
+            "topbar",
+            "sidebar",
+            "tabs",
+        ]
+
+        # Verify folder nodes have index docs
+        docs_node = next(c for c in areas_node.children if c.slug == "docs")
+        assert docs_node.node_type == NodeType.FOLDER
+        assert docs_node.has_index_doc is True
+
+        sandbox_node = next(c for c in areas_node.children if c.slug == "sandbox")
+        assert sandbox_node.node_type == NodeType.FOLDER
+        assert sandbox_node.has_index_doc is True
+
+        templates_node = next(c for c in areas_node.children if c.slug == "templates")
+        assert templates_node.node_type == NodeType.FOLDER
+        assert templates_node.has_index_doc is True
+
+        # Find node verification
+        found_topbar = find_node(tree, "dj_design_system", ["areas", "topbar"])
+        assert found_topbar is not None
+        assert found_topbar.node_type == NodeType.DOCUMENT
+
+        found_docs_header = find_node(
+            tree, "dj_design_system", ["areas", "docs", "header"]
+        )
+        assert found_docs_header is not None
+        assert found_docs_header.node_type == NodeType.DOCUMENT
+
+        found_sandbox_toolbar = find_node(
+            tree, "dj_design_system", ["areas", "sandbox", "toolbar"]
+        )
+        assert found_sandbox_toolbar is not None
+        assert found_sandbox_toolbar.node_type == NodeType.DOCUMENT
+
+        found_index_pane = find_node(
+            tree, "dj_design_system", ["areas", "templates", "index_pane"]
+        )
+        assert found_index_pane is not None
+        assert found_index_pane.label == "Index"
+
+
+def test_areas_views_render(client):
+    """Verify that all Areas documentation pages render with HTTP 200."""
+    from django.test import override_settings
+    from django.urls import reverse
+
+    paths = [
+        "areas",
+        "areas/topbar",
+        "areas/sidebar",
+        "areas/tabs",
+        "areas/docs",
+        "areas/docs/header",
+        "areas/docs/usage",
+        "areas/docs/params",
+        "areas/docs/further",
+        "areas/sandbox",
+        "areas/sandbox/toolbar",
+        "areas/sandbox/canvas",
+        "areas/sandbox/params",
+        "areas/templates",
+        "areas/templates/folder",
+        "areas/templates/index_pane",
+    ]
+
+    with override_settings(
+        DJ_DESIGN_SYSTEM={
+            "GALLERY_INCLUDE_APPS": ["dj_design_system"],
+        }
+    ):
+        for path in paths:
+            url = reverse(
+                "gallery-node", kwargs={"app_label": "dj_design_system", "path": path}
+            )
+            response = client.get(url)
+            assert response.status_code == 200, (
+                f"Failed on path: {path} (status {response.status_code})"
+            )
+            assert b"gallery-canvas-error" not in response.content, (
+                f"Canvas error on path: {path}"
+            )

@@ -1,4 +1,4 @@
-"""Unit tests for the built-in ``dds__theme_select`` domain component."""
+"""Unit tests for the built-in ``dds__theme_select`` composite component."""
 
 import pathlib
 import re
@@ -8,10 +8,10 @@ from django import template
 
 from dj_design_system import data, gallery, types
 from dj_design_system.components import base as components_base
-from dj_design_system.components.gallery.domain import (
+from dj_design_system.components.gallery.composites import (
     theme_select as theme_select_package,
 )
-from dj_design_system.components.gallery.domain.theme_select import (
+from dj_design_system.components.gallery.composites.theme_select import (
     theme_select as theme_select_module,
 )
 from dj_design_system.services import canvas as canvas_service
@@ -22,15 +22,15 @@ from tests import conftest
 APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "theme_select"
 QUALIFIED_NAME = "dds__theme_select"
-RELATIVE_PATH = "gallery.domain.theme_select"
+RELATIVE_PATH = "gallery.composites.theme_select"
 TEMPLATE_PATH = (
-    "dj_design_system/components/gallery/domain/theme_select/theme_select.html"
+    "dj_design_system/components/gallery/composites/theme_select/theme_select.html"
 )
 CSS_MEDIA_PATH = (
-    "dj_design_system/components/gallery/domain/theme_select/theme_select.css"
+    "dj_design_system/components/gallery/composites/theme_select/theme_select.css"
 )
 JS_MEDIA_PATH = (
-    "dj_design_system/components/gallery/domain/theme_select/theme_select.js"
+    "dj_design_system/components/gallery/composites/theme_select/theme_select.js"
 )
 
 THEME_SELECT_DIR = (
@@ -38,7 +38,7 @@ THEME_SELECT_DIR = (
     / "dj_design_system"
     / "components"
     / "gallery"
-    / "domain"
+    / "composites"
     / "theme_select"
 )
 THEME_SELECT_HTML_PATH = THEME_SELECT_DIR / "theme_select.html"
@@ -101,7 +101,7 @@ class TestThemeSelectDiscoveryAndMetadata:
     """Verify ThemeSelect class exports, metadata, media, and registry discovery."""
 
     def test_exported_from_package_init(self) -> None:
-        """Verify ThemeSelect is exported in dj_design_system.components.gallery.domain.theme_select."""
+        """Verify ThemeSelect is exported in dj_design_system.components.gallery.composites.theme_select."""
         assert theme_select_package.ThemeSelect is theme_select_module.ThemeSelect
         assert issubclass(theme_select_module.ThemeSelect, components_base.TagComponent)
 
@@ -393,7 +393,7 @@ class TestThemeSelectGalleryAndDocs:
             component_name=COMPONENT_NAME,
         )
         assert isinstance(cfg, gallery.GalleryConfig)
-        assert cfg.group == "Domain"
+        assert cfg.group == "Composites"
         assert len(cfg.variants) == 1
         for variant in cfg.variants:
             spec = data.CanvasSpec(

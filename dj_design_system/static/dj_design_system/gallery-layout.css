@@ -948,6 +948,7 @@
       border-style: var(--_params-table-code-border-style);
       border-color: var(--_params-table-code-border-color);
       border-radius: var(--_params-table-code-border-radius);
+      overflow-wrap: break-word;
       color: var(--_params-table-code-color);
       background-color: var(--_params-table-code-bg-color);
       font-family: var(--_params-table-code-font);
@@ -1243,6 +1244,7 @@
       border-style: var(--_prose-code-border-style);
       border-color: var(--_prose-code-border-color);
       border-radius: var(--_prose-code-border-radius);
+      overflow-wrap: break-word;
       color: var(--_prose-code-color);
       background-color: var(--_prose-code-bg-color);
       font-family: var(--_prose-code-font);

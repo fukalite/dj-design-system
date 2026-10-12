@@ -1,4 +1,4 @@
-"""Unit tests for the built-in ``dds__nav_tree`` domain component."""
+"""Unit tests for the built-in ``dds__nav_tree`` composite component."""
 
 import dataclasses
 import pathlib
@@ -9,8 +9,8 @@ from django import template
 
 from dj_design_system import data, gallery, types
 from dj_design_system.components import base as components_base
-from dj_design_system.components.gallery.domain import nav_tree as nav_tree_package
-from dj_design_system.components.gallery.domain.nav_tree import (
+from dj_design_system.components.gallery.composites import nav_tree as nav_tree_package
+from dj_design_system.components.gallery.composites.nav_tree import (
     nav_tree as nav_tree_module,
 )
 from dj_design_system.services import registry as registry_service
@@ -20,17 +20,17 @@ from tests import conftest
 APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "nav_tree"
 QUALIFIED_NAME = "dds__nav_tree"
-RELATIVE_PATH = "gallery.domain.nav_tree"
-TEMPLATE_PATH = "dj_design_system/components/gallery/domain/nav_tree/nav_tree.html"
-CSS_MEDIA_PATH = "dj_design_system/components/gallery/domain/nav_tree/nav_tree.css"
-JS_MEDIA_PATH = "dj_design_system/components/gallery/domain/nav_tree/nav_tree.js"
+RELATIVE_PATH = "gallery.composites.nav_tree"
+TEMPLATE_PATH = "dj_design_system/components/gallery/composites/nav_tree/nav_tree.html"
+CSS_MEDIA_PATH = "dj_design_system/components/gallery/composites/nav_tree/nav_tree.css"
+JS_MEDIA_PATH = "dj_design_system/components/gallery/composites/nav_tree/nav_tree.js"
 
 NAV_TREE_DIR = (
     pathlib.Path(__file__).resolve().parent.parent.parent
     / "dj_design_system"
     / "components"
     / "gallery"
-    / "domain"
+    / "composites"
     / "nav_tree"
 )
 NAV_TREE_PY_PATH = NAV_TREE_DIR / "nav_tree.py"
@@ -162,7 +162,7 @@ class TestNavTreeDiscoveryAndMetadata:
     """Verify NavTree exports, metadata, media, and registry discovery."""
 
     def test_exported_from_package_init(self) -> None:
-        """Verify NavTree is exported in dj_design_system.components.gallery.domain.nav_tree."""
+        """Verify NavTree is exported in dj_design_system.components.gallery.composites.nav_tree."""
         assert nav_tree_package.NavTree is nav_tree_module.NavTree
         assert issubclass(nav_tree_module.NavTree, components_base.TagComponent)
 

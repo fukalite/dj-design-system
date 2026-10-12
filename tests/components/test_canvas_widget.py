@@ -1,4 +1,4 @@
-"""Unit tests for the built-in ``dds__canvas_widget`` domain component."""
+"""Unit tests for the built-in ``dds__canvas_widget`` composite component."""
 
 import pathlib
 import re
@@ -8,10 +8,10 @@ from django import template
 
 from dj_design_system import data, gallery
 from dj_design_system.components import base as components_base
-from dj_design_system.components.gallery.domain import (
+from dj_design_system.components.gallery.composites import (
     canvas_widget as canvas_widget_package,
 )
-from dj_design_system.components.gallery.domain.canvas_widget import (
+from dj_design_system.components.gallery.composites.canvas_widget import (
     canvas_widget as canvas_widget_module,
 )
 from dj_design_system.services import canvas as canvas_service
@@ -23,15 +23,15 @@ from tests import conftest
 APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "canvas_widget"
 QUALIFIED_NAME = "dds__canvas_widget"
-RELATIVE_PATH = "gallery.domain.canvas_widget"
+RELATIVE_PATH = "gallery.composites.canvas_widget"
 TEMPLATE_PATH = (
-    "dj_design_system/components/gallery/domain/canvas_widget/canvas_widget.html"
+    "dj_design_system/components/gallery/composites/canvas_widget/canvas_widget.html"
 )
 CSS_MEDIA_PATH = (
-    "dj_design_system/components/gallery/domain/canvas_widget/canvas_widget.css"
+    "dj_design_system/components/gallery/composites/canvas_widget/canvas_widget.css"
 )
 JS_MEDIA_PATH = (
-    "dj_design_system/components/gallery/domain/canvas_widget/canvas_widget.js"
+    "dj_design_system/components/gallery/composites/canvas_widget/canvas_widget.js"
 )
 
 ROOT_DIR = pathlib.Path(__file__).resolve().parent.parent.parent
@@ -40,7 +40,7 @@ CANVAS_WIDGET_DIR = (
     / "dj_design_system"
     / "components"
     / "gallery"
-    / "domain"
+    / "composites"
     / "canvas_widget"
 )
 CANVAS_WIDGET_PY_PATH = CANVAS_WIDGET_DIR / "canvas_widget.py"
@@ -114,7 +114,7 @@ class TestCanvasWidgetDiscoveryAndMetadata:
     def test_exported_from_package_init_and_subclasses_tag_component(
         self,
     ) -> None:
-        """Verify CanvasWidget is exported in dj_design_system.components.gallery.domain.canvas_widget."""
+        """Verify CanvasWidget is exported in dj_design_system.components.gallery.composites.canvas_widget."""
         assert canvas_widget_package.CanvasWidget is canvas_widget_module.CanvasWidget
         assert issubclass(
             canvas_widget_module.CanvasWidget,
@@ -455,7 +455,7 @@ class TestCanvasWidgetGalleryAndDocs:
             component_name=COMPONENT_NAME,
         )
         assert isinstance(cfg, gallery.GalleryConfig)
-        assert cfg.group == "Domain"
+        assert cfg.group == "Composites"
         assert len(cfg.variants) == 1
         for variant in cfg.variants:
             spec = data.CanvasSpec(
