@@ -21,7 +21,7 @@ A domain gallery component that renders the interactive parameter editing form i
 
 - Renders `<dds-sandbox-params class="dds-sandbox-params" data-surface="sandbox">`.
 - Normalises parameter rows in `get_context()` without using Django template filters (`|default`, `|safe`, etc.).
-- Wraps fields in an Every Layout `<l-stack data-params-fields>` and delegates each field's label, required indicator, helper description, error alert, and control slot to `{% dds__form_field %}`.
+- Wraps fields in an Every Layout `<l-stack data-params-fields>` and delegates each field's label, required indicator, helper description, error alert, and control widget to `{% dds__form_field %}`.
 
 ## Example Usage
 

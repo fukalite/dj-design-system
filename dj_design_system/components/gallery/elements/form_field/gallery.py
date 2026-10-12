@@ -56,7 +56,7 @@ config = gallery.GalleryConfig(
             },
         ),
         gallery.Variant(
-            name="rich_slots",
+            name="helper_and_error",
             label="Field with Helper and Error",
             description="Form field demonstrating helper description and validation error text.",
             kwargs={
