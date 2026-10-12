@@ -161,7 +161,12 @@ def _format_multiline_example(
         return formatted
 
     else:
-        opening_match = example_str.split("}")[0] + "}"
+        # Split on the tag's closing "%}" rather than the first "}", which
+        # may belong to a dict literal in the parameters.
+        opening_end = example_str.find("%}")
+        if opening_end == -1:
+            return example_str
+        opening_match = example_str[: opening_end + 2]
         rest = example_str[len(opening_match) :]
 
         closing_start = rest.rfind("{%")
