@@ -5,11 +5,7 @@ import pathlib
 
 ROOT_DIR = pathlib.Path(__file__).resolve().parent.parent
 GALLERY_SHELL_TS_PATH = (
-    ROOT_DIR
-    / "dj_design_system"
-    / "static"
-    / "dj_design_system"
-    / "gallery-shell.ts"
+    ROOT_DIR / "dj_design_system" / "static" / "dj_design_system" / "gallery-shell.ts"
 )
 
 
@@ -32,8 +28,13 @@ class TestGalleryShellCustomElementTypeScript:
         assert "syncGalleryThemeToggleIcons(isDark: boolean): void" in ts_text
 
         # Gallery UI theme toggles .gallery-theme-dark and .gallery-theme-light
-        assert "document.documentElement.classList.toggle('gallery-theme-dark'," in ts_text
-        assert "document.documentElement.classList.toggle('gallery-theme-light'," in ts_text
+        assert (
+            "document.documentElement.classList.toggle('gallery-theme-dark'," in ts_text
+        )
+        assert (
+            "document.documentElement.classList.toggle('gallery-theme-light',"
+            in ts_text
+        )
         assert "this.classList.toggle('gallery-theme-dark'," in ts_text
         assert "this.classList.toggle('gallery-theme-light'," in ts_text
 
@@ -53,12 +54,27 @@ class TestGalleryShellCustomElementTypeScript:
 
         # Consumer theme is handled independently via handleConsumerThemeChange on dds:theme-change
         assert "handleConsumerThemeChange(event: Event): void" in ts_text
-        assert "addEventListener(\n      'dds:theme-change'," in ts_text or "addEventListener('dds:theme-change'," in ts_text
+        assert (
+            "addEventListener(\n      'dds:theme-change'," in ts_text
+            or "addEventListener('dds:theme-change'," in ts_text
+        )
         assert "currentUrl.searchParams.set('_dds_theme', theme);" in ts_text
         assert "'dds_theme=' +" in ts_text
         assert "window.localStorage.setItem('dds_theme', theme);" in ts_text
         assert "input.value = theme;" in ts_text
         assert "iframeUrl.searchParams.set('_dds_theme', theme);" in ts_text
+
+        # Consumer color scheme is handled independently via toggleConsumerColorScheme
+        assert "toggleConsumerColorScheme(): void" in ts_text
+        assert "setConsumerColorScheme(scheme: 'light' | 'dark'): void" in ts_text
+        assert "currentUrl.searchParams.set('_dds_color_scheme', scheme);" in ts_text
+        assert "'dds_color_scheme=' +" in ts_text
+        assert "window.localStorage.setItem('dds_color_scheme', scheme);" in ts_text
+        assert "input[name=_dds_color_scheme]" in ts_text
+        assert "iframeUrl.searchParams.set('_dds_color_scheme', scheme);" in ts_text
+        assert "syncConsumerColorSchemeToggle(): void" in ts_text
+        assert "getActiveThemeSupportsDarkMode(): boolean" in ts_text
+        assert "new CustomEvent('dds:consumer-color-scheme-change'" in ts_text
 
     def test_ts_styleguide_formatting_and_jsdoc(self) -> None:
         """Verify gallery-shell.ts adheres to Google TS styleguide: <=80 chars, single quotes, JSDoc."""

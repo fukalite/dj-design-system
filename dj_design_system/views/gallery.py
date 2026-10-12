@@ -60,8 +60,23 @@ def get_base_context(
             gallery_theme = raw_gallery_theme
         else:
             gallery_theme = ""
+        raw_color_scheme = (
+            get_control_param(request.GET, "color_scheme", bare_fallback=bare_fallback)
+            or request.COOKIES.get("dds_color_scheme")
+            or ""
+        )
     else:
         gallery_theme = ""
+        raw_color_scheme = ""
+
+    theme_obj = get_theme(active_theme) or get_default_theme()
+    active_theme = theme_obj.value
+    active_theme_supports_dark_mode = theme_obj.supports_dark_mode
+    if active_theme_supports_dark_mode and raw_color_scheme in ("dark", "light"):
+        active_color_scheme = raw_color_scheme
+    else:
+        active_color_scheme = "light"
+
     return {
         "nav_tree": nav_tree,
         "search_index": [] if is_htmx else build_search_index(nav_tree),
@@ -73,6 +88,8 @@ def get_base_context(
         "available_themes": get_themes(),
         "active_theme": active_theme,
         "global_active_theme": active_theme,
+        "active_color_scheme": active_color_scheme,
+        "active_theme_supports_dark_mode": active_theme_supports_dark_mode,
         "gallery_theme": gallery_theme,
         "component_tabs": [
             {"id": "docs", "label": "Documentation"},

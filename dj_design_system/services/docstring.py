@@ -215,8 +215,7 @@ def transform_docstring_to_markdown(*, docstring: str) -> str:
 @functools.lru_cache(maxsize=1)
 def _get_code_block_template() -> Template:
     template_str = (
-        "{% load design_components %}"
-        "{% dds__code_block code=code language=language %}"
+        "{% load design_components %}{% dds__code_block code=code language=language %}"
     )
     return Template(template_str)
 

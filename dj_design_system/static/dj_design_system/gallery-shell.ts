@@ -49,6 +49,20 @@ export class DDSGalleryShellElement
       );
     }
 
+    const consumerSchemeToggles =
+      this.querySelectorAll<HTMLElement>(
+        '[data-action=toggle-consumer-color-scheme]',
+      );
+    for (const toggle of consumerSchemeToggles) {
+      toggle.addEventListener(
+        'click',
+        () => {
+          this.toggleConsumerColorScheme();
+        },
+        { signal },
+      );
+    }
+
     if (typeof window.matchMedia === 'function') {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
       mediaQuery.addEventListener(
@@ -146,6 +160,7 @@ export class DDSGalleryShellElement
     );
 
     this.syncInitialGalleryTheme();
+    this.syncInitialConsumerColorScheme();
     this.syncHashNavigation();
   }
 
@@ -330,6 +345,11 @@ export class DDSGalleryShellElement
       return;
     }
     this.dataset.theme = theme;
+    const actions =
+      this.querySelector<HTMLElement>('[data-toolbar-actions]');
+    if (actions) {
+      actions.dataset.activeTheme = theme;
+    }
 
     try {
       const currentUrl = new URL(window.location.href);
@@ -371,6 +391,8 @@ export class DDSGalleryShellElement
         // Ignore invalid iframe URLs.
       }
     }
+
+    this.syncConsumerColorSchemeToggle();
   }
 
   /**
@@ -380,6 +402,228 @@ export class DDSGalleryShellElement
    */
   handleThemeChange(event: Event): void {
     this.handleConsumerThemeChange(event);
+  }
+
+  /**
+   * Resolves the current consumer component color scheme ('light' | 'dark').
+   *
+   * @return {'light' | 'dark'} Resolved consumer color scheme.
+   */
+  getConsumerColorScheme(): 'light' | 'dark' {
+    if (
+      this.dataset.colorScheme === 'dark' ||
+      this.dataset.colorScheme === 'light'
+    ) {
+      return this.dataset.colorScheme;
+    }
+    try {
+      const url = new URL(window.location.href);
+      const param =
+        url.searchParams.get('_dds_color_scheme') ||
+        url.searchParams.get('color_scheme');
+      if (param === 'dark' || param === 'light') {
+        return param;
+      }
+    } catch {
+      // Ignore URL parsing errors.
+    }
+    let stored: string | null = null;
+    try {
+      stored = window.localStorage.getItem('dds_color_scheme');
+    } catch {
+      // Ignore storage errors.
+    }
+    if (stored === 'dark' || stored === 'light') {
+      return stored;
+    }
+    const cookieMatch = document.cookie.match(
+      /(?:^|; )dds_color_scheme=([^;]*)/,
+    );
+    if (
+      cookieMatch &&
+      (cookieMatch[1] === 'dark' || cookieMatch[1] === 'light')
+    ) {
+      return cookieMatch[1] as 'light' | 'dark';
+    }
+    if (
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches
+    ) {
+      return 'dark';
+    }
+    return 'light';
+  }
+
+  /**
+   * Returns true if active consumer theme supports dark mode.
+   *
+   * @return {boolean} True if active theme supports dark mode.
+   */
+  getActiveThemeSupportsDarkMode(): boolean {
+    const actions = this.querySelector<HTMLElement>('[data-toolbar-actions]');
+    const select = this.querySelector<HTMLSelectElement>('[data-theme-select]');
+
+    if (select && select.selectedIndex >= 0) {
+      const rawDarkThemes = actions?.dataset.darkModeThemes ?? '';
+      const darkThemes = rawDarkThemes
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean);
+      const activeOption = select.options[select.selectedIndex];
+      const activeTheme = activeOption?.value ?? '';
+      if (darkThemes.includes(activeTheme)) {
+        return true;
+      }
+      return activeOption?.dataset.supportsDarkMode === 'true';
+    }
+
+    if (actions?.dataset.supportsDarkMode !== undefined) {
+      return actions.dataset.supportsDarkMode === 'true';
+    }
+
+    const rawDarkThemes = actions?.dataset.darkModeThemes ?? '';
+    const darkThemes = rawDarkThemes
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
+    const activeTheme =
+      actions?.dataset.activeTheme ?? this.dataset.theme ?? '';
+    if (activeTheme && darkThemes.includes(activeTheme)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Toggles consumer color scheme between light and dark if supported.
+   */
+  toggleConsumerColorScheme(): void {
+    const activeSupportsDark = this.getActiveThemeSupportsDarkMode();
+    if (!activeSupportsDark) {
+      return;
+    }
+    const current = this.getConsumerColorScheme();
+    const next = current === 'dark' ? 'light' : 'dark';
+    this.setConsumerColorScheme(next);
+  }
+
+  /**
+   * Sets consumer color scheme, updating URLs, iframes, cookies, and buttons.
+   *
+   * @param {'light' | 'dark'} scheme Target consumer color scheme.
+   */
+  setConsumerColorScheme(scheme: 'light' | 'dark'): void {
+    this.dataset.colorScheme = scheme;
+
+    try {
+      const currentUrl = new URL(window.location.href);
+      currentUrl.searchParams.delete('color_scheme');
+      currentUrl.searchParams.set('_dds_color_scheme', scheme);
+      window.history.replaceState({}, '', currentUrl.toString());
+    } catch {
+      // Ignore URL errors.
+    }
+
+    document.cookie =
+      'dds_color_scheme=' +
+      encodeURIComponent(scheme) +
+      '; path=/; max-age=31536000; SameSite=Lax';
+    try {
+      window.localStorage.setItem('dds_color_scheme', scheme);
+    } catch {
+      // Ignore storage errors.
+    }
+
+    const inputs = this.querySelectorAll<HTMLInputElement>(
+      'input[name=_dds_color_scheme]',
+    );
+    for (const input of inputs) {
+      input.value = scheme;
+    }
+
+    const iframes = this.querySelectorAll<HTMLIFrameElement>('iframe[src]');
+    for (const iframe of iframes) {
+      const rawSrc = iframe.getAttribute('src');
+      if (!rawSrc) {
+        continue;
+      }
+      try {
+        const iframeUrl = new URL(rawSrc, window.location.origin);
+        iframeUrl.searchParams.set('_dds_color_scheme', scheme);
+        iframe.src = iframeUrl.toString();
+      } catch {
+        // Ignore invalid iframe URLs.
+      }
+    }
+
+    this.syncConsumerColorSchemeToggle();
+
+    this.dispatchEvent(
+      new CustomEvent('dds:consumer-color-scheme-change', {
+        bubbles: true,
+        detail: { colorScheme: scheme },
+      }),
+    );
+  }
+
+  /**
+   * Synchronises consumer color scheme toggle button state, icon, and label.
+   */
+  syncConsumerColorSchemeToggle(): void {
+    const toggles = this.querySelectorAll<HTMLElement>(
+      '[data-action=toggle-consumer-color-scheme]',
+    );
+    const supportsDark = this.getActiveThemeSupportsDarkMode();
+    const scheme = this.getConsumerColorScheme();
+    const isDark = scheme === 'dark';
+
+    for (const toggle of toggles) {
+      const button = toggle as HTMLButtonElement;
+      if (!supportsDark) {
+        button.disabled = true;
+        button.setAttribute('aria-disabled', 'true');
+        button.title = 'Consumer theme does not support dark mode';
+        button.setAttribute(
+          'aria-label',
+          'Consumer theme does not support dark mode',
+        );
+      } else {
+        button.disabled = false;
+        button.removeAttribute('aria-disabled');
+        const label = isDark ?
+          'Switch component preview to light mode' :
+          'Switch component preview to dark mode';
+        button.title = label;
+        button.setAttribute('aria-label', label);
+      }
+
+      const iconName = isDark ? 'moon' : 'sun';
+      const svg = toggle.querySelector<SVGElement>('svg.dds-icon');
+      if (svg) {
+        svg.dataset.icon = iconName;
+        svg.setAttribute('data-icon', iconName);
+        const iconUse = svg.querySelector('use');
+        if (iconUse) {
+          iconUse.setAttribute('href', `#dds-icon-${iconName}`);
+          iconUse.setAttributeNS(
+            'http://www.w3.org/1999/xlink',
+            'href',
+            `#dds-icon-${iconName}`,
+          );
+        } else {
+          svg.innerHTML = isDark ?
+            DDSGalleryShellElement.MOON_SVG :
+            DDSGalleryShellElement.SUN_SVG;
+        }
+      }
+    }
+  }
+
+  private syncInitialConsumerColorScheme(): void {
+    const scheme = this.getConsumerColorScheme();
+    this.dataset.colorScheme = scheme;
+    this.syncConsumerColorSchemeToggle();
   }
 
   /**

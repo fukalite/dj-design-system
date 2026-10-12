@@ -261,6 +261,19 @@ class TestThemeSelectRenderingAndTemplate:
         )
         assert '<option value="light" selected>Light</option>' in html
 
+    def test_renders_without_icon_when_show_icon_is_false(self) -> None:
+        """Verify dds__theme_select omits leading icon when show_icon=False."""
+        themes_list = [
+            {"value": "light", "label": "Light"},
+            {"value": "dark", "label": "Dark"},
+        ]
+        html = _render_template(
+            source="{% dds__theme_select themes=themes_list show_icon=False %}",
+            context={"themes_list": themes_list},
+        ).strip()
+        assert 'data-icon="sun"' not in html
+        assert '<select id="gallery-global-theme-select"' in html
+
     def test_template_contains_no_filters_or_bem(self) -> None:
         """Verify theme_select.html loads design_components and has zero template filters or BEM classes."""
         template_text = _read_text(path=THEME_SELECT_HTML_PATH)

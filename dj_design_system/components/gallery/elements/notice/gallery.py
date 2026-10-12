@@ -11,4 +11,3 @@ config = gallery.GalleryConfig(
         "content": "Component changes are reflected automatically in the preview canvas.",
     },
 )
-

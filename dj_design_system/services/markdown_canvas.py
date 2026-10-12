@@ -39,6 +39,7 @@ from dj_design_system.services.canvas_renderer import (
     build_markdown_canvas_media,
     render_canvas_block,
 )
+from dj_design_system.types import ColorScheme
 
 
 if TYPE_CHECKING:
@@ -130,11 +131,19 @@ class CanvasPreprocessor(Preprocessor):
 
     app_label: str
 
-    def __init__(self, md: Markdown, app_label: str, debug: bool, theme_dict=None):
+    def __init__(
+        self,
+        md: Markdown,
+        app_label: str,
+        debug: bool,
+        theme_dict=None,
+        color_scheme: ColorScheme = ColorScheme.LIGHT,
+    ):
         super().__init__(md)
         self.app_label = app_label
         self.debug = debug
         self.theme_dict = theme_dict
+        self.color_scheme = color_scheme
         self._counter = 0
         self.ext_stash: dict[str, str] = {}
 
@@ -163,6 +172,7 @@ class CanvasPreprocessor(Preprocessor):
                 mode_class="canvas-wrapper--basic",
                 app_label=self.app_label,
                 iframe_id=unique_id,
+                color_scheme=self.color_scheme,
             )
             widget_html = _build_widget_html(source, srcdoc, rendered_html, unique_id)
             token = f"CANVAS_STASH_{unique_id}"
@@ -204,12 +214,18 @@ class CanvasPostprocessor(Postprocessor):
 class CanvasExtension(Extension):
     """Markdown extension that parses ```canvas blocks into Django gallery components."""
 
-    def __init__(self, theme_dict=None, **kwargs):
+    def __init__(
+        self,
+        theme_dict=None,
+        color_scheme: ColorScheme = ColorScheme.LIGHT,
+        **kwargs,
+    ):
         self.config = {
             "app_label": ["", "The Django app label to load static media for"],
             "debug": [False, "Enable debug mode"],
         }
         self.theme_dict = theme_dict
+        self.color_scheme = color_scheme
         super().__init__(**kwargs)
         self.stash: dict[str, str] = {}
 
@@ -226,6 +242,7 @@ class CanvasExtension(Extension):
             app_label=self.getConfig("app_label"),
             debug=self.getConfig("debug"),
             theme_dict=self.theme_dict,
+            color_scheme=self.color_scheme,
         )
         preprocessor.ext_stash = self.stash
         md.preprocessors.register(preprocessor, "canvas", 32)

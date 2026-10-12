@@ -266,12 +266,18 @@ class TestGalleryComponentView:
         assert "gallery-theme-dark" not in content
         assert 'data-action="toggle-theme"' in content
         sidebar_footer = content[
-            content.find('data-sidebar-footer') : content.find('</aside>')
+            content.find("data-sidebar-footer") : content.find("</aside>")
         ]
         assert 'data-icon="sun"' in sidebar_footer
         assert 'data-icon="moon"' not in sidebar_footer
 
-    def test_both_theme_selectors_operate_independently(self, client):
+    def test_both_theme_selectors_operate_independently(self, client, settings):
+        settings.DJ_DESIGN_SYSTEM = {
+            "GALLERY_THEMES": {
+                "light": {"label": "Light"},
+                "dark": {"label": "Dark"},
+            }
+        }
         url = reverse(
             "gallery-node",
             kwargs={"app_label": "demo_components", "path": "alert"},
@@ -288,6 +294,19 @@ class TestGalleryComponentView:
         assert 'data-icon="sun"' in content
         assert "gallery-global-theme-select" in content
         assert "_dds_theme=dark" in response.context["canvas_iframe_url"]
+
+    def test_single_theme_omits_selector(self, client):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+        content = response.content.decode("utf-8")
+        assert "gallery-global-theme-select" not in content
+        assert "dds-theme-select" not in content
+        assert 'data-action="toggle-consumer-color-scheme"' in content
+        assert 'data-variant="default"' in content
 
     def test_component_renders_section_headings_and_dividers(self, client):
         url = reverse(

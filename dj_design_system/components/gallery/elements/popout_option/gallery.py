@@ -10,4 +10,3 @@ config = gallery.GalleryConfig(
         "value": "light",
     },
 )
-

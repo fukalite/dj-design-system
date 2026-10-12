@@ -467,6 +467,7 @@ class SandboxControlOptionData:
     name: str = ""
     href: str = ""
     is_selected: bool = False
+    supports_dark_mode: bool = False
 
     @classmethod
     def from_raw(
@@ -525,6 +526,9 @@ class SandboxControlOptionData:
                 zoom_lbl = f"{zoom_val}%"
             return cls(value=zoom_val, label=zoom_lbl)
 
+        supports_dark_mode = bool(
+            _get_field(raw_item, "supports_dark_mode", default=False)
+        )
         if isinstance(raw_item, (tuple, list)) and len(raw_item) >= 2:
             value = str(raw_item[0])
             label = str(raw_item[1])
@@ -540,7 +544,11 @@ class SandboxControlOptionData:
                 if raw_lbl is not None
                 else (value.capitalize() if value.islower() else value)
             )
-        return cls(value=value, label=label)
+        return cls(
+            value=value,
+            label=label,
+            supports_dark_mode=supports_dark_mode,
+        )
 
     def to_dict(self, *, is_selected: bool | None = None) -> dict[str, Any]:
         """Return a template-ready dictionary representation."""

@@ -40,4 +40,3 @@ config = gallery.GalleryConfig(
         "items": BASIC_ITEMS,
     },
 )
-

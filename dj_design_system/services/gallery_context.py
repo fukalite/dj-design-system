@@ -218,17 +218,26 @@ def build_preview_urls(
     sandbox_spec: CanvasSpec,
     tag_signature: tag_signature_service.TagSignature,
     active_theme: str,
+    color_scheme: str | None = None,
 ) -> tuple[str, str, str]:
     """Build the sandbox, minimal, and maximal canvas iframe URLs."""
     canvas_base_url = reverse("gallery-canvas-iframe")
     canvas_iframe_url = canvas_service.build_canvas_url(
-        sandbox_spec, canvas_base_url, theme=active_theme
+        sandbox_spec, canvas_base_url, theme=active_theme, color_scheme=color_scheme
     )
     minimal_preview_url = canvas_service.build_canvas_url(
-        tag_signature.minimal_spec, canvas_base_url, mode="basic", theme=active_theme
+        tag_signature.minimal_spec,
+        canvas_base_url,
+        mode="basic",
+        theme=active_theme,
+        color_scheme=color_scheme,
     )
     maximal_preview_url = canvas_service.build_canvas_url(
-        tag_signature.maximal_spec, canvas_base_url, mode="basic", theme=active_theme
+        tag_signature.maximal_spec,
+        canvas_base_url,
+        mode="basic",
+        theme=active_theme,
+        color_scheme=color_scheme,
     )
     return canvas_iframe_url, minimal_preview_url, maximal_preview_url
 
@@ -386,8 +395,25 @@ def build_component_page_context(
         active_variant=active_variant,
         cookies=cookies,
     )
+    active_theme_obj = get_theme(active_theme) or get_default_theme()
+    raw_color_scheme = (
+        control_params_service.get_control_param(
+            query_params,
+            "color_scheme",
+            bare_fallback=not bare_belongs_to_component(
+                query_params, component_class, "color_scheme"
+            ),
+        )
+        or cookies.get("dds_color_scheme")
+        or ""
+    )
+    if active_theme_obj.supports_dark_mode and raw_color_scheme in ("dark", "light"):
+        active_color_scheme = raw_color_scheme
+    else:
+        active_color_scheme = "light"
+
     canvas_iframe_url, minimal_preview_url, maximal_preview_url = build_preview_urls(
-        sandbox_spec, tag_signature, active_theme
+        sandbox_spec, tag_signature, active_theme, color_scheme=active_color_scheme
     )
 
     canvas_base_url = reverse("gallery-canvas-iframe")
@@ -397,7 +423,11 @@ def build_component_page_context(
             variant=active_variant.name,
         )
         variant_preview_url = canvas_service.build_canvas_url(
-            variant_spec, canvas_base_url, mode="basic", theme=active_theme
+            variant_spec,
+            canvas_base_url,
+            mode="basic",
+            theme=active_theme,
+            color_scheme=active_color_scheme,
         )
         context["variant_preview_url"] = variant_preview_url
 
@@ -527,7 +557,10 @@ def build_component_page_context(
     context["source_html"] = source_html
     context["rendered_output_html"] = raw_rendered_html
     context["active_theme"] = active_theme
+    context["global_active_theme"] = active_theme
     context["sandbox_active_theme"] = active_theme
+    context["active_color_scheme"] = active_color_scheme
+    context["active_theme_supports_dark_mode"] = active_theme_obj.supports_dark_mode
 
     component_label = navigation_service.to_display_label(
         name=info.name,
@@ -544,11 +577,11 @@ def build_component_page_context(
     context["breadcrumbs"] = crumbs
 
     if node.has_index_doc and node.index_doc_path is not None:
-        theme_dict = get_theme(identifier=active_theme) or get_default_theme()
         context["doc_html"] = markdown_service.render_markdown_doc(
             file_path=node.index_doc_path,
             app_label=info.app_label,
-            theme_dict=theme_dict,
+            theme_dict=active_theme_obj,
+            color_scheme=active_color_scheme,
         )
 
     return context

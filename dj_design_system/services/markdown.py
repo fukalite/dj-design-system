@@ -12,6 +12,7 @@ from django.utils.safestring import mark_safe
 from dj_design_system.services.markdown_canvas import CanvasExtension
 from dj_design_system.services.markdown_links import RelativeLinksExtension
 from dj_design_system.settings import dds_settings
+from dj_design_system.types import ColorScheme
 
 
 if TYPE_CHECKING:
@@ -22,17 +23,29 @@ def render_markdown_doc(
     file_path: Path,
     app_label: str = "",
     theme_dict: Theme | dict[str, Any] | None = None,
+    color_scheme: ColorScheme | str = ColorScheme.LIGHT,
 ) -> str:
     """Render a markdown file to HTML with gallery extensions and syntax highlighting."""
     if not file_path or not file_path.is_file():
         return ""
     content = file_path.read_text(encoding="utf-8")
 
+    resolved_color_scheme = (
+        color_scheme
+        if isinstance(color_scheme, ColorScheme)
+        else (
+            ColorScheme.DARK
+            if str(color_scheme).lower() == "dark"
+            else ColorScheme.LIGHT
+        )
+    )
+
     extensions: list = [
         CanvasExtension(
             app_label=app_label,
             debug=settings.DEBUG,
             theme_dict=theme_dict,
+            color_scheme=resolved_color_scheme,
         ),
         RelativeLinksExtension(current_file_path=file_path),
         "fenced_code",

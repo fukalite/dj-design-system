@@ -45,6 +45,11 @@ class ThemeSelect(components.TagComponent):
         default=DEFAULT_SELECT_ID,
         required=False,
     )
+    show_icon = parameters.BoolParam(
+        description="Whether to render the leading icon.",
+        default=True,
+        required=False,
+    )
 
     class Meta:
         positional_args = ["themes"]
@@ -85,6 +90,7 @@ class ThemeSelect(components.TagComponent):
         context["select_id"] = resolved_select_id
         context["resolved_active_theme"] = resolved_active_theme
         context["active_icon"] = DEFAULT_ICON
+        context["show_icon"] = bool(self.show_icon)
         context["normalized_themes"] = normalized_themes
         context["has_themes"] = bool(normalized_themes)
         context["has_multiple_themes"] = len(normalized_themes) > 1
