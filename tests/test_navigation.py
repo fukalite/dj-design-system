@@ -1188,3 +1188,79 @@ def test_areas_views_render(client):
             assert b"gallery-canvas-error" not in response.content, (
                 f"Canvas error on path: {path}"
             )
+
+
+def test_foundations_navigation():
+    """Verify Foundations folder hierarchy, labels, and doc paths in navigation."""
+    from django.test import override_settings
+
+    from dj_design_system.services.navigation import (
+        _build_navigation,
+        find_node,
+        to_display_label,
+    )
+
+    assert to_display_label("elevations_and_surfaces") == "Elevations & Surfaces"
+
+    with override_settings(
+        DJ_DESIGN_SYSTEM={
+            "GALLERY_INCLUDE_APPS": ["dj_design_system"],
+        }
+    ):
+        tree = _build_navigation()
+        dds_app = next((n for n in tree if n.slug == "dj_design_system"), None)
+        assert dds_app is not None
+
+        foundations_node = next(
+            (c for c in dds_app.children if c.slug == "foundations"), None
+        )
+        assert foundations_node is not None
+        assert foundations_node.label == "Foundations"
+        assert foundations_node.node_type == NodeType.FOLDER
+        assert foundations_node.has_index_doc is True
+
+        child_slugs = [c.slug for c in foundations_node.children]
+        assert child_slugs == [
+            "semantic_tokens",
+            "typography_and_spacing",
+            "layout_primitives",
+            "elevations_and_surfaces",
+        ]
+
+        found_elevations = find_node(
+            tree, "dj_design_system", ["foundations", "elevations_and_surfaces"]
+        )
+        assert found_elevations is not None
+        assert found_elevations.label == "Elevations & Surfaces"
+        assert found_elevations.node_type == NodeType.DOCUMENT
+
+
+def test_foundations_views_render(client):
+    """Verify that all Foundations documentation pages render with HTTP 200."""
+    from django.test import override_settings
+    from django.urls import reverse
+
+    paths = [
+        "foundations",
+        "foundations/semantic_tokens",
+        "foundations/typography_and_spacing",
+        "foundations/layout_primitives",
+        "foundations/elevations_and_surfaces",
+    ]
+
+    with override_settings(
+        DJ_DESIGN_SYSTEM={
+            "GALLERY_INCLUDE_APPS": ["dj_design_system"],
+        }
+    ):
+        for path in paths:
+            url = reverse(
+                "gallery-node", kwargs={"app_label": "dj_design_system", "path": path}
+            )
+            response = client.get(url)
+            assert response.status_code == 200, (
+                f"Failed on path: {path} (status {response.status_code})"
+            )
+            assert b"gallery-canvas-error" not in response.content, (
+                f"Canvas error on path: {path}"
+            )

@@ -12,9 +12,8 @@
         {# 2. Canvas layout CSS (centering, padding, backgrounds) #}
         <link rel="stylesheet" href="{% static 'dj_design_system/canvas.css' %}">
 
-        {# 3. All component CSS (Themes + Apps + Component Paths) #}
+        {# 3. Component CSS (Themes + Apps + Component Paths) #}
         {{ component_css|safe }}
-        {% component_stylesheets %}
 
         {# 4. Dynamic background colour rules #}
         {{ canvas_bg_styles|safe }}

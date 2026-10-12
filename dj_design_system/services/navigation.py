@@ -39,14 +39,16 @@ FOLDER_ORDER_MAP: dict[str, int] = {
 FOLDER_LABEL_OVERRIDES: dict[str, str] = {
     "areas": "Areas",
     "areas_and_panes": "Areas & Panes",
+    "elevations_and_surfaces": "Elevations & Surfaces",
     "index_pane": "Index",
 }
 
 DOC_ORDER_MAP: dict[str, int] = {
-    # About
+    # About / Foundations
     "semantic_tokens": 1,
     "typography_and_spacing": 2,
     "layout_primitives": 3,
+    "elevations_and_surfaces": 4,
     # Areas & Panes root documents
     "topbar": 1,
     "sidebar": 2,

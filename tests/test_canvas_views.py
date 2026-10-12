@@ -242,3 +242,14 @@ class TestCanvasIframeView:
         assert 'href="https://cdn.example.com/theme.css"' in content
         assert 'src="//cdn.example.com/theme.js"' in content
         assert 'href="https://cdn.example.com/app.css?v=1&amp;min=1"' in content
+
+    def test_canvas_iframe_does_not_leak_unrelated_component_media(self):
+        """A canvas iframe must only load its own component media, not all registered media."""
+        client = Client()
+        url = reverse("gallery-canvas-iframe")
+        response = client.get(url, {"component": "dds__icon", "name": "component"})
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert "icon.css" in content
+        assert "rich_button.css" not in content
+        assert "slotted_card.css" not in content

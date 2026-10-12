@@ -3,6 +3,7 @@
 from typing import Any, NamedTuple, cast
 
 from dj_design_system.components import BaseComponent, BlockComponent
+from dj_design_system.components.base import get_own_meta
 from dj_design_system.data import BLOCK_CONTENT_PLACEHOLDER, CanvasSpec
 from dj_design_system.parameters import (
     BoolParam,
@@ -481,6 +482,8 @@ def _build_maximal_keyword_values(
     params: dict[str, Any],
     overrides: dict[str, Any],
     start_str_index: int,
+    *,
+    mutually_exclusive: list[tuple[str, str]] | None = None,
 ) -> tuple[list[str], dict[str, Any]]:
     maximal_keyword = []
     maximal_keyword_values = {}
@@ -493,9 +496,22 @@ def _build_maximal_keyword_values(
         maximal_keyword.append(_format_param_for_tag(param_name, value))
         maximal_keyword_values[param_name] = _unwrap_example(value)
 
+    # Build mutually exclusive exclusion set based on overrides and positional args
+    excluded_params: set[str] = set()
+    if mutually_exclusive:
+        for a, b in mutually_exclusive:
+            if a in maximal_keyword_values or a in positional_args:
+                excluded_params.add(b)
+            elif b in maximal_keyword_values or b in positional_args:
+                excluded_params.add(a)
+
     # Then generate defaults for remaining params
     for param_name, spec in params.items():
-        if param_name in positional_args or param_name in overrides:
+        if (
+            param_name in positional_args
+            or param_name in overrides
+            or param_name in excluded_params
+        ):
             continue
 
         value = _generate_example_value(spec, param_name, str_index)
@@ -504,6 +520,14 @@ def _build_maximal_keyword_values(
         if value is not None:
             maximal_keyword.append(_format_param_for_tag(param_name, value))
             maximal_keyword_values[param_name] = _unwrap_example(value)
+
+            if mutually_exclusive:
+                for a, b in mutually_exclusive:
+                    if param_name == a:
+                        excluded_params.add(b)
+                    elif param_name == b:
+                        excluded_params.add(a)
+
     return maximal_keyword, maximal_keyword_values
 
 
@@ -599,11 +623,17 @@ def generate_tag_signature(
     )
 
     # Maximal Signature
+    meta = get_own_meta(component_class)
+    mutually_exclusive = getattr(meta, "mutually_exclusive", [])
     max_pos_fmt, max_pos_vals, str_index = _build_maximal_positional_values(
         positional_args, params, maximal_kwargs
     )
     max_kw_fmt, max_kw_vals = _build_maximal_keyword_values(
-        positional_args, params, maximal_kwargs, str_index
+        positional_args,
+        params,
+        maximal_kwargs,
+        str_index,
+        mutually_exclusive=mutually_exclusive,
     )
     maximal = _build_sig_raw(
         component_name,

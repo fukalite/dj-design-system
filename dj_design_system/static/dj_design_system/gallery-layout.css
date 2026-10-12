@@ -171,31 +171,40 @@
     overflow: hidden;
   }
 
-  [data-gallery-sandbox-body],
-  [data-sandbox-stack] {
-    --space: 0;
+  [data-gallery-sandbox-body] {
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
     min-block-size: 0;
     margin: 0;
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  [data-sandbox-stack] {
+    --space: 0;
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    min-block-size: min-content;
+    margin: 0;
+    overflow: visible;
   }
 
   [data-sandbox-stack] > dds-canvas-widget,
   [data-sandbox-stack] > .dds-canvas-widget {
-    display: flex;
-    flex: 1 1 auto;
-    flex-direction: column;
+    display: block;
+    flex: 0 0 auto;
+    margin: 0;
     border-inline-width: 0;
     border-radius: 0;
     border-block-start-width: 0;
 
     & [data-canvas-stage]:not([hidden]) {
       display: flex;
-      flex: 1 1 auto;
       flex-direction: column;
       align-items: stretch;
+      min-block-size: 14rem;
       padding: 0;
     }
 
@@ -203,12 +212,6 @@
       display: flex;
       flex: 1 1 auto;
       flex-direction: column;
-      block-size: 100%;
-    }
-
-    & [data-canvas-iframe] {
-      flex: 1 1 auto;
-      block-size: 100%;
     }
 
     & [data-canvas-panel]:not([hidden]) {
@@ -294,27 +297,34 @@
   }
 
   @media (max-width: 99.9375rem) {
-    dds-gallery-shell [data-gallery-pane-header] {
+    dds-gallery-shell [data-gallery-pane-header],
+    .dds-gallery-shell [data-gallery-pane-header] {
       display: none;
     }
 
-    dds-gallery-shell dds-split-pane[data-active-pane] > [data-split-resizer] {
+    dds-gallery-shell dds-split-pane > [data-split-resizer],
+    .dds-gallery-shell .dds-split-pane > [data-split-resizer] {
       display: none;
     }
 
-    dds-gallery-shell dds-split-pane[data-active-pane='docs'] > [data-split-pane='primary'] {
+    dds-gallery-shell dds-split-pane > [data-split-pane='primary'],
+    .dds-gallery-shell .dds-split-pane > [data-split-pane='primary'] {
       flex: 1 1 100%;
     }
 
-    dds-gallery-shell dds-split-pane[data-active-pane='docs'] > [data-split-pane='secondary'] {
+    dds-gallery-shell dds-split-pane > [data-split-pane='secondary'],
+    .dds-gallery-shell .dds-split-pane > [data-split-pane='secondary'] {
       display: none;
     }
 
-    dds-gallery-shell dds-split-pane[data-active-pane='sandbox'] > [data-split-pane='primary'] {
+    dds-gallery-shell dds-split-pane[data-active-pane='sandbox'] > [data-split-pane='primary'],
+    .dds-gallery-shell .dds-split-pane[data-active-pane='sandbox'] > [data-split-pane='primary'] {
       display: none;
     }
 
-    dds-gallery-shell dds-split-pane[data-active-pane='sandbox'] > [data-split-pane='secondary'] {
+    dds-gallery-shell dds-split-pane[data-active-pane='sandbox'] > [data-split-pane='secondary'],
+    .dds-gallery-shell .dds-split-pane[data-active-pane='sandbox'] > [data-split-pane='secondary'] {
+      display: flex;
       flex: 1 1 100%;
     }
   }
@@ -702,6 +712,8 @@
     --_usage-example-preview-border-style: var(--dds-surface-stage-border-style);
     --_usage-example-preview-border-width: var(--dds-surface-stage-border-width);
     --_usage-example-preview-padding: var(--dds-space-inset-default);
+    --_usage-example-preview-shadow-color: var(--dds-surface-stage-shadow-color);
+    --_usage-example-preview-shadow-shape: var(--dds-surface-stage-shadow-shape);
     --_usage-example-sandbox-offset: var(--dds-space-sm);
     --_usage-example-stack-gap: var(--dds-space-sm);
     --_usage-example-title-color: var(--dds-text-muted-color);
@@ -737,6 +749,7 @@
       border-radius: var(--_usage-example-preview-border-radius);
       overflow: hidden;
       background-color: var(--_usage-example-preview-bg-color);
+      box-shadow: var(--_usage-example-preview-shadow-shape) var(--_usage-example-preview-shadow-color);
 
       &:has(> iframe) {
         padding: 0;
@@ -780,6 +793,8 @@
     --_variant-view-preview-border-style: var(--dds-surface-stage-border-style);
     --_variant-view-preview-border-width: var(--dds-surface-stage-border-width);
     --_variant-view-preview-padding: var(--dds-space-inset-default);
+    --_variant-view-preview-shadow-color: var(--dds-surface-stage-shadow-color);
+    --_variant-view-preview-shadow-shape: var(--dds-surface-stage-shadow-shape);
     --_variant-view-sandbox-offset: var(--dds-space-sm);
     --_variant-view-stack-gap: var(--dds-space-gap-default);
     --_variant-view-subheading-color: var(--dds-text-muted-color);
@@ -854,6 +869,7 @@
       border-radius: var(--_variant-view-preview-border-radius);
       overflow: hidden;
       background-color: var(--_variant-view-preview-bg-color);
+      box-shadow: var(--_variant-view-preview-shadow-shape) var(--_variant-view-preview-shadow-color);
 
       &:has(> iframe) {
         padding: 0;

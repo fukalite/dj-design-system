@@ -58,4 +58,5 @@ Explore each dimension of the system in the detailed sections below:
 - **[Semantic Tokens & Naming Scheme](semantic_tokens.md)**: Comprehensive breakdown of the 3-tier token hierarchy, naming conventions, semantic domains (surfaces, actions, status, controls), and rendered examples.
 - **[Typography & Spacing System](typography_and_spacing.md)**: Typographic roles, font purposes, modular spacing scale (`3xs` to `3xl`), gaps, insets, and layout measures with live specimens.
 - **[Layout Primitives (Every Layout)](layout_primitives.md)**: Deep dive into the 11 intrinsic `<l-*>` composition elements, custom property controls, and responsive mechanics without media queries.
+- **[Elevations & Surfaces](elevations_and_surfaces.md)**: Depth architecture, contextual surface delegation (`[data-surface]`), z-index layering tiers, and elevation shadow geometry.
 - **[Areas](../areas/index.md)**: Dedicated breakdown of gallery area and pane templates, their structural layout primitives, composite/element components, token delegation cascade, and how consuming applications can override them.

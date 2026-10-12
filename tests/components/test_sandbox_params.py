@@ -382,7 +382,7 @@ class TestSandboxParamsRenderingAndTemplate:
         ) in html
         assert 'hx-replace-url="true"' in html
         assert 'hx-target="closest [data-gallery-sandbox-body]"' in html
-        assert 'hx-swap="innerHTML"' in html
+        assert 'hx-swap="innerHTML show:none"' in html
         assert (
             'hx-trigger="change delay:400ms, keyup delay:400ms from:input, '
             'keyup delay:400ms from:textarea"'

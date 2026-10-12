@@ -28,6 +28,8 @@
     --_canvas-widget-selected-bg-color: var(--dds-state-selected-bg-color);
     --_canvas-widget-selected-border-color: var(--dds-state-selected-border-color);
     --_canvas-widget-selected-text-color: var(--dds-state-selected-text-color);
+    --_canvas-widget-shadow-color: var(--dds-surface-stage-shadow-color);
+    --_canvas-widget-shadow-shape: var(--dds-surface-stage-shadow-shape);
     --_canvas-widget-stage-bg-color: var(--dds-surface-stage-bg-color);
     --_canvas-widget-stage-border-style: var(--dds-surface-stage-border-style);
     --_canvas-widget-stage-dark-bg-color: var(--dds-surface-code-bg-color);
@@ -52,6 +54,7 @@
     border-radius: var(--_canvas-widget-border-radius);
     overflow: hidden;
     color: var(--_canvas-widget-text-color);
+    box-shadow: var(--_canvas-widget-shadow-shape) var(--_canvas-widget-shadow-color);
 
     & [data-canvas-toggles] {
       --space: var(--_canvas-widget-toggle-gap);

@@ -6,7 +6,7 @@
           {% if has_action_url %}action="{{ action_url }}" hx-get="{{ action_url }}"{% endif %}
           hx-replace-url="true"
           hx-target="{{ hx_target }}"
-          hx-swap="innerHTML"
+          hx-swap="innerHTML show:none"
           hx-trigger="change delay:400ms, keyup delay:400ms from:input, keyup delay:400ms from:textarea">
       <input type="hidden" name="_iss" value="1">
       {% if has_active_theme %}
