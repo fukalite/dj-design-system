@@ -1,11 +1,12 @@
 /**
  * @fileoverview Light DOM `<dds-gallery-shell>` custom element for responsive
- * navigation drawer toggling, theme synchronisation, and pane coordination.
+ * navigation drawer toggling, independent gallery UI / consumer theming, and
+ * pane coordination.
  */
 /**
  * Light DOM custom element enhancing `<dds-gallery-shell>` with drawer toggle
- * handling, backdrop/Escape dismissal, `dds:theme-change` synchronisation,
- * and component pane switching.
+ * handling, backdrop/Escape dismissal, gallery UI theme toggling, consumer
+ * component preview synchronisation, and component pane switching.
  */
 export class DDSGalleryShellElement extends HTMLElement {
     /**
@@ -13,24 +14,31 @@ export class DDSGalleryShellElement extends HTMLElement {
      */
     abortController = null;
     /**
-     * Attaches idempotent drawer toggle, backdrop, keyboard, and theme listeners.
+     * Attaches drawer toggle, backdrop, keyboard, and theme listeners.
      */
     connectedCallback() {
         this.abortController?.abort();
         this.abortController = new AbortController();
         const { signal } = this.abortController;
-        const themeToggles = this.querySelectorAll('[data-action="toggle-theme"]');
+        const themeToggles = this.querySelectorAll('[data-action=toggle-theme]');
         for (const toggle of themeToggles) {
             toggle.addEventListener('click', () => {
-                const currentTheme = this.dataset.theme || 'light';
-                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                this.dispatchEvent(new CustomEvent('dds:theme-change', {
-                    bubbles: true,
-                    detail: { theme: newTheme },
-                }));
+                const isDark = this.isGalleryThemeDark();
+                const nextTheme = isDark ? 'light' : 'dark';
+                this.setGalleryTheme(nextTheme);
             }, { signal });
         }
-        const triggers = this.querySelectorAll('[data-action="toggle-drawer"], [data-drawer-toggle]');
+        if (typeof window.matchMedia === 'function') {
+            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            mediaQuery.addEventListener('change', () => {
+                if (!document.documentElement.classList.contains('gallery-theme-dark') &&
+                    !document.documentElement.classList.contains('gallery-theme-light')) {
+                    const isDark = this.isGalleryThemeDark();
+                    this.syncGalleryThemeToggleIcons(isDark);
+                }
+            }, { signal });
+        }
+        const triggers = this.querySelectorAll('[data-action=toggle-drawer], [data-drawer-toggle]');
         for (const trigger of triggers) {
             trigger.addEventListener('click', () => {
                 const isOpen = this.dataset.drawerState !== 'open';
@@ -51,7 +59,7 @@ export class DDSGalleryShellElement extends HTMLElement {
             }
         }, { signal });
         this.addEventListener('dds:theme-change', (event) => {
-            this.handleThemeChange(event);
+            this.handleConsumerThemeChange(event);
         }, { signal });
         this.addEventListener('dds:tab-change', (event) => {
             this.handleTabChange(event);
@@ -65,6 +73,7 @@ export class DDSGalleryShellElement extends HTMLElement {
         window.addEventListener('message', (event) => {
             this.handleWindowMessage(event);
         }, { signal });
+        this.syncInitialGalleryTheme();
         this.syncHashNavigation();
     }
     /**
@@ -75,6 +84,120 @@ export class DDSGalleryShellElement extends HTMLElement {
         this.abortController = null;
     }
     /**
+     * Determines if the gallery UI chrome is currently in dark mode.
+     *
+     * @return {boolean} True if gallery chrome is dark.
+     */
+    isGalleryThemeDark() {
+        if (document.documentElement.classList.contains('gallery-theme-dark')) {
+            return true;
+        }
+        if (document.documentElement.classList.contains('gallery-theme-light')) {
+            return false;
+        }
+        if (this.dataset.galleryTheme === 'dark') {
+            return true;
+        }
+        if (this.dataset.galleryTheme === 'light') {
+            return false;
+        }
+        return (typeof window.matchMedia === 'function' &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches);
+    }
+    /**
+     * Updates gallery UI chrome theme, toggles `.gallery-theme-dark` /
+     * `.gallery-theme-light` on documentElement and shell, persists to
+     * cookie and localStorage, updates toggle button icons, and dispatches
+     * a bubbling `dds:gallery-theme-change` CustomEvent.
+     *
+     * @param {'light' | 'dark'} theme Target gallery UI theme.
+     */
+    setGalleryTheme(theme) {
+        const isDark = theme === 'dark';
+        this.dataset.galleryTheme = theme;
+        if (document.documentElement) {
+            document.documentElement.classList.toggle('gallery-theme-dark', isDark);
+            document.documentElement.classList.toggle('gallery-theme-light', !isDark);
+        }
+        this.classList.toggle('gallery-theme-dark', isDark);
+        this.classList.toggle('gallery-theme-light', !isDark);
+        document.cookie =
+            'dds_gallery_theme=' +
+                encodeURIComponent(theme) +
+                '; path=/; max-age=31536000; SameSite=Lax';
+        try {
+            window.localStorage.setItem('dds_gallery_theme', theme);
+        }
+        catch {
+            // Ignore storage errors in restricted contexts.
+        }
+        this.syncGalleryThemeToggleIcons(isDark);
+        this.dispatchEvent(new CustomEvent('dds:gallery-theme-change', {
+            bubbles: true,
+            detail: { theme },
+        }));
+    }
+    static SUN_SVG = '<circle cx=\'12\' cy=\'12\' r=\'5\'></circle>' +
+        '<line x1=\'12\' y1=\'1\' x2=\'12\' y2=\'3\'></line>' +
+        '<line x1=\'12\' y1=\'21\' x2=\'12\' y2=\'23\'></line>' +
+        '<line x1=\'4.22\' y1=\'4.22\' x2=\'5.64\' y2=\'5.64\'></line>' +
+        '<line x1=\'18.36\' y1=\'18.36\' x2=\'19.78\' y2=\'19.78\'></line>' +
+        '<line x1=\'1\' y1=\'12\' x2=\'3\' y2=\'12\'></line>' +
+        '<line x1=\'21\' y1=\'12\' x2=\'23\' y2=\'12\'></line>' +
+        '<line x1=\'4.22\' y1=\'19.78\' x2=\'5.64\' y2=\'18.36\'></line>' +
+        '<line x1=\'18.36\' y1=\'5.64\' x2=\'19.78\' y2=\'4.22\'></line>';
+    static MOON_SVG = '<path d=\'M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z\'></path>';
+    /**
+     * Synchronises SVG icons in all gallery theme toggle buttons.
+     *
+     * In dark mode, shows 'moon'.
+     * In light mode, shows 'sun'.
+     *
+     * @param {boolean} isDark Whether gallery chrome is dark.
+     */
+    syncGalleryThemeToggleIcons(isDark) {
+        const themeToggles = this.querySelectorAll('[data-action=toggle-theme]');
+        const iconName = isDark ? 'moon' : 'sun';
+        const label = isDark ? 'Switch to light theme' : 'Switch to dark theme';
+        for (const toggle of themeToggles) {
+            toggle.setAttribute('aria-label', label);
+            const svg = toggle.querySelector('svg.dds-icon');
+            if (svg) {
+                svg.dataset.icon = iconName;
+                svg.setAttribute('data-icon', iconName);
+                const iconUse = svg.querySelector('use');
+                if (iconUse) {
+                    iconUse.setAttribute('href', `#dds-icon-${iconName}`);
+                    iconUse.setAttributeNS('http://www.w3.org/1999/xlink', 'href', `#dds-icon-${iconName}`);
+                }
+                else {
+                    svg.innerHTML =
+                        isDark ?
+                            DDSGalleryShellElement.MOON_SVG :
+                            DDSGalleryShellElement.SUN_SVG;
+                }
+            }
+        }
+    }
+    /**
+     * Restores persisted gallery UI theme from localStorage or system preference.
+     */
+    syncInitialGalleryTheme() {
+        let storedTheme = null;
+        try {
+            storedTheme = window.localStorage.getItem('dds_gallery_theme');
+        }
+        catch {
+            // Ignore storage errors.
+        }
+        if (storedTheme === 'dark' || storedTheme === 'light') {
+            this.setGalleryTheme(storedTheme);
+            return;
+        }
+        const isDark = this.isGalleryThemeDark();
+        this.syncGalleryThemeToggleIcons(isDark);
+    }
+    /**
      * Updates `data-drawer-state`, trigger `aria-expanded`, backdrop `hidden`,
      * and dispatches a bubbling `dds:drawer-toggle` CustomEvent.
      *
@@ -82,7 +205,7 @@ export class DDSGalleryShellElement extends HTMLElement {
      */
     setDrawerOpen(isOpen) {
         this.dataset.drawerState = isOpen ? 'open' : 'closed';
-        const triggers = this.querySelectorAll('[data-action="toggle-drawer"], [data-drawer-toggle]');
+        const triggers = this.querySelectorAll('[data-action=toggle-drawer], [data-drawer-toggle]');
         for (const trigger of triggers) {
             trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
         }
@@ -96,12 +219,13 @@ export class DDSGalleryShellElement extends HTMLElement {
         }));
     }
     /**
-     * Synchronises `data-theme`, URL `_dds_theme`, hidden form inputs, and
-     * preview `iframe[src]` URLs when `dds:theme-change` is received.
+     * Synchronises URL `_dds_theme`, hidden form inputs, preview `iframe[src]`
+     * URLs, and persists consumer theme cookie when consumer `dds:theme-change`
+     * is received from `<dds-theme-select>`.
      *
      * @param {!Event} event Bubbling `dds:theme-change` custom event.
      */
-    handleThemeChange(event) {
+    handleConsumerThemeChange(event) {
         const customEvent = event;
         const theme = customEvent.detail?.theme ?? '';
         if (!theme) {
@@ -117,17 +241,19 @@ export class DDSGalleryShellElement extends HTMLElement {
         catch {
             // Ignore URL update errors in non-standard test environments.
         }
-        const themeInputs = this.querySelectorAll('input[name="_dds_theme"]');
+        document.cookie =
+            'dds_theme=' +
+                encodeURIComponent(theme) +
+                '; path=/; max-age=31536000; SameSite=Lax';
+        try {
+            window.localStorage.setItem('dds_theme', theme);
+        }
+        catch {
+            // Ignore storage access errors.
+        }
+        const themeInputs = this.querySelectorAll('input[name=_dds_theme]');
         for (const input of themeInputs) {
             input.value = theme;
-        }
-        const themeToggles = this.querySelectorAll('[data-action="toggle-theme"]');
-        for (const toggle of themeToggles) {
-            const iconUse = toggle.querySelector('use');
-            if (iconUse) {
-                const iconName = theme === 'dark' ? 'moon' : 'sun';
-                iconUse.setAttribute('href', `#dds-icon-${iconName}`);
-            }
         }
         const iframes = this.querySelectorAll('iframe[src]');
         for (const iframe of iframes) {
@@ -144,6 +270,14 @@ export class DDSGalleryShellElement extends HTMLElement {
                 // Ignore invalid iframe URLs.
             }
         }
+    }
+    /**
+     * Alias for backward compatibility with existing callers.
+     *
+     * @param {!Event} event Bubbling `dds:theme-change` custom event.
+     */
+    handleThemeChange(event) {
+        this.handleConsumerThemeChange(event);
     }
     /**
      * Handles `dds:tab-change` events from the view switcher tabs.
@@ -211,7 +345,7 @@ export class DDSGalleryShellElement extends HTMLElement {
         if (!target) {
             return;
         }
-        const sandboxLink = target.closest('a[href="#pane-sandbox"]');
+        const sandboxLink = target.closest('a[href=\'#pane-sandbox\']');
         if (sandboxLink && this.contains(sandboxLink)) {
             event.preventDefault();
             if (window.location.hash !== '#pane-sandbox') {

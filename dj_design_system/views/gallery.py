@@ -51,6 +51,17 @@ def get_base_context(
         active_variant = (
             get_control_param(request.GET, "variant", bare_fallback=bare_fallback) or ""
         ).strip() or None
+        raw_gallery_theme = (
+            request.GET.get("_dds_gallery_theme")
+            or request.COOKIES.get("dds_gallery_theme")
+            or ""
+        )
+        if raw_gallery_theme in ("dark", "light"):
+            gallery_theme = raw_gallery_theme
+        else:
+            gallery_theme = ""
+    else:
+        gallery_theme = ""
     return {
         "nav_tree": nav_tree,
         "search_index": [] if is_htmx else build_search_index(nav_tree),
@@ -62,6 +73,7 @@ def get_base_context(
         "available_themes": get_themes(),
         "active_theme": active_theme,
         "global_active_theme": active_theme,
+        "gallery_theme": gallery_theme,
         "component_tabs": [
             {"id": "docs", "label": "Documentation"},
             {"id": "sandbox", "label": "Sandbox"},

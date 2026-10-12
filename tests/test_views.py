@@ -216,6 +216,79 @@ class TestGalleryComponentView:
         assert "gallery-theme-dark" not in content
         assert "gallery-theme-light" not in content
 
+    def test_gallery_theme_cookie_dark_sets_gallery_theme_class_and_sidebar_icon(
+        self, client
+    ):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        client.cookies["dds_gallery_theme"] = "dark"
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response.context["gallery_theme"] == "dark"
+        content = response.content.decode("utf-8")
+        assert '<html lang="en" class="gallery-theme-dark">' in content
+        assert 'data-gallery-theme="dark"' in content
+        assert 'data-action="toggle-theme"' in content
+        assert 'data-icon="moon"' in content
+
+    def test_gallery_theme_cookie_light_sets_gallery_theme_class_and_sidebar_icon(
+        self, client
+    ):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        client.cookies["dds_gallery_theme"] = "light"
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response.context["gallery_theme"] == "light"
+        content = response.content.decode("utf-8")
+        assert '<html lang="en" class="gallery-theme-light">' in content
+        assert 'data-gallery-theme="light"' in content
+        assert 'data-action="toggle-theme"' in content
+        assert 'data-icon="sun"' in content
+
+    def test_consumer_theme_query_param_does_not_alter_gallery_theme_or_sidebar_button(
+        self, client
+    ):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        response = client.get(f"{url}?_dds_theme=dark")
+        assert response.status_code == 200
+        assert response.context["global_active_theme"] == "dark"
+        assert response.context["gallery_theme"] == ""
+        content = response.content.decode("utf-8")
+        assert '<html lang="en">' in content
+        assert "gallery-theme-dark" not in content
+        assert 'data-action="toggle-theme"' in content
+        sidebar_footer = content[
+            content.find('data-sidebar-footer') : content.find('</aside>')
+        ]
+        assert 'data-icon="sun"' in sidebar_footer
+        assert 'data-icon="moon"' not in sidebar_footer
+
+    def test_both_theme_selectors_operate_independently(self, client):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        client.cookies["dds_gallery_theme"] = "light"
+        response = client.get(f"{url}?_dds_theme=dark")
+        assert response.status_code == 200
+        assert response.context["global_active_theme"] == "dark"
+        assert response.context["gallery_theme"] == "light"
+        content = response.content.decode("utf-8")
+        assert '<html lang="en" class="gallery-theme-light">' in content
+        assert 'data-gallery-theme="light"' in content
+        assert 'data-action="toggle-theme"' in content
+        assert 'data-icon="sun"' in content
+        assert "gallery-global-theme-select" in content
+        assert "_dds_theme=dark" in response.context["canvas_iframe_url"]
+
     def test_component_renders_section_headings_and_dividers(self, client):
         url = reverse(
             "gallery-node",
