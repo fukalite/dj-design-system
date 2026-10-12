@@ -17,11 +17,11 @@
     {% endif %}
     {% if available_themes %}
         {% if not active_theme_supports_dark_mode %}
-            {% dds__button label="Consumer theme does not support dark mode" icon="sun" icon_only=True variant="default" size="sm" action="toggle-consumer-color-scheme" disabled=True %}
+            {% dds__button label="Consumer theme does not support dark mode" icon="sun" icon_only=True variant="default" size="lg" action="toggle-consumer-color-scheme" disabled=True %}
         {% elif active_color_scheme == "dark" %}
-            {% dds__button label="Switch component preview to light mode" icon="moon" icon_only=True variant="default" size="sm" action="toggle-consumer-color-scheme" %}
+            {% dds__button label="Switch component preview to light mode" icon="moon" icon_only=True variant="default" size="lg" action="toggle-consumer-color-scheme" %}
         {% else %}
-            {% dds__button label="Switch component preview to dark mode" icon="sun" icon_only=True variant="default" size="sm" action="toggle-consumer-color-scheme" %}
+            {% dds__button label="Switch component preview to dark mode" icon="sun" icon_only=True variant="default" size="lg" action="toggle-consumer-color-scheme" %}
         {% endif %}
     {% endif %}
     {% block toolbar_actions %}{% endblock %}

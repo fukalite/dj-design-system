@@ -108,7 +108,7 @@ class TestSettingsDdsGallery:
         dds_cfg = settings_dds_gallery.DJ_DESIGN_SYSTEM
         assert (
             dds_cfg["DESIGN_SYSTEM_NAME"]
-            == "dj-design-system Built-in Component Library"
+            == "Built-in Component Library"
         )
         assert dds_cfg["GALLERY_INCLUDE_APPS"] == ["dj_design_system"]
         assert dds_cfg["GLOBAL_CSS"] == ["example_project/theme-dds-consumer.css"]

@@ -156,10 +156,11 @@ iframe provides full CSS/JS isolation from the gallery chrome — the
 component is rendered in its own HTML document with the correct cascade:
 
 1. Global CSS (`{% global_stylesheets %}`)
-2. Canvas layout CSS (padding, backgrounds)
-3. Component-specific CSS
-4. Global JS (`GLOBAL_JS_BUNDLES`, `GLOBAL_JS`), then theme, app and
-   component JS
+2. Theme CSS and active dark mode CSS (when `dark_mode` is configured and dark mode is active)
+3. App-specific CSS (`APP_CSS`)
+4. Canvas layout CSS (padding, backgrounds)
+5. Component-specific CSS
+6. Global JS (`GLOBAL_JS_BUNDLES`, `GLOBAL_JS`), then theme, dark mode, app, and component JS
 
 A **toolbar** above the canvas provides:
 
@@ -227,8 +228,18 @@ document:
 DJ_DESIGN_SYSTEM = {
     "GALLERY_CANVAS_HTML_ATTRS": {
         "html": {"class": "govuk-template"},
+    },
 }
 ```
+
+#### Canvas Dark Mode and Color Scheme
+
+When previewing components in canvas iframes:
+
+- The active theme's `dark_mode` configuration dictates whether dark mode can be activated (`supports_dark_mode=True`).
+- When dark mode is active (`_dds_color_scheme=dark`), the canvas document merges `dark_mode.html_attrs` into `<html>` and `<body>`, appends `dark_mode.css` and `dark_mode.js`, and sets the dedicated dark mode background (`theme.dark_mode.canvas_background`).
+- When a theme does not configure `dark_mode`, the preview canvas is constrained to light mode (`ColorScheme.LIGHT`), guarding against OS-level dark mode styles leaking into components that lack dark mode styling.
+- Inline Markdown documentation canvas blocks (````canvas ... ````) automatically inherit and reflect the active color scheme.
 
 <a id="customising-gallery-examples"></a>
 ## Customising Gallery Examples & Configuration
@@ -316,8 +327,8 @@ Variant(
 When navigating to a variant via deep-link (e.g. `/demo_components/badge/?variant=status`):
 
 1. **Focused Documentation**: The usage section displays the dedicated variant title, badge, markdown description, a focused live preview canvas, and syntax-highlighted tag code.
-2. **Breadcrumb Trail**: The active variant is appended as the terminal crumb:  
-   `Gallery / Demo Components / Badge / Status Indicator`  
+2. **Breadcrumb Trail**: The active variant is appended as the terminal crumb:
+   `Gallery / Demo Components / Badge / Status Indicator`
    Clicking the parent component in the breadcrumbs navigates directly back to the full component overview.
 3. **Sandbox Pre-filling**: Form fields in the interactive Sandbox pane are automatically populated with the variant's arguments, and the toolbar preset selector reflects the active preset.
 
@@ -399,7 +410,7 @@ Variant(
 ## Upgrading Legacy Gallery Configurations
 
 > [!WARNING] Deprecation Notice: Legacy Kwargs
-> Defining `basic_kwargs` and `maximal_kwargs` dictionaries directly in gallery files is deprecated and will be removed in a future release. 
+> Defining `basic_kwargs` and `maximal_kwargs` dictionaries directly in gallery files is deprecated and will be removed in a future release.
 > Export `config = GalleryConfig(...)` instead. The gallery currently maintains backwards compatibility and automatically synthesizes a `GalleryConfig` while emitting a `DeprecationWarning`.
 
 ### Automated Migration Command
@@ -678,8 +689,8 @@ Layout and presentation markup are structured into modular Django templates unde
 
 #### Layout Areas (`dj_design_system/gallery/areas/`)
 
-- **`areas/topbar.html`**: Header branding bar, mobile drawer toggle, breadcrumbs, search box trigger, theme dropdown, and toolbar actions slot.
-- **`areas/sidebar.html`**: Navigation drawer containing brand link, the interactive `<dds-nav-tree>`, and theme toggle button.
+- **`areas/topbar.html`**: Header branding bar, mobile drawer toggle, breadcrumbs, search box trigger, theme dropdown (`{% dds__theme_select %}`, rendered when multiple themes exist), consumer color scheme toggle button (`action="toggle-consumer-color-scheme"`, enabled when the active theme configures `dark_mode`), and toolbar actions slot.
+- **`areas/sidebar.html`**: Navigation drawer containing brand link, the interactive `<dds-nav-tree>`, and gallery UI theme toggle button (`action="toggle-theme"`).
 - **`areas/tabs.html`**: Mobile responsive tabs switcher toggling between Documentation and Sandbox views.
 
 #### Content Panes (`dj_design_system/gallery/panes/`)
@@ -700,6 +711,8 @@ While structural markup lives in templates, client-side coordination is handled 
 2. **Backdrop & Keyboard Traps:** Managing focus and dismissing the drawer on backdrop clicks or Escape key presses.
 3. **URL Hash Synchronisation:** Switching between Documentation and Sandbox tabs based on URL `#pane-*` fragments.
 4. **Cross-Iframe Theme Event Relay:** Forwarding `dds:theme-change` CustomEvents from the outer gallery chrome into canvas iframes.
+5. **Gallery UI Theme Management:** Switching the gallery chrome itself between Light, Dark, and System modes (`dds_gallery_theme` cookie / `localStorage` / `_dds_gallery_theme` query param) and toggling `.gallery-theme-dark` / `.gallery-theme-light` classes.
+6. **Consumer Color Scheme Synchronisation:** Toggling previewed components between light and dark modes (`dds_color_scheme` cookie / `localStorage` / `_dds_color_scheme` query param), updating preview iframe URLs, synchronising the toggle button state (moon/sun icon and disabled state if unsupported), and dispatching `dds:consumer-color-scheme-change`.
 
 ### Tier 3: Built-in `dds` Primitives & Component Shadowing
 
@@ -732,7 +745,7 @@ To browse and inspect the built-in `dj_design_system` component library inside t
 
 ```python
 DJ_DESIGN_SYSTEM = {
-    "DESIGN_SYSTEM_NAME": "dj-design-system Built-in Component Library",
+    "DESIGN_SYSTEM_NAME": "Built-in Component Library",
     "GALLERY_INCLUDE_APPS": ["dj_design_system"],
 }
 ```
@@ -751,4 +764,3 @@ If your application uses CSP nonces (e.g. via `django-csp` middleware setting `r
 - Static script tags in gallery templates (`{% if request.csp_nonce %}nonce="{{ request.csp_nonce }}"{% endif %}`)
 - Dynamic `<script>` tags generated by `{% global_scripts %}` and `{% component_scripts %}`
 - Dynamic `<style>` tags for canvas background rules generated by `build_canvas_bg_styles`
-

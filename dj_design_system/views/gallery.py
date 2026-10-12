@@ -69,9 +69,10 @@ def get_base_context(
         gallery_theme = ""
         raw_color_scheme = ""
 
-    theme_obj = get_theme(active_theme) or get_default_theme()
-    active_theme = theme_obj.value
-    active_theme_supports_dark_mode = theme_obj.supports_dark_mode
+    theme_obj = get_theme(active_theme)
+    active_theme_supports_dark_mode = (
+        theme_obj.supports_dark_mode if theme_obj else False
+    )
     if active_theme_supports_dark_mode and raw_color_scheme in ("dark", "light"):
         active_color_scheme = raw_color_scheme
     else:
