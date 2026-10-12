@@ -4,6 +4,7 @@ import pytest
 
 from dj_design_system.components import BlockComponent, TagComponent
 from dj_design_system.data import BLOCK_CONTENT_PLACEHOLDER
+from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.parameters import (
     BoolCSSClassParam,
     BoolParam,
@@ -632,28 +633,22 @@ class TestBlockContentFromGalleryConfig:
             component_registry._components.remove(info)
 
 
+class OptionalSlotCard(BlockComponent):
+    title = StrParam("Title", required=False)
+
+    class Meta:
+        slots = {
+            "body": Slot(required=True),
+            "footer": Slot(required=False),
+        }
+
+
 class TestMaximalVariantSlots:
     """A ``maximal`` variant that omits an optional slot leaves it empty."""
 
-    @staticmethod
-    def _component():
-        class OptionalSlotCard(BlockComponent):
-            title = StrParam("Title", required=False)
-
-            class Meta:
-                slots = {
-                    "body": Slot(required=True),
-                    "footer": Slot(required=False),
-                }
-
-        return OptionalSlotCard
-
     def test_omitted_optional_slot_not_rendered(self, register_gallery_component):
-        from dj_design_system.gallery import GalleryConfig, Variant
-
-        component = self._component()
         register_gallery_component(
-            component,
+            OptionalSlotCard,
             "optional_slot_card",
             GalleryConfig(
                 variants=[
@@ -665,7 +660,7 @@ class TestMaximalVariantSlots:
             ),
         )
 
-        sig = generate_tag_signature(component)
+        sig = generate_tag_signature(OptionalSlotCard)
 
         assert '{% slot "body" %}Body text{% endslot %}' in sig.maximal
         assert '{% slot "footer" %}' not in sig.maximal
@@ -673,16 +668,13 @@ class TestMaximalVariantSlots:
         assert "slot__footer" not in sig.maximal_spec.params
 
     def test_omitted_required_slot_still_filled(self, register_gallery_component):
-        from dj_design_system.gallery import GalleryConfig, Variant
-
-        component = self._component()
         register_gallery_component(
-            component,
+            OptionalSlotCard,
             "optional_slot_card",
             GalleryConfig(variants=[Variant(name="maximal", kwargs={"title": "Hi"})]),
         )
 
-        sig = generate_tag_signature(component)
+        sig = generate_tag_signature(OptionalSlotCard)
 
         assert '{% slot "body" %}Sample body content{% endslot %}' in sig.maximal
         assert '{% slot "footer" %}' not in sig.maximal
@@ -690,12 +682,11 @@ class TestMaximalVariantSlots:
         assert "slot__footer" not in sig.maximal_spec.params
 
     def test_without_maximal_variant_all_slots_filled(self, register_gallery_component):
-        from dj_design_system.gallery import GalleryConfig
+        register_gallery_component(
+            OptionalSlotCard, "optional_slot_card", GalleryConfig()
+        )
 
-        component = self._component()
-        register_gallery_component(component, "optional_slot_card", GalleryConfig())
-
-        sig = generate_tag_signature(component)
+        sig = generate_tag_signature(OptionalSlotCard)
 
         assert '{% slot "footer" %}Sample footer content{% endslot %}' in sig.maximal
         assert sig.maximal_spec.params.get("slot__footer") == "Sample footer content"
