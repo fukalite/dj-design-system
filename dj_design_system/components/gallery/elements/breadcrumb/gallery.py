@@ -39,48 +39,5 @@ config = gallery.GalleryConfig(
     param_defaults={
         "items": BASIC_ITEMS,
     },
-    variants=[
-        gallery.Variant(
-            name="basic",
-            label="Standard Trail",
-            description="Three-level breadcrumb trail with linked ancestors and current page.",
-            kwargs={
-                "items": BASIC_ITEMS,
-            },
-        ),
-        gallery.Variant(
-            name="with_icons",
-            label="Trail with Item Icons",
-            description="Breadcrumb items displaying inline collection and component icons.",
-            kwargs={
-                "items": ICON_ITEMS,
-            },
-        ),
-        gallery.Variant(
-            name="static_ancestors",
-            label="Mixed Static and Linked Ancestors",
-            description="Trail containing non-interactive ancestor segments alongside links.",
-            kwargs={
-                "items": STATIC_PARENT_ITEMS,
-            },
-        ),
-        gallery.Variant(
-            name="deep_hierarchy",
-            label="Deep Hierarchy with Typed Items",
-            description="Five-level trail instantiated with BreadcrumbItem dataclasses demonstrating overflow wrapping.",
-            kwargs={
-                "items": DEEP_ITEMS,
-            },
-        ),
-        gallery.Variant(
-            name="maximal",
-            label="Custom Landmark and Separator",
-            description="Full breadcrumb with item icons, custom aria-label, and explicit separator icon.",
-            kwargs={
-                "items": ICON_ITEMS,
-                "aria_label": "Component hierarchy",
-                "separator_icon": "chevron-right",
-            },
-        ),
-    ],
 )
+

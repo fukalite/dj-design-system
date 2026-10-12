@@ -43,28 +43,5 @@ config = gallery.GalleryConfig(
                 "search_index": list(SAMPLE_SEARCH_INDEX),
             },
         ),
-        gallery.Variant(
-            name="custom_shortcut",
-            label="Custom Shortcut & Placeholder",
-            description="Search box configured with a custom placeholder and shortcut badge.",
-            kwargs={
-                "placeholder": "Quick jump to component...",
-                "shortcut_hint": "⌘K",
-                "index_id": "custom-search-index",
-                "input_id": "custom-search-input",
-                "results_id": "custom-search-results",
-                "search_index": list(SAMPLE_SEARCH_INDEX),
-            },
-        ),
-        gallery.Variant(
-            name="without_shortcut",
-            label="Without Shortcut Badge",
-            description="Search box with the keyboard shortcut hint badge hidden.",
-            kwargs={
-                "placeholder": "Filter components...",
-                "shortcut_hint": "",
-                "search_index": list(SAMPLE_SEARCH_INDEX),
-            },
-        ),
     ],
 )

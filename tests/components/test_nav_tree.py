@@ -479,7 +479,7 @@ class TestNavTreeGalleryAndDocs:
             component_name=COMPONENT_NAME,
         )
         assert isinstance(cfg, gallery.GalleryConfig)
-        assert len(cfg.variants) >= 3
+        assert len(cfg.variants) == 1
         for variant in cfg.variants:
             direct_html = nav_tree_module.NavTree(**variant.kwargs).render()
             assert 'class="dds-nav-tree"' in direct_html

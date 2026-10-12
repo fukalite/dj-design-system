@@ -533,15 +533,14 @@ class TestPopoutStylesheetsAndTypeScriptContract:
             source_dir=POPOUT_OPTION_DIR,
             component_name="popout_option",
         )
-        assert option_cfg.variants
-        for variant in option_cfg.variants:
-            spec = data.CanvasSpec(
-                component_name="dds__popout_option",
-                variant=variant.name,
-            )
-            rendered = canvas_service.render_component(
-                spec=spec,
-                registry=reg,
-                raise_errors=True,
-            )
-            assert 'class="dds-popout-option"' in rendered
+        assert len(option_cfg.variants) == 0
+        spec = data.CanvasSpec(
+            component_name="dds__popout_option",
+            variant="",
+        )
+        rendered = canvas_service.render_component(
+            spec=spec,
+            registry=reg,
+            raise_errors=True,
+        )
+        assert 'class="dds-popout-option"' in rendered

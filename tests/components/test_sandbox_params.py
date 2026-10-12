@@ -539,7 +539,7 @@ class TestSandboxParamsGalleryAndDocs:
             component_name=COMPONENT_NAME,
         )
         assert isinstance(cfg, gallery.GalleryConfig)
-        assert len(cfg.variants) >= 3
+        assert len(cfg.variants) == 2
         for variant in cfg.variants:
             spec = data.CanvasSpec(
                 component_name=QUALIFIED_NAME,

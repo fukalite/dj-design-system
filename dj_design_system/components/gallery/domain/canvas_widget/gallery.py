@@ -45,37 +45,5 @@ config = gallery.GalleryConfig(
                 "zoom": "100",
             },
         ),
-        gallery.Variant(
-            name="code_mode",
-            label="Template Source Mode",
-            description=(
-                "Canvas widget opened directly to the template source code drawer."
-            ),
-            kwargs={
-                "canvas_id": "code-canvas",
-                "iframe_srcdoc": SAMPLE_SRCDOC,
-                "source_code": SAMPLE_SOURCE_CODE,
-                "rendered_html": SAMPLE_RENDERED_HTML,
-                "mode": "code",
-            },
-        ),
-        gallery.Variant(
-            name="dark_tablet_stage",
-            label="Dark Stage & Tablet Viewport",
-            description=(
-                "Canvas widget configured with a dark stage background, 768px "
-                "tablet viewport preset, and 125% zoom."
-            ),
-            kwargs={
-                "canvas_id": "tablet-canvas",
-                "iframe_srcdoc": SAMPLE_SRCDOC,
-                "source_code": SAMPLE_SOURCE_CODE,
-                "rendered_html": SAMPLE_RENDERED_HTML,
-                "mode": "preview",
-                "viewport": "768",
-                "background": "dark",
-                "zoom": "125",
-            },
-        ),
     ],
 )

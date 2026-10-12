@@ -38,30 +38,6 @@ config = gallery.GalleryConfig(
             },
         ),
         gallery.Variant(
-            name="open_end_aligned",
-            label="Open & End-Aligned",
-            description="Initially open popout menu aligned to the trailing edge of the trigger.",
-            kwargs={
-                "label": "Viewport",
-                "icon": "monitor",
-                "align": "end",
-                "open": True,
-                "menu_label": "Select viewport preset",
-                "content": DEFAULT_MENU_HTML,
-            },
-        ),
-        gallery.Variant(
-            name="icon_only",
-            label="Icon-Only Trigger",
-            description="Compact icon-only popout trigger exposing label via aria-label.",
-            kwargs={
-                "label": "More options",
-                "icon": "menu",
-                "icon_only": True,
-                "content": DEFAULT_MENU_HTML,
-            },
-        ),
-        gallery.Variant(
             name="custom_trigger",
             label="Custom Trigger Slot",
             description="Popout using the optional trigger slot for custom button markup.",

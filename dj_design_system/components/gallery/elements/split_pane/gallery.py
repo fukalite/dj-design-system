@@ -63,16 +63,5 @@ config = gallery.GalleryConfig(
                 ),
             },
         ),
-        gallery.Variant(
-            name="equal",
-            label="Equal Split Pane",
-            description="Side-by-side split pane with 50/50 ratio.",
-            kwargs={
-                "orientation": "horizontal",
-                "initial_ratio": 50,
-                "slot__primary": PRIMARY_PREVIEW_HTML,
-                "slot__secondary": SECONDARY_CONTROLS_HTML,
-            },
-        ),
     ],
 )

@@ -360,8 +360,11 @@ def build_component_page_context(
                 f"Variant '{variant_param}' not found for component '{info.name}'."
             )
 
+    effective_tag_name = info.qualified_name if info.is_builtin else info.name
     tag_signature = tag_signature_service.generate_tag_signature(
-        component_class, canvas_component_name=info.qualified_name, tag_name=info.name
+        component_class,
+        canvas_component_name=info.qualified_name,
+        tag_name=effective_tag_name,
     )
     tag_signature_long = tag_signature_service.generate_tag_signature(
         component_class,
@@ -408,7 +411,7 @@ def build_component_page_context(
                 component_class,
                 variant_sig_kwargs,
                 canvas_component_name=info.qualified_name,
-                tag_name=info.name,
+                tag_name=effective_tag_name,
             )
         )
         if active_variant.description:
@@ -425,7 +428,12 @@ def build_component_page_context(
 
     param_rows = build_param_rows(form, params, component_class)
     current_signature = generate_signature_usage(
-        form, form_kwargs, params, component_class, info, tag_name=info.name
+        form,
+        form_kwargs,
+        params,
+        component_class,
+        info,
+        tag_name=effective_tag_name,
     )
     current_signature_long = generate_signature_usage(
         form, form_kwargs, params, component_class, info, tag_name=info.qualified_name

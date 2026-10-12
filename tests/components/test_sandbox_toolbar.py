@@ -466,7 +466,7 @@ class TestSandboxToolbarGalleryAndDocs:
         )
         assert isinstance(cfg, gallery.GalleryConfig)
         assert cfg.group == "Domain"
-        assert len(cfg.variants) >= 3
+        assert len(cfg.variants) == 1
         for variant in cfg.variants:
             spec = data.CanvasSpec(
                 component_name=QUALIFIED_NAME,

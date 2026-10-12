@@ -89,26 +89,6 @@ config = gallery.GalleryConfig(
             },
         ),
         gallery.Variant(
-            name="with_icons_and_badges",
-            label="Tabs with Icons and Badges",
-            description="Tab triggers composing dds__icon and dds__badge indicators.",
-            kwargs={
-                "tabs": ICON_BADGE_TABS,
-                "content": "",
-            },
-        ),
-        gallery.Variant(
-            name="preselected_tab",
-            label="Explicit Active Tab",
-            description="Tab switcher initialized to a non-default active tab with a custom aria-label.",
-            kwargs={
-                "tabs": ICON_BADGE_TABS,
-                "active_tab": "code",
-                "aria_label": "Inspector sections",
-                "content": "",
-            },
-        ),
-        gallery.Variant(
             name="switcher",
             label="Standalone View Switcher",
             description="View switcher variant with no panel regions and uppercase overline tab styling.",
@@ -117,15 +97,6 @@ config = gallery.GalleryConfig(
                 "variant": "switcher",
                 "aria_label": "Documentation and Sandbox view switcher",
                 "content": "",
-            },
-        ),
-        gallery.Variant(
-            name="slotted_panels",
-            label="Slotted Custom Panels",
-            description="Tabs composing custom slotted tabpanel elements inside the component block.",
-            kwargs={
-                "tabs": SLOTTED_PANELS,
-                "content": SLOTTED_PANEL_CONTENT,
             },
         ),
     ],

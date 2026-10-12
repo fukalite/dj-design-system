@@ -35,45 +35,11 @@ DEFAULT_FOOT = safestring.mark_safe(
 )
 
 config = gallery.GalleryConfig(
-    variants=[
-        gallery.Variant(
-            name="basic",
-            label="Default Table",
-            description="Standard table with header and body rows.",
-            kwargs={
-                "slot__head": DEFAULT_HEAD,
-                "slot__body": DEFAULT_BODY,
-            },
-        ),
-        gallery.Variant(
-            name="compact",
-            label="Compact Density with Caption",
-            description="Dense row padding with an accessible table caption.",
-            kwargs={
-                "caption": "Table component parameters",
-                "density": "compact",
-                "slot__head": DEFAULT_HEAD,
-                "slot__body": DEFAULT_BODY,
-            },
-        ),
-        gallery.Variant(
-            name="body_only",
-            label="Body Only",
-            description="Table rendered without the optional head slot.",
-            kwargs={
-                "slot__body": DEFAULT_BODY,
-            },
-        ),
-        gallery.Variant(
-            name="with_foot",
-            label="Table with Footer",
-            description="Table with header, body, and summary footer rows.",
-            kwargs={
-                "caption": "Parameter inventory",
-                "slot__head": DEFAULT_HEAD,
-                "slot__body": DEFAULT_BODY,
-                "slot__foot": DEFAULT_FOOT,
-            },
-        ),
-    ],
+    param_defaults={
+        "caption": "Component Parameters",
+        "slot__head": DEFAULT_HEAD,
+        "slot__body": DEFAULT_BODY,
+        "slot__foot": "",
+    },
 )
+
