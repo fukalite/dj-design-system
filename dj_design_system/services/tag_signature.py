@@ -453,7 +453,10 @@ def _build_minimal_positional_values(
 
 
 def _build_maximal_positional_values(
-    positional_args: list[str], params: dict[str, Any], overrides: dict[str, Any]
+    positional_args: list[str],
+    params: dict[str, Any],
+    overrides: dict[str, Any],
+    required_only: bool = False,
 ) -> tuple[list[str], list[Any], int]:
     maximal_positional = []
     maximal_positional_values = []
@@ -467,6 +470,8 @@ def _build_maximal_positional_values(
 
         if arg_name in params:
             spec = params[arg_name]
+            if required_only and not spec.required:
+                continue
             value = _generate_example_value(spec, arg_name, str_index)
             if isinstance(spec, StrParam):
                 str_index += 1
@@ -481,6 +486,7 @@ def _build_maximal_keyword_values(
     params: dict[str, Any],
     overrides: dict[str, Any],
     start_str_index: int,
+    required_only: bool = False,
 ) -> tuple[list[str], dict[str, Any]]:
     maximal_keyword = []
     maximal_keyword_values = {}
@@ -496,6 +502,8 @@ def _build_maximal_keyword_values(
     # Then generate defaults for remaining params
     for param_name, spec in params.items():
         if param_name in positional_args or param_name in overrides:
+            continue
+        if required_only and not spec.required:
             continue
 
         value = _generate_example_value(spec, param_name, str_index)
@@ -531,12 +539,18 @@ def generate_tag_signature(
         basic_kwargs = merge_variant_params(
             component_class, config=config, variant=config.get_variant("basic")
         )
+        maximal_variant = config.get_variant("maximal")
         maximal_kwargs = merge_variant_params(
-            component_class, config=config, variant=config.get_variant("maximal")
+            component_class, config=config, variant=maximal_variant
         )
     except Exception:
         basic_kwargs = {}
         maximal_kwargs = {}
+        maximal_variant = None
+
+    # An explicit "maximal" variant decides which optional params and slots
+    # are filled; without one, every param and slot gets an example value.
+    fill_optional = maximal_variant is None
 
     basic_slot_overrides = {
         k: basic_kwargs.pop(k)
@@ -600,10 +614,14 @@ def generate_tag_signature(
 
     # Maximal Signature
     max_pos_fmt, max_pos_vals, str_index = _build_maximal_positional_values(
-        positional_args, params, maximal_kwargs
+        positional_args, params, maximal_kwargs, required_only=not fill_optional
     )
     max_kw_fmt, max_kw_vals = _build_maximal_keyword_values(
-        positional_args, params, maximal_kwargs, str_index
+        positional_args,
+        params,
+        maximal_kwargs,
+        str_index,
+        required_only=not fill_optional,
     )
     maximal = _build_sig_raw(
         component_name,
@@ -612,7 +630,7 @@ def generate_tag_signature(
         is_block,
         is_slotted,
         block_class,
-        required_only=False,
+        required_only=not fill_optional,
         slot_overrides=maximal_slot_overrides,
         content_override=(
             _content_code(maximal_content_override)
@@ -646,7 +664,7 @@ def generate_tag_signature(
                 maximal_slot_params[override_key] = _unwrap_example(
                     maximal_slot_overrides[override_key]
                 )
-            else:
+            elif slot.required or fill_optional:
                 maximal_slot_params[override_key] = (
                     slot.default or f"Sample {slot_name} content"
                 )
