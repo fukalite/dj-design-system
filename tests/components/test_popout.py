@@ -327,7 +327,8 @@ class TestPopoutAndOptionRendering:
         )
         assert (
             '<button type="button" class="dds-popout-trigger" data-popout-trigger '
-            'aria-haspopup="true" aria-expanded="true" aria-label="More options">' in html
+            'aria-haspopup="true" aria-expanded="true" aria-label="More options">'
+            in html
         )
         assert 'data-icon="menu"' in html
         assert "<span>More options</span>" not in html
@@ -384,8 +385,8 @@ class TestPopoutAndOptionRendering:
             source='{% dds__popout_option "Search" shortcut="⌘K" role="menuitem" %}'
         )
         assert 'role="menuitem"' in shortcut_html
-        assert 'aria-checked' not in shortcut_html
-        assert '<kbd>⌘K</kbd>' in shortcut_html
+        assert "aria-checked" not in shortcut_html
+        assert "<kbd>⌘K</kbd>" in shortcut_html
 
         disabled_link = _render_template(
             source='{% dds__popout_option "Disabled link" href="/docs/" disabled=True %}'

@@ -92,9 +92,7 @@ class Tabs(components.BlockComponent):
             str(self.id_prefix) if self.id_prefix else DEFAULT_ID_PREFIX
         )
         resolved_variant = (
-            str(self.variant)
-            if self.variant in VALID_VARIANTS
-            else DEFAULT_VARIANT
+            str(self.variant) if self.variant in VALID_VARIANTS else DEFAULT_VARIANT
         )
         slot_content = context.get("content")
         resolved_slot_content = (
@@ -135,9 +133,7 @@ class Tabs(components.BlockComponent):
                         else (str(raw_content) if raw_content is not None else "")
                     ),
                     "has_panel": (
-                        bool(raw_has_panel)
-                        if raw_has_panel is not None
-                        else None
+                        bool(raw_has_panel) if raw_has_panel is not None else None
                     ),
                 }
             )

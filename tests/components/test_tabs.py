@@ -338,8 +338,7 @@ class TestTabsRenderingAndTemplate:
             context={"tabs": items},
         )
         assert (
-            '<dds-tabs class="dds-tabs" data-variant="default" '
-            'data-active-tab="code">'
+            '<dds-tabs class="dds-tabs" data-variant="default" data-active-tab="code">'
         ) in html
         assert '<div role="tablist" aria-label="View modes" class="l-cluster">' in html
         assert (
@@ -380,8 +379,7 @@ class TestTabsRenderingAndTemplate:
             context={"items": items},
         )
         assert (
-            '<dds-tabs class="dds-tabs" data-variant="switcher" '
-            'data-active-tab="docs">'
+            '<dds-tabs class="dds-tabs" data-variant="switcher" data-active-tab="docs">'
         ) in html
         assert "aria-controls=" not in html
 

@@ -5,9 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-import markdown as markdown_lib
 from django.urls import reverse
-from django.utils import safestring
 
 from dj_design_system.components import BaseComponent, BlockComponent
 from dj_design_system.data import (
@@ -25,6 +23,7 @@ from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.parameters.model import ModelParam
 from dj_design_system.services import canvas as canvas_service
 from dj_design_system.services import control_params as control_params_service
+from dj_design_system.services import docstring as docstring_service
 from dj_design_system.services import markdown as markdown_service
 from dj_design_system.services import navigation as navigation_service
 from dj_design_system.services import registry as registry_service
@@ -413,11 +412,8 @@ def build_component_page_context(
             )
         )
         if active_variant.description:
-            context["variant_description"] = safestring.mark_safe(
-                markdown_lib.markdown(
-                    active_variant.description.strip(),
-                    extensions=["fenced_code", "tables"],
-                )
+            context["variant_description"] = docstring_service.render_docstring(
+                docstring=active_variant.description
             )
         else:
             context["variant_description"] = ""
@@ -457,16 +453,9 @@ def build_component_page_context(
         active_bg_value = get_default_background()["value"]
 
     context["component_info"] = info
-    raw_doc = (component_class.__doc__ or "").strip()
-    context["component_description"] = (
-        safestring.mark_safe(
-            markdown_lib.markdown(
-                raw_doc,
-                extensions=["fenced_code", "tables"],
-            )
-        )
-        if raw_doc
-        else ""
+    raw_doc = component_class.__doc__ or ""
+    context["component_description"] = docstring_service.render_docstring(
+        docstring=raw_doc
     )
     context["tag_signature"] = tag_signature
     context["tag_signature_long"] = tag_signature_long

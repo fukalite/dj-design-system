@@ -255,8 +255,7 @@ class TestBadgeStylesheet:
             == f"var(--dds-status-{status}-border-radius)"
         )
         assert (
-            props["--_badge-border-width"]
-            == f"var(--dds-status-{status}-border-width)"
+            props["--_badge-border-width"] == f"var(--dds-status-{status}-border-width)"
         )
         assert props["--_badge-text-color"] == f"var(--dds-status-{status}-text-color)"
 

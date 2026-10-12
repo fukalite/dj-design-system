@@ -76,11 +76,7 @@ class Notice(components.BlockComponent):
         context = super().get_context()
         variant = self.variant if self.variant is not None else DEFAULT_VARIANT
         show_icon = self.icon != "none"
-        resolved_icon = (
-            self.icon
-            if self.icon and self.icon != "none"
-            else variant
-        )
+        resolved_icon = self.icon if self.icon and self.icon != "none" else variant
         resolved_role = (
             self.role
             if self.role

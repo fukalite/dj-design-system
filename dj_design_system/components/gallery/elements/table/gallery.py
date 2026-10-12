@@ -31,13 +31,7 @@ DEFAULT_BODY = safestring.mark_safe(
 )
 
 DEFAULT_FOOT = safestring.mark_safe(
-    s=(
-        "<tr>"
-        '<th scope="row">Total</th>'
-        "<td>2 parameters</td>"
-        "<td></td>"
-        "</tr>"
-    )
+    s=('<tr><th scope="row">Total</th><td>2 parameters</td><td></td></tr>')
 )
 
 config = gallery.GalleryConfig(
