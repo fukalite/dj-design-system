@@ -58,9 +58,7 @@ class PlaywrightAssessmentPlugin(AssessmentPlugin):
                 if isinstance(value, bool):
                     params[key] = "true" if value else "false"
                 elif isinstance(value, (list, dict)):
-                    params[key] = json.dumps(
-                        value, default=_json_serialise_default
-                    )
+                    params[key] = json.dumps(value, default=_json_serialise_default)
                 else:
                     params[key] = str(value)
 

@@ -241,6 +241,86 @@ class TestGalleryComponentView:
         assert "<h3 data-variant-subheading>Preview</h3>" in content
         assert "<h2 data-docs-heading>Parameters</h2>" in content
 
+    def test_builtin_component_uses_fully_qualified_tag_and_suppresses_qualified_section(
+        self, client
+    ):
+        """Built-in components (is_builtin=True) cannot be invoked with short tag names.
+
+        All usage examples must use the fully-qualified version (dds__<name>),
+        and the redundant 'Qualified tag usage' section must be suppressed.
+        """
+        from dj_design_system.services.navigation import clear_navigation_cache
+
+        with override_settings(
+            DJ_DESIGN_SYSTEM={"GALLERY_INCLUDE_APPS": ["dj_design_system"]}
+        ):
+            clear_navigation_cache()
+            try:
+                url = reverse(
+                    "gallery-node",
+                    kwargs={
+                        "app_label": "dj_design_system",
+                        "path": "elements/button",
+                    },
+                )
+                response = client.get(url)
+                assert response.status_code == 200
+                content = response.content.decode("utf-8")
+
+                assert response.context["tag_signature"].minimal.startswith(
+                    "{% dds__button"
+                )
+                assert "{% dds__button" in content
+                assert "Qualified tag usage" not in content
+            finally:
+                clear_navigation_cache()
+
+    def test_builtin_component_variant_uses_fully_qualified_tag(self, client):
+        """Variant usage for built-in components must also use the fully-qualified tag."""
+        from dj_design_system.services.navigation import clear_navigation_cache
+
+        with override_settings(
+            DJ_DESIGN_SYSTEM={"GALLERY_INCLUDE_APPS": ["dj_design_system"]}
+        ):
+            clear_navigation_cache()
+            try:
+                url = reverse(
+                    "gallery-node",
+                    kwargs={
+                        "app_label": "dj_design_system",
+                        "path": "elements/button",
+                    },
+                )
+                response = client.get(f"{url}?variant=link")
+                assert response.status_code == 200
+                content = response.content.decode("utf-8")
+
+                assert response.context["variant_signature"].minimal.startswith(
+                    "{% dds__button"
+                )
+                assert "{% dds__button" in content
+            finally:
+                clear_navigation_cache()
+
+    def test_non_builtin_component_renders_short_tag_and_qualified_section(
+        self, client
+    ):
+        """Non-builtin components with a prefix use the short tag and show Qualified tag usage."""
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "badge"},
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+        content = response.content.decode("utf-8")
+
+        assert response.context["tag_signature"].minimal.startswith("{% badge")
+        assert response.context["tag_signature_long"].minimal.startswith(
+            "{% demo_components__badge"
+        )
+        assert "Qualified tag usage" in content
+        assert "demo_components__badge" in content
+
 
 class TestGalleryFolderView:
     """Test the folder view."""

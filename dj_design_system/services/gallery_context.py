@@ -5,9 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-import markdown as markdown_lib
 from django.urls import reverse
-from django.utils import safestring
 
 from dj_design_system.components import BaseComponent, BlockComponent
 from dj_design_system.data import (
@@ -25,6 +23,7 @@ from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.parameters.model import ModelParam
 from dj_design_system.services import canvas as canvas_service
 from dj_design_system.services import control_params as control_params_service
+from dj_design_system.services import docstring as docstring_service
 from dj_design_system.services import markdown as markdown_service
 from dj_design_system.services import navigation as navigation_service
 from dj_design_system.services import registry as registry_service
@@ -361,8 +360,11 @@ def build_component_page_context(
                 f"Variant '{variant_param}' not found for component '{info.name}'."
             )
 
+    effective_tag_name = info.qualified_name if info.is_builtin else info.name
     tag_signature = tag_signature_service.generate_tag_signature(
-        component_class, canvas_component_name=info.qualified_name, tag_name=info.name
+        component_class,
+        canvas_component_name=info.qualified_name,
+        tag_name=effective_tag_name,
     )
     tag_signature_long = tag_signature_service.generate_tag_signature(
         component_class,
@@ -409,15 +411,12 @@ def build_component_page_context(
                 component_class,
                 variant_sig_kwargs,
                 canvas_component_name=info.qualified_name,
-                tag_name=info.name,
+                tag_name=effective_tag_name,
             )
         )
         if active_variant.description:
-            context["variant_description"] = safestring.mark_safe(
-                markdown_lib.markdown(
-                    active_variant.description.strip(),
-                    extensions=["fenced_code", "tables"],
-                )
+            context["variant_description"] = docstring_service.render_docstring(
+                docstring=active_variant.description
             )
         else:
             context["variant_description"] = ""
@@ -429,7 +428,12 @@ def build_component_page_context(
 
     param_rows = build_param_rows(form, params, component_class)
     current_signature = generate_signature_usage(
-        form, form_kwargs, params, component_class, info, tag_name=info.name
+        form,
+        form_kwargs,
+        params,
+        component_class,
+        info,
+        tag_name=effective_tag_name,
     )
     current_signature_long = generate_signature_usage(
         form, form_kwargs, params, component_class, info, tag_name=info.qualified_name
@@ -457,16 +461,9 @@ def build_component_page_context(
         active_bg_value = get_default_background()["value"]
 
     context["component_info"] = info
-    raw_doc = (component_class.__doc__ or "").strip()
-    context["component_description"] = (
-        safestring.mark_safe(
-            markdown_lib.markdown(
-                raw_doc,
-                extensions=["fenced_code", "tables"],
-            )
-        )
-        if raw_doc
-        else ""
+    raw_doc = component_class.__doc__ or ""
+    context["component_description"] = docstring_service.render_docstring(
+        docstring=raw_doc
     )
     context["tag_signature"] = tag_signature
     context["tag_signature_long"] = tag_signature_long

@@ -391,7 +391,7 @@ class TestCodeBlockGalleryAndDocs:
             component_name=COMPONENT_NAME,
         )
         assert isinstance(cfg, GalleryConfig)
-        assert len(cfg.variants) >= 3
+        assert len(cfg.variants) == 2
         for variant in cfg.variants:
             spec = data.CanvasSpec(
                 component_name=QUALIFIED_NAME,
@@ -407,10 +407,7 @@ class TestCodeBlockGalleryAndDocs:
             assert 'data-surface="code"' in rendered
 
     def test_index_md_exists_and_documents_component(self) -> None:
-        """Verify index.md exists and documents dds__code_block and <dds-code-block>."""
+        """Verify index.md exists and documents <dds-code-block> client-side behaviour."""
         doc_text = _read_text(path=CODE_BLOCK_INDEX_MD_PATH)
-        assert "dds__code_block" in doc_text
-        assert "dds-code-block" in doc_text
+        assert "<dds-code-block>" in doc_text
         assert "dds:copy" in doc_text
-        assert "show_header" in doc_text
-        assert "flush" in doc_text

@@ -21,41 +21,13 @@ config = gallery.GalleryConfig(
     variants=[
         gallery.Variant(
             name="basic",
-            label="Default Django Snippet",
-            description="Code block with floating overlay copy trigger.",
-            kwargs={
-                "code": DJANGO_SNIPPET,
-            },
-        ),
-        gallery.Variant(
-            name="language_header",
-            label="With Language Header",
-            description="Code block with explicit show_header displaying language identifier.",
-            kwargs={
-                "code": DJANGO_SNIPPET,
-                "language": "django",
-                "show_header": True,
-            },
-        ),
-        gallery.Variant(
-            name="titled",
-            label="With Filename Title",
-            description="Python snippet displaying an explicit filename in the header.",
+            label="Default Code Block",
+            description="Code block with filename header, language badge, and copy button.",
             kwargs={
                 "code": PYTHON_SNIPPET,
                 "language": "python",
                 "title": "components/greeting.py",
-            },
-        ),
-        gallery.Variant(
-            name="non_copyable",
-            label="Without Copy Button",
-            description="Read-only code block with copy button hidden and header label visible.",
-            kwargs={
-                "code": DJANGO_SNIPPET,
-                "language": "django",
-                "title": "template.html",
-                "copyable": False,
+                "copyable": True,
             },
         ),
         gallery.Variant(

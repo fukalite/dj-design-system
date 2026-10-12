@@ -26,23 +26,10 @@ class PopoutOption(components.TagComponent):
     the parent ``<dds-popout>`` Light DOM custom element can manage selection
     state and dispatch ``dds:popout-select`` events.
 
-    Args:
-        label: Visible option text label (also used as fallback for ``value``).
-        value: Option value payload; falls back to ``label`` when empty.
-        role: ARIA menu item role (``"menuitem"``, ``"menuitemradio"``, or
-            ``"menuitemcheckbox"``). Defaults to ``"menuitem"`` for links and
-            ``"menuitemradio"`` for buttons.
-        icon: Optional leading icon name.
-        shortcut: Optional keyboard shortcut text hint (e.g. ``"⌘K"``).
-        selected: Whether this option is currently checked (``aria-checked="true"``).
-        disabled: Whether this option is disabled.
-        href: Optional link URL; renders an ``<a>`` tag.
-
-    Example usage::
-
-        {% dds__popout_option "Light" value="light" icon="sun" selected=True %}
-        {% dds__popout_option "Documentation" href="/docs/" icon="external-link" %}
-        {% dds__popout_option "Quick Open" shortcut="⌘P" role="menuitem" %}
+    When to Use:
+        - Rendering selectable radio-style options inside a ``{% dds__popout %}`` menu.
+        - Rendering action items (``role="menuitem"``) inside an action or overflow menu.
+        - Rendering navigation links (``href="..."``) inside a flyout or navigation menu.
     """
 
     label = parameters.StrParam(description="Option text label.")

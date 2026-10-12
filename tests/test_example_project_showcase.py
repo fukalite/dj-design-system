@@ -139,6 +139,7 @@ class TestSettingsDdsGallery:
                 nav_tree = navigation_service.build_navigation()
                 assert [node.slug for node in nav_tree] == ["dj_design_system"]
                 assert [child.slug for child in nav_tree[0].children] == [
+                    "about",
                     "domain",
                     "elements",
                 ]

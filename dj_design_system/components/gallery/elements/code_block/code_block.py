@@ -27,19 +27,10 @@ class CodeBlock(components.TagComponent):
     ``<dds-code-block>`` custom element to support one-click clipboard copying
     and ``dds:copy`` event dispatching.
 
-    Args:
-        code: Source code snippet to render.
-        language: Code language identifier (defaults to ``"django"``).
-        title: Optional header title or filename override.
-        show_header: Explicitly control header display (defaults to True when title is present).
-        copyable: Whether to display the copy-to-clipboard trigger button.
-        flush: Whether to render the code block without outer border and border-radius.
-
-    Example usage::
-
-        {% dds__code_block "{% dds__button 'Save' %}" %}
-
-        {% dds__code_block code=python_snippet language="python" title="views.py" %}
+    When to Use:
+        - Displaying Django template tag invocations (``language="django"``) in component gallery documentation and usage examples.
+        - Presenting Python, CSS, HTML, or shell snippets with consistent monospace formatting.
+        - Providing one-click clipboard copy functionality with accessible status feedback and bubbling ``dds:copy`` custom events.
     """
 
     code = parameters.StrParam(description="Source code snippet to render.")

@@ -34,20 +34,9 @@ class SearchBox(components.TagComponent):
     data-search-index>`` JSON payload so the custom element can read its index
     entirely within its own DOM subtree.
 
-    Args:
-        placeholder: Search input placeholder text.
-        aria_label: Accessible label for the combobox search input.
-        search_index: Optional list of search index entry dicts or objects with
-            ``label``, ``url``, ``type``, ``breadcrumb``, and ``content`` fields.
-        index_id: DOM id of the JSON script element containing the search index.
-        input_id: DOM id for the search input element.
-        results_id: DOM id for the listbox results container.
-        shortcut_hint: Keyboard shortcut hint badge label (pass ``""`` to hide).
-
-    Example usage::
-
-        {% dds__search_box search_index=search_index %}
-        {% dds__search_box "Filter components..." shortcut_hint="⌘K" %}
+    When to Use:
+        - In the gallery topbar or sidebar header to provide instant keyboard-accessible search across components and documentation.
+        - Anywhere a self-contained combobox search widget with an embedded JSON search index is needed.
     """
 
     placeholder = parameters.StrParam(

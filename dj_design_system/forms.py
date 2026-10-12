@@ -71,7 +71,9 @@ def build_component_form(component_class: type[BaseComponent]) -> type[forms.For
     if issubclass(component_class, BlockComponent):
         if component_class.has_slots():
             for slot_name, slot in component_class.get_slots().items():
-                initial = slot.default or f"Sample {slot_name} content"
+                initial = slot.default or (
+                    f"Sample {slot_name} content" if slot.required else ""
+                )
                 fields[f"{SLOT_PARAM_PREFIX}{slot_name}"] = forms.CharField(
                     label=slot_name,
                     help_text=slot.description or f"Slot: {slot_name}",

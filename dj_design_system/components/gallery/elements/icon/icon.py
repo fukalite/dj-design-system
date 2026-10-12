@@ -15,6 +15,8 @@ ICON_NAMES: tuple[str, ...] = (
     "ruler",
     "rtl",
     "component",
+    "component-variants",
+    "variant",
     "doc",
     "folder",
     "folder-open",
@@ -46,11 +48,6 @@ class Icon(components.TagComponent):
     decorative and rendered with ``aria-hidden="true"``. When ``label`` is
     provided, the icon is exposed to assistive technologies with ``role="img"``
     and ``aria-label``.
-
-    Args:
-        name: Identifier of the icon to render from ``ICON_NAMES``.
-        size: Semantic size token step (``"xs"``, ``"sm"``, ``"md"``, ``"lg"``).
-        label: Optional accessible label for non-decorative icons.
     """
 
     name = parameters.StrParam(

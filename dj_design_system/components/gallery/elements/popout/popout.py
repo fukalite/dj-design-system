@@ -21,28 +21,10 @@ class Popout(components.BlockComponent):
     or custom trigger markup supplied via ``{% slot "trigger" %}``, paired with a
     floating ``<div data-popout-menu data-surface="popout">`` container.
 
-    Args:
-        label: Trigger button text label (also used as ``aria-label`` when
-            ``icon_only=True`` and as fallback for ``menu_label``).
-        icon: Optional leading trigger icon name.
-        icon_only: Render an icon-only trigger button without label span or
-            trailing chevron icon.
-        align: Horizontal alignment of the floating menu (``"start"`` or ``"end"``).
-        open: Whether the popout menu is initially open.
-        role: ARIA role for the floating pane (``"menu"``, ``"dialog"``,
-            ``"region"``, or ``"none"``).
-        menu_label: Accessible ``aria-label`` for the floating surface; falls
-            back to ``label`` when omitted.
-
-    Example usage::
-
-        {% dds__popout "Theme" icon="sun" %}
-            {% slot "trigger" %}
-                <button type="button" class="dds-button" data-popout-trigger aria-haspopup="true" aria-expanded="false">
-                    Theme
-                </button>
-            {% endslot %}
-        {% enddds__popout %}
+    When to Use:
+        - Revealing dropdown menus, option selectors, or secondary actions on user click.
+        - Rendering accessible menus with keyboard navigation and focus management.
+        - Embedding rich flyout panels via the default block body.
     """
 
     label = parameters.StrParam(

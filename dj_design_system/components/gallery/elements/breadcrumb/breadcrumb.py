@@ -33,10 +33,10 @@ class Breadcrumb(components.TagComponent):
     self-link. Preceding items with a ``url`` or ``href`` render as ``<a>``
     links; items without a URL render as static ``<span>`` elements.
 
-    Example usage::
-
-        {% dds__breadcrumb items=trail %}
-        {% dds__breadcrumb items separator_icon="chevron-right" aria_label="Component path" %}
+    When to Use:
+        - Showing the current component or document's position inside the gallery hierarchy.
+        - Providing quick upward navigation to parent folders or collection indexes.
+        - Indicating non-clickable namespace prefixes alongside linked parent directories.
     """
 
     items = parameters.ListParam(

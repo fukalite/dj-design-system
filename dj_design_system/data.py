@@ -369,7 +369,7 @@ class NavNode:
 
     @property
     def has_index_doc(self) -> bool:
-        return self.index_doc_path is not None
+        return self.index_doc_path is not None and self.index_doc_path.is_file()
 
 
 def format_param_type_name(param_type: Any, fallback: str = "any") -> str:
