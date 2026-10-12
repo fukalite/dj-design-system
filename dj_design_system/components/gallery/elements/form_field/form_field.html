@@ -1,22 +1,22 @@
-<div class="dds-form-field" data-layout="{{ layout }}"{% if has_error %} data-invalid="true"{% endif %}>
+<div class="dds-form-field" {{ attrs }}{% if has_error %} data-invalid="true"{% endif %}>
   <l-stack>
     {% if is_inline %}
       <l-cluster data-part="inline-group">
-        {% if slots.control %}{{ slots.control }}{% else %}{{ content }}{% endif %}
-        <label{% if has_field_id %} for="{{ field_id }}"{% endif %} data-part="label">{{ label }}{% if required %}<span data-part="required" aria-hidden="true">*</span>{% endif %}</label>
+        {{ content }}
+        <label{% if field_id %} for="{{ field_id }}"{% endif %} data-part="label">{{ label }}{% if required %}<span data-part="required" aria-hidden="true">*</span>{% endif %}</label>
       </l-cluster>
     {% else %}
-      <label{% if has_field_id %} for="{{ field_id }}"{% endif %} data-part="label">{{ label }}{% if required %}<span data-part="required" aria-hidden="true">*</span>{% endif %}</label>
-      {% if slots.control %}{{ slots.control }}{% else %}{{ content }}{% endif %}
+      <label{% if field_id %} for="{{ field_id }}"{% endif %} data-part="label">{{ label }}{% if required %}<span data-part="required" aria-hidden="true">*</span>{% endif %}</label>
+        {{ content }}
     {% endif %}
     {% if has_description %}
       <div id="{{ description_id }}" data-part="description">
-        {% if slots.description %}{{ slots.description }}{% else %}<p>{{ description }}</p>{% endif %}
+        <p>{{ description }}</p>
       </div>
     {% endif %}
     {% if has_error %}
       <div id="{{ error_id }}" data-part="error">
-        {% if slots.error %}{{ slots.error }}{% else %}<p role="alert">{{ error }}</p>{% endif %}
+        <p role="alert">{{ error }}</p>
       </div>
     {% endif %}
   </l-stack>

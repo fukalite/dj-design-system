@@ -16,7 +16,7 @@ config = gallery.GalleryConfig(
     param_defaults={
         "label": "Email address",
         "field_id": "dds-email",
-        "slot__control": DEFAULT_CONTROL_HTML,
+        "content": DEFAULT_CONTROL_HTML,
     },
     variants=[
         gallery.Variant(
@@ -26,7 +26,7 @@ config = gallery.GalleryConfig(
             kwargs={
                 "label": "Email address",
                 "field_id": "dds-email",
-                "slot__control": DEFAULT_CONTROL_HTML,
+                "content": DEFAULT_CONTROL_HTML,
             },
         ),
         gallery.Variant(
@@ -40,7 +40,7 @@ config = gallery.GalleryConfig(
                 "error": "Administrator approval is required for this role.",
                 "required": True,
                 "layout": "stacked",
-                "slot__control": SELECT_CONTROL_HTML,
+                "content": SELECT_CONTROL_HTML,
             },
         ),
         gallery.Variant(
@@ -52,20 +52,20 @@ config = gallery.GalleryConfig(
                 "field_id": "dds-opt-in",
                 "description": "Receive weekly digest summaries.",
                 "layout": "inline",
-                "slot__control": CHECKBOX_CONTROL_HTML,
+                "content": CHECKBOX_CONTROL_HTML,
             },
         ),
         gallery.Variant(
             name="rich_slots",
-            label="Rich Slotted Helpers",
-            description="Form field demonstrating rich slotted description with link and slotted error markup.",
+            label="Field with Helper and Error",
+            description="Form field demonstrating helper description and validation error text.",
             kwargs={
                 "label": "API Key",
                 "field_id": "dds-api-key",
                 "required": True,
-                "slot__control": '<input id="dds-api-key" type="password" value="sk-test-12345">',
-                "slot__description": '<p>Read our <a href="#">API security guide</a> for secret rotation instructions.</p>',
-                "slot__error": '<p role="alert">This key has expired. Please issue a new key.</p>',
+                "content": '<input id="dds-api-key" type="password" value="sk-test-12345">',
+                "description": "Read our API security guide for secret rotation instructions.",
+                "error": "This key has expired. Please issue a new key.",
             },
         ),
     ],

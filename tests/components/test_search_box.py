@@ -225,7 +225,7 @@ class TestSearchBoxRendering:
         ).render()
         assert (
             '<dds-search-box class="dds-search-box" data-state="closed" '
-            'data-index-id="gallery-search-index">' in html
+            'data-index-id="gallery-search-index"' in html
         )
         assert "<div data-search-field>" in html
         assert 'data-icon="search"' in html
@@ -293,6 +293,10 @@ class TestSearchBoxStylesheetAndHygiene:
             "var(--dds-space-",
         ):
             assert required_domain in root_block_text
+
+        assert "var(--dds-surface-stage-" not in css_text
+        assert "--_search-box-result-active-border-color" not in css_text
+        assert "max-block-size: 20rem;" in css_text
 
     def test_python_and_template_hygiene(self) -> None:
         """Verify search_box.py has no private methods/mark_safe and search_box.html has no filters."""

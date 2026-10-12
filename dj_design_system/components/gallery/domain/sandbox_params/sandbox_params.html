@@ -1,5 +1,5 @@
 {% load design_components %}
-<dds-sandbox-params class="dds-sandbox-params" data-surface="sandbox">
+<dds-sandbox-params class="dds-sandbox-params" data-surface="sandbox" {{ attrs }}>
   {% if has_rows %}
     <form method="get"
           data-params-form
@@ -18,7 +18,7 @@
       <l-stack data-params-fields>
         {% for row in normalized_rows %}
           {% dds__form_field label=row.label field_id=row.field_id description=row.description error=row.error required=row.required %}
-            {% slot "control" %}{% if row.has_field_html %}{{ row.field_html }}{% else %}<input type="text" id="{{ row.field_id }}" name="{{ row.name }}">{% endif %}{% endslot %}
+            {% if row.has_field_html %}{{ row.field_html }}{% else %}<input type="text" id="{{ row.field_id }}" name="{{ row.name }}">{% endif %}
           {% enddds__form_field %}
         {% endfor %}
       </l-stack>

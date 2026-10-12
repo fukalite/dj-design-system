@@ -52,166 +52,114 @@
     border-radius: var(--_canvas-widget-border-radius);
     overflow: hidden;
     color: var(--_canvas-widget-text-color);
-  }
 
-  dds-canvas-widget[data-canvas-id='sandbox'],
-  .dds-canvas-widget[data-canvas-id='sandbox'] {
-    display: flex;
-    flex: 1 1 auto;
-    flex-direction: column;
-    border-inline-width: 0;
-    border-radius: 0;
-    border-block-start-width: 0;
-  }
+    & [data-canvas-toggles] {
+      --space: var(--_canvas-widget-toggle-gap);
+      align-items: center;
+      justify-content: flex-end;
+      margin: 0;
+      padding-block: var(--_canvas-widget-toggles-padding-block);
+      padding-inline: var(--_canvas-widget-toggles-padding-inline);
+      background-color: var(--_canvas-widget-toggles-bg-color);
+      border-block-end-width: var(--_canvas-widget-border-width);
+      border-block-end-style: var(--_canvas-widget-border-style);
+      border-block-end-color: var(--_canvas-widget-border-color);
+    }
 
-  dds-canvas-widget [data-canvas-toggles],
-  .dds-canvas-widget [data-canvas-toggles] {
-    --space: var(--_canvas-widget-toggle-gap);
-    align-items: center;
-    justify-content: flex-end;
-    margin: 0;
-    padding-block: var(--_canvas-widget-toggles-padding-block);
-    padding-inline: var(--_canvas-widget-toggles-padding-inline);
-    background-color: var(--_canvas-widget-toggles-bg-color);
-    border-block-end-color: var(--_canvas-widget-border-color);
-    border-block-end-style: var(--_canvas-widget-border-style);
-    border-block-end-width: var(--_canvas-widget-border-width);
-  }
+    & [data-canvas-mode] {
+      display: inline-flex;
+      gap: var(--_canvas-widget-toggle-gap);
+      align-items: center;
+      margin: 0;
+      padding-block: var(--_canvas-widget-toggle-padding-block);
+      padding-inline: var(--_canvas-widget-toggle-padding-inline);
+      border-width: var(--_canvas-widget-control-border-width);
+      border-style: var(--_canvas-widget-control-border-style);
+      border-color: var(--_canvas-widget-control-border-color);
+      border-radius: var(--_canvas-widget-control-border-radius);
+      color: var(--_canvas-widget-text-color);
+      background-color: var(--_canvas-widget-control-bg-color);
+      font-family: var(--_canvas-widget-control-font);
+      font-size: var(--_canvas-widget-control-font-size);
+      font-weight: var(--_canvas-widget-control-font-weight);
+      line-height: var(--_canvas-widget-control-line-height);
+      letter-spacing: var(--_canvas-widget-control-letter-spacing);
+      cursor: pointer;
+      transition-duration: var(--_canvas-widget-transition-duration);
+      transition-property: background-color, border-color, color;
+      transition-timing-function: var(--_canvas-widget-transition-easing);
 
-  dds-canvas-widget [data-canvas-mode],
-  .dds-canvas-widget [data-canvas-mode] {
-    display: inline-flex;
-    gap: var(--_canvas-widget-toggle-gap);
-    align-items: center;
-    margin: 0;
-    padding-block: var(--_canvas-widget-toggle-padding-block);
-    padding-inline: var(--_canvas-widget-toggle-padding-inline);
-    border-width: var(--_canvas-widget-control-border-width);
-    border-style: var(--_canvas-widget-control-border-style);
-    border-color: var(--_canvas-widget-control-border-color);
-    border-radius: var(--_canvas-widget-control-border-radius);
-    color: var(--_canvas-widget-text-color);
-    background-color: var(--_canvas-widget-control-bg-color);
-    font-family: var(--_canvas-widget-control-font);
-    font-size: var(--_canvas-widget-control-font-size);
-    font-weight: var(--_canvas-widget-control-font-weight);
-    line-height: var(--_canvas-widget-control-line-height);
-    letter-spacing: var(--_canvas-widget-control-letter-spacing);
-    cursor: pointer;
-    transition-duration: var(--_canvas-widget-transition-duration);
-    transition-property: background-color, border-color, color;
-    transition-timing-function: var(--_canvas-widget-transition-easing);
-  }
+      &:hover {
+        border-color: var(--_canvas-widget-hover-border-color);
+        color: var(--_canvas-widget-hover-text-color);
+        background-color: var(--_canvas-widget-hover-bg-color);
+      }
 
-  dds-canvas-widget [data-canvas-mode]:hover,
-  .dds-canvas-widget [data-canvas-mode]:hover {
-    border-color: var(--_canvas-widget-hover-border-color);
-    color: var(--_canvas-widget-hover-text-color);
-    background-color: var(--_canvas-widget-hover-bg-color);
-  }
+      &[aria-pressed='true'] {
+        border-color: var(--_canvas-widget-selected-border-color);
+        color: var(--_canvas-widget-selected-text-color);
+        background-color: var(--_canvas-widget-selected-bg-color);
+      }
 
-  dds-canvas-widget [data-canvas-mode][aria-pressed='true'],
-  .dds-canvas-widget [data-canvas-mode][aria-pressed='true'] {
-    border-color: var(--_canvas-widget-selected-border-color);
-    color: var(--_canvas-widget-selected-text-color);
-    background-color: var(--_canvas-widget-selected-bg-color);
-  }
+      &:focus-visible {
+        border-color: var(--_canvas-widget-focus-outline-color);
+        outline-width: var(--_canvas-widget-focus-outline-width);
+        outline-style: var(--_canvas-widget-focus-outline-style);
+        outline-color: var(--_canvas-widget-focus-outline-color);
+        outline-offset: var(--_canvas-widget-focus-outline-offset);
+      }
+    }
 
-  dds-canvas-widget [data-canvas-mode]:focus-visible,
-  .dds-canvas-widget [data-canvas-mode]:focus-visible {
-    outline-width: var(--_canvas-widget-focus-outline-width);
-    outline-style: var(--_canvas-widget-focus-outline-style);
-    outline-color: var(--_canvas-widget-focus-outline-color);
-    outline-offset: var(--_canvas-widget-focus-outline-offset);
-  }
+    & [data-canvas-stage] {
+      box-sizing: border-box;
+      margin: 0;
+      padding: var(--_canvas-widget-stage-padding);
+      overflow-x: auto;
+      background-color: var(--_canvas-widget-stage-bg-color);
+    }
 
-  dds-canvas-widget [data-canvas-stage],
-  .dds-canvas-widget [data-canvas-stage] {
-    box-sizing: border-box;
-    margin: 0;
-    padding: var(--_canvas-widget-stage-padding);
-    overflow-x: auto;
-    background-color: var(--_canvas-widget-stage-bg-color);
-  }
+    &[data-background='white'] [data-canvas-stage] {
+      background-color: var(--_canvas-widget-stage-white-bg-color);
+    }
 
-  dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-stage]:not([hidden]),
-  .dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-stage]:not([hidden]) {
-    display: flex;
-    flex: 1 1 auto;
-    flex-direction: column;
-    align-items: stretch;
-    padding: 0;
-  }
+    &[data-background='light'] [data-canvas-stage] {
+      background-color: var(--_canvas-widget-stage-light-bg-color);
+    }
 
-  dds-canvas-widget[data-background='white'] [data-canvas-stage],
-  .dds-canvas-widget[data-background='white'] [data-canvas-stage] {
-    background-color: var(--_canvas-widget-stage-white-bg-color);
-  }
+    &[data-background='dark'] [data-canvas-stage] {
+      background-color: var(--_canvas-widget-stage-dark-bg-color);
+    }
 
-  dds-canvas-widget[data-background='light'] [data-canvas-stage],
-  .dds-canvas-widget[data-background='light'] [data-canvas-stage] {
-    background-color: var(--_canvas-widget-stage-light-bg-color);
-  }
+    & [data-canvas-viewport] {
+      box-sizing: border-box;
+      inline-size: var(--_canvas-widget-viewport-width, 100%);
+      max-inline-size: 100%;
+      margin-inline: auto;
+      transition-duration: var(--_canvas-widget-transition-duration);
+      transition-property: inline-size;
+      transition-timing-function: var(--_canvas-widget-transition-easing);
+    }
 
-  dds-canvas-widget[data-background='dark'] [data-canvas-stage],
-  .dds-canvas-widget[data-background='dark'] [data-canvas-stage] {
-    background-color: var(--_canvas-widget-stage-dark-bg-color);
-  }
+    & [data-canvas-iframe] {
+      display: block;
+      inline-size: 100%;
+      block-size: var(--_canvas-widget-iframe-height, 10rem);
+      margin: 0;
+      border: 0;
+    }
 
-  dds-canvas-widget [data-canvas-viewport],
-  .dds-canvas-widget [data-canvas-viewport] {
-    box-sizing: border-box;
-    inline-size: var(--_canvas-widget-viewport-width, 100%);
-    max-inline-size: 100%;
-    margin-inline: auto;
-    transition-duration: var(--_canvas-widget-transition-duration);
-    transition-property: inline-size;
-    transition-timing-function: var(--_canvas-widget-transition-easing);
-  }
+    & [data-canvas-panel] {
+      margin: 0;
+      color: var(--_canvas-widget-code-text-color);
+      background-color: var(--_canvas-widget-code-bg-color);
+      border-block-start-width: var(--_canvas-widget-border-width);
+      border-block-start-style: var(--_canvas-widget-border-style);
+      border-block-start-color: var(--_canvas-widget-code-border-color);
+    }
 
-  dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-viewport],
-  .dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-viewport] {
-    display: flex;
-    flex: 1 1 auto;
-    flex-direction: column;
-    block-size: 100%;
-  }
-
-  dds-canvas-widget [data-canvas-iframe],
-  .dds-canvas-widget [data-canvas-iframe] {
-    display: block;
-    inline-size: 100%;
-    block-size: var(--_canvas-widget-iframe-height, 10rem);
-    margin: 0;
-    border: 0;
-  }
-
-  dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-iframe],
-  .dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-iframe] {
-    flex: 1 1 auto;
-    block-size: 100%;
-  }
-
-  dds-canvas-widget [data-canvas-panel],
-  .dds-canvas-widget [data-canvas-panel] {
-    margin: 0;
-    color: var(--_canvas-widget-code-text-color);
-    background-color: var(--_canvas-widget-code-bg-color);
-    border-block-start-color: var(--_canvas-widget-code-border-color);
-    border-block-start-style: var(--_canvas-widget-border-style);
-    border-block-start-width: var(--_canvas-widget-border-width);
-  }
-
-  dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-panel]:not([hidden]),
-  .dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-panel]:not([hidden]) {
-    flex: 1 1 auto;
-    overflow-y: auto;
-  }
-
-  dds-canvas-widget [data-canvas-stage][hidden],
-  dds-canvas-widget [data-canvas-panel][hidden],
-  .dds-canvas-widget [data-canvas-stage][hidden],
-  .dds-canvas-widget [data-canvas-panel][hidden] {
-    display: none;
+    & [data-canvas-stage][hidden],
+    & [data-canvas-panel][hidden] {
+      display: none;
+    }
   }
 }

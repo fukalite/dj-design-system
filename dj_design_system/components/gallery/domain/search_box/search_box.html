@@ -1,9 +1,9 @@
 {% load design_components %}
-<dds-search-box class="dds-search-box" data-state="closed" data-index-id="{{ index_id }}">
+<dds-search-box class="dds-search-box" data-state="closed" data-index-id="{{ index_id }}" {{ attrs }}>
   <div data-search-field>
     {% dds__icon name="search" size="sm" %}
     <input type="search" id="{{ input_id }}" data-search-input placeholder="{{ placeholder }}" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="{{ results_id }}" aria-label="{{ aria_label }}">
-    {% if has_shortcut %}
+    {% if shortcut_hint %}
       <kbd data-search-shortcut aria-hidden="true">{{ shortcut_hint }}</kbd>
     {% endif %}
   </div>

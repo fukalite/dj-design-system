@@ -65,12 +65,13 @@ class Table(components.BlockComponent):
         }
 
     def get_context(self) -> dict[str, typing.Any]:
-        """Compute template context including caption presence flag.
+        """Compute template context including caption presence flag and resolved aria-label.
 
         Returns:
-            A context dictionary containing parameters, ``has_caption``, and
-            ``slots``.
+            A context dictionary containing parameters, ``has_caption``,
+            ``resolved_aria_label``, and ``slots``.
         """
         context = super().get_context()
         context["has_caption"] = bool(self.caption)
+        context["resolved_aria_label"] = self.caption or "Data table"
         return context

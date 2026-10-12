@@ -230,7 +230,7 @@ class TestThemeSelectRenderingAndTemplate:
             context={"themes_list": themes_list},
         ).strip()
         assert (
-            '<dds-theme-select class="dds-theme-select" data-active-theme="dark">'
+            '<dds-theme-select class="dds-theme-select" data-active-theme="dark"'
             in html
         )
         assert "<div data-theme-control>" in html
@@ -311,6 +311,13 @@ class TestThemeSelectStylesheet:
             "--dds-space-",
         ):
             assert expected_family in mapped_values
+
+    def test_disabled_styles_target_theme_control_box(self) -> None:
+        """Verify disabled selector targets [data-theme-control] via :has([data-theme-select]:disabled)."""
+        css_text = _read_text(path=THEME_SELECT_CSS_PATH)
+        assert "&:has([data-theme-select]:disabled) [data-theme-control]" in css_text
+        assert "pointer-events: none;" in css_text
+        assert "cursor: not-allowed;" in css_text
 
 
 class TestThemeSelectCustomElementTypeScript:

@@ -319,7 +319,7 @@ class TestSandboxToolbarRenderingAndTemplate:
         html = _render_template(source="{% dds__sandbox_toolbar %}").strip()
         assert (
             '<dds-sandbox-toolbar class="dds-sandbox-toolbar" data-surface="sandbox" '
-            'role="toolbar" aria-label="Sandbox controls">' in html
+            'role="toolbar" aria-label="Sandbox controls"' in html
         )
         assert "<l-cluster data-sandbox-controls>" in html
         assert 'data-sandbox-control="variant"' not in html
@@ -407,10 +407,15 @@ class TestSandboxToolbarStylesheet:
             "--dds-surface-sandbox-",
             "--dds-control-",
             "--dds-text-control-",
-            "--dds-state-",
             "--dds-space-",
         ):
             assert expected_family in mapped_values
+
+        assert "--_sandbox-toolbar-control-bg-color" not in css_text
+        assert "--_sandbox-toolbar-hover-bg-color" not in css_text
+        assert "--_sandbox-toolbar-transition-duration" not in css_text
+        assert "& [data-sandbox-controls]" in css_text
+        assert "dds-sandbox-toolbar [" not in css_text
 
 
 class TestSandboxToolbarCustomElementTypeScript:

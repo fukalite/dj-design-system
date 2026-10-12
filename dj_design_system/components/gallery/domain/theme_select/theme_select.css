@@ -23,7 +23,6 @@
     --_theme-select-hover-bg-color: var(--dds-state-hover-bg-color);
     --_theme-select-hover-border-color: var(--dds-state-hover-border-color);
     --_theme-select-hover-text-color: var(--dds-state-hover-text-color);
-    --_theme-select-icon-color: var(--dds-text-muted-color);
     --_theme-select-letter-spacing: var(--dds-text-control-letter-spacing);
     --_theme-select-line-height: var(--dds-text-control-line-height);
     --_theme-select-padding-block: var(--dds-space-xs);
@@ -71,6 +70,15 @@
       }
     }
 
+    &:has([data-theme-select]:disabled) [data-theme-control] {
+      border-color: var(--_theme-select-disabled-border-color);
+      color: var(--_theme-select-disabled-text-color);
+      background-color: var(--_theme-select-disabled-bg-color);
+      opacity: var(--_theme-select-disabled-opacity);
+      pointer-events: none;
+      cursor: not-allowed;
+    }
+
     & [data-theme-select] {
       margin: 0;
       padding: 0;
@@ -87,10 +95,6 @@
       cursor: pointer;
 
       &:disabled {
-        border-color: var(--_theme-select-disabled-border-color);
-        color: var(--_theme-select-disabled-text-color);
-        background-color: var(--_theme-select-disabled-bg-color);
-        opacity: var(--_theme-select-disabled-opacity);
         cursor: not-allowed;
       }
     }

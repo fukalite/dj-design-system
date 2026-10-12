@@ -1,8 +1,8 @@
-"""Form field wrapper component providing label, control slot, description, and error state."""
+"""Form field wrapper component providing label, block content, description, and error state."""
 
 import typing
 
-from dj_design_system import components, parameters, slots
+from dj_design_system import components, parameters
 
 
 LAYOUT_STACKED = "stacked"
@@ -16,8 +16,7 @@ class FormField(components.BlockComponent):
     Use ``{% dds__form_field %}`` to give native HTML inputs, selects, and textareas
     consistent label typography, spacing, focus outlines, and accessible error
     messaging backed by Tier 2 ``--dds-control-*`` and ``--dds-status-error-*``
-    tokens. Pass the control markup via ``{% slot "control" %}`` (or as default
-    block content when instantiating in Python).
+    tokens. Pass the control markup as the component block content.
     """
 
     label = parameters.StrParam(description="Field label text.")
@@ -41,37 +40,24 @@ class FormField(components.BlockComponent):
         default=LAYOUT_STACKED,
         required=False,
         choices=list(LAYOUT_CHOICES),
+        data_attr=True,
     )
     description = parameters.StrParam(
-        description="Optional helper description text (overridden by description slot).",
+        description="Optional helper description text.",
         default="",
         required=False,
     )
     error = parameters.StrParam(
-        description="Optional validation error message (overridden by error slot).",
+        description="Optional validation error message.",
         default="",
         required=False,
     )
 
     class Meta:
         positional_args = ["label"]
-        slots = {
-            "control": slots.Slot(
-                required=False,
-                description="Form control widget markup (falls back to default block content if omitted).",
-            ),
-            "description": slots.Slot(
-                required=False,
-                description="Optional rich description markup (falls back to description parameter).",
-            ),
-            "error": slots.Slot(
-                required=False,
-                description="Optional rich error markup (falls back to error parameter).",
-            ),
-        }
 
     def get_context(self) -> dict[str, typing.Any]:
-        """Build template context with pre-computed boolean flags, IDs, and slot fallbacks.
+        """Build template context with pre-computed boolean flags and IDs.
 
         Returns:
             Dictionary of template context variables for ``form_field.html``.
@@ -83,12 +69,9 @@ class FormField(components.BlockComponent):
             if self.required_field is None
             else bool(self.required or self.required_field)
         )
-        has_description = bool(
-            self.description or (self.slots and self.slots.get("description"))
-        )
-        has_error = bool(self.error or (self.slots and self.slots.get("error")))
+        has_description = bool(self.description)
+        has_error = bool(self.error)
 
-        context["slots"] = self.slots
         context["content"] = self.content or ""
         context["field_id"] = self.field_id
         context["resolved_id"] = resolved_id
@@ -102,14 +85,6 @@ class FormField(components.BlockComponent):
         context["is_inline"] = self.layout == LAYOUT_INLINE
         context["required"] = is_required
         context["required_field"] = is_required
-        context["description"] = (
-            self.slots.get("description")
-            if (self.slots and self.slots.get("description"))
-            else self.description
-        )
-        context["error"] = (
-            self.slots.get("error")
-            if (self.slots and self.slots.get("error"))
-            else self.error
-        )
+        context["description"] = self.description or ""
+        context["error"] = self.error or ""
         return context

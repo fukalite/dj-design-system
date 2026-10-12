@@ -14,9 +14,7 @@
 {% load design_components %}
 
 {% dds__form_field "Email address" field_id="email" required=True description="We never share your email." %}
-  {% slot "control" %}
-    <input id="email" name="email" type="email" required aria-describedby="email-description">
-  {% endslot %}
+  <input id="email" name="email" type="email" required aria-describedby="email-description">
 {% enddds__form_field %}
 ```
 
@@ -26,23 +24,16 @@ When `error` is non-empty, the root `.dds-form-field` element sets `data-invalid
 
 ```django
 {% dds__form_field "Username" field_id="username" error="This username is already taken." %}
-  {% slot "control" %}
-    <input id="username" name="username" type="text" aria-invalid="true" aria-errormessage="username-error">
-  {% endslot %}
+  <input id="username" name="username" type="text" aria-invalid="true" aria-errormessage="username-error">
 {% enddds__form_field %}
 ```
 
-## Rich Slots for Description and Errors
+## Inline Layout
 
-Complex forms can provide rich HTML helper text and structured error messages via named slots:
+For checkboxes, switches, or horizontal alignments, set `layout="inline"`:
 
 ```django
-{% dds__form_field "API Key" field_id="api-key" required=True %}
-  {% slot "control" %}
-    <input id="api-key" name="api_key" type="password" required aria-describedby="api-key-description">
-  {% endslot %}
-  {% slot "description" %}
-    <p>Read our <a href="/docs/security">API security guide</a> for details.</p>
-  {% endslot %}
+{% dds__form_field "Enable notifications" field_id="opt-in" layout="inline" description="Receive weekly digest summaries." %}
+  <input id="opt-in" name="opt_in" type="checkbox">
 {% enddds__form_field %}
 ```

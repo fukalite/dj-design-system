@@ -40,6 +40,7 @@ class Notice(components.BlockComponent):
         default=DEFAULT_VARIANT,
         required=False,
         choices=list(NOTICE_VARIANTS),
+        data_attr=True,
     )
     title = parameters.StrParam(
         description="Optional notice heading.",
@@ -55,7 +56,15 @@ class Notice(components.BlockComponent):
         description="Optional ARIA role override ('note', 'alert', 'region', or '').",
         default="",
         required=False,
+        attr=True,
     )
+
+    def __init__(self, **kwargs: typing.Any) -> None:
+        """Initialise Notice, defaulting role based on variant when omitted."""
+        if not kwargs.get("role"):
+            variant = kwargs.get("variant", DEFAULT_VARIANT)
+            kwargs["role"] = "alert" if variant in ALERT_VARIANTS else "note"
+        super().__init__(**kwargs)
 
     def get_context(self) -> dict[str, typing.Any]:
         """Compute template context with resolved icon, ARIA role, and title state.

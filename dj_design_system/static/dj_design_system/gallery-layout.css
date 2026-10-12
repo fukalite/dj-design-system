@@ -182,6 +182,41 @@
     overflow: auto;
   }
 
+  [data-sandbox-stack] > dds-canvas-widget,
+  [data-sandbox-stack] > .dds-canvas-widget {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    border-inline-width: 0;
+    border-radius: 0;
+    border-block-start-width: 0;
+
+    & [data-canvas-stage]:not([hidden]) {
+      display: flex;
+      flex: 1 1 auto;
+      flex-direction: column;
+      align-items: stretch;
+      padding: 0;
+    }
+
+    & [data-canvas-viewport] {
+      display: flex;
+      flex: 1 1 auto;
+      flex-direction: column;
+      block-size: 100%;
+    }
+
+    & [data-canvas-iframe] {
+      flex: 1 1 auto;
+      block-size: 100%;
+    }
+
+    & [data-canvas-panel]:not([hidden]) {
+      flex: 1 1 auto;
+      overflow-y: auto;
+    }
+  }
+
   [data-gallery-pane-header] {
     flex-shrink: 0;
     margin: 0;

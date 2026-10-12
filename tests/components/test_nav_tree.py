@@ -350,7 +350,7 @@ class TestNavTreeRenderingAndTemplate:
             source='{% dds__nav_tree nodes active_path="dj_design_system/elements/button" %}',
             context={"nodes": _make_four_level_dict_tree()},
         )
-        assert '<dds-nav-tree class="dds-nav-tree">' in html
+        assert '<dds-nav-tree class="dds-nav-tree"' in html
         assert (
             '<nav class="dds-nav-tree-nav" aria-label="Component navigation">' in html
         )
@@ -457,10 +457,15 @@ class TestNavTreeStylesheet:
         ):
             assert required_domain in css_text
 
+        assert "--_nav-tree-active-border-color" not in css_text
+
     def test_css_boundary_encapsulation(self) -> None:
-        """Verify child component selectors do not leak into nav_tree.css."""
+        """Verify child component selectors do not leak into nav_tree.css and nesting is native."""
         css_text = _read_text(path=NAV_TREE_CSS_PATH)
         assert ".dds-icon" not in css_text
+        assert "& [data-nav-group]" in css_text
+        assert "& [data-nav-link]" in css_text
+        assert "dds-nav-tree [" not in css_text
 
 
 class TestNavTreeGalleryAndDocs:

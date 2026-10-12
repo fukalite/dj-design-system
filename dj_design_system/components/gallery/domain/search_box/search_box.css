@@ -36,7 +36,6 @@
     --_search-box-meta-line-height: var(--dds-text-caption-line-height);
     --_search-box-placeholder-color: var(--dds-text-muted-color);
     --_search-box-result-active-bg-color: var(--dds-state-selected-bg-color);
-    --_search-box-result-active-border-color: var(--dds-state-selected-border-color);
     --_search-box-result-active-text-color: var(--dds-state-selected-text-color);
     --_search-box-result-border-radius: var(--dds-control-border-radius);
     --_search-box-result-gap: var(--dds-space-3xs);
@@ -57,7 +56,7 @@
     --_search-box-results-shadow-color: var(--dds-surface-popout-shadow-color);
     --_search-box-results-shadow-shape: var(--dds-surface-popout-shadow-shape);
     --_search-box-results-z-index: var(--dds-surface-popout-z-index);
-    --_search-box-shortcut-bg-color: var(--dds-surface-stage-bg-color);
+    --_search-box-shortcut-bg-color: var(--dds-state-hover-bg-color);
     --_search-box-shortcut-border-color: var(--dds-control-border-color);
     --_search-box-shortcut-border-radius: var(--dds-control-border-radius);
     --_search-box-shortcut-border-style: var(--dds-control-border-style);
@@ -156,6 +155,7 @@
       flex-direction: column;
       gap: var(--_search-box-results-gap);
       box-sizing: border-box;
+      max-block-size: 20rem;
       margin: 0;
       padding: var(--_search-box-results-padding);
       border-width: var(--_search-box-results-border-width);

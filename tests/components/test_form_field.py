@@ -78,7 +78,7 @@ class TestFormFieldDiscoveryAndContract:
         assert info.component_class is form_field_mod.FormField
         assert info.qualified_name == "dds__form_field"
         assert info.is_builtin is True
-        assert form_field_mod.FormField.has_slots() is True
+        assert form_field_mod.FormField.has_slots() is False
 
     def test_template_and_media_paths(self) -> None:
         """Verify template_name and Media.css match the co-located paths via auto-discovery."""
@@ -96,13 +96,7 @@ class TestFormFieldDiscoveryAndContract:
     def test_parameter_defaults_and_validation(self) -> None:
         """Verify parameter defaults, positional args, and layout choice validation."""
         assert form_field_mod.FormField.get_positional_args() == ["label"]
-        slots_spec = form_field_mod.FormField.get_slots()
-        assert "control" in slots_spec
-        assert slots_spec["control"].required is False
-        assert "description" in slots_spec
-        assert slots_spec["description"].required is False
-        assert "error" in slots_spec
-        assert slots_spec["error"].required is False
+        assert form_field_mod.FormField.get_slots() == {}
 
         instance = form_field_mod.FormField(label="Username")
         assert instance.label == "Username"
@@ -149,12 +143,12 @@ class TestFormFieldDiscoveryAndContract:
 class TestFormFieldRendering:
     """Verify HTML rendering across slots, fallback content, layouts, and states."""
 
-    def test_renders_control_slot_in_template(self) -> None:
-        """Verify {% dds__form_field %} renders label and control slot markup."""
+    def test_renders_block_content_in_template(self) -> None:
+        """Verify {% dds__form_field %} renders label and block control markup."""
         html = _render_template(
             template_source=(
                 '{% dds__form_field "Email" field_id="user-email" %}'
-                '{% slot "control" %}<input id="user-email" type="email">{% endslot %}'
+                '<input id="user-email" type="email">'
                 "{% enddds__form_field %}"
             )
         )
@@ -164,8 +158,8 @@ class TestFormFieldRendering:
         assert '<label for="user-email" data-part="label">Email</label>' in html
         assert '<input id="user-email" type="email">' in html
 
-    def test_renders_fallback_content_when_control_slot_omitted(self) -> None:
-        """Verify FormField falls back to default block content when control slot is omitted."""
+    def test_renders_block_content_when_instantiated_in_python(self) -> None:
+        """Verify FormField renders content passed via Python instantiation."""
         component = form_field_mod.FormField(
             content=safestring.mark_safe(s='<textarea id="notes"></textarea>'),
             label="Notes",
@@ -181,7 +175,7 @@ class TestFormFieldRendering:
             template_source=(
                 '{% dds__form_field "Password" field_id="pwd" required=True '
                 'description="At least 12 characters." error="Password is too short." %}'
-                '{% slot "control" %}<input id="pwd" type="password">{% endslot %}'
+                '<input id="pwd" type="password">'
                 "{% enddds__form_field %}"
             )
         )
@@ -203,7 +197,7 @@ class TestFormFieldRendering:
         html = _render_template(
             template_source=(
                 '{% dds__form_field "Subscribe" layout="inline" %}'
-                '{% slot "control" %}<input type="checkbox">{% endslot %}'
+                '<input type="checkbox">'
                 "{% enddds__form_field %}"
             )
         )
@@ -216,19 +210,18 @@ class TestFormFieldRendering:
         label_pos = html.index('<label data-part="label">Subscribe</label>')
         assert input_pos < label_pos
 
-    def test_renders_rich_slots_for_description_and_error(self) -> None:
-        """Verify rich HTML slotted description and error override text parameters."""
+    def test_renders_description_and_error_parameters(self) -> None:
+        """Verify description and error parameters render associated accessible containers."""
         html = _render_template(
             template_source=(
-                '{% dds__form_field "Security Code" field_id="sec-code" %}'
-                '{% slot "control" %}<input id="sec-code" type="text">{% endslot %}'
-                '{% slot "description" %}<p>See <a href="/help">help page</a> for info.</p>{% endslot %}'
-                '{% slot "error" %}<p role="alert">Code has expired.</p>{% endslot %}'
+                '{% dds__form_field "Security Code" field_id="sec-code" '
+                'description="See help page for info." error="Code has expired." %}'
+                '<input id="sec-code" type="text">'
                 "{% enddds__form_field %}"
             )
         )
         assert '<div id="sec-code-description" data-part="description">' in html
-        assert '<a href="/help">help page</a>' in html
+        assert "<p>See help page for info.</p>" in html
         assert '<div id="sec-code-error" data-part="error">' in html
         assert '<p role="alert">Code has expired.</p>' in html
 

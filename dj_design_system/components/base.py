@@ -4,6 +4,7 @@ from django.template.loader import render_to_string
 from django.utils.html import conditional_escape, format_html
 from django.utils.safestring import SafeString, mark_safe
 
+from dj_design_system.exceptions import SlotParameterCollisionError
 from dj_design_system.parameters import BaseParam
 from dj_design_system.services.component import (
     derive_name,
@@ -36,6 +37,13 @@ class BaseComponent:
 
         meta = get_own_meta(cls)
         param_names = set(cls.get_params().keys())
+        slot_names = set(getattr(meta, "slots", {}).keys())
+        overlapping = param_names & slot_names
+        if overlapping:
+            overlap_list = ", ".join(f"'{name}'" for name in sorted(overlapping))
+            raise SlotParameterCollisionError(
+                f"{cls.__name__} cannot define slots and parameters with the same name: {overlap_list}."
+            )
 
         for a, b in getattr(meta, "mutually_exclusive", []):
             for name in (a, b):

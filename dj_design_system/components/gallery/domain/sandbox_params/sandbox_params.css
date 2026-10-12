@@ -8,13 +8,11 @@
     --_sandbox-params-border-width: var(--dds-surface-border-width);
     --_sandbox-params-empty-color: var(--dds-text-muted-color);
     --_sandbox-params-empty-padding-block: var(--dds-space-inset-compact);
-    --_sandbox-params-fields-gap: var(--dds-space-gap-default);
     --_sandbox-params-font: var(--dds-text-body-font);
     --_sandbox-params-font-size: var(--dds-text-body-size);
     --_sandbox-params-font-weight: var(--dds-text-body-weight);
     --_sandbox-params-letter-spacing: var(--dds-text-body-letter-spacing);
     --_sandbox-params-line-height: var(--dds-text-body-line-height);
-    --_sandbox-params-padding: var(--dds-space-inset-default);
     --_sandbox-params-row-border-width: var(--dds-control-border-width);
     --_sandbox-params-row-padding-block: var(--dds-space-sm);
     --_sandbox-params-row-padding-inline: var(--dds-space-inset-compact);
@@ -34,38 +32,33 @@
     font-weight: var(--_sandbox-params-font-weight);
     line-height: var(--_sandbox-params-line-height);
     letter-spacing: var(--_sandbox-params-letter-spacing);
-  }
 
-  dds-sandbox-params [data-params-form],
-  .dds-sandbox-params [data-params-form] {
-    margin: 0;
-  }
+    & [data-params-form] {
+      margin: 0;
+    }
 
-  dds-sandbox-params [data-params-fields],
-  .dds-sandbox-params [data-params-fields] {
-    --space: 0;
-  }
+    & [data-params-fields] {
+      --space: 0;
 
-  dds-sandbox-params [data-params-fields] > *,
-  .dds-sandbox-params [data-params-fields] > * {
-    margin: 0;
-    padding-block: var(--_sandbox-params-row-padding-block);
-    padding-inline: var(--_sandbox-params-row-padding-inline);
-    border-block-end-color: var(--_sandbox-params-border-color);
-    border-block-end-style: var(--_sandbox-params-border-style);
-    border-block-end-width: var(--_sandbox-params-row-border-width);
-  }
+      & > * {
+        margin: 0;
+        padding-block: var(--_sandbox-params-row-padding-block);
+        padding-inline: var(--_sandbox-params-row-padding-inline);
+        border-block-end-width: var(--_sandbox-params-row-border-width);
+        border-block-end-style: var(--_sandbox-params-border-style);
+        border-block-end-color: var(--_sandbox-params-border-color);
 
-  dds-sandbox-params [data-params-fields] > :last-child,
-  .dds-sandbox-params [data-params-fields] > :last-child {
-    border-block-end-width: 0;
-  }
+        &:last-child {
+          border-block-end-width: 0;
+        }
+      }
+    }
 
-  dds-sandbox-params [data-params-empty],
-  .dds-sandbox-params [data-params-empty] {
-    margin: 0;
-    padding-block: var(--_sandbox-params-empty-padding-block);
-    padding-inline: var(--_sandbox-params-row-padding-inline);
-    color: var(--_sandbox-params-empty-color);
+    & [data-params-empty] {
+      margin: 0;
+      padding-block: var(--_sandbox-params-empty-padding-block);
+      padding-inline: var(--_sandbox-params-row-padding-inline);
+      color: var(--_sandbox-params-empty-color);
+    }
   }
 }

@@ -372,7 +372,7 @@ class TestSandboxParamsRenderingAndTemplate:
             },
         )
         assert (
-            '<dds-sandbox-params class="dds-sandbox-params" data-surface="sandbox">'
+            '<dds-sandbox-params class="dds-sandbox-params" data-surface="sandbox"'
             in html
         )
         assert '<form method="get"' in html
@@ -431,7 +431,7 @@ class TestSandboxParamsRenderingAndTemplate:
             context={"param_rows": []},
         )
         assert (
-            '<dds-sandbox-params class="dds-sandbox-params" data-surface="sandbox">'
+            '<dds-sandbox-params class="dds-sandbox-params" data-surface="sandbox"'
             in html
         )
         assert "<p data-params-empty>No editable params.</p>" in html
@@ -520,9 +520,12 @@ class TestSandboxParamsStylesheet:
             assert match.group(1) in defined_tier_2
 
     def test_css_boundary_encapsulation(self) -> None:
-        """Verify child component selectors do not leak into sandbox_params.css."""
+        """Verify child component selectors do not leak into sandbox_params.css and native nesting is used."""
         css_text = _read_text(path=SANDBOX_PARAMS_CSS_PATH)
         assert ".dds-form-field" not in css_text
+        assert "--_sandbox-params-fields-gap" not in css_text
+        assert "--_sandbox-params-padding" not in css_text
+        assert "& [data-params-fields]" in css_text
 
 
 class TestSandboxParamsGalleryAndDocs:

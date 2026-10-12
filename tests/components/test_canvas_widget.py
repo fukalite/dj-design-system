@@ -280,7 +280,7 @@ class TestCanvasWidgetRenderingAndTemplate:
             '<dds-canvas-widget class="dds-canvas-widget" '
             'data-canvas-id="canvas" data-mode="preview" '
             'data-viewport="responsive" data-background="white" '
-            'data-zoom="100">' in html
+            'data-zoom="100"' in html
         )
         assert "data-canvas-toggles" not in html
         assert '<div data-canvas-stage data-surface="stage">' in html
@@ -433,6 +433,14 @@ class TestCanvasWidgetStylesheet:
             "--dds-space-",
         ):
             assert expected_family in mapped_values
+
+    def test_css_encapsulation_and_native_nesting(self) -> None:
+        """Verify canvas_widget.css uses native nesting & and has no hardcoded consumer IDs."""
+        css_text = _read_text(path=CANVAS_WIDGET_CSS_PATH)
+        assert "[data-canvas-id='sandbox']" not in css_text
+        assert "& [data-canvas-stage]" in css_text
+        assert "& [data-canvas-toggles]" in css_text
+        assert "dds-canvas-widget [" not in css_text
 
 
 class TestCanvasWidgetGalleryAndDocs:

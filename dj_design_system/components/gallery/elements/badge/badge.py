@@ -48,6 +48,7 @@ class Badge(components.TagComponent):
         default=DEFAULT_VARIANT,
         required=False,
         choices=list(BADGE_VARIANTS),
+        data_attr=True,
     )
     is_code = parameters.BoolParam(
         description="Render badge text as inline monospace code.",

@@ -9,6 +9,7 @@ from dj_design_system.exceptions import (
     DJDesignSystemError,
     InvalidTagType,
     MultipleComponentsFound,
+    SlotParameterCollisionError,
     VariantNotFoundError,
 )
 
@@ -25,6 +26,7 @@ class TestExceptionHierarchy:
             InvalidTagType,
             ComponentDoesNotExist,
             MultipleComponentsFound,
+            SlotParameterCollisionError,
         ],
     )
     def test_inherits_from_base_error(self, exc_class):
@@ -44,6 +46,7 @@ class TestExceptionHierarchy:
             InvalidTagType,
             ComponentDoesNotExist,
             MultipleComponentsFound,
+            SlotParameterCollisionError,
         ],
     )
     def test_message_attribute_available(self, exc_class):

@@ -129,4 +129,9 @@ class Popout(components.BlockComponent):
         context["aria_label"] = aria_label
         context["slots"] = self.slots
         context["content"] = self.content or ""
+        context["menu_content"] = (
+            self.slots.get("menu")
+            if (self.slots and self.slots.get("menu"))
+            else (self.content or "")
+        )
         return context
