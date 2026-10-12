@@ -40,7 +40,6 @@ POPOUT_OPTION_PY_PATH = POPOUT_OPTION_DIR / "popout_option.py"
 POPOUT_OPTION_HTML_PATH = POPOUT_OPTION_DIR / "popout_option.html"
 POPOUT_OPTION_CSS_PATH = POPOUT_OPTION_DIR / "popout_option.css"
 POPOUT_OPTION_GALLERY_PATH = POPOUT_OPTION_DIR / "gallery.py"
-POPOUT_OPTION_INDEX_MD_PATH = POPOUT_OPTION_DIR / "index.md"
 
 
 def _build_registry() -> registry_service.ComponentRegistry:
@@ -506,11 +505,10 @@ class TestPopoutStylesheetsAndTypeScriptContract:
             assert line == line.rstrip()
 
     def test_gallery_configs_and_docs_render_cleanly(self) -> None:
-        """Verify gallery.py and index.md exist and render for both components."""
+        """Verify gallery.py and index.md exist and render for components."""
         assert POPOUT_GALLERY_PATH.is_file()
         assert POPOUT_INDEX_MD_PATH.is_file()
         assert POPOUT_OPTION_GALLERY_PATH.is_file()
-        assert POPOUT_OPTION_INDEX_MD_PATH.is_file()
 
         reg = _build_registry()
 

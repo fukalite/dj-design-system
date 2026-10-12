@@ -501,9 +501,7 @@ class TestBreadcrumbGalleryAndDocs:
             assert 'class="dds-breadcrumb"' in rendered
 
     def test_index_md_exists_and_documents_component(self) -> None:
-        """Verify index.md exists and documents dds__breadcrumb and its parameters."""
+        """Verify index.md exists and documents Breadcrumb data contract and accessibility."""
         doc_text = _read_text(path=BREADCRUMB_INDEX_MD_PATH)
-        assert "dds__breadcrumb" in doc_text
-        assert "items" in doc_text
-        assert "aria_label" in doc_text
-        assert "separator_icon" in doc_text
+        assert "BreadcrumbItem" in doc_text
+        assert "Behaviour & Accessibility" in doc_text

@@ -346,8 +346,8 @@ class TestNoticeGalleryAndDocs:
             assert 'class="dds-notice"' in rendered
 
     def test_index_md_exists_and_documents_component(self) -> None:
-        """Verify index.md exists and documents dds__notice and its variants."""
+        """Verify index.md exists and documents Notice accessibility and role mappings."""
         doc_text = _read_text(path=NOTICE_INDEX_MD_PATH)
-        assert "dds__notice" in doc_text
-        for variant in EXPECTED_VARIANTS:
-            assert variant in doc_text
+        assert "Accessibility" in doc_text
+        assert 'role="alert"' in doc_text
+        assert 'role="note"' in doc_text

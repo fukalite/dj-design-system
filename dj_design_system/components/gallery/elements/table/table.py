@@ -18,22 +18,10 @@ class Table(components.BlockComponent):
     Use the ``default`` density for general tabular content in documentation and
     data views, and ``compact`` density for dense metadata or parameter tables.
 
-    Example usage::
-
-        {% dds__table caption="Component parameters" density="compact" %}
-            {% slot "head" %}
-                <tr>
-                    <th scope="col">Name</th>
-                    <th scope="col">Type</th>
-                </tr>
-            {% endslot %}
-            {% slot "body" %}
-                <tr>
-                    <td>caption</td>
-                    <td>str</td>
-                </tr>
-            {% endslot %}
-        {% enddds__table %}
+    When to Use:
+        - Displaying structured datasets, parameter specifications, or comparison matrices.
+        - Use ``density="default"`` for general documentation tables.
+        - Use ``density="compact"`` for dense parameter or metadata listings.
     """
 
     caption = parameters.StrParam(

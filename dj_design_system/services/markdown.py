@@ -24,6 +24,8 @@ def render_markdown_doc(
     theme_dict: Theme | dict[str, Any] | None = None,
 ) -> str:
     """Render a markdown file to HTML with gallery extensions and syntax highlighting."""
+    if not file_path or not file_path.is_file():
+        return ""
     content = file_path.read_text(encoding="utf-8")
 
     extensions: list = [

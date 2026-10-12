@@ -407,10 +407,7 @@ class TestCodeBlockGalleryAndDocs:
             assert 'data-surface="code"' in rendered
 
     def test_index_md_exists_and_documents_component(self) -> None:
-        """Verify index.md exists and documents dds__code_block and <dds-code-block>."""
+        """Verify index.md exists and documents <dds-code-block> client-side behaviour."""
         doc_text = _read_text(path=CODE_BLOCK_INDEX_MD_PATH)
-        assert "dds__code_block" in doc_text
-        assert "dds-code-block" in doc_text
+        assert "<dds-code-block>" in doc_text
         assert "dds:copy" in doc_text
-        assert "show_header" in doc_text
-        assert "flush" in doc_text

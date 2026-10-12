@@ -4,7 +4,6 @@ from dj_design_system import gallery
 
 
 config = gallery.GalleryConfig(
-    order=2,
     param_defaults={
         "label": "Save changes",
     },

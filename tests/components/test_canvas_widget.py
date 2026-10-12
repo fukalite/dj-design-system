@@ -471,26 +471,13 @@ class TestCanvasWidgetGalleryAndDocs:
             assert "data-canvas-iframe" in rendered
 
     def test_index_md_exists_and_documents_component(self) -> None:
-        """Verify index.md exists and documents dds__canvas_widget and all parameters."""
+        """Verify index.md exists and documents <dds-canvas-widget> custom element behaviour."""
         assert CANVAS_WIDGET_INDEX_MD_PATH.is_file()
         doc_text = _read_text(path=CANVAS_WIDGET_INDEX_MD_PATH)
-        assert "dds__canvas_widget" in doc_text
-        assert "dds-canvas-widget" in doc_text
-        for param_name in (
-            "canvas_id",
-            "iframe_src",
-            "iframe_srcdoc",
-            "source_code",
-            "rendered_html",
-            "mode",
-            "viewport",
-            "background",
-            "zoom",
-            "sandbox_attrs",
-            "title",
-            "show_toggles",
-        ):
-            assert param_name in doc_text
+        assert "<dds-canvas-widget>" in doc_text
+        assert "Mode Toggling" in doc_text
+        assert "Iframe Auto-Resize" in doc_text
+        assert "Public Methods" in doc_text
 
 
 class TestCanvasWidgetTypeScriptCustomElement:

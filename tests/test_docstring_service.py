@@ -185,29 +185,26 @@ class TestRenderDocstring:
     def test_notice_docstring_end_to_end(self) -> None:
         raw_doc = Notice.__doc__ or ""
         html = render_docstring(docstring=raw_doc)
-        assert "<strong>Variants:</strong>" in html
+        assert "A semantic callout banner" in html
+        assert "<code>Notice</code>" in html
+        assert "<strong>When to Use:</strong>" in html
         assert "<ul>" in html
-        assert "<code>info</code> (default):" in html
-        assert "<code>success</code>:" in html
-        assert "<code>warning</code>:" in html
-        assert "<code>error</code>:" in html
-        assert "<strong>Example usage:</strong>" in html
-        assert "<dds-code-block" in html
-        assert 'data-language="django"' in html
+        assert "Highlighting informational notes" in html
 
     def test_code_block_docstring_end_to_end(self) -> None:
         raw_doc = CodeBlock.__doc__ or ""
         html = render_docstring(docstring=raw_doc)
-        assert "<strong>Args:</strong>" in html
+        assert "Formatted code snippet viewer" in html
+        assert "<code>CodeBlock</code>" in html
+        assert "<strong>When to Use:</strong>" in html
         assert "<ul>" in html
-        assert "<strong>code</strong>: Source code snippet to render." in html
-        assert "<strong>language</strong>:" in html
-        assert "<dds-code-block" in html
+        assert "Displaying Django template tag invocations" in html
 
     def test_button_docstring_end_to_end(self) -> None:
         raw_doc = Button.__doc__ or ""
         html = render_docstring(docstring=raw_doc)
-        assert "<strong>Variants:</strong>" in html
-        assert "<strong>Args:</strong>" in html
-        assert "<code>default</code>:" in html
-        assert "<strong>label</strong>:" in html
+        assert "Polymorphic interactive button" in html
+        assert "<code>.dds-button</code>" in html
+        assert "<strong>When to Use:</strong>" in html
+        assert "<ul>" in html
+        assert "Triggering actions" in html

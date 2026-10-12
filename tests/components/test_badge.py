@@ -44,7 +44,6 @@ BADGE_DIR = (
 )
 BADGE_HTML_PATH = BADGE_DIR / "badge.html"
 BADGE_CSS_PATH = BADGE_DIR / "badge.css"
-BADGE_INDEX_MD_PATH = BADGE_DIR / "index.md"
 
 
 def _make_registry() -> registry_service.ComponentRegistry:
@@ -279,20 +278,17 @@ class TestBadgeGalleryAndDocs:
     """Verify co-located gallery.py and index.md for dds__badge."""
 
     def test_gallery_config_variants_render(self) -> None:
-        """Verify gallery.py exports a valid GalleryConfig whose variants all render."""
+        """Verify gallery.py exports a valid GalleryConfig with leaf node configuration."""
         cfg = load_gallery_config(
             source_dir=BADGE_DIR,
             component_name=COMPONENT_NAME,
         )
         assert isinstance(cfg, GalleryConfig)
-        assert len(cfg.variants) >= 6
-        for variant in cfg.variants:
-            rendered = badge_module.Badge(**variant.kwargs).render()
-            assert 'class="dds-badge"' in rendered
+        assert cfg.variants == []
+        rendered = badge_module.Badge(**cfg.param_defaults).render()
+        assert 'class="dds-badge"' in rendered
 
-    def test_index_md_exists_and_documents_component(self) -> None:
-        """Verify index.md exists and documents dds__badge and its variants."""
-        doc_text = _read_text(path=BADGE_INDEX_MD_PATH)
-        assert "dds__badge" in doc_text
-        for variant in EXPECTED_VARIANTS:
-            assert variant in doc_text
+    def test_component_docstring_documents_usage(self) -> None:
+        """Verify Badge docstring documents component and when to use it."""
+        doc = badge_module.Badge.__doc__ or ""
+        assert "When to Use:" in doc

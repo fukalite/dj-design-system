@@ -20,20 +20,9 @@ class ThemeSelect(components.TagComponent):
     and ``label`` keys, or plain theme identifier strings, normalizing them in
     ``get_context()``.
 
-    Args:
-        themes: Available theme objects, dicts with ``value`` and ``label``, or
-            plain string identifiers.
-        active_theme: Currently active theme identifier (defaults to ``"light"``).
-        label: Accessible label for the theme selector control (defaults to
-            ``"Global Theme"``).
-        select_id: DOM ``id`` attribute for the ``<select>`` element (defaults
-            to ``"gallery-global-theme-select"``).
-
-    Example usage::
-
-        {% dds__theme_select themes active_theme="dark" %}
-
-        {% dds__theme_select themes=gallery_themes active_theme=current_theme label="Canvas Theme" select_id="canvas-theme-select" %}
+    When to Use:
+        - Allowing users to switch the active consumer component preview theme in the topbar or sandbox toolbar.
+        - Presenting a dropdown list of themes with immediate client-side theme switching and persistence.
     """
 
     themes = parameters.ListParam(
