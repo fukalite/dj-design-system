@@ -60,6 +60,17 @@ def get_base_context(
             gallery_theme = raw_gallery_theme
         else:
             gallery_theme = ""
+        raw_gallery_ui_theme = (
+            request.GET.get("_dds_gallery_ui_theme")
+            or request.COOKIES.get("dds_gallery_ui_theme")
+            or ""
+        )
+        if raw_gallery_ui_theme in ("desert", "classic"):
+            gallery_ui_theme = raw_gallery_ui_theme
+        else:
+            gallery_ui_theme = "desert"
+        if gallery_ui_theme == "classic":
+            gallery_theme = ""
         raw_color_scheme = (
             get_control_param(request.GET, "color_scheme", bare_fallback=bare_fallback)
             or request.COOKIES.get("dds_color_scheme")
@@ -67,6 +78,7 @@ def get_base_context(
         )
     else:
         gallery_theme = ""
+        gallery_ui_theme = "desert"
         raw_color_scheme = ""
 
     theme_obj = get_theme(active_theme)
@@ -92,6 +104,7 @@ def get_base_context(
         "active_color_scheme": active_color_scheme,
         "active_theme_supports_dark_mode": active_theme_supports_dark_mode,
         "gallery_theme": gallery_theme,
+        "gallery_ui_theme": gallery_ui_theme,
         "component_tabs": [
             {"id": "docs", "label": "Documentation"},
             {"id": "sandbox", "label": "Sandbox"},

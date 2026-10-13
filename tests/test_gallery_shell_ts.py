@@ -52,6 +52,19 @@ class TestGalleryShellCustomElementTypeScript:
         # Gallery UI theme dispatches dds:gallery-theme-change
         assert "new CustomEvent('dds:gallery-theme-change'" in ts_text
 
+        # Gallery UI themes (desert and classic) support and persistence
+        assert "getGalleryUITheme(): 'desert' | 'classic'" in ts_text
+        assert "setGalleryUITheme(theme: 'desert' | 'classic'): void" in ts_text
+        assert "syncInitialGalleryUITheme(): void" in ts_text
+        assert "'dds_gallery_ui_theme=' +" in ts_text
+        assert (
+            "window.localStorage.setItem('dds_gallery_ui_theme', theme);"
+            in ts_text
+        )
+        assert "new CustomEvent('dds:gallery-ui-theme-change'" in ts_text
+        assert "gallery-ui-theme-classic" in ts_text
+        assert "Classic theme does not support dark mode" in ts_text
+
         # Consumer theme is handled independently via handleConsumerThemeChange on dds:theme-change
         assert "handleConsumerThemeChange(event: Event): void" in ts_text
         assert (

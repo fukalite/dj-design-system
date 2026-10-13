@@ -308,6 +308,60 @@ class TestGalleryComponentView:
         assert 'data-action="toggle-consumer-color-scheme"' in content
         assert 'data-variant="default"' in content
 
+    def test_default_gallery_ui_theme_is_desert(self, client):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response.context["gallery_ui_theme"] == "desert"
+        content = response.content.decode("utf-8")
+        assert 'data-gallery-ui-theme="desert"' in content
+        assert "gallery-ui-theme-classic" not in content
+        assert "data-ui-theme-select" in content
+
+    def test_gallery_ui_theme_classic_via_cookie(self, client):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        client.cookies["dds_gallery_ui_theme"] = "classic"
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response.context["gallery_ui_theme"] == "classic"
+        content = response.content.decode("utf-8")
+        assert 'class="gallery-ui-theme-classic"' in content
+        assert 'data-gallery-ui-theme="classic"' in content
+        assert "Classic theme does not support dark mode" in content
+        assert response.context["gallery_theme"] == ""
+
+    def test_gallery_ui_theme_classic_suppresses_dark_mode_cookie(self, client):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        client.cookies["dds_gallery_ui_theme"] = "classic"
+        client.cookies["dds_gallery_theme"] = "dark"
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response.context["gallery_ui_theme"] == "classic"
+        assert response.context["gallery_theme"] == ""
+        content = response.content.decode("utf-8")
+        assert "gallery-theme-dark" not in content
+
+    def test_gallery_ui_theme_via_query_param(self, client):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        response = client.get(f"{url}?_dds_gallery_ui_theme=classic")
+        assert response.status_code == 200
+        assert response.context["gallery_ui_theme"] == "classic"
+        content = response.content.decode("utf-8")
+        assert 'class="gallery-ui-theme-classic"' in content
+        assert 'data-gallery-ui-theme="classic"' in content
+
     def test_component_renders_section_headings_and_dividers(self, client):
         url = reverse(
             "gallery-node",

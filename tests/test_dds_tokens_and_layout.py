@@ -464,3 +464,98 @@ class TestEveryLayoutComposition:
             assert custom_prop in composition_css
         assert "var(--dds-space-" in composition_css
         assert "var(--dds-layout-" in composition_css
+
+
+class TestClassicThemeTokens:
+    """Verify Classic theme Tier 2 token definitions and main branch replication."""
+
+    def test_classic_theme_defined_in_tokens_layer(self) -> None:
+        """Verify Classic theme is defined inside @layer tokens in semantic.css."""
+        tokens_css = _read_css(path=TOKENS_SEMANTIC_CSS_PATH)
+        assert "@layer tokens {" in tokens_css
+        classic_blocks = _extract_rule_blocks(
+            css_text=tokens_css,
+            selector=":root[data-gallery-ui-theme='classic'],\n  :root[data-gallery-ui-theme='classic'].gallery-theme-dark,\n  :root[data-gallery-ui-theme='classic'] .gallery-theme-dark,\n  [data-gallery-ui-theme='classic'],\n  .gallery-ui-theme-classic",
+        )
+        if not classic_blocks:
+            # Fallback search matching selector pattern
+            pattern = re.compile(
+                pattern=r"\[data-gallery-ui-theme=['\"]classic['\"]\][^{]*\{([^}]*)\}",
+                flags=re.DOTALL,
+            )
+            classic_blocks = pattern.findall(string=tokens_css)
+        assert classic_blocks, "Classic theme block not found in semantic.css"
+
+        props = _extract_defined_properties(block_text=classic_blocks[0])
+        # Never leak Tier 1 definitions
+        tier_1_defs = [name for name in props if name.startswith("--_dds-")]
+        assert not tier_1_defs, f"Tier 1 token leaked in classic theme: {tier_1_defs}"
+
+        # All defined properties must be Tier 2 --dds- tokens
+        for name in props:
+            assert name.startswith("--dds-"), f"Unexpected non-dds token: {name}"
+
+    def test_classic_theme_replicates_main_colors(self) -> None:
+        """Verify Classic theme accurately maps to main branch literal tokens."""
+        tokens_css = _read_css(path=TOKENS_SEMANTIC_CSS_PATH)
+        pattern = re.compile(
+            pattern=r"\[data-gallery-ui-theme=['\"]classic['\"]\][^{]*\{([^}]*)\}",
+            flags=re.DOTALL,
+        )
+        match = pattern.search(string=tokens_css)
+        assert match, "Classic theme block not found"
+        props = _extract_defined_properties(block_text=match.group(1))
+
+        # Sidebar dark ink palette from main
+        assert props.get("--dds-surface-sidebar-bg-color") == "var(--_dds-ink-850)"
+        assert props.get("--dds-surface-sidebar-border-color") == "var(--_dds-ink-700)"
+        assert (
+            props.get("--dds-surface-sidebar-text-default-color")
+            == "var(--_dds-ink-100)"
+        )
+        assert (
+            props.get("--dds-surface-sidebar-text-prominent-color")
+            == "var(--_dds-neutral-0)"
+        )
+        assert props.get("--dds-surface-sidebar-text-muted-color") == "var(--_dds-ink-300)"
+
+        # Surface content/docs/stage colors from main
+        assert props.get("--dds-surface-docs-bg-color") == "var(--_dds-neutral-0)"
+        assert props.get("--dds-surface-stage-bg-color") == "var(--_dds-neutral-50)"
+        assert props.get("--dds-surface-code-bg-color") == "var(--_dds-neutral-100)"
+        assert props.get("--dds-surface-border-color") == "var(--_dds-neutral-300)"
+
+        # Text prominence from main
+        assert props.get("--dds-text-default-color") == "var(--_dds-neutral-800)"
+        assert props.get("--dds-text-muted-color") == "var(--_dds-neutral-600)"
+        assert props.get("--dds-text-prominent-color") == "var(--_dds-neutral-900)"
+
+        # Accent
+        assert props.get("--dds-control-accent-color") == "var(--_dds-blue-600)"
+
+    def test_classic_theme_changes_only_colors(self) -> None:
+        """Verify Classic theme only modifies color tokens, preserving layout, spacing, and typography."""
+        tokens_css = _read_css(path=TOKENS_SEMANTIC_CSS_PATH)
+        pattern = re.compile(
+            pattern=r"\[data-gallery-ui-theme=['\"]classic['\"]\][^{]*\{([^}]*)\}",
+            flags=re.DOTALL,
+        )
+        match = pattern.search(string=tokens_css)
+        assert match, "Classic theme block not found"
+        props = _extract_defined_properties(block_text=match.group(1))
+
+        # Ensure no spacing, font, or dimension tokens are overridden
+        forbidden_prefixes = (
+            "--dds-font-",
+            "--dds-space-",
+            "--dds-layout-",
+            "--dds-layer-",
+            "--dds-state-entry-",
+            "--dds-state-exit-",
+        )
+        for name in props:
+            for forbidden in forbidden_prefixes:
+                assert not name.startswith(
+                    forbidden
+                ), f"Classic theme should not override {name}"
+

@@ -7,10 +7,25 @@
     </div>
     <div data-sidebar-body>{% dds__nav_tree nodes=nav_tree active_path=active_path active_variant=active_variant %}</div>
     <div data-sidebar-footer>
-        {% if gallery_theme == "dark" %}
-            {% dds__button label="Switch to light theme" icon_only=True variant="ghost" icon="moon" size="sm" action="toggle-theme" %}
-        {% else %}
-            {% dds__button label="Switch to dark theme" icon_only=True variant="ghost" icon="sun" size="sm" action="toggle-theme" %}
-        {% endif %}
+        <div data-sidebar-footer-controls>
+            <select id="gallery-ui-theme-select"
+                    data-action="select-ui-theme"
+                    data-ui-theme-select
+                    aria-label="Gallery UI theme"
+                    title="Gallery UI theme"
+                    class="dds-ui-theme-select">
+                <option value="desert"
+                        {% if gallery_ui_theme != "classic" %} selected{% endif %}>Desert</option>
+                <option value="classic"
+                        {% if gallery_ui_theme == "classic" %} selected{% endif %}>Classic</option>
+            </select>
+            {% if gallery_ui_theme == "classic" %}
+                {% dds__button label="Classic theme does not support dark mode" icon_only=True variant="ghost" icon="sun" size="sm" action="toggle-theme" disabled=True %}
+            {% elif gallery_theme == "dark" %}
+                {% dds__button label="Switch to light theme" icon_only=True variant="ghost" icon="moon" size="sm" action="toggle-theme" %}
+            {% else %}
+                {% dds__button label="Switch to dark theme" icon_only=True variant="ghost" icon="sun" size="sm" action="toggle-theme" %}
+            {% endif %}
+        </div>
     </div>
 </aside>

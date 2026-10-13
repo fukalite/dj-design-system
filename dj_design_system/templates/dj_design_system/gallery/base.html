@@ -1,6 +1,10 @@
 {% load static design_components dj_design_system_gallery %}
 <!DOCTYPE html>
-{% if gallery_theme == "dark" %}
+{% if gallery_ui_theme == "classic" %}
+    <html lang="en"
+          class="gallery-ui-theme-classic"
+          data-gallery-ui-theme="classic">
+{% elif gallery_theme == "dark" %}
     <html lang="en" class="gallery-theme-dark">
 {% elif gallery_theme == "light" %}
     <html lang="en" class="gallery-theme-light">
@@ -20,7 +24,7 @@
         {% block extra_css %}{% endblock %}
     </head>
     <body>
-        <dds-gallery-shell class="dds-gallery-shell{% if gallery_theme == 'dark' %} gallery-theme-dark{% elif gallery_theme == 'light' %} gallery-theme-light{% endif %}" data-drawer-state="closed" data-gallery-theme="{% if gallery_theme %}{{ gallery_theme }}{% else %}system{% endif %}" data-theme="{% if global_active_theme %}{{ global_active_theme }}{% elif active_theme %}{{ active_theme }}{% else %}light{% endif %}">
+        <dds-gallery-shell class="dds-gallery-shell{% if gallery_ui_theme == 'classic' %} gallery-ui-theme-classic{% elif gallery_theme == 'dark' %} gallery-theme-dark{% elif gallery_theme == 'light' %} gallery-theme-light{% endif %}" data-drawer-state="closed" data-gallery-ui-theme="{% if gallery_ui_theme %}{{ gallery_ui_theme }}{% else %}desert{% endif %}" data-gallery-theme="{% if gallery_ui_theme == 'classic' %}light{% elif gallery_theme %}{{ gallery_theme }}{% else %}system{% endif %}" data-theme="{% if global_active_theme %}{{ global_active_theme }}{% elif active_theme %}{{ active_theme }}{% else %}light{% endif %}">
         <div data-shell-topbar>
             {% block topbar %}
                 {% include "dj_design_system/gallery/areas/topbar.html" %}
