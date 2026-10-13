@@ -68,7 +68,7 @@ def get_base_context(
             or request.COOKIES.get("dds_gallery_ui_theme")
             or ""
         )
-        ui_theme_obj = get_gallery_ui_theme(raw_gallery_ui_theme)
+        ui_theme_obj = get_gallery_ui_theme(identifier=raw_gallery_ui_theme)
         if ui_theme_obj is None:
             ui_theme_obj = get_default_gallery_ui_theme()
         raw_color_scheme = (
