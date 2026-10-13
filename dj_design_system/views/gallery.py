@@ -22,7 +22,10 @@ from dj_design_system.services.navigation import (
 from dj_design_system.services.registry import component_registry
 from dj_design_system.settings import (
     dds_settings,
+    get_default_gallery_ui_theme,
     get_default_theme,
+    get_gallery_ui_theme,
+    get_gallery_ui_themes,
     get_theme,
     get_themes,
 )
@@ -60,6 +63,14 @@ def get_base_context(
             gallery_theme = raw_gallery_theme
         else:
             gallery_theme = ""
+        raw_gallery_ui_theme = (
+            request.GET.get("_dds_gallery_ui_theme")
+            or request.COOKIES.get("dds_gallery_ui_theme")
+            or ""
+        )
+        ui_theme_obj = get_gallery_ui_theme(identifier=raw_gallery_ui_theme)
+        if ui_theme_obj is None:
+            ui_theme_obj = get_default_gallery_ui_theme()
         raw_color_scheme = (
             get_control_param(request.GET, "color_scheme", bare_fallback=bare_fallback)
             or request.COOKIES.get("dds_color_scheme")
@@ -67,12 +78,23 @@ def get_base_context(
         )
     else:
         gallery_theme = ""
+        ui_theme_obj = get_default_gallery_ui_theme()
         raw_color_scheme = ""
 
+    gallery_ui_theme = ui_theme_obj.value
+    gallery_ui_theme_supports_dark_mode = ui_theme_obj.supports_dark_mode
+    if not gallery_ui_theme_supports_dark_mode:
+        gallery_theme = ""
+
     theme_obj = get_theme(active_theme)
-    active_theme_supports_dark_mode = (
-        theme_obj.supports_dark_mode if theme_obj else False
-    )
+    if theme_obj is not None:
+        active_theme = theme_obj.value
+        active_theme_supports_dark_mode = theme_obj.supports_dark_mode
+    else:
+        default_theme = get_default_theme()
+        active_theme_supports_dark_mode = (
+            default_theme.supports_dark_mode if default_theme else False
+        )
     if active_theme_supports_dark_mode and raw_color_scheme in ("dark", "light"):
         active_color_scheme = raw_color_scheme
     else:
@@ -87,11 +109,18 @@ def get_base_context(
         "active_variant": active_variant,
         "breadcrumbs": [],
         "available_themes": get_themes(),
+        "available_ui_themes": get_gallery_ui_themes(),
         "active_theme": active_theme,
+        "active_ui_theme": ui_theme_obj,
         "global_active_theme": active_theme,
         "active_color_scheme": active_color_scheme,
         "active_theme_supports_dark_mode": active_theme_supports_dark_mode,
         "gallery_theme": gallery_theme,
+        "gallery_ui_theme": gallery_ui_theme,
+        "gallery_ui_theme_supports_dark_mode": gallery_ui_theme_supports_dark_mode,
+        "gallery_ui_theme_disabled_label": (
+            f"{ui_theme_obj.label} theme does not support dark mode"
+        ),
         "component_tabs": [
             {"id": "docs", "label": "Documentation"},
             {"id": "sandbox", "label": "Sandbox"},

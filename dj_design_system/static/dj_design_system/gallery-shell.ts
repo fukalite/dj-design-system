@@ -49,6 +49,21 @@ export class DDSGalleryShellElement
       );
     }
 
+    const uiThemeSelects =
+      this.querySelectorAll<HTMLSelectElement>(
+        '[data-action=select-ui-theme], [data-ui-theme-select]',
+      );
+    for (const select of uiThemeSelects) {
+      select.addEventListener(
+        'change',
+        () => {
+          const targetTheme = select.value.trim() || 'desert';
+          this.setGalleryUITheme(targetTheme);
+        },
+        { signal },
+      );
+    }
+
     const consumerSchemeToggles =
       this.querySelectorAll<HTMLElement>(
         '[data-action=toggle-consumer-color-scheme]',
@@ -159,6 +174,7 @@ export class DDSGalleryShellElement
       { signal },
     );
 
+    this.syncInitialGalleryUITheme();
     this.syncInitialGalleryTheme();
     this.syncInitialConsumerColorScheme();
     this.syncHashNavigation();
@@ -173,11 +189,62 @@ export class DDSGalleryShellElement
   }
 
   /**
+   * Returns true if the active gallery UI theme supports dark mode.
+   *
+   * @return {boolean} True if gallery UI theme supports dark mode.
+   */
+  getGalleryUISupportsDarkMode(): boolean {
+    const select = this.querySelector<HTMLSelectElement>(
+      '[data-action=select-ui-theme], [data-ui-theme-select]',
+    );
+    if (select && select.selectedIndex >= 0) {
+      const activeOption = select.options[select.selectedIndex];
+      if (activeOption?.dataset.supportsDarkMode !== undefined) {
+        return activeOption.dataset.supportsDarkMode === 'true';
+      }
+    }
+    if (this.dataset.galleryUiSupportsDarkMode !== undefined) {
+      return this.dataset.galleryUiSupportsDarkMode === 'true';
+    }
+    if (
+      document.documentElement &&
+      document.documentElement.dataset.galleryUiSupportsDarkMode !== undefined
+    ) {
+      return (
+        document.documentElement.dataset.galleryUiSupportsDarkMode === 'true'
+      );
+    }
+    return true;
+  }
+
+  /**
+   * Resolves the label of the active gallery UI theme.
+   *
+   * @return {string} Human-readable label of the active UI theme.
+   */
+  getActiveGalleryUIThemeLabel(): string {
+    const select = this.querySelector<HTMLSelectElement>(
+      '[data-action=select-ui-theme], [data-ui-theme-select]',
+    );
+    if (select && select.selectedIndex >= 0) {
+      const activeOption = select.options[select.selectedIndex];
+      if (activeOption && activeOption.text) {
+        return activeOption.text.trim();
+      }
+    }
+    const theme = this.getGalleryUITheme();
+    return theme.charAt(0).toUpperCase() + theme.slice(1);
+  }
+
+  /**
    * Determines if the gallery UI chrome is currently in dark mode.
    *
    * @return {boolean} True if gallery chrome is dark.
    */
   isGalleryThemeDark(): boolean {
+    if (!this.getGalleryUISupportsDarkMode()) {
+      return false;
+    }
     if (document.documentElement.classList.contains('gallery-theme-dark')) {
       return true;
     }
@@ -205,6 +272,9 @@ export class DDSGalleryShellElement
    * @param {'light' | 'dark'} theme Target gallery UI theme.
    */
   setGalleryTheme(theme: 'light' | 'dark'): void {
+    if (!this.getGalleryUISupportsDarkMode()) {
+      return;
+    }
     const isDark = theme === 'dark';
     this.dataset.galleryTheme = theme;
     if (document.documentElement) {
@@ -257,12 +327,28 @@ export class DDSGalleryShellElement
    * @param {boolean} isDark Whether gallery chrome is dark.
    */
   syncGalleryThemeToggleIcons(isDark: boolean): void {
+    const supportsDark = this.getGalleryUISupportsDarkMode();
+    const themeLabel = this.getActiveGalleryUIThemeLabel();
     const themeToggles =
       this.querySelectorAll<HTMLElement>('[data-action=toggle-theme]');
     const iconName = isDark ? 'moon' : 'sun';
-    const label = isDark ? 'Switch to light theme' : 'Switch to dark theme';
+    const disabledLabel = themeLabel ?
+      `${themeLabel} theme does not support dark mode` :
+      'Classic theme does not support dark mode';
+    const label = !supportsDark ?
+      disabledLabel :
+      (isDark ? 'Switch to light theme' : 'Switch to dark theme');
     for (const toggle of themeToggles) {
       toggle.setAttribute('aria-label', label);
+      if (!supportsDark) {
+        toggle.setAttribute('disabled', 'true');
+        toggle.setAttribute('aria-disabled', 'true');
+        toggle.title = disabledLabel;
+      } else {
+        toggle.removeAttribute('disabled');
+        toggle.removeAttribute('aria-disabled');
+        toggle.title = '';
+      }
       const svg = toggle.querySelector<SVGElement>('svg.dds-icon');
       if (svg) {
         svg.dataset.icon = iconName;
@@ -289,6 +375,18 @@ export class DDSGalleryShellElement
    * Restores persisted gallery UI theme from localStorage or system preference.
    */
   private syncInitialGalleryTheme(): void {
+    if (!this.getGalleryUISupportsDarkMode()) {
+      if (document.documentElement) {
+        document.documentElement.classList.remove('gallery-theme-dark');
+        document.documentElement.classList.add('gallery-theme-light');
+        document.documentElement.dataset.galleryTheme = 'light';
+      }
+      this.dataset.galleryTheme = 'light';
+      this.classList.remove('gallery-theme-dark');
+      this.classList.add('gallery-theme-light');
+      this.syncGalleryThemeToggleIcons(false);
+      return;
+    }
     let storedTheme: string | null = null;
     try {
       storedTheme = window.localStorage.getItem('dds_gallery_theme');
@@ -301,6 +399,157 @@ export class DDSGalleryShellElement
     }
     const isDark = this.isGalleryThemeDark();
     this.syncGalleryThemeToggleIcons(isDark);
+  }
+
+  /**
+   * Resolves the active gallery UI theme ('desert' | 'classic').
+   *
+   * @return {'desert' | 'classic'} Current gallery UI theme.
+   */
+  getGalleryUITheme(): 'desert' | 'classic';
+  getGalleryUITheme(): string;
+  getGalleryUITheme(): string {
+    if (this.dataset.galleryUiTheme) {
+      return this.dataset.galleryUiTheme;
+    }
+    if (
+      document.documentElement &&
+      document.documentElement.dataset.galleryUiTheme
+    ) {
+      return document.documentElement.dataset.galleryUiTheme;
+    }
+    try {
+      const url = new URL(window.location.href);
+      const param = url.searchParams.get('_dds_gallery_ui_theme');
+      if (param) {
+        return param;
+      }
+    } catch {
+      // Ignore URL errors.
+    }
+    let stored: string | null = null;
+    try {
+      stored = window.localStorage.getItem('dds_gallery_ui_theme');
+    } catch {
+      // Ignore storage errors.
+    }
+    if (stored) {
+      return stored;
+    }
+    const cookieMatch = document.cookie.match(
+      /(?:^|; )dds_gallery_ui_theme=([^;]*)/,
+    );
+    if (cookieMatch && cookieMatch[1]) {
+      return decodeURIComponent(cookieMatch[1]);
+    }
+    return 'desert';
+  }
+
+  /**
+   * Updates the gallery UI theme, toggles `.gallery-ui-theme-classic`,
+   * persists to cookie and localStorage, updates documentElement, disables
+   * dark mode on classic, synchronises selects, and dispatches a bubbling
+   * `dds:gallery-ui-theme-change` CustomEvent.
+   *
+   * @param {'desert' | 'classic'} theme Target gallery UI theme.
+   */
+  setGalleryUITheme(theme: 'desert' | 'classic'): void;
+  setGalleryUITheme(theme: string): void;
+  setGalleryUITheme(theme: string): void {
+    const isClassic = theme === 'classic';
+    this.dataset.galleryUiTheme = theme;
+    if (document.documentElement) {
+      document.documentElement.dataset.galleryUiTheme = theme;
+      for (const cls of Array.from(document.documentElement.classList)) {
+        if (cls.startsWith('gallery-ui-theme-')) {
+          document.documentElement.classList.remove(cls);
+        }
+      }
+      if (theme !== 'desert') {
+        document.documentElement.classList.add(`gallery-ui-theme-${theme}`);
+      }
+      if (isClassic) {
+        document.documentElement.classList.add('gallery-ui-theme-classic');
+      }
+    }
+    for (const cls of Array.from(this.classList)) {
+      if (cls.startsWith('gallery-ui-theme-')) {
+        this.classList.remove(cls);
+      }
+    }
+    if (theme !== 'desert') {
+      this.classList.add(`gallery-ui-theme-${theme}`);
+    }
+    if (isClassic) {
+      this.classList.add('gallery-ui-theme-classic');
+    }
+
+    document.cookie =
+      'dds_gallery_ui_theme=' +
+      encodeURIComponent(theme) +
+      '; path=/; max-age=31536000; SameSite=Lax';
+    try {
+      window.localStorage.setItem('dds_gallery_ui_theme', theme);
+    } catch {
+      // Ignore storage errors.
+    }
+
+    const selects = this.querySelectorAll<HTMLSelectElement>(
+      '[data-action=select-ui-theme], [data-ui-theme-select]',
+    );
+    for (const select of selects) {
+      select.value = theme;
+    }
+
+    const supportsDark = this.getGalleryUISupportsDarkMode();
+    this.dataset.galleryUiSupportsDarkMode = supportsDark ? 'true' : 'false';
+
+    const themeLabel = this.getActiveGalleryUIThemeLabel();
+    const disabledLabel = themeLabel ?
+      `${themeLabel} theme does not support dark mode` :
+      'Classic theme does not support dark mode';
+
+    const themeToggles =
+      this.querySelectorAll<HTMLElement>('[data-action=toggle-theme]');
+    if (!supportsDark) {
+      for (const toggle of themeToggles) {
+        toggle.setAttribute('disabled', 'true');
+        toggle.setAttribute('aria-disabled', 'true');
+        toggle.setAttribute('aria-label', disabledLabel);
+        toggle.title = disabledLabel;
+      }
+      if (document.documentElement) {
+        document.documentElement.classList.remove('gallery-theme-dark');
+        document.documentElement.classList.add('gallery-theme-light');
+        document.documentElement.dataset.galleryTheme = 'light';
+      }
+      this.dataset.galleryTheme = 'light';
+      this.classList.remove('gallery-theme-dark');
+      this.classList.add('gallery-theme-light');
+      this.syncGalleryThemeToggleIcons(false);
+    } else {
+      for (const toggle of themeToggles) {
+        toggle.removeAttribute('disabled');
+        toggle.removeAttribute('aria-disabled');
+        toggle.title = '';
+      }
+      this.syncInitialGalleryTheme();
+    }
+
+    this.dispatchEvent(
+      new CustomEvent('dds:gallery-ui-theme-change', {
+        bubbles: true,
+        detail: { uiTheme: theme },
+      }),
+    );
+  }
+
+  /**
+   * Synchronises initial gallery UI theme from storage, URL, or defaults.
+   */
+  private syncInitialGalleryUITheme(): void {
+    const activeUITheme = this.getGalleryUITheme();
+    this.setGalleryUITheme(activeUITheme);
   }
 
   /**

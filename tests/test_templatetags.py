@@ -396,3 +396,54 @@ class TestExternalAssetUrls:
         assert 'src="//cdn.example.com/theme.js"' in result
         assert 'src="http://cdn.example.com/app.js"' in result
         assert f'src="{static("myapp/local.js")}"' in result
+
+
+class TestGalleryUIThemeTags:
+    def test_gallery_ui_theme_stylesheets(self):
+        from dj_design_system.templatetags.dj_design_system_gallery import (
+            gallery_ui_theme_stylesheets,
+        )
+        from dj_design_system.types import DarkModeConfig, Theme
+
+        theme = Theme(
+            value="custom",
+            label="Custom",
+            css=["css/custom.css"],
+            dark_mode=DarkModeConfig(css=["css/custom-dark.css"]),
+        )
+
+        # Light mode context
+        context_light = {"active_ui_theme": theme, "gallery_theme": "light"}
+        res_light = str(gallery_ui_theme_stylesheets(context_light))
+        assert 'href="/static/css/custom.css"' in res_light
+        assert "custom-dark.css" not in res_light
+
+        # Dark mode context
+        context_dark = {"active_ui_theme": theme, "gallery_theme": "dark"}
+        res_dark = str(gallery_ui_theme_stylesheets(context_dark))
+        assert 'href="/static/css/custom.css"' in res_dark
+        assert 'href="/static/css/custom-dark.css"' in res_dark
+
+    def test_gallery_ui_theme_scripts(self):
+        from dj_design_system.templatetags.dj_design_system_gallery import (
+            gallery_ui_theme_scripts,
+        )
+        from dj_design_system.types import DarkModeConfig, Theme
+
+        theme = Theme(
+            value="custom",
+            label="Custom",
+            js=["js/custom.js"],
+            dark_mode=DarkModeConfig(js=["js/custom-dark.js"]),
+        )
+
+        context_light = {"active_ui_theme": theme, "gallery_theme": "light"}
+        res_light = str(gallery_ui_theme_scripts(context_light))
+        assert 'src="/static/js/custom.js"' in res_light
+        assert "custom-dark.js" not in res_light
+
+        context_dark = {"active_ui_theme": theme, "gallery_theme": "dark"}
+        res_dark = str(gallery_ui_theme_scripts(context_dark))
+        assert 'src="/static/js/custom.js"' in res_dark
+        assert 'src="/static/js/custom-dark.js"' in res_dark
+

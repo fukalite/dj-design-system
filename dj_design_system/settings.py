@@ -58,6 +58,17 @@ DEFAULTS: dict = {
         },
     },
     "GALLERY_DEFAULT_THEME": "default",
+    # Gallery UI chrome theme configuration (sidebar, topbar, documentation panes)
+    "GALLERY_UI_THEMES": {
+        "desert": {
+            "label": "Desert",
+            "dark_mode": {},
+        },
+        "classic": {
+            "label": "Classic",
+        },
+    },
+    "GALLERY_DEFAULT_UI_THEME": "desert",
     # App labels explicitly included in the gallery. When configured (a list of
     # app labels), only components from these apps appear in the gallery.
     # When None (the default), all discovered apps appear except those in
@@ -98,6 +109,8 @@ class DjangoDesignSystemSettings:
     GALLERY_CODEHILITE_STYLE: str
     GALLERY_THEMES: dict[str, dict]
     GALLERY_DEFAULT_THEME: str
+    GALLERY_UI_THEMES: dict[str, dict]
+    GALLERY_DEFAULT_UI_THEME: str
     GALLERY_INCLUDE_APPS: list[str] | None
     GALLERY_EXCLUDE_APPS: list[str]
     GALLERY_EXTRA_CSS: list[str]
@@ -165,41 +178,72 @@ def get_default_background() -> dict:
     return {"value": "light-grey", "label": "Light Grey", "color": "#f0f0f0"}
 
 
+def _parse_theme_dict(key: str, theme: dict) -> Theme:
+    """Parse a theme dictionary into a typed Theme instance."""
+    raw_dark_mode = theme.get("dark_mode")
+    dark_mode_obj: DarkModeConfig | None = None
+    if isinstance(raw_dark_mode, dict):
+        dark_mode_obj = DarkModeConfig(
+            html_attrs=raw_dark_mode.get("html_attrs", {}),
+            css=coerce_path_list(raw_dark_mode.get("css", [])),
+            js=coerce_path_list(raw_dark_mode.get("js", [])),
+            css_bundles=raw_dark_mode.get("css_bundles", []),
+            js_bundles=raw_dark_mode.get("js_bundles", []),
+            canvas_background=raw_dark_mode.get("canvas_background"),
+        )
+    elif isinstance(raw_dark_mode, DarkModeConfig):
+        dark_mode_obj = raw_dark_mode
+
+    return Theme(
+        value=key,
+        label=theme.get("label", key.capitalize()),
+        html_attrs=theme.get("html_attrs", {}),
+        css=coerce_path_list(theme.get("css", [])),
+        js=coerce_path_list(theme.get("js", [])),
+        css_bundles=theme.get("css_bundles", []),
+        js_bundles=theme.get("js_bundles", []),
+        canvas_background=theme.get("canvas_background"),
+        dark_mode=dark_mode_obj,
+    )
+
+
 def get_themes() -> list[Theme]:
     """Return the list of themes.
 
     Each theme dict contains 'value', 'label', 'html_attrs', 'css', 'js', 'css_bundles', 'js_bundles'.
     """
     themes = dds_settings.GALLERY_THEMES
-    result = []
-    for key, theme in themes.items():
-        raw_dark_mode = theme.get("dark_mode")
-        dark_mode_obj: DarkModeConfig | None = None
-        if isinstance(raw_dark_mode, dict):
-            dark_mode_obj = DarkModeConfig(
-                html_attrs=raw_dark_mode.get("html_attrs", {}),
-                css=coerce_path_list(raw_dark_mode.get("css", [])),
-                js=coerce_path_list(raw_dark_mode.get("js", [])),
-                css_bundles=raw_dark_mode.get("css_bundles", []),
-                js_bundles=raw_dark_mode.get("js_bundles", []),
-                canvas_background=raw_dark_mode.get("canvas_background"),
-            )
-        elif isinstance(raw_dark_mode, DarkModeConfig):
-            dark_mode_obj = raw_dark_mode
+    return [_parse_theme_dict(key, theme) for key, theme in themes.items()]
 
-        theme_data = Theme(
-            value=key,
-            label=theme.get("label", key.capitalize()),
-            html_attrs=theme.get("html_attrs", {}),
-            css=coerce_path_list(theme.get("css", [])),
-            js=coerce_path_list(theme.get("js", [])),
-            css_bundles=theme.get("css_bundles", []),
-            js_bundles=theme.get("js_bundles", []),
-            canvas_background=theme.get("canvas_background"),
-            dark_mode=dark_mode_obj,
-        )
-        result.append(theme_data)
-    return result
+
+def get_gallery_ui_themes() -> list[Theme]:
+    """Return the list of configured gallery UI themes."""
+    ui_themes = getattr(dds_settings, "GALLERY_UI_THEMES", None) or {}
+    return [_parse_theme_dict(key, theme) for key, theme in ui_themes.items()]
+
+
+def get_gallery_ui_theme(identifier: str) -> Theme | None:
+    """Return the gallery UI theme matching the identifier, or None."""
+    for theme in get_gallery_ui_themes():
+        if theme.value == identifier:
+            return theme
+    return None
+
+
+def get_default_gallery_ui_theme() -> Theme:
+    """Return the default gallery UI theme."""
+    val = getattr(dds_settings, "GALLERY_DEFAULT_UI_THEME", "desert")
+    theme = get_gallery_ui_theme(identifier=val)
+    if theme:
+        return theme
+    themes = get_gallery_ui_themes()
+    if themes:
+        return themes[0]
+    return Theme(
+        value="desert",
+        label="Desert",
+        dark_mode=DarkModeConfig(),
+    )
 
 
 def get_theme(identifier: str) -> Theme | None:
