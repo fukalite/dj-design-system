@@ -357,7 +357,6 @@ export class ThemeManager {
   setGalleryUITheme(theme: 'desert' | 'classic'): void;
   setGalleryUITheme(theme: string): void;
   setGalleryUITheme(theme: string): void {
-    const isClassic = theme === 'classic';
     this.host.dataset.galleryUiTheme = theme;
     if (document.documentElement) {
       document.documentElement.dataset.galleryUiTheme = theme;
@@ -369,9 +368,6 @@ export class ThemeManager {
       if (theme !== 'desert') {
         document.documentElement.classList.add(`gallery-ui-theme-${theme}`);
       }
-      if (isClassic) {
-        document.documentElement.classList.add('gallery-ui-theme-classic');
-      }
     }
     for (const cls of Array.from(this.host.classList)) {
       if (cls.startsWith('gallery-ui-theme-')) {
@@ -380,9 +376,6 @@ export class ThemeManager {
     }
     if (theme !== 'desert') {
       this.host.classList.add(`gallery-ui-theme-${theme}`);
-    }
-    if (isClassic) {
-      this.host.classList.add('gallery-ui-theme-classic');
     }
 
     document.cookie =
@@ -528,6 +521,9 @@ export class ThemeManager {
    * @return {'light' | 'dark'} Resolved consumer color scheme.
    */
   getConsumerColorScheme(): 'light' | 'dark' {
+    if (!this.getActiveThemeSupportsDarkMode()) {
+      return 'light';
+    }
     if (
       this.host.dataset.colorScheme === 'dark' ||
       this.host.dataset.colorScheme === 'light'
@@ -581,37 +577,28 @@ export class ThemeManager {
     const actions = this.host.querySelector<HTMLElement>(
       '[data-toolbar-actions]',
     );
-    const select = this.host.querySelector<HTMLSelectElement>(
-      '[data-theme-select]',
-    );
+    const rawDarkThemes = actions?.dataset.darkModeThemes;
+    const activeTheme =
+      actions?.dataset.activeTheme ?? this.host.dataset.theme ?? '';
 
-    if (select && select.selectedIndex >= 0) {
-      const rawDarkThemes = actions?.dataset.darkModeThemes ?? '';
+    if (rawDarkThemes !== undefined && activeTheme) {
       const darkThemes = rawDarkThemes
         .split(',')
         .map((t) => t.trim())
         .filter(Boolean);
+      return darkThemes.includes(activeTheme);
+    }
+
+    const select = this.host.querySelector<HTMLSelectElement>(
+      '[data-theme-select]',
+    );
+    if (select && select.selectedIndex >= 0) {
       const activeOption = select.options[select.selectedIndex];
-      const activeTheme = activeOption?.value ?? '';
-      if (darkThemes.includes(activeTheme)) {
-        return true;
-      }
       return activeOption?.dataset.supportsDarkMode === 'true';
     }
 
     if (actions?.dataset.supportsDarkMode !== undefined) {
       return actions.dataset.supportsDarkMode === 'true';
-    }
-
-    const rawDarkThemes = actions?.dataset.darkModeThemes ?? '';
-    const darkThemes = rawDarkThemes
-      .split(',')
-      .map((t) => t.trim())
-      .filter(Boolean);
-    const activeTheme =
-      actions?.dataset.activeTheme ?? this.host.dataset.theme ?? '';
-    if (activeTheme && darkThemes.includes(activeTheme)) {
-      return true;
     }
 
     return false;

@@ -8,6 +8,11 @@
 {% if sandbox_active_theme %}
     <input type="hidden" name="_dds_theme" value="{{ sandbox_active_theme }}">
 {% endif %}
+{% if active_color_scheme %}
+    <input type="hidden"
+           name="_dds_color_scheme"
+           value="{{ active_color_scheme }}">
+{% endif %}
 {% if active_variant %}
     <input type="hidden" name="_dds_variant" value="{{ active_variant.name }}">
 {% endif %}
