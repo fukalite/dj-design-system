@@ -417,14 +417,6 @@ export class DDSGalleryShellElement
       // Ignore storage errors.
     }
 
-    try {
-      const currentUrl = new URL(window.location.href);
-      currentUrl.searchParams.set('_dds_gallery_ui_theme', theme);
-      window.history.replaceState({}, '', currentUrl.toString());
-    } catch {
-      // Ignore URL errors.
-    }
-
     const selects = this.querySelectorAll<HTMLSelectElement>(
       '[data-action=select-ui-theme], [data-ui-theme-select]',
     );
