@@ -4,5 +4,6 @@ from dj_design_system.components.gallery.composites.search_box import search_box
 
 
 SearchBox = search_box.SearchBox
+SearchIndexEntry = search_box.SearchIndexEntry
 
-__all__ = ["SearchBox"]
+__all__ = ["SearchBox", "SearchIndexEntry"]

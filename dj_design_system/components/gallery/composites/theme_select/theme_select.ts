@@ -1,13 +1,13 @@
 /**
  * @fileoverview Light DOM `<dds-theme-select>` custom element for theme
- * selection, persistence, and `dds:theme-change` event dispatching.
+ * selection and `dds:theme-change` event dispatching.
  */
 
 import type { DDSCustomElement } from '../../types.js';
 
 /**
  * Light DOM custom element enhancing `<dds-theme-select>` with theme change
- * handling, cookie/localStorage persistence, and `dds:theme-change` events.
+ * handling and `dds:theme-change` events.
  */
 export class DDSThemeSelectElement
   extends HTMLElement
@@ -49,23 +49,14 @@ export class DDSThemeSelectElement
   }
 
   /**
-   * Updates active theme state, persists the selection to cookie and
-   * localStorage, and dispatches a bubbling `dds:theme-change` CustomEvent.
+   * Updates active theme state and dispatches a bubbling `dds:theme-change`
+   * CustomEvent.
    *
    * @param {HTMLSelectElement} selectEl The internal theme select control.
    */
   private handleThemeChange(selectEl: HTMLSelectElement): void {
     const theme = selectEl.value;
     this.dataset.activeTheme = theme;
-    document.cookie =
-      'dds_theme=' +
-      encodeURIComponent(theme) +
-      '; path=/; max-age=31536000; SameSite=Lax';
-    try {
-      window.localStorage.setItem('dds_theme', theme);
-    } catch {
-      // Ignore storage access errors in restricted browsing contexts.
-    }
     this.dispatchEvent(
       new CustomEvent('dds:theme-change', {
         bubbles: true,

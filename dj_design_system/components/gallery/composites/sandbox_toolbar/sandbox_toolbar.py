@@ -1,8 +1,9 @@
 """Built-in interactive sandbox toolbar composite component for the dds gallery."""
 
+import dataclasses
 import typing
 
-from dj_design_system import components, data, parameters
+from dj_design_system import components, parameters
 
 
 DEFAULT_ACTIVE_VARIANT = ""
@@ -39,6 +40,118 @@ DEFAULT_ZOOM_LEVELS: tuple[str, ...] = (
 )
 
 
+def _read_option_field(
+    source: typing.Any,
+    key: str,
+    default: typing.Any = None,
+) -> typing.Any:
+    """Read an attribute or dictionary key from a raw control option."""
+    if isinstance(source, dict):
+        return source.get(key, default)
+    return getattr(source, key, default)
+
+
+@dataclasses.dataclass(frozen=True)
+class SandboxControlOption:
+    """Normalized option item for sandbox toolbar popout selectors."""
+
+    value: str
+    label: str
+    name: str = ""
+    href: str = ""
+    is_selected: bool = False
+
+    @classmethod
+    def from_raw(
+        cls,
+        raw_item: typing.Any,
+        *,
+        base_url: str = "",
+        is_variant: bool = False,
+        is_zoom: bool = False,
+        default_label: str = DEFAULT_VARIANT_LABEL,
+    ) -> "SandboxControlOption":
+        """Normalise a string, 2-tuple, dict, or Variant into an option."""
+        if is_variant:
+            if isinstance(raw_item, str):
+                raw_name: typing.Any = raw_item
+                raw_label: typing.Any = (
+                    raw_item.capitalize() if raw_item.islower() else raw_item
+                )
+                raw_href: typing.Any = None
+            else:
+                raw_name = _read_option_field(raw_item, "name")
+                raw_label = _read_option_field(raw_item, "label")
+                raw_href = _read_option_field(raw_item, "href")
+
+            name = str(raw_name) if raw_name is not None else ""
+            if raw_label is not None:
+                label = str(raw_label)
+            elif name:
+                label = name.capitalize() if name.islower() else name
+            else:
+                label = default_label
+
+            if raw_href is not None and str(raw_href):
+                href = str(raw_href)
+            elif base_url:
+                if name:
+                    separator = "&" if "?" in base_url else "?"
+                    href = f"{base_url}{separator}variant={name}"
+                else:
+                    href = base_url
+            else:
+                href = ""
+            return cls(value=name, label=label, name=name, href=href)
+
+        if is_zoom:
+            if isinstance(raw_item, (tuple, list)) and len(raw_item) >= 2:
+                zoom_val = str(raw_item[0]).rstrip("%")
+                zoom_lbl = str(raw_item[1])
+            elif isinstance(raw_item, dict) or hasattr(raw_item, "value"):
+                raw_val = _read_option_field(raw_item, "value")
+                raw_lbl = _read_option_field(raw_item, "label")
+                zoom_val = str(raw_val).rstrip("%") if raw_val is not None else ""
+                zoom_lbl = str(raw_lbl) if raw_lbl is not None else f"{zoom_val}%"
+            else:
+                zoom_val = str(raw_item).rstrip("%")
+                zoom_lbl = f"{zoom_val}%"
+            return cls(value=zoom_val, label=zoom_lbl)
+
+        if isinstance(raw_item, (tuple, list)) and len(raw_item) >= 2:
+            value = str(raw_item[0])
+            label = str(raw_item[1])
+        elif isinstance(raw_item, str):
+            value = raw_item
+            label = raw_item.capitalize() if raw_item.islower() else raw_item
+        else:
+            raw_val = _read_option_field(raw_item, "value")
+            raw_lbl = _read_option_field(raw_item, "label")
+            value = str(raw_val) if raw_val is not None else ""
+            label = (
+                str(raw_lbl)
+                if raw_lbl is not None
+                else (value.capitalize() if value.islower() else value)
+            )
+        return cls(value=value, label=label)
+
+    def to_dict(self, *, is_selected: bool | None = None) -> dict[str, typing.Any]:
+        """Return a template-ready dictionary representation."""
+        selected = self.is_selected if is_selected is None else is_selected
+        if self.name or self.href:
+            return {
+                "name": self.name,
+                "label": self.label,
+                "href": self.href,
+                "is_selected": selected,
+            }
+        return {
+            "value": self.value,
+            "label": self.label,
+            "is_selected": selected,
+        }
+
+
 class SandboxToolbar(components.TagComponent):
     """Sandbox preview toolbar composing popout selectors and inspection toggles.
 
@@ -61,7 +174,7 @@ class SandboxToolbar(components.TagComponent):
     """
 
     variants = parameters.ListParam(
-        description="Optional list of Variant instances or dicts with 'name' and 'label'.",
+        description="Optional list of Variant instances, SandboxControlOption instances, or dicts with 'name' and 'label'.",
         default=None,
         required=False,
     )
@@ -180,7 +293,7 @@ class SandboxToolbar(components.TagComponent):
         active_variant_label = DEFAULT_VARIANT_LABEL
 
         for raw_variant in raw_variants:
-            opt = data.SandboxControlOptionData.from_raw(
+            opt = SandboxControlOption.from_raw(
                 raw_variant,
                 base_url=base_url,
                 is_variant=True,
@@ -199,7 +312,7 @@ class SandboxToolbar(components.TagComponent):
             else list(DEFAULT_BACKGROUNDS)
         )
         extracted_backgrounds = [
-            data.SandboxControlOptionData.from_raw(raw_bg) for raw_bg in raw_backgrounds
+            SandboxControlOption.from_raw(raw_bg) for raw_bg in raw_backgrounds
         ]
         bg_values = [opt.value for opt in extracted_backgrounds]
         if self.active_background and str(self.active_background) in bg_values:
@@ -229,7 +342,7 @@ class SandboxToolbar(components.TagComponent):
             else list(DEFAULT_VIEWPORTS)
         )
         extracted_viewports = [
-            data.SandboxControlOptionData.from_raw(raw_vp) for raw_vp in raw_viewports
+            SandboxControlOption.from_raw(raw_vp) for raw_vp in raw_viewports
         ]
         vp_values = [opt.value for opt in extracted_viewports]
         if self.active_viewport and str(self.active_viewport) in vp_values:
@@ -257,7 +370,7 @@ class SandboxToolbar(components.TagComponent):
             else list(DEFAULT_ZOOM_LEVELS)
         )
         extracted_zooms = [
-            data.SandboxControlOptionData.from_raw(raw_zoom, is_zoom=True)
+            SandboxControlOption.from_raw(raw_zoom, is_zoom=True)
             for raw_zoom in raw_zoom_levels
         ]
         raw_active_zoom = (

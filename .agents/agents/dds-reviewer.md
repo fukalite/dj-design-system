@@ -23,16 +23,18 @@ You are the **DDS Principal Code Reviewer** for `dj-design-system`. You audit co
 ## Review & Fix Checklist
 1. **No Git Mutations:** Never run `git add`, `git commit`, `git restore`, or `git reset`.
 2. **DDS Component Compliance:**
-   - 100% co-location (`<name>.py`, `<name>.html`, `<name>.css`, `<name>.ts` if interactive, `gallery.py`, `index.md`).
+   - 100% co-location in `dj_design_system/components/gallery/<group>/<name>/` (`<name>.py`, `<name>.html`, `<name>.css`, `<name>.ts` if interactive, `gallery.py`, `index.md`).
    - Zero BEM (`__` or `--`) in HTML or CSS.
    - `@layer blocks` wrapper in `<name>.css`, zero outer margin on root, Tier 3 `--_<component>-*` tokens at the top of the root selector mapped exclusively from Tier 2 `--dds-*` tokens (never Tier 1 `--_dds-*` or raw literals).
-   - Zero Django template filters (`|default`, `|lower`, etc.) used for value computation in `<name>.html`; all parameter defaults and multi-parameter logic live in `get_context()`.
+   - Zero Django template filters (`|default`, `|lower`, etc.) used for value computation in `<name>.html`; all parameter defaults, component-local `@dataclass(frozen=True)` contracts, and multi-parameter logic live in `get_context()`.
    - Zero `.render()` calls on components inside Python `get_context()`; composition happens in `<name>.html` via `{% dds__... %}`.
-   - Web Components (`<name>.ts`) use Light DOM, `this.querySelector` scoping, bubbling `dds:*` `CustomEvent`s, and `AbortController` cleanup in `disconnectedCallback()`.
-3. **Python & Test Compliance:**
-   - Module-level imports (no unnecessary function-local imports).
+   - Web Components (`<name>.ts`) use Light DOM, `this.querySelector` scoping, upward `dds:*` `CustomEvent`s, downward public methods, zero `localStorage`/`history`/HTMX global access inside components, and `AbortController` cleanup in `disconnectedCallback()`. Cross-component state and persistence belong in page-level mediators (`static/dj_design_system/*-manager.ts`).
+3. **Python & TypeScript Test Compliance:**
+   - Module-level imports in Python (no unnecessary function-local imports).
    - No inline `@pytest.fixture` definitions inside `tests/**/test_*.py` files (fixtures belong in `conftest.py`; use module-level helper functions in test files).
    - Full type annotations on `services/` and `business_logic/`.
+   - Client-side `.ts` behaviour is tested exclusively in `tests/ts/<name>.test.ts` via Vitest (`just test-ts`), never via Python string assertions on `.ts` files.
 4. **Validation:**
-   - Run `just test`, `just check`, and `uv run --no-sync mypy dj_design_system`.
+   - Run `just test` (which runs both `pytest` and `just test-ts`), `just check`, and `just typecheck`.
 5. **Return Format:** Keep your final response under 25 lines: list any issues found and fixed, and report the final test/lint/typecheck status.
+

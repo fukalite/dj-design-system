@@ -2,14 +2,13 @@
 
 import typing
 
-from dj_design_system import components, data, parameters
+from dj_design_system import components, data, parameters, slots
 
 
 DEFAULT_EMPTY_MESSAGE = "This component has no configurable parameters."
-DEFAULT_HX_TARGET = "closest [data-gallery-sandbox-body]"
 
 
-class SandboxParams(components.TagComponent):
+class SandboxParams(components.BlockComponent):
     """Composite gallery component for editing component parameters in the live sandbox.
 
     Renders a ``<dds-sandbox-params class="dds-sandbox-params" data-surface="sandbox">``
@@ -19,6 +18,7 @@ class SandboxParams(components.TagComponent):
 
     Each row in ``param_rows`` is normalised in ``get_context()`` and delegated
     to ``{% dds__form_field %}`` inside an Every Layout ``<l-stack data-params-fields>``.
+    Additional hidden routing inputs can be injected via ``{% slot "extra_inputs" %}``.
 
     When to Use:
         - Rendering the parameter customization form in the component sandbox pane.
@@ -36,18 +36,18 @@ class SandboxParams(components.TagComponent):
         required=False,
     )
     active_theme = parameters.StrParam(
-        description="Active theme value preserved as hidden '_dds_theme' input.",
+        description="Optional active theme identifier.",
         default="",
         required=False,
     )
     active_variant = parameters.StrParam(
-        description="Active variant name (or Variant instance) preserved as hidden '_dds_variant' input.",
+        description="Optional active variant name (or Variant instance).",
         default="",
         required=False,
     )
     hx_target = parameters.StrParam(
-        description="HTMX target selector for live sandbox swaps.",
-        default=DEFAULT_HX_TARGET,
+        description="Optional HTMX target selector for live sandbox swaps.",
+        default="",
         required=False,
     )
     empty_message = parameters.StrParam(
@@ -58,12 +58,22 @@ class SandboxParams(components.TagComponent):
 
     class Meta:
         positional_args = ["param_rows"]
+        slots = {
+            "extra_inputs": slots.Slot(
+                required=False,
+                description=(
+                    "Optional extra hidden or control inputs rendered inside "
+                    "the form before parameter fields."
+                ),
+            ),
+        }
 
-    def __init__(self, **kwargs: typing.Any) -> None:
-        """Initialise ParamsForm and normalise active_variant objects to their name string.
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
+        """Initialise SandboxParams and normalise active_variant objects to their name string.
 
         Args:
-            **kwargs: Component parameter keyword arguments.
+            *args: Optional positional block content arguments.
+            **kwargs: Component parameter and slot keyword arguments.
         """
         if (
             "active_variant" in kwargs
@@ -73,7 +83,7 @@ class SandboxParams(components.TagComponent):
             kwargs["active_variant"] = str(
                 getattr(kwargs["active_variant"], "name", kwargs["active_variant"])
             )
-        super().__init__(**kwargs)
+        super().__init__(*args, **kwargs)
 
     def get_context(self) -> dict[str, typing.Any]:
         """Build the normalised template context for the sandbox parameters form.
@@ -82,7 +92,8 @@ class SandboxParams(components.TagComponent):
             Dictionary containing ``param_rows``, ``normalized_rows``,
             ``has_rows``, ``action_url``, ``has_action_url``, ``active_theme``,
             ``has_active_theme``, ``active_variant``, ``has_active_variant``,
-            ``hx_target``, and ``empty_message``.
+            ``hx_target``, ``has_hx_target``, ``extra_inputs``, and
+            ``empty_message``.
         """
         context = super().get_context()
         raw_rows = list(self.param_rows) if self.param_rows is not None else []
@@ -97,7 +108,8 @@ class SandboxParams(components.TagComponent):
         has_active_theme = bool(active_theme)
         active_variant = self.active_variant or ""
         has_active_variant = bool(active_variant)
-        hx_target = self.hx_target or DEFAULT_HX_TARGET
+        hx_target = self.hx_target or ""
+        has_hx_target = bool(hx_target)
         empty_message = self.empty_message or DEFAULT_EMPTY_MESSAGE
 
         context["param_rows"] = normalized_rows
@@ -110,5 +122,6 @@ class SandboxParams(components.TagComponent):
         context["active_variant"] = active_variant
         context["has_active_variant"] = has_active_variant
         context["hx_target"] = hx_target
+        context["has_hx_target"] = has_hx_target
         context["empty_message"] = empty_message
         return context

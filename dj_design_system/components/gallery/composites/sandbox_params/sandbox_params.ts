@@ -115,7 +115,6 @@ export class DDSSandboxParamsElement
       return;
     }
     form.reset();
-    this.dispatchParamsChange();
   }
 
   /**

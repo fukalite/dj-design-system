@@ -481,46 +481,6 @@ class TestTabsStylesheet:
         assert "--_tabs-switcher-border-color" in css_text
 
 
-class TestTabsTypeScriptCustomElement:
-    """Verify Light DOM <dds-tabs> TypeScript implementation in tabs.ts."""
-
-    def test_tabs_ts_implements_contract_and_keyboard_navigation(self) -> None:
-        """Verify tabs.ts defines DDSTabsElement, AbortController, ARIA queries, and events."""
-        ts_text = _read_text(path=TABS_TS_PATH)
-        assert "import type { DDSCustomElement } from '../../types.js';" in ts_text
-        assert (
-            "export class DDSTabsElement extends HTMLElement implements DDSCustomElement"
-            in ts_text
-        )
-        assert "AbortController" in ts_text
-        assert "connectedCallback()" in ts_text
-        assert "disconnectedCallback()" in ts_text
-        assert '[role="tab"][data-tab-trigger]' in ts_text
-        assert '[role="tabpanel"][data-tab-panel]' in ts_text
-        assert ").filter((tab) => tab.closest('dds-tabs') === this);" in ts_text
-        assert ").filter((panel) => panel.closest('dds-tabs') === this);" in ts_text
-        assert "target.closest('dds-tabs') !== this" in ts_text
-        for key in ("ArrowRight", "ArrowLeft", "Home", "End"):
-            assert f"'{key}'" in ts_text
-        assert "aria-selected" in ts_text
-        assert "tabindex" in ts_text
-        assert "panel.hidden = !isMatch;" in ts_text
-        assert "this.dataset.activeTab = tabId;" in ts_text
-        assert (
-            "this.dispatchEvent(\n      new CustomEvent('dds:tab-change', { bubbles: true, detail: { tabId } }),\n    );"
-            in ts_text
-            or "this.dispatchEvent(new CustomEvent('dds:tab-change', { bubbles: true, detail: { tabId } }))"
-            in ts_text
-        )
-        assert "if (!customElements.get('dds-tabs'))" in ts_text
-        assert "customElements.define('dds-tabs', DDSTabsElement);" in ts_text
-        assert "attachShadow" not in ts_text
-        assert "document.querySelector" not in ts_text
-        for line in ts_text.splitlines():
-            assert len(line) <= 80
-            assert line == line.rstrip()
-
-
 class TestTabsGalleryAndDocs:
     """Verify co-located gallery.py and index.md for dds__tabs."""
 

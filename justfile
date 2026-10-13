@@ -29,7 +29,12 @@ install-hooks:
 
 # Run unit tests (excluding e2e)
 test:
+    @just test-ts
     uv run --no-sync pytest tests/ -m "not e2e"
+
+# Run native TypeScript DOM unit tests (Vitest)
+test-ts:
+    npx vitest run
 
 # Run a single test by keyword pattern
 test-one pattern:

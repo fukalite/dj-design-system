@@ -64,6 +64,10 @@ Create `templates/dj_design_system/gallery/panes/sandbox.html` in your consuming
 <l-stack data-sandbox-stack>
     {% dds__sandbox_toolbar variants=gallery_variants active_variant=active_variant component_url=component_base_url backgrounds=canvas_backgrounds active_background=active_bg_value canvas_url=canvas_iframe_url reset_url=sandbox_reset_url %}
     {% dds__canvas_widget canvas_id="sandbox" iframe_src=canvas_iframe_url source_code=source_html rendered_html=rendered_output_html background=active_bg_value title="Component preview" %}
-    {% dds__sandbox_params param_rows=param_rows action_url=request.path active_theme=sandbox_active_theme active_variant=active_variant hx_target="[data-gallery-sandbox-body]" %}
+    {% dds__sandbox_params param_rows=param_rows action_url=request.path hx_target="[data-gallery-sandbox-body]" %}
+      {% slot "extra_inputs" %}
+        <input type="hidden" name="_iss" value="1">
+      {% endslot %}
+    {% enddds__sandbox_params %}
 </l-stack>
 ```

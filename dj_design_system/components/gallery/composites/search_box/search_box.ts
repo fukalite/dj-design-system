@@ -33,8 +33,7 @@ export interface SearchIndexEntry {
 
 /**
  * Light DOM custom element enhancing `<dds-search-box>` with instant filtering,
- * WAI-ARIA combobox keyboard navigation, global `/` shortcut, and outside-click
- * dismissal.
+ * WAI-ARIA combobox keyboard navigation, and outside-click dismissal.
  */
 export class DDSSearchBoxElement
   extends HTMLElement
@@ -104,22 +103,6 @@ export class DDSSearchBoxElement
     }
 
     document.addEventListener(
-      'keydown',
-      (event: KeyboardEvent) => {
-        if (event.key === '/' && !this.isEditableTarget(event.target)) {
-          const currentInput = this.querySelector<HTMLInputElement>(
-            '[data-search-input]',
-          );
-          if (currentInput) {
-            event.preventDefault();
-            currentInput.focus();
-          }
-        }
-      },
-      { signal },
-    );
-
-    document.addEventListener(
       'click',
       (event: MouseEvent) => {
         if (
@@ -140,6 +123,14 @@ export class DDSSearchBoxElement
     this.abortController?.abort();
     this.abortController = null;
     this.clearDebounceTimer();
+  }
+
+  /**
+   * Focuses the internal combobox search input if present.
+   */
+  focusInput(): void {
+    const inputEl = this.querySelector<HTMLInputElement>('[data-search-input]');
+    inputEl?.focus();
   }
 
   /**
@@ -273,13 +264,18 @@ export class DDSSearchBoxElement
    *
    * @param {!SearchIndexEntry} entry Matching search index entry.
    * @param {!Array<string>} words Query words for label highlighting.
+   * @param {number} index Zero-based option index.
+   * @param {string} resultsId DOM id prefix for option elements.
    * @return {!HTMLAnchorElement} Constructed option anchor element.
    */
   private buildOptionElement(
     entry: SearchIndexEntry,
     words: string[],
+    index: number,
+    resultsId: string,
   ): HTMLAnchorElement {
     const optionEl = document.createElement('a');
+    optionEl.id = `${resultsId}-opt-${index}`;
     optionEl.setAttribute('role', 'option');
     optionEl.setAttribute('data-search-option', '');
     optionEl.setAttribute('data-node-type', entry.type);
@@ -319,6 +315,7 @@ export class DDSSearchBoxElement
       .filter((word) => word.length > 0);
 
     this.activeIndex = -1;
+    inputEl.removeAttribute('aria-activedescendant');
     resultsEl.replaceChildren();
 
     if (words.length === 0) {
@@ -328,6 +325,7 @@ export class DDSSearchBoxElement
 
     const entries = this.parseSearchIndex();
     const matches = this.filterEntries(words, entries);
+    const resultsId = resultsEl.id || 'gallery-search-results';
 
     if (matches.length === 0) {
       const emptyEl = document.createElement('p');
@@ -335,9 +333,11 @@ export class DDSSearchBoxElement
       emptyEl.textContent = 'No results found.';
       resultsEl.appendChild(emptyEl);
     } else {
-      for (const entry of matches.slice(0, MAX_RESULTS)) {
-        resultsEl.appendChild(this.buildOptionElement(entry, words));
-      }
+      matches.slice(0, MAX_RESULTS).forEach((entry, index) => {
+        resultsEl.appendChild(
+          this.buildOptionElement(entry, words, index, resultsId),
+        );
+      });
     }
 
     this.setOpenState(true);
@@ -354,6 +354,9 @@ export class DDSSearchBoxElement
     const resultsEl = this.querySelector<HTMLElement>('[data-search-results]');
     if (inputEl) {
       inputEl.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      if (!isOpen) {
+        inputEl.removeAttribute('aria-activedescendant');
+      }
     }
     if (resultsEl) {
       resultsEl.hidden = !isOpen;
@@ -418,13 +421,15 @@ export class DDSSearchBoxElement
   }
 
   /**
-   * Updates `aria-selected` and `data-active` across result options.
+   * Updates `aria-selected`, `data-active`, `aria-activedescendant`, and
+   * scrolls the active option into view.
    *
    * @param {!Array<!HTMLAnchorElement>} options Result option elements.
    * @param {number} index Active option index.
    */
   private setActiveOption(options: HTMLAnchorElement[], index: number): void {
     this.activeIndex = index;
+    const inputEl = this.querySelector<HTMLInputElement>('[data-search-input]');
     options.forEach((optionEl, idx) => {
       const isActive = idx === index;
       optionEl.setAttribute('aria-selected', isActive ? 'true' : 'false');
@@ -434,6 +439,17 @@ export class DDSSearchBoxElement
         optionEl.removeAttribute('data-active');
       }
     });
+    const activeOption = options[index];
+    if (inputEl) {
+      if (activeOption && activeOption.id) {
+        inputEl.setAttribute('aria-activedescendant', activeOption.id);
+      } else {
+        inputEl.removeAttribute('aria-activedescendant');
+      }
+    }
+    if (activeOption && typeof activeOption.scrollIntoView === 'function') {
+      activeOption.scrollIntoView({ block: 'nearest' });
+    }
   }
 
   /**
@@ -467,25 +483,6 @@ export class DDSSearchBoxElement
         bubbles: true,
         detail: { url, label },
       }),
-    );
-  }
-
-  /**
-   * Determines whether a keyboard event target is an editable form control.
-   *
-   * @param {?EventTarget} target Event target node.
-   * @return {boolean} True when the target is an editable field.
-   */
-  private isEditableTarget(target: EventTarget | null): boolean {
-    if (!(target instanceof HTMLElement)) {
-      return false;
-    }
-    const tagName = target.tagName.toLowerCase();
-    return (
-      tagName === 'input' ||
-      tagName === 'textarea' ||
-      tagName === 'select' ||
-      target.isContentEditable
     );
   }
 }

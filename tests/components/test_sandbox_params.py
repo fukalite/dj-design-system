@@ -17,6 +17,7 @@ from dj_design_system.components.gallery.composites.sandbox_params import (
     sandbox_params as sandbox_params_module,
 )
 from dj_design_system.services import registry as registry_service
+from dj_design_system.services import slot_node as slot_node_service
 from tests import conftest
 
 
@@ -94,6 +95,7 @@ def _render_template(source: str, context: dict[str, object] | None = None) -> s
     reg = _make_registry()
     library = template.Library()
     reg.register_templatetags(library=library)
+    library.tag(name="slot", compile_function=slot_node_service.do_slot)
     engine = template.Engine(
         loaders=["dj_design_system.loaders.ComponentsTemplateLoader"],
         libraries={
@@ -134,8 +136,9 @@ class TestSandboxParamsDiscoveryAndMetadata:
         )
         assert issubclass(
             sandbox_params_module.SandboxParams,
-            components.TagComponent,
+            components.BlockComponent,
         )
+        assert "extra_inputs" in sandbox_params_module.SandboxParams.get_slots()
 
     def test_template_media_and_positional_args(self) -> None:
         """Verify SandboxParams relies on co-located template_name, Media.css, Media.js, and positional_args."""
@@ -165,7 +168,7 @@ class TestSandboxParamsParametersAndContext:
     """Verify parameter validation, __init__ normalisation, and get_context() shaping."""
 
     def test_default_parameters_and_empty_context(self) -> None:
-        """Verify default parameters produce empty rows and default fallback values."""
+        """Verify default parameters produce empty rows and no hardcoded hx_target."""
         comp = sandbox_params_module.SandboxParams()
         ctx = comp.get_context()
         assert comp.param_rows is None
@@ -178,7 +181,9 @@ class TestSandboxParamsParametersAndContext:
         assert ctx["has_active_theme"] is False
         assert ctx["active_variant"] == ""
         assert ctx["has_active_variant"] is False
-        assert ctx["hx_target"] == "closest [data-gallery-sandbox-body]"
+        assert ctx["hx_target"] == ""
+        assert ctx["has_hx_target"] is False
+        assert "DEFAULT_HX_TARGET" not in sandbox_params_module.__dict__
         assert ctx["empty_message"] == "This component has no configurable parameters."
 
     def test_normalises_active_variant_object_in_init(self) -> None:
@@ -333,7 +338,7 @@ class TestSandboxParamsRenderingAndTemplate:
     def test_renders_form_with_htmx_attributes_hidden_inputs_and_form_fields(
         self,
     ) -> None:
-        """Verify populated param_rows render <form data-params-form> and child dds__form_field elements."""
+        """Verify populated param_rows render <form data-params-form>, extra_inputs slot, and child dds__form_field elements."""
         rows_data = [
             {
                 "name": "label",
@@ -359,8 +364,13 @@ class TestSandboxParamsRenderingAndTemplate:
         ]
         html = _render_template(
             source=(
-                "{% dds__sandbox_params param_rows action_url=action_url "
-                "active_theme=active_theme active_variant=active_variant %}"
+                '{% dds__sandbox_params param_rows action_url=action_url hx_target="[data-gallery-sandbox-body]" %}'
+                '{% slot "extra_inputs" %}'
+                '<input type="hidden" name="_iss" value="1">'
+                '<input type="hidden" name="_dds_theme" value="{{ active_theme }}">'
+                '<input type="hidden" name="_dds_variant" value="{{ active_variant.name }}">'
+                "{% endslot %}"
+                "{% enddds__sandbox_params %}"
             ),
             context={
                 "param_rows": rows_data,
@@ -381,7 +391,7 @@ class TestSandboxParamsRenderingAndTemplate:
             'action="/gallery/components/button/" hx-get="/gallery/components/button/"'
         ) in html
         assert 'hx-replace-url="true"' in html
-        assert 'hx-target="closest [data-gallery-sandbox-body]"' in html
+        assert 'hx-target="[data-gallery-sandbox-body]"' in html
         assert 'hx-swap="innerHTML show:none"' in html
         assert (
             'hx-trigger="change delay:400ms, keyup delay:400ms from:input, '
@@ -404,9 +414,9 @@ class TestSandboxParamsRenderingAndTemplate:
         assert "data-params-empty" not in html
 
     def test_omits_optional_action_and_hidden_inputs_when_empty(self) -> None:
-        """Verify action, hx-get, _dds_theme, and _dds_variant are omitted when not provided."""
+        """Verify action, hx-get, hx-target, and hidden inputs are omitted when not provided."""
         html = _render_template(
-            source="{% dds__sandbox_params param_rows %}",
+            source="{% dds__sandbox_params param_rows %}{% enddds__sandbox_params %}",
             context={
                 "param_rows": [
                     {
@@ -419,7 +429,8 @@ class TestSandboxParamsRenderingAndTemplate:
         )
         assert "action=" not in html
         assert "hx-get=" not in html
-        assert 'name="_iss"' in html
+        assert "hx-target=" not in html
+        assert 'name="_iss"' not in html
         assert 'name="_dds_theme"' not in html
         assert 'name="_dds_variant"' not in html
         assert '<input type="text" id="id_title" name="title">' in html
@@ -427,7 +438,7 @@ class TestSandboxParamsRenderingAndTemplate:
     def test_renders_empty_state_when_no_rows(self) -> None:
         """Verify empty param_rows renders <p data-params-empty> and no <form>."""
         html = _render_template(
-            source='{% dds__sandbox_params param_rows empty_message="No editable params." %}',
+            source='{% dds__sandbox_params param_rows empty_message="No editable params." %}{% enddds__sandbox_params %}',
             context={"param_rows": []},
         )
         assert (
@@ -440,7 +451,7 @@ class TestSandboxParamsRenderingAndTemplate:
     def test_escapes_untrusted_strings(self) -> None:
         """Verify untrusted strings in labels, descriptions, errors, and empty_message are escaped."""
         html_with_rows = _render_template(
-            source="{% dds__sandbox_params param_rows active_theme=theme %}",
+            source="{% dds__sandbox_params param_rows active_theme=theme %}{% enddds__sandbox_params %}",
             context={
                 "theme": '"><script>alert(1)</script>',
                 "param_rows": [
@@ -462,17 +473,21 @@ class TestSandboxParamsRenderingAndTemplate:
         assert "&lt;img src=x onerror=alert(1)&gt;" in html_with_rows
 
         html_empty = _render_template(
-            source="{% dds__sandbox_params empty_message=msg %}",
+            source="{% dds__sandbox_params empty_message=msg %}{% enddds__sandbox_params %}",
             context={"msg": "<script>alert(2)</script>"},
         )
         assert "<script>" not in html_empty
         assert "&lt;script&gt;alert(2)&lt;/script&gt;" in html_empty
 
     def test_template_contains_no_filters_or_bem(self) -> None:
-        """Verify sandbox_params.html loads design_components and contains zero filters or BEM."""
+        """Verify sandbox_params.html loads design_components and contains zero filters, BEM, or hardcoded routing inputs."""
         template_text = _read_text(path=SANDBOX_PARAMS_HTML_PATH)
         assert template_text.startswith("{% load design_components %}")
         assert "|" not in template_text
+        assert 'name="_iss"' not in template_text
+        assert 'name="_dds_theme"' not in template_text
+        assert 'name="_dds_variant"' not in template_text
+        assert "{{ extra_inputs }}" in template_text
         bem_matches = re.findall(
             pattern=r"\.[a-z0-9-]+(?:__|--)[a-z0-9-]+",
             string=template_text,
@@ -553,67 +568,3 @@ class TestSandboxParamsGalleryAndDocs:
         assert "active_variant" in doc_text
         assert "hx_target" in doc_text
         assert "empty_message" in doc_text
-
-
-class TestSandboxParamsTypeScriptCustomElement:
-    """Verify Light DOM <dds-sandbox-params> TypeScript contract in sandbox_params.ts."""
-
-    def test_sandbox_params_ts_implements_custom_element_and_lifecycle_contract(
-        self,
-    ) -> None:
-        """Verify sandbox_params.ts defines DDSSandboxParamsElement with AbortController and debounce cleanup."""
-        assert SANDBOX_PARAMS_TS_PATH.is_file()
-        ts_text = _read_text(path=SANDBOX_PARAMS_TS_PATH)
-        assert "import type { DDSCustomElement } from '../../types.js';" in ts_text
-        assert (
-            "export class DDSSandboxParamsElement" in ts_text
-            and "extends HTMLElement" in ts_text
-            and "implements DDSCustomElement" in ts_text
-        )
-        assert "private abortController: AbortController | null = null;" in ts_text
-        assert "private debounceTimer: number | null = null;" in ts_text
-        assert "connectedCallback(): void" in ts_text
-        assert "disconnectedCallback(): void" in ts_text
-        assert "this.abortController?.abort();" in ts_text
-        assert "this.abortController = new AbortController();" in ts_text
-        assert "this.abortController = null;" in ts_text
-        assert "this.clearDebounceTimer();" in ts_text
-        assert "window.clearTimeout(this.debounceTimer);" in ts_text
-        assert (
-            "this.querySelector<HTMLFormElement>('form[data-params-form]')" in ts_text
-        )
-        assert "if (!customElements.get('dds-sandbox-params'))" in ts_text
-        assert (
-            "customElements.define('dds-sandbox-params', DDSSandboxParamsElement);"
-            in ts_text
-        )
-
-    def test_sandbox_params_ts_serialization_reset_and_events(self) -> None:
-        """Verify debounced input, change/reset listeners, serializeParams, resetParams, and dds:params-change."""
-        ts_text = _read_text(path=SANDBOX_PARAMS_TS_PATH)
-        assert "const DEBOUNCE_MS = 250;" in ts_text
-        for event_name in ("change", "input", "reset"):
-            assert f"'{event_name}'" in ts_text
-        assert "serializeParams(): Record<string, string>" in ts_text
-        assert "resetParams(): void" in ts_text
-        assert "new FormData(form)" in ts_text
-        assert "new URLSearchParams(params).toString()" in ts_text
-        assert "form.reset();" in ts_text
-        assert "new CustomEvent('dds:params-change'" in ts_text
-        assert "bubbles: true" in ts_text
-        assert "detail: { params, queryString }" in ts_text
-
-    def test_sandbox_params_ts_enforces_light_dom_encapsulation_and_styleguide(
-        self,
-    ) -> None:
-        """Verify sandbox_params.ts uses Light DOM only, scoped queries, single quotes, and <=80 cols."""
-        ts_text = _read_text(path=SANDBOX_PARAMS_TS_PATH)
-        assert "attachShadow" not in ts_text
-        assert "innerHTML" not in ts_text
-        assert "document.getElementById" not in ts_text
-        assert "document.querySelector" not in ts_text
-        assert '"' not in ts_text
-        assert "\t" not in ts_text
-        for line in ts_text.splitlines():
-            assert len(line) <= 80
-            assert line == line.rstrip()

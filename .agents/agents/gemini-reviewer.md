@@ -53,7 +53,7 @@ To match the CI action's exact context boundaries ([.github/scripts/ai_pr_review
 ### Files Added to Context
 - **Annotated Unified Diff**: Review only code hunks with exact line numbers.
 - **Modified Source Files**: View full content of modified source files when necessary to understand the enclosing class, function, or template context.
-- **Co-located Siblings & Tests**: For any modified component (`<name>.py`), inspect its sibling files (`<name>.html`, `<name>.css`, `<name>.ts`, `gallery.py`, `tests/components/test_<name>.py`) to verify contract integrity.
+- **Co-located Siblings & Tests**: For any modified component (`<name>.py`), inspect its sibling files (`<name>.html`, `<name>.css`, `<name>.ts`, `gallery.py`, `tests/components/test_<name>.py`, `tests/ts/<name>.test.ts`) to verify contract integrity.
 
 ### Strict File Exclusions (Ignore Patterns from CI Script)
 Never load or evaluate files matching CI script ignore filters:
@@ -66,8 +66,8 @@ Never load or evaluate files matching CI script ignore filters:
 - **Ignored File Suffixes**:
   - `.md`, `.lock`, `.txt`, `.png`, `.jpg`, `.jpeg`, `.svg`, `.ico`, `.gif`, `.json`, `.yml`, `.yaml`, `.toml`
 - **Build & Cache Artefacts**:
-  - `dj_design_system/components/**/*.js` (compiled output from `just build-ts`)
-  - `.coverage`, `coverage.xml`, `htmlcov/`, `.pytest_cache/`, `__pycache__/`, `.mypy_cache/`, `.ruff_cache/`
+  - `dj_design_system/components/**/*.js` and `dj_design_system/static/**/*.js` (compiled output from `just build-ts`)
+  - `.coverage`, `coverage.xml`, `htmlcov/`, `.pytest_cache/`, `__pycache__/`, `.mypy_cache/`, `.ruff_cache/`, `node_modules/`
 
 ---
 
@@ -80,16 +80,16 @@ Never load or evaluate files matching CI script ignore filters:
    - Cross-examine changes against [.github/copilot-instructions.md](file:///home/marcel/projects/dj-design-system/.github/copilot-instructions.md) and project styleguides in [conductor/code_styleguides/](file:///home/marcel/projects/dj-design-system/conductor/code_styleguides/).
    - Assess:
      - **Django Idiomaticness**: Pluggable app extensibility, Class-Based Views, serializers, settings.
-     - **Architecture & Boundaries**: Layering violations, leaking domain logic into templates/views.
+     - **Architecture & Boundaries**: Layering violations, leaking domain logic into templates/views, or leaking page state (`localStorage`, `history`, HTMX) into Web Components instead of page mediators.
      - **Design System Standards**: Co-location, token tiers, CSS layer encapsulation, Light DOM rules.
      - **Database Efficiency**: N+1 queries, unnecessary DB hits in rendering.
      - **Security & A11y**: Template escaping, WCAG contrast, ARIA landmarks, keyboard accessibility.
-     - **Test Adequacy**: New logic covered by tests, module-level helper patterns, conftest fixtures.
+     - **Test Adequacy**: New Python logic covered in `tests/`, TypeScript DOM behaviour covered in `tests/ts/*.test.ts` via Vitest (no Python string-matching on `.ts` files).
 3. **Non-Destructive Validation**:
    - Run verification checks to confirm baseline status:
-     - `just check` (ruff linting and djlint template checks)
+     - `just check` (ruff linting, stylelint, and djlint template checks)
      - `just typecheck` (mypy typing verification)
-     - Targeted tests for touched modules (e.g. `uv run --no-sync pytest <target_test_file>`)
+     - Targeted tests for touched modules (`uv run --no-sync pytest <target_test_file>` and `just test-ts`)
 4. **Structured Review Delivery**:
    - Synthesise findings into the structured review format below.
 
