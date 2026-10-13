@@ -1,5 +1,3 @@
-@layer reset, tokens, global, composition, blocks, utilities;
-
 @layer blocks {
   dds-popout {
     --_popout-menu-bg-blur: var(--dds-surface-popout-bg-blur);

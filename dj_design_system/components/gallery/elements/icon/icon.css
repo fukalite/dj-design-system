@@ -8,8 +8,8 @@
     --_icon-size: var(--_icon-size-md);
     display: inline-block;
     flex-shrink: 0;
-    width: var(--_icon-size);
-    height: var(--_icon-size);
+    inline-size: var(--_icon-size);
+    block-size: var(--_icon-size);
     margin: 0;
     color: var(--_icon-color);
     vertical-align: middle;

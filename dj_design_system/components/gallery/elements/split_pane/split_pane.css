@@ -112,8 +112,7 @@
       --_split-pane-primary-flex: 1 1 100%;
       --_split-pane-secondary-display: none;
 
-      &[data-active-pane='secondary'],
-      &[data-active-pane='sandbox'] {
+      &[data-active-pane='secondary'] {
         --_split-pane-primary-display: none;
         --_split-pane-secondary-display: flex;
         --_split-pane-secondary-flex: 1 1 100%;

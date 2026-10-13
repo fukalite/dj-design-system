@@ -1,5 +1,3 @@
-@layer reset, tokens, global, composition, blocks, utilities;
-
 @layer blocks {
   .dds-popout-option {
     --_popout-option-active-bg-color: var(--dds-state-active-bg-color);
