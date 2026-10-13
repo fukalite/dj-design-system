@@ -7,7 +7,7 @@ import re
 
 from django import template
 
-from dj_design_system import data, gallery
+from dj_design_system import gallery
 from dj_design_system.components import base as components_base
 from dj_design_system.components.gallery.composites import (
     search_box as search_box_package,
@@ -15,7 +15,6 @@ from dj_design_system.components.gallery.composites import (
 from dj_design_system.components.gallery.composites.search_box import (
     search_box as search_box_module,
 )
-from dj_design_system.services import canvas as canvas_service
 from dj_design_system.services import registry as registry_service
 from dj_design_system.services import slot_node
 from tests import conftest
@@ -322,27 +321,18 @@ class TestSearchBoxStylesheetAndHygiene:
         assert not bem_matches
 
     def test_gallery_config_and_docs_render_cleanly(self) -> None:
-        """Verify gallery.py and index.md exist and all variants render via canvas_service."""
+        """Verify gallery.py and index.md exist and search_box renders with param defaults."""
         assert SEARCH_BOX_GALLERY_PATH.is_file()
         assert SEARCH_BOX_INDEX_MD_PATH.is_file()
 
-        reg = _build_registry()
+        _build_registry()
         cfg = gallery.load_gallery_config(
             source_dir=SEARCH_BOX_DIR,
             component_name="search_box",
         )
-        assert cfg.variants
-        for variant in cfg.variants:
-            spec = data.CanvasSpec(
-                component_name="dds__search_box",
-                variant=variant.name,
-            )
-            rendered = canvas_service.render_component(
-                spec=spec,
-                registry=reg,
-                raise_errors=True,
-            )
-            assert '<dds-search-box class="dds-search-box"' in rendered
+        assert cfg.variants == []
+        direct_html = search_box_module.SearchBox(**cfg.param_defaults).render()
+        assert '<dds-search-box class="dds-search-box"' in direct_html
 
 
 class TestSearchBoxTypeScriptCustomElement:

@@ -33,15 +33,4 @@ config = gallery.GalleryConfig(
         "placeholder": "Search components and docs...",
         "search_index": list(SAMPLE_SEARCH_INDEX),
     },
-    variants=[
-        gallery.Variant(
-            name="default",
-            label="Default Search Box",
-            description="Standard gallery search box with keyboard shortcut hint and embedded index.",
-            kwargs={
-                "placeholder": "Search components and docs...",
-                "search_index": list(SAMPLE_SEARCH_INDEX),
-            },
-        ),
-    ],
 )

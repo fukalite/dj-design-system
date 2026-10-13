@@ -13,7 +13,7 @@
   {% endif %}
   <div data-canvas-stage data-surface="stage"{% if not is_preview_mode %} hidden{% endif %}>
     <div data-canvas-viewport>
-      <iframe data-canvas-iframe data-canvas-id="{{ resolved_canvas_id }}"{% if has_srcdoc %} srcdoc="{{ iframe_srcdoc }}"{% endif %}{% if has_src %} src="{{ iframe_src }}"{% endif %}{% if has_sandbox_attrs %} sandbox="{{ sandbox_attrs }}"{% endif %} loading="lazy" title="{{ resolved_title }}"></iframe>
+      <iframe data-canvas-iframe data-canvas-id="{{ resolved_canvas_id }}"{% if has_srcdoc %} srcdoc="{{ iframe_srcdoc }}"{% endif %}{% if has_srcdoc_light %} data-srcdoc-light="{{ iframe_srcdoc_light }}"{% endif %}{% if has_srcdoc_dark %} data-srcdoc-dark="{{ iframe_srcdoc_dark }}"{% endif %}{% if has_src %} src="{{ iframe_src }}"{% endif %}{% if has_sandbox_attrs %} sandbox="{{ sandbox_attrs }}"{% endif %} loading="lazy" title="{{ resolved_title }}"></iframe>
     </div>
   </div>
   {% if has_source_code %}

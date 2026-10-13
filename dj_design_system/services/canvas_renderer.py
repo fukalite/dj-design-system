@@ -300,7 +300,24 @@ def build_canvas_srcdoc(
         )
 
     if bg_class is None:
-        bg_class = f"canvas-bg-{get_default_background()['value']}"
+        if (
+            color_scheme == ColorScheme.DARK
+            and theme_dict
+            and theme_dict.supports_dark_mode
+            and theme_dict.dark_mode
+            and theme_dict.dark_mode.canvas_background
+        ):
+            if isinstance(theme_dict.dark_mode.canvas_background, str):
+                bg_class = f"canvas-bg-{theme_dict.dark_mode.canvas_background}"
+            elif isinstance(theme_dict.dark_mode.canvas_background, dict):
+                bg_class = f"canvas-bg-theme-{theme_dict.value}-dark"
+        elif theme_dict and theme_dict.canvas_background:
+            if isinstance(theme_dict.canvas_background, str):
+                bg_class = f"canvas-bg-{theme_dict.canvas_background}"
+            elif isinstance(theme_dict.canvas_background, dict):
+                bg_class = f"canvas-bg-theme-{theme_dict.value}"
+        else:
+            bg_class = f"canvas-bg-{get_default_background()['value']}"
 
     theme_app_css_tags, theme_app_js_tags = build_theme_app_media(
         theme_dict, app_label, color_scheme=color_scheme

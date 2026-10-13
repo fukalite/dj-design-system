@@ -56,6 +56,9 @@ def _build_widget_html(
     srcdoc: str,
     rendered_html: str,
     unique_id: str,
+    srcdoc_light: str = "",
+    srcdoc_dark: str = "",
+    background: str = "white",
 ) -> str:
     """Build the HTML widget with preview iframe, code block, and toggle.
 
@@ -68,6 +71,9 @@ def _build_widget_html(
         "source_html": source,
         "rendered_output_html": rendered_html.strip(),
         "iframe_srcdoc": srcdoc,
+        "iframe_srcdoc_light": srcdoc_light,
+        "iframe_srcdoc_dark": srcdoc_dark,
+        "background": background,
     }
     return render_to_string("dj_design_system/canvas_widget.html", context)
 
@@ -164,7 +170,7 @@ class CanvasPreprocessor(Preprocessor):
             component_css, component_js = build_markdown_canvas_media(
                 app_label=self.app_label
             )
-            srcdoc = build_canvas_srcdoc(
+            srcdoc_light = build_canvas_srcdoc(
                 rendered_html=rendered_html,
                 component_css=component_css,
                 component_js=component_js,
@@ -172,9 +178,37 @@ class CanvasPreprocessor(Preprocessor):
                 mode_class="canvas-wrapper--basic",
                 app_label=self.app_label,
                 iframe_id=unique_id,
-                color_scheme=self.color_scheme,
+                color_scheme=ColorScheme.LIGHT,
             )
-            widget_html = _build_widget_html(source, srcdoc, rendered_html, unique_id)
+            srcdoc_dark = build_canvas_srcdoc(
+                rendered_html=rendered_html,
+                component_css=component_css,
+                component_js=component_js,
+                theme_dict=self.theme_dict,
+                mode_class="canvas-wrapper--basic",
+                app_label=self.app_label,
+                iframe_id=unique_id,
+                color_scheme=ColorScheme.DARK,
+            )
+            initial_srcdoc = (
+                srcdoc_dark
+                if self.color_scheme == ColorScheme.DARK
+                else srcdoc_light
+            )
+            initial_background = (
+                "dark"
+                if self.color_scheme == ColorScheme.DARK
+                else "white"
+            )
+            widget_html = _build_widget_html(
+                source=source,
+                srcdoc=initial_srcdoc,
+                rendered_html=rendered_html,
+                unique_id=unique_id,
+                srcdoc_light=srcdoc_light,
+                srcdoc_dark=srcdoc_dark,
+                background=initial_background,
+            )
             token = f"CANVAS_STASH_{unique_id}"
             self.ext_stash[token] = widget_html
             return f"\n\n{token}\n\n"

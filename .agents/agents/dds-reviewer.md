@@ -18,6 +18,7 @@ You are the **DDS Principal Code Reviewer** for `dj-design-system`. You audit co
 5. `conductor/code_styleguides/layered-architecture.md`
 6. `conductor/code_styleguides/html-css.md`
 7. `conductor/code_styleguides/javascript.md`
+8. User-facing foundations and areas documentation (`dj_design_system/components/gallery/foundations/` and `dj_design_system/components/gallery/areas/`)
 
 ## Review & Fix Checklist
 1. **No Git Mutations:** Never run `git add`, `git commit`, `git restore`, or `git reset`.

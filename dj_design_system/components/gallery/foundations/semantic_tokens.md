@@ -9,11 +9,11 @@ This document details the Three-Tier Design Token System, explains the naming gr
 The design system enforces a strict 3-tier token hierarchy that decouples raw colour values from semantic intent and component styling:
 
 ```text
-Tier 1: Primitives (:root)
+Tier 1: Primitives (tokens/literal.css -> :root)
   └── Private raw literals (--_dds-blue-600, --_dds-space-md)
-        │ (mapped directly in tokens.css)
+        │ (mapped strictly to semantic aliases in tokens/semantic.css)
         ▼
-Tier 2: Semantic Tokens (:root)
+Tier 2: Semantic Tokens (tokens/semantic.css -> :root)
   └── Public theming API (--dds-status-info-text-color, --dds-surface-bg-color)
         │ (contextually remapped by [data-surface='...'])
         ▼
@@ -21,15 +21,20 @@ Tier 3: Component-Scoped Tokens (.dds-component)
   └── Component-local variables (--_badge-bg-color, --_button-border-radius)
 ```
 
-### Tier 1: Literal Primitives (Private, `:root` only)
-- **Format:** `--_dds-<palette-or-scale>-<step>` (leading `_` denotes internal private).
-- **Rule:** Defined exclusively on `:root` inside `tokens.css`. Never referenced outside `tokens.css`.
-- **Examples:** `--_dds-blue-600: #4263eb;`, `--_dds-space-md: 0.75rem;`, `--_dds-radius-md: 6px;`.
+### Physical File Architecture (`static/dj_design_system/`)
 
-### Tier 2: Semantic Tokens (Public Theming API)
-- **Format:** `--dds-<domain>-<role>-<property>` or `--dds-<domain>-<property>`.
-- **Rule:** Defined on `:root` (and inverted for dark mode). Represents meaningful design intent. All components and surface selectors reference Tier 2 tokens.
-- **Examples:** `--dds-status-info-bg-color`, `--dds-surface-border-color`, `--dds-control-accent-color`.
+Tokens are split into dedicated modular stylesheets under `dj_design_system/static/dj_design_system/` and encapsulated inside `@layer tokens`:
+
+1. **`tokens/literal.css` (Tier 1 Primitives)**:
+   - **Format**: `--_dds-<palette-or-scale>-<step>` (leading `_` denotes internal private scope).
+   - **Rule**: Defined exclusively on `:root`. Houses raw OKLCH colour scales, spacing steps (`3xs` to `3xl`), typography curves, transition timings, and shadow geometry. Never referenced directly by components or areas.
+   - **Examples**: `--_dds-blue-600: #4263eb;`, `--_dds-space-md: 0.75rem;`, `--_dds-radius-md: 6px;`.
+2. **`tokens/semantic.css` (Tier 2 Semantic Theming API)**:
+   - **Format**: `--dds-<domain>-<role>-<property>` or `--dds-<domain>-<property>`.
+   - **Rule**: Declared on `:root` and remapped for dark color schemes (`[data-color-scheme="dark"]`) and contextual surfaces (`[data-surface="..."]`). Maps directly from Tier 1 literals into meaningful design intent. This is the sole public styling contract consumed by UI components, areas, and panes.
+   - **Examples**: `--dds-status-info-bg-color`, `--dds-surface-border-color`, `--dds-control-accent-color`.
+3. **`tokens.css` (Token Aggregator)**:
+   - Declares `@layer tokens;` and imports `tokens/literal.css` followed by `tokens/semantic.css`. Consuming templates and master stylesheets include `tokens.css` to load the complete design contract.
 
 ### Tier 3: Component-Scoped Tokens (Private, Component Root)
 - **Format:** `--_<component>-<property>` (leading `_` denotes component-local privacy).

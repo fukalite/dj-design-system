@@ -1,10 +1,18 @@
 # Folder and Index Templates
 
 - **Directory**: `dj_design_system/templates/dj_design_system/gallery/panes/`
+- **Stylesheets**: `dj_design_system/static/dj_design_system/panes/folder.css` & `panes/index.css`
+- **Root Selectors**: `.dds-folder-listing` and `[id='static-snapshot-notice']`
 - **Surface**: `data-surface="docs"`
 - **Templates**: `index.html` (Gallery landing) & `folder.html` (Directory navigation)
 
 The Folder and Index templates provide the default fallback experiences across the gallery whenever custom markdown documentation is not provided. Consuming projects can override either template via standard Django template resolution to brand the initial landing view or tailor how category contents are presented.
+
+### Styling Responsibilities & Encapsulation
+
+- **Files**: `panes/folder.css` and `panes/index.css` encapsulated within `@layer blocks`.
+- **Folder Directory Cards (`panes/folder.css`)**: Scoped to `.dds-folder-listing`. Configures the responsive grid layout, card hover elevation, category icon badges, and count pill styling for unindexed folder navigation.
+- **Snapshot Notice (`panes/index.css`)**: Scoped to `[id='static-snapshot-notice']`. Formats the warning banner displayed when viewing pre-rendered static gallery snapshots, warning users about static limitations.
 
 ### Overriding for a Custom Default Experience
 

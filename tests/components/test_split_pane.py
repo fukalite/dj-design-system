@@ -44,7 +44,12 @@ SPLIT_PANE_TS_PATH = SPLIT_PANE_DIR / "split_pane.ts"
 SPLIT_PANE_GALLERY_PATH = SPLIT_PANE_DIR / "gallery.py"
 SPLIT_PANE_INDEX_MD_PATH = SPLIT_PANE_DIR / "index.md"
 TOKENS_CSS_PATH = (
-    ROOT_DIR / "dj_design_system" / "static" / "dj_design_system" / "tokens.css"
+    ROOT_DIR
+    / "dj_design_system"
+    / "static"
+    / "dj_design_system"
+    / "tokens"
+    / "semantic.css"
 )
 
 

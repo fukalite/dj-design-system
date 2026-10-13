@@ -316,6 +316,7 @@ class TestGalleryComponentView:
         response = client.get(url)
         assert response.status_code == 200
         content = response.content.decode("utf-8")
+        assert "<h1 data-docs-title>Icon</h1>" in content
         assert "<h2 data-docs-heading>Description</h2>" in content
         assert "<h2 data-docs-heading>Usage</h2>" in content
         assert "<h2 data-docs-heading>Parameters</h2>" in content
@@ -330,6 +331,7 @@ class TestGalleryComponentView:
         response = client.get(f"{url}?variant=maximal")
         assert response.status_code == 200
         content = response.content.decode("utf-8")
+        assert "<h1 data-docs-title>Badge</h1>" in content
         assert "<h3 data-variant-subheading>Preview</h3>" in content
         assert "<h2 data-docs-heading>Parameters</h2>" in content
 

@@ -1,0 +1,20 @@
+@layer reset, tokens, global, composition, blocks, utilities;
+
+@layer blocks {
+  [data-component-tabs] {
+    flex-shrink: 0;
+    margin: 0;
+    padding-inline: var(--dds-space-lg);
+    background-color: var(--dds-surface-stage-bg-color);
+    border-block-end-color: var(--dds-surface-border-color);
+    border-block-end-style: var(--dds-surface-border-style);
+    border-block-end-width: var(--dds-control-border-width);
+  }
+
+  @media (min-width: 100rem) {
+    dds-gallery-shell [data-component-tabs],
+    .dds-gallery-shell [data-component-tabs] {
+      display: none;
+    }
+  }
+}

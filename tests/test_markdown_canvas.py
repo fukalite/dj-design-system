@@ -13,6 +13,7 @@ from dj_design_system.services.markdown_canvas import (
     DjangoLangPreprocessor,
 )
 from dj_design_system.services.registry import component_registry
+from dj_design_system.types import ColorScheme, DarkModeConfig, Theme
 
 
 # ---------------------------------------------------------------------------
@@ -25,12 +26,24 @@ pytestmark = pytest.mark.django_db
 class TestCanvasPreprocessor:
     """Test the preprocessor that replaces fenced canvas blocks."""
 
-    def _process(self, text, debug=False):
+    def _process(
+        self,
+        text,
+        debug=False,
+        theme_dict=None,
+        color_scheme=ColorScheme.LIGHT,
+    ):
         """Run the preprocessor on markdown text, return joined output."""
         import markdown
 
         md = markdown.Markdown()
-        preprocessor = CanvasPreprocessor(md, app_label="", debug=debug)
+        preprocessor = CanvasPreprocessor(
+            md,
+            app_label="",
+            debug=debug,
+            theme_dict=theme_dict,
+            color_scheme=color_scheme,
+        )
         lines = text.split("\n")
         result = preprocessor.run(lines)
         joined_result = "\n".join(result)
@@ -46,6 +59,8 @@ class TestCanvasPreprocessor:
         assert "data-canvas-iframe" in result
         assert 'data-canvas-panel="code"' in result
         assert "srcdoc=" in result
+        assert "data-srcdoc-light=" in result
+        assert "data-srcdoc-dark=" in result
 
     def test_component_media_external_urls_preserved(self):
         """External component media URLs are not passed through ``static()`` (#166)."""
@@ -98,6 +113,54 @@ class TestCanvasPreprocessor:
         text = '```canvas\n{% button "Click" %}\n```'
         result = self._process(text)
         assert "srcdoc=" in result
+
+    def test_canvas_block_renders_light_and_dark_srcdoc_attributes(self):
+        """Markdown canvas iframes render data-srcdoc-light and data-srcdoc-dark."""
+        theme = Theme(
+            value="demo",
+            label="Demo",
+            css=["demo.css"],
+            html_attrs={"html": {"data-theme": "default"}},
+            canvas_background="white",
+            dark_mode=DarkModeConfig(
+                css=["demo-dark.css"],
+                html_attrs={"html": {"data-theme": "dark"}},
+                canvas_background="dark",
+            ),
+        )
+        text = '```canvas\n{% button "Click" %}\n```'
+        result = self._process(
+            text, theme_dict=theme, color_scheme=ColorScheme.LIGHT
+        )
+        assert "data-srcdoc-light=" in result
+        assert "data-srcdoc-dark=" in result
+        assert "demo-dark.css" in result
+        assert "data-theme=&quot;dark&quot;" in result
+        assert "data-theme=&quot;default&quot;" in result
+        assert 'data-background="white"' in result
+
+    def test_canvas_block_initial_dark_mode_sets_srcdoc_to_dark(self):
+        """When rendered with color_scheme=DARK, initial srcdoc matches dark mode."""
+        theme = Theme(
+            value="demo",
+            label="Demo",
+            css=["demo.css"],
+            html_attrs={"html": {"data-theme": "default"}},
+            canvas_background="white",
+            dark_mode=DarkModeConfig(
+                css=["demo-dark.css"],
+                html_attrs={"html": {"data-theme": "dark"}},
+                canvas_background="dark",
+            ),
+        )
+        text = '```canvas\n{% button "Click" %}\n```'
+        result_dark = self._process(
+            text, theme_dict=theme, color_scheme=ColorScheme.DARK
+        )
+        assert "srcdoc=" in result_dark
+        assert "data-theme=&quot;dark&quot;" in result_dark
+        assert "canvas-bg-dark" in result_dark
+        assert 'data-background="dark"' in result_dark
 
     def test_block_component_canvas(self):
         text = '```canvas\n{% alert "warning" %}Danger!{% endalert %}\n```'

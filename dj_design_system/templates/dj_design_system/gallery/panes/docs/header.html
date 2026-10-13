@@ -1,4 +1,12 @@
 {% load design_components %}
+<l-stack data-docs-header-stack>
+<header data-docs-header>
+    {% if component_label %}
+        <h1 data-docs-title>{{ component_label }}</h1>
+    {% else %}
+        <h1 data-docs-title>{{ component_info.name }}</h1>
+    {% endif %}
+</header>
 {% if active_variant %}
     <section class="dds-variant-view" data-surface="docs">
         <l-stack>
@@ -40,3 +48,4 @@
         </l-stack>
     </section>
 {% endif %}
+</l-stack>

@@ -1,43 +1,52 @@
 # Sandbox Area
 
 - **Template Path**: `dj_design_system/templates/dj_design_system/gallery/panes/sandbox.html`
+- **Stylesheet**: `dj_design_system/static/dj_design_system/panes/sandbox.css`
+- **Root Selector**: `[data-sandbox-pane]`
 - **Surface**: `data-surface="sandbox"`
 - **Parent Layout**: Injected into the `#pane-sandbox` secondary slot in `gallery/component.html`.
 
 The Sandbox area coordinates the interactive workbench for testing components in isolation. It assembles the toolbar controls, the isolated iframe canvas, and the live parameter mutation drawer into a unified vertical layout.
 
+### Styling Responsibilities & Encapsulation
+
+- **File**: `panes/sandbox.css` encapsulated within `@layer blocks`.
+- **Workbench Layout**: Scoped to `[data-sandbox-pane]`. Organises the vertical flex stack hosting `dds__sandbox_toolbar`, `dds__canvas_widget`, and `dds__sandbox_params`.
+- **Scrolling & Viewport**: Enforces independent vertical scrolling (`overflow-y: auto`) within the workbench pane while preserving the pinned sandbox toolbar at the top.
+- **Component Boundary**: Layout controls the outer box rhythm; internal stage rendering, iframe measurements, and HTMX input fields remain fully encapsulated within their respective component stylesheets.
+
 ```canvas
-<div style="border: 2px dashed #7c3aed; background: rgba(124, 58, 237, 0.04); border-radius: 8px; padding: 14px;">
-  <div style="font-family: monospace; font-size: 11px; font-weight: 700; color: #6d28d9; text-transform: uppercase; margin-bottom: 8px;">
+<div style="border: 2px dashed var(--dds-control-accent-color); background: var(--dds-state-hover-bg-color); border-radius: var(--dds-radius-md); padding: var(--dds-space-md);">
+  <div style="font-family: var(--dds-text-code-font); font-size: 11px; font-weight: 700; color: var(--dds-control-accent-color); text-transform: uppercase; margin-bottom: 8px;">
     Sandbox Area Container
   </div>
 
-  <div style="border: 2px dashed #6d28d9; background: #ffffff; border-radius: 6px; padding: 14px;">
-    <div style="font-family: monospace; font-size: 10px; font-weight: 700; color: #5b21b6; margin-bottom: 8px;">
+  <div style="border: 1px solid var(--dds-control-border-color); background: var(--dds-surface-bg-color); border-radius: var(--dds-control-border-radius); padding: 14px;">
+    <div style="font-family: var(--dds-text-code-font); font-size: 10px; font-weight: 700; color: var(--dds-control-accent-color); margin-bottom: 8px;">
       &lt;l-stack&gt;
     </div>
 
     <l-stack style="--space: 12px;">
       <!-- Sandbox Toolbar Sub-Area -->
-      <div style="background: #4f46e5; color: #ffffff; padding: 12px 16px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <div style="background: var(--dds-control-bg-color); border: 1px solid var(--dds-control-border-color); color: var(--dds-text-prominent-color); padding: 12px 16px; border-radius: var(--dds-control-border-radius); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         <div style="font-weight: 700; font-size: 13px;">Sub-Area: Toolbar (dds__sandbox_toolbar)</div>
-        <div style="font-size: 11px; opacity: 0.9; margin-top: 4px;">
+        <div style="font-size: 11px; color: var(--dds-text-muted-color); margin-top: 4px;">
           Variant presets, canvas background switcher, viewport resizing, zoom, and test toggles
         </div>
       </div>
 
       <!-- Canvas Widget Sub-Area -->
-      <div style="background: #4338ca; color: #ffffff; padding: 20px 16px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <div style="background: var(--dds-surface-stage-bg-color); border: 1px dashed var(--dds-surface-stage-border-color); color: var(--dds-text-prominent-color); padding: 20px 16px; border-radius: var(--dds-control-border-radius); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         <div style="font-weight: 700; font-size: 13px;">Sub-Area: Canvas (dds__canvas_widget)</div>
-        <div style="font-size: 11px; opacity: 0.9; margin-top: 4px;">
+        <div style="font-size: 11px; color: var(--dds-text-muted-color); margin-top: 4px;">
           Isolated preview stage iframe (canvas/iframe.html) and template source code inspectors
         </div>
       </div>
 
       <!-- Sandbox Parameters Drawer Sub-Area -->
-      <div style="background: #3730a3; color: #ffffff; padding: 12px 16px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <div style="background: var(--dds-control-bg-color); border: 1px solid var(--dds-control-border-color); color: var(--dds-text-prominent-color); padding: 12px 16px; border-radius: var(--dds-control-border-radius); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         <div style="font-weight: 700; font-size: 13px;">Sub-Area: Parameters Drawer (dds__sandbox_params)</div>
-        <div style="font-size: 11px; opacity: 0.9; margin-top: 4px;">
+        <div style="font-size: 11px; color: var(--dds-text-muted-color); margin-top: 4px;">
           Live HTMX form inputs driving instantaneous parameter mutations
         </div>
       </div>

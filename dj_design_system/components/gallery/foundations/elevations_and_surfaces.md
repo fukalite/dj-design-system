@@ -74,7 +74,7 @@ Decoupling the spatial shape from the colour enables light and dark themes to pr
 | **Flush** | `--_dds-shadow-shape-none` | `0 0 0` | Flat document surfaces |
 | **Low** | `--_dds-shadow-shape-sm` | `0 1px 2px 0` | Cards, buttons, resting sidebar borders, preview stage panes |
 | **Medium** | `--_dds-shadow-shape-md` | `0 4px 12px -2px` | Hover elevations, active cards |
-| **High** | `--_dds-shadow-shape-lg` | `0 12px 24px -4px` | Popouts, floating toolbars, select menus |
+| **High** | `--_dds-shadow-shape-lg` | `0 4px 20px 0` | Popouts, floating toolbars, select menus |
 | **Maximum** | `--_dds-shadow-shape-xl` | `0 20px 32px -8px` | Modal dialogs, drawer sheets, popovers |
 
 ---
@@ -108,7 +108,7 @@ Decoupling the spatial shape from the colour enables light and dark themes to pr
   </l-box>
 
   <!-- Elevation 3: Floating -->
-  <l-box style="--space: var(--dds-space-md); background: var(--dds-surface-popout-bg-color); border: 1px solid var(--dds-surface-popout-border-color); border-radius: var(--dds-radius-lg); box-shadow: var(--_dds-shadow-shape-lg) var(--_dds-alpha-dark-200);">
+  <l-box style="--space: var(--dds-space-md); background: var(--dds-surface-popout-bg-color); border: 1px solid var(--dds-surface-popout-border-color); border-radius: var(--dds-radius-lg); box-shadow: var(--_dds-shadow-shape-lg) var(--_dds-alpha-dark-300);">
     <l-stack style="--space: var(--dds-space-2xs); text-align: center;">
       <strong style="font-size: var(--dds-text-body-size); color: var(--dds-text-prominent-color);">Floating</strong>
       <span style="font-size: var(--dds-text-caption-size); color: var(--dds-text-muted-color);">z: 20 · High Shadow</span>
@@ -164,10 +164,10 @@ Instead, child components bind their Tier 3 variables to generic Tier 2 tokens:
 ```
 
 ### The Delegation Cascade
-When a parent container sets `[data-surface='sidebar']` or `[data-surface='code']`, rules in `tokens.css` locally reassign the Tier 2 tokens for that entire subtree:
+When a parent container sets `[data-surface='sidebar']` or `[data-surface='code']`, rules in `tokens/semantic.css` (imported via `tokens.css`) locally reassign the Tier 2 tokens for that entire subtree:
 
 ```css
-/* Inside tokens.css */
+/* Inside tokens/semantic.css */
 [data-surface='sidebar'] {
   --dds-control-bg-color: var(--dds-surface-sidebar-state-hover-bg-color);
   --dds-control-border-color: var(--dds-surface-sidebar-border-color);

@@ -557,6 +557,7 @@ export class DDSGalleryShellElement
       }
     }
 
+    this.syncSrcdocIframes(scheme);
     this.syncConsumerColorSchemeToggle();
 
     this.dispatchEvent(
@@ -624,6 +625,33 @@ export class DDSGalleryShellElement
     const scheme = this.getConsumerColorScheme();
     this.dataset.colorScheme = scheme;
     this.syncConsumerColorSchemeToggle();
+    this.syncSrcdocIframes(scheme);
+  }
+
+  /**
+   * Synchronises srcdoc iframe content for light and dark color schemes.
+   *
+   * @param {'light' | 'dark'} scheme Target consumer color scheme.
+   */
+  private syncSrcdocIframes(scheme: 'light' | 'dark'): void {
+    const srcdocIframes = this.querySelectorAll<HTMLIFrameElement>(
+      'iframe[data-srcdoc-light], iframe[data-srcdoc-dark]',
+    );
+    for (const iframe of srcdocIframes) {
+      const nextDoc =
+        scheme === 'dark'
+          ? (iframe.dataset.srcdocDark || iframe.dataset.srcdocLight)
+          : (iframe.dataset.srcdocLight || iframe.dataset.srcdocDark);
+      if (nextDoc && iframe.srcdoc !== nextDoc) {
+        iframe.srcdoc = nextDoc;
+      }
+      const widget = iframe.closest<HTMLElement>(
+        'dds-canvas-widget, .dds-canvas-widget',
+      );
+      if (widget) {
+        widget.dataset.background = scheme === 'dark' ? 'dark' : 'white';
+      }
+    }
   }
 
   /**

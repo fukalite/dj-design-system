@@ -20,11 +20,26 @@ CUSTOM_TRIGGER_HTML = mark_safe(
     "<span>Custom trigger</span></button>"
 )
 
+MAXIMAL_MENU_HTML = mark_safe(
+    '<button type="button" class="dds-popout-option" role="menuitemradio" '
+    'data-popout-option data-value="system" aria-checked="false">'
+    "<span>System default</span></button>"
+    '<button type="button" class="dds-popout-option" role="menuitemradio" '
+    'data-popout-option data-value="light" aria-checked="false">'
+    "<span>Light mode</span></button>"
+    '<button type="button" class="dds-popout-option" role="menuitemradio" '
+    'data-popout-option data-value="dark" aria-checked="true">'
+    "<span>Dark mode</span>"
+    '<span class="dds-popout-option-shortcut" data-part="shortcut"><kbd>⌘D</kbd></span></button>'
+    '<a class="dds-popout-option" role="menuitem" data-popout-option data-value="settings" href="/settings/">'
+    "<span>Preferences…</span></a>"
+)
+
 config = gallery.GalleryConfig(
     group="Elements",
     param_defaults={
         "label": "Theme",
-        "content": DEFAULT_MENU_HTML,
+        "slot__menu": DEFAULT_MENU_HTML,
     },
     variants=[
         gallery.Variant(
@@ -34,7 +49,23 @@ config = gallery.GalleryConfig(
             kwargs={
                 "label": "Theme",
                 "icon": "sun",
-                "content": DEFAULT_MENU_HTML,
+                "slot__menu": DEFAULT_MENU_HTML,
+            },
+        ),
+        gallery.Variant(
+            name="maximal",
+            label="Full Popout with Custom Slots",
+            description="Complete popout showcasing end alignment, initially open menu, and rich option types.",
+            kwargs={
+                "label": "Display preferences",
+                "icon": "monitor",
+                "icon_only": False,
+                "align": "end",
+                "open": True,
+                "role": "menu",
+                "menu_label": "Display options",
+                "slot__trigger": None,
+                "slot__menu": MAXIMAL_MENU_HTML,
             },
         ),
         gallery.Variant(
@@ -44,7 +75,7 @@ config = gallery.GalleryConfig(
             kwargs={
                 "menu_label": "Custom menu",
                 "slot__trigger": CUSTOM_TRIGGER_HTML,
-                "content": DEFAULT_MENU_HTML,
+                "slot__menu": DEFAULT_MENU_HTML,
             },
         ),
         gallery.Variant(
@@ -56,7 +87,7 @@ config = gallery.GalleryConfig(
                 "icon": "component",
                 "role": "dialog",
                 "menu_label": "Component settings",
-                "content": DEFAULT_MENU_HTML,
+                "slot__menu": DEFAULT_MENU_HTML,
             },
         ),
     ],

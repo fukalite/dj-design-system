@@ -191,7 +191,7 @@ class TestNavtreeAccessibility:
 
     def test_css_design_tokens_in_root_and_dark_theme(self):
         """tokens.css must define complete Tier 2 tokens in :root and .gallery-theme-dark."""
-        css_path = Path("dj_design_system/static/dj_design_system/tokens.css")
+        css_path = Path("dj_design_system/static/dj_design_system/tokens/semantic.css")
         content = css_path.read_text(encoding="utf-8")
 
         assert "--dds-status-error-text-color:" in content

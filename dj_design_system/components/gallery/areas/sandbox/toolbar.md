@@ -7,30 +7,30 @@
 The Sandbox Toolbar area provides workbench controls for testing component responsiveness, color schemes, and accessibility states. It hosts popout selectors for variants, canvas backgrounds, viewport presets, and zoom scaling, alongside quick toggles for rulers and RTL mirroring.
 
 ```canvas
-<div style="border: 2px dashed #4f46e5; background: rgba(79, 70, 229, 0.04); border-radius: 8px; padding: 14px;">
-  <div style="font-family: monospace; font-size: 11px; font-weight: 700; color: #4338ca; text-transform: uppercase; margin-bottom: 8px;">
+<div style="border: 2px dashed var(--dds-control-accent-color); background: var(--dds-state-hover-bg-color); border-radius: var(--dds-radius-md); padding: var(--dds-space-md);">
+  <div style="font-family: var(--dds-text-code-font); font-size: 11px; font-weight: 700; color: var(--dds-control-accent-color); text-transform: uppercase; margin-bottom: 8px;">
     &lt;dds-sandbox-toolbar&gt;
   </div>
 
-  <div style="border: 2px dashed #6366f1; background: #ffffff; border-radius: 6px; padding: 12px;">
-    <div style="font-family: monospace; font-size: 10px; font-weight: 700; color: #4f46e5; margin-bottom: 8px;">
+  <div style="border: 1px solid var(--dds-control-border-color); background: var(--dds-surface-bg-color); border-radius: var(--dds-control-border-radius); padding: 12px;">
+    <div style="font-family: var(--dds-text-code-font); font-size: 10px; font-weight: 700; color: var(--dds-control-accent-color); margin-bottom: 8px;">
       &lt;l-cluster&gt;
     </div>
 
     <l-cluster style="gap: 8px; align-items: center;">
-      <div style="background: #4f46e5; color: #ffffff; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: 600;">
+      <div style="background: var(--dds-control-bg-color); border: 1px solid var(--dds-control-border-color); color: var(--dds-text-default-color); padding: 6px 12px; border-radius: var(--dds-control-border-radius); font-size: 11px; font-weight: 600;">
         Variant: Default Presets ▾
       </div>
-      <div style="background: #4f46e5; color: #ffffff; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: 600;">
+      <div style="background: var(--dds-control-bg-color); border: 1px solid var(--dds-control-border-color); color: var(--dds-text-default-color); padding: 6px 12px; border-radius: var(--dds-control-border-radius); font-size: 11px; font-weight: 600;">
         Background: Checkerboard ▾
       </div>
-      <div style="background: #4f46e5; color: #ffffff; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: 600;">
+      <div style="background: var(--dds-control-bg-color); border: 1px solid var(--dds-control-border-color); color: var(--dds-text-default-color); padding: 6px 12px; border-radius: var(--dds-control-border-radius); font-size: 11px; font-weight: 600;">
         Viewport: 100% Fluid ▾
       </div>
-      <div style="background: #4f46e5; color: #ffffff; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: 600;">
+      <div style="background: var(--dds-control-bg-color); border: 1px solid var(--dds-control-border-color); color: var(--dds-text-default-color); padding: 6px 12px; border-radius: var(--dds-control-border-radius); font-size: 11px; font-weight: 600;">
         Zoom: 100% ▾
       </div>
-      <div style="background: #e0e7ff; color: #3730a3; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;">
+      <div style="background: var(--dds-state-hover-bg-color); border: 1px solid var(--dds-control-border-color); color: var(--dds-text-muted-color); padding: 6px 10px; border-radius: var(--dds-control-border-radius); font-size: 11px; font-weight: 600;">
         [Ruler] [RTL] [Reset] [Open Tab]
       </div>
     </l-cluster>

@@ -59,6 +59,16 @@ class CanvasWidget(components.TagComponent):
         required=False,
         description="Inline HTML document string for srcdoc preview embedding.",
     )
+    iframe_srcdoc_light = parameters.StrParam(
+        default="",
+        required=False,
+        description="Inline HTML document string for light mode srcdoc preview.",
+    )
+    iframe_srcdoc_dark = parameters.StrParam(
+        default="",
+        required=False,
+        description="Inline HTML document string for dark mode srcdoc preview.",
+    )
     source_code = parameters.StrParam(
         default="",
         required=False,
@@ -153,6 +163,12 @@ class CanvasWidget(components.TagComponent):
 
         iframe_src = str(self.iframe_src) if self.iframe_src else ""
         iframe_srcdoc = str(self.iframe_srcdoc) if self.iframe_srcdoc else ""
+        iframe_srcdoc_light = (
+            str(self.iframe_srcdoc_light) if self.iframe_srcdoc_light else ""
+        )
+        iframe_srcdoc_dark = (
+            str(self.iframe_srcdoc_dark) if self.iframe_srcdoc_dark else ""
+        )
         sandbox_attrs = str(self.sandbox_attrs) if self.sandbox_attrs else ""
 
         raw_source_code = str(self.source_code) if self.source_code else ""
@@ -163,6 +179,8 @@ class CanvasWidget(components.TagComponent):
 
         has_src = bool(iframe_src)
         has_srcdoc = bool(iframe_srcdoc)
+        has_srcdoc_light = bool(iframe_srcdoc_light)
+        has_srcdoc_dark = bool(iframe_srcdoc_dark)
         has_sandbox_attrs = bool(sandbox_attrs)
         has_source_code = bool(normalized_source_code.strip())
         has_rendered_html = bool(normalized_rendered_html.strip())
@@ -185,11 +203,15 @@ class CanvasWidget(components.TagComponent):
         context["resolved_title"] = resolved_title
         context["iframe_src"] = iframe_src
         context["iframe_srcdoc"] = iframe_srcdoc
+        context["iframe_srcdoc_light"] = iframe_srcdoc_light
+        context["iframe_srcdoc_dark"] = iframe_srcdoc_dark
         context["sandbox_attrs"] = sandbox_attrs
         context["normalized_source_code"] = normalized_source_code
         context["normalized_rendered_html"] = normalized_rendered_html
         context["has_src"] = has_src
         context["has_srcdoc"] = has_srcdoc
+        context["has_srcdoc_light"] = has_srcdoc_light
+        context["has_srcdoc_dark"] = has_srcdoc_dark
         context["has_sandbox_attrs"] = has_sandbox_attrs
         context["has_source_code"] = has_source_code
         context["has_rendered_html"] = has_rendered_html

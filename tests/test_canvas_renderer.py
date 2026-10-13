@@ -288,3 +288,26 @@ class TestCanvasRendererColorScheme:
         assert "#ffffff" in styles
         assert ".canvas-bg-theme-brand-dark" in styles
         assert "#111111" in styles
+
+    def test_build_canvas_srcdoc_resolves_dark_mode_background(self):
+        theme = Theme(
+            value="brand",
+            label="Brand",
+            canvas_background="white",
+            dark_mode=DarkModeConfig(
+                canvas_background="dark",
+            ),
+        )
+        srcdoc_dark = build_canvas_srcdoc(
+            rendered_html="<p>dark</p>",
+            theme_dict=theme,
+            color_scheme=ColorScheme.DARK,
+        )
+        assert "canvas-bg-dark" in srcdoc_dark
+
+        srcdoc_light = build_canvas_srcdoc(
+            rendered_html="<p>light</p>",
+            theme_dict=theme,
+            color_scheme=ColorScheme.LIGHT,
+        )
+        assert "canvas-bg-white" in srcdoc_light

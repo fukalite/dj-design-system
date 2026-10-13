@@ -516,6 +516,7 @@ class TestPopoutStylesheetsAndTypeScriptContract:
             source_dir=POPOUT_DIR,
             component_name="popout",
         )
+        assert popout_cfg.get_variant("maximal") is not None
         assert popout_cfg.variants
         for variant in popout_cfg.variants:
             spec = data.CanvasSpec(
@@ -528,19 +529,31 @@ class TestPopoutStylesheetsAndTypeScriptContract:
                 raise_errors=True,
             )
             assert '<dds-popout class="dds-popout"' in rendered
+            if variant.name == "maximal":
+                assert "data-popout-trigger" in rendered
+                assert "Display preferences" in rendered
+                assert 'data-state="open"' in rendered
+                assert 'data-align="end"' in rendered
+                assert "Preferences…" in rendered
 
         option_cfg = gallery.load_gallery_config(
             source_dir=POPOUT_OPTION_DIR,
             component_name="popout_option",
         )
-        assert len(option_cfg.variants) == 0
-        spec = data.CanvasSpec(
-            component_name="dds__popout_option",
-            variant="",
-        )
-        rendered = canvas_service.render_component(
-            spec=spec,
-            registry=reg,
-            raise_errors=True,
-        )
-        assert 'class="dds-popout-option"' in rendered
+        assert len(option_cfg.variants) > 0
+        assert option_cfg.get_variant("maximal") is not None
+        for variant in option_cfg.variants:
+            spec = data.CanvasSpec(
+                component_name="dds__popout_option",
+                variant=variant.name,
+            )
+            rendered = canvas_service.render_component(
+                spec=spec,
+                registry=reg,
+                raise_errors=True,
+            )
+            assert 'class="dds-popout-option"' in rendered
+            if variant.name == "maximal":
+                assert 'data-part="shortcut"' in rendered
+                assert "<kbd>⌘D</kbd>" in rendered
+

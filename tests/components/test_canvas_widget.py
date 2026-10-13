@@ -50,7 +50,12 @@ CANVAS_WIDGET_TS_PATH = CANVAS_WIDGET_DIR / "canvas_widget.ts"
 CANVAS_WIDGET_GALLERY_PATH = CANVAS_WIDGET_DIR / "gallery.py"
 CANVAS_WIDGET_INDEX_MD_PATH = CANVAS_WIDGET_DIR / "index.md"
 TOKENS_CSS_PATH = (
-    ROOT_DIR / "dj_design_system" / "static" / "dj_design_system" / "tokens.css"
+    ROOT_DIR
+    / "dj_design_system"
+    / "static"
+    / "dj_design_system"
+    / "tokens"
+    / "semantic.css"
 )
 
 
@@ -176,11 +181,15 @@ class TestCanvasWidgetParametersAndContext:
         assert ctx["resolved_title"] == "Component preview"
         assert ctx["iframe_src"] == ""
         assert ctx["iframe_srcdoc"] == ""
+        assert ctx["iframe_srcdoc_light"] == ""
+        assert ctx["iframe_srcdoc_dark"] == ""
         assert ctx["sandbox_attrs"] == ""
         assert ctx["normalized_source_code"] == ""
         assert ctx["normalized_rendered_html"] == ""
         assert ctx["has_src"] is False
         assert ctx["has_srcdoc"] is False
+        assert ctx["has_srcdoc_light"] is False
+        assert ctx["has_srcdoc_dark"] is False
         assert ctx["has_sandbox_attrs"] is False
         assert ctx["has_source_code"] is False
         assert ctx["has_rendered_html"] is False
@@ -365,6 +374,24 @@ class TestCanvasWidgetRenderingAndTemplate:
         assert 'title="&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;"' in html
         assert 'data-canvas-id="id&quot; onload=&quot;alert(1)"' in html
 
+    def test_renders_srcdoc_light_and_dark_attributes(self) -> None:
+        """Verify iframe_srcdoc_light and iframe_srcdoc_dark render on the iframe element."""
+        html = _render_template(
+            source=(
+                "{% dds__canvas_widget iframe_srcdoc=srcdoc "
+                "iframe_srcdoc_light=srcdoc_light "
+                "iframe_srcdoc_dark=srcdoc_dark %}"
+            ),
+            context_data={
+                "srcdoc": "<h1>Current</h1>",
+                "srcdoc_light": "<h1>Light</h1>",
+                "srcdoc_dark": "<h1>Dark</h1>",
+            },
+        )
+        assert 'srcdoc="&lt;h1&gt;Current&lt;/h1&gt;"' in html
+        assert 'data-srcdoc-light="&lt;h1&gt;Light&lt;/h1&gt;"' in html
+        assert 'data-srcdoc-dark="&lt;h1&gt;Dark&lt;/h1&gt;"' in html
+
     def test_template_contains_no_filters_and_no_bem(self) -> None:
         """Verify canvas_widget.html loads design_components and has zero template filters or BEM."""
         template_text = _read_text(path=CANVAS_WIDGET_HTML_PATH)
@@ -441,6 +468,17 @@ class TestCanvasWidgetStylesheet:
         assert "& [data-canvas-stage]" in css_text
         assert "& [data-canvas-toggles]" in css_text
         assert "dds-canvas-widget [" not in css_text
+
+    def test_stage_has_no_outer_padding(self) -> None:
+        """Verify [data-canvas-stage] has padding: 0 so iframes sit flush."""
+        css_text = _read_text(path=CANVAS_WIDGET_CSS_PATH)
+        assert (
+            re.search(
+                pattern=r"& \[data-canvas-stage\]\s*\{[^}]*padding:\s*0;",
+                string=css_text,
+            )
+            is not None
+        )
 
 
 class TestCanvasWidgetGalleryAndDocs:

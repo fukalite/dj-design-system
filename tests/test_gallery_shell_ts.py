@@ -75,6 +75,9 @@ class TestGalleryShellCustomElementTypeScript:
         assert "syncConsumerColorSchemeToggle(): void" in ts_text
         assert "getActiveThemeSupportsDarkMode(): boolean" in ts_text
         assert "new CustomEvent('dds:consumer-color-scheme-change'" in ts_text
+        assert "syncSrcdocIframes(scheme: 'light' | 'dark'): void" in ts_text
+        assert "iframe[data-srcdoc-light], iframe[data-srcdoc-dark]" in ts_text
+        assert "iframe.srcdoc = nextDoc;" in ts_text
 
     def test_ts_styleguide_formatting_and_jsdoc(self) -> None:
         """Verify gallery-shell.ts adheres to Google TS styleguide: <=80 chars, single quotes, JSDoc."""

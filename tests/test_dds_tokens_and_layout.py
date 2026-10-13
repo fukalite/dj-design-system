@@ -13,6 +13,8 @@ STATIC_DIR = (
     / "dj_design_system"
 )
 TOKENS_CSS_PATH = STATIC_DIR / "tokens.css"
+TOKENS_LITERAL_CSS_PATH = STATIC_DIR / "tokens" / "literal.css"
+TOKENS_SEMANTIC_CSS_PATH = STATIC_DIR / "tokens" / "semantic.css"
 COMPOSITION_CSS_PATH = STATIC_DIR / "composition.css"
 GALLERY_CSS_PATH = STATIC_DIR / "gallery.css"
 
@@ -174,17 +176,29 @@ class TestCascadeLayersAndImports:
     """Verify CUBE CSS cascade layer declarations and top-level imports."""
 
     def test_layer_order_declared_in_all_stylesheets(self) -> None:
-        """Verify @layer order is declared in tokens.css, composition.css, and gallery.css."""
-        for css_path in (TOKENS_CSS_PATH, COMPOSITION_CSS_PATH, GALLERY_CSS_PATH):
+        """Verify @layer order is declared in tokens.css, literal.css, semantic.css, composition.css, and gallery.css."""
+        for css_path in (
+            TOKENS_CSS_PATH,
+            TOKENS_LITERAL_CSS_PATH,
+            TOKENS_SEMANTIC_CSS_PATH,
+            COMPOSITION_CSS_PATH,
+            GALLERY_CSS_PATH,
+        ):
             css_text = _read_css(path=css_path)
             assert CASCADE_LAYER_ORDER in css_text
 
+    def test_tokens_css_imports_literal_and_semantic(self) -> None:
+        """Verify tokens.css imports tokens/literal.css and tokens/semantic.css."""
+        tokens_css = _read_css(path=TOKENS_CSS_PATH)
+        assert "@import 'tokens/literal.css';" in tokens_css
+        assert "@import 'tokens/semantic.css';" in tokens_css
+
     def test_gallery_css_imports_tokens_and_composition_at_top(self) -> None:
-        """Verify gallery.css declares @layer and imports tokens.css and composition.css at the top."""
+        """Verify gallery.css declares @layer and imports tokens and composition at the top."""
         gallery_css = _read_css(path=GALLERY_CSS_PATH)
         head = "\n".join(gallery_css.splitlines()[:15])
         assert CASCADE_LAYER_ORDER in head
-        assert "@import 'tokens.css';" in head or "@import url('tokens.css');" in head
+        assert "@import 'tokens/literal.css';" in head or "@import 'tokens.css';" in head
         assert (
             "@import 'composition.css';" in head
             or "@import url('composition.css');" in head
@@ -195,8 +209,8 @@ class TestTier1Tokens:
     """Verify Tier 1 private tokens (--_dds-*) rules and encapsulation."""
 
     def test_tier_1_tokens_defined_on_root_in_tokens_css(self) -> None:
-        """Verify Tier 1 tokens are defined on :root inside @layer tokens."""
-        tokens_css = _read_css(path=TOKENS_CSS_PATH)
+        """Verify Tier 1 tokens are defined on :root inside @layer tokens in tokens/literal.css."""
+        tokens_css = _read_css(path=TOKENS_LITERAL_CSS_PATH)
         assert "@layer tokens {" in tokens_css
         root_blocks = _extract_rule_blocks(css_text=tokens_css, selector=":root")
         assert root_blocks
@@ -206,9 +220,9 @@ class TestTier1Tokens:
 
     def test_tier_1_tokens_never_defined_outside_root(self) -> None:
         """Verify Tier 1 tokens are never defined in dark theme, surfaces, or composition.css."""
-        tokens_css = _read_css(path=TOKENS_CSS_PATH)
+        tokens_semantic_css = _read_css(path=TOKENS_SEMANTIC_CSS_PATH)
         dark_blocks = _extract_rule_blocks(
-            css_text=tokens_css,
+            css_text=tokens_semantic_css,
             selector=".gallery-theme-dark",
         )
         for block in dark_blocks:
@@ -218,7 +232,7 @@ class TestTier1Tokens:
 
         for surface in SURFACES:
             surface_blocks = _extract_rule_blocks(
-                css_text=tokens_css,
+                css_text=tokens_semantic_css,
                 selector=f"[data-surface='{surface}']",
             )
             for block in surface_blocks:
@@ -238,7 +252,7 @@ class TestTier2Tokens:
 
     def test_domain_1_elevation_layers(self) -> None:
         """Verify elevation layer z-index tokens match specification values."""
-        tokens_css = _read_css(path=TOKENS_CSS_PATH)
+        tokens_css = _read_css(path=TOKENS_SEMANTIC_CSS_PATH)
         root_props = _extract_defined_properties(
             block_text="\n".join(
                 _extract_rule_blocks(css_text=tokens_css, selector=":root")
@@ -252,7 +266,7 @@ class TestTier2Tokens:
     @pytest.mark.parametrize("surface", SURFACES)
     def test_domain_1_named_surface_tokens_on_root(self, surface: str) -> None:
         """Verify all 8 named surfaces define all 9 uniform properties on :root."""
-        tokens_css = _read_css(path=TOKENS_CSS_PATH)
+        tokens_css = _read_css(path=TOKENS_SEMANTIC_CSS_PATH)
         root_props = _extract_defined_properties(
             block_text="\n".join(
                 _extract_rule_blocks(css_text=tokens_css, selector=":root")
@@ -264,7 +278,7 @@ class TestTier2Tokens:
 
     def test_domain_1_default_surface_tokens_on_root(self) -> None:
         """Verify default --dds-surface-<prop> tokens exist on :root."""
-        tokens_css = _read_css(path=TOKENS_CSS_PATH)
+        tokens_css = _read_css(path=TOKENS_SEMANTIC_CSS_PATH)
         root_props = _extract_defined_properties(
             block_text="\n".join(
                 _extract_rule_blocks(css_text=tokens_css, selector=":root")
@@ -279,7 +293,7 @@ class TestTier2Tokens:
         self, surface: str
     ) -> None:
         """Verify [data-surface] rules alias --dds-surface-<prop> to --dds-surface-<name>-<prop>."""
-        tokens_css = _read_css(path=TOKENS_CSS_PATH)
+        tokens_css = _read_css(path=TOKENS_SEMANTIC_CSS_PATH)
         blocks = _extract_rule_blocks(
             css_text=tokens_css,
             selector=f"[data-surface='{surface}']",
@@ -297,7 +311,7 @@ class TestTier2Tokens:
         self, inverted_surface: str
     ) -> None:
         """Verify inverted surfaces remap foreground text colours using Tier 2 tokens only."""
-        tokens_css = _read_css(path=TOKENS_CSS_PATH)
+        tokens_css = _read_css(path=TOKENS_SEMANTIC_CSS_PATH)
         blocks = _extract_rule_blocks(
             css_text=tokens_css,
             selector=f"[data-surface='{inverted_surface}']",
@@ -313,7 +327,7 @@ class TestTier2Tokens:
 
     def test_domain_2_typography_and_text_tokens(self) -> None:
         """Verify font purposes, 9 text roles x 5 properties, and text prominence colours."""
-        tokens_css = _read_css(path=TOKENS_CSS_PATH)
+        tokens_css = _read_css(path=TOKENS_SEMANTIC_CSS_PATH)
         root_props = _extract_defined_properties(
             block_text="\n".join(
                 _extract_rule_blocks(css_text=tokens_css, selector=":root")
@@ -331,7 +345,7 @@ class TestTier2Tokens:
 
     def test_domain_3_spacing_and_layout_tokens(self) -> None:
         """Verify spacing scale, semantic gaps, semantic insets, and layout dimension tokens."""
-        tokens_css = _read_css(path=TOKENS_CSS_PATH)
+        tokens_css = _read_css(path=TOKENS_SEMANTIC_CSS_PATH)
         root_props = _extract_defined_properties(
             block_text="\n".join(
                 _extract_rule_blocks(css_text=tokens_css, selector=":root")
@@ -352,7 +366,7 @@ class TestTier2Tokens:
     @pytest.mark.parametrize("state", INTERACTIVE_STATES)
     def test_domain_4_interactive_state_tokens(self, state: str) -> None:
         """Verify all 6 interactive states define all 12 uniform properties."""
-        tokens_css = _read_css(path=TOKENS_CSS_PATH)
+        tokens_css = _read_css(path=TOKENS_SEMANTIC_CSS_PATH)
         root_props = _extract_defined_properties(
             block_text="\n".join(
                 _extract_rule_blocks(css_text=tokens_css, selector=":root")
@@ -363,7 +377,7 @@ class TestTier2Tokens:
 
     def test_domain_4_state_transition_tokens(self) -> None:
         """Verify state entry and exit transition tokens exist on :root."""
-        tokens_css = _read_css(path=TOKENS_CSS_PATH)
+        tokens_css = _read_css(path=TOKENS_SEMANTIC_CSS_PATH)
         root_props = _extract_defined_properties(
             block_text="\n".join(
                 _extract_rule_blocks(css_text=tokens_css, selector=":root")
@@ -374,7 +388,7 @@ class TestTier2Tokens:
 
     def test_domain_5_control_tokens(self) -> None:
         """Verify all 8 control properties exist on :root."""
-        tokens_css = _read_css(path=TOKENS_CSS_PATH)
+        tokens_css = _read_css(path=TOKENS_SEMANTIC_CSS_PATH)
         root_props = _extract_defined_properties(
             block_text="\n".join(
                 _extract_rule_blocks(css_text=tokens_css, selector=":root")
@@ -386,7 +400,7 @@ class TestTier2Tokens:
     @pytest.mark.parametrize("level", STATUS_LEVELS)
     def test_domain_6_status_tokens(self, level: str) -> None:
         """Verify all 4 status levels define all 8 uniform properties."""
-        tokens_css = _read_css(path=TOKENS_CSS_PATH)
+        tokens_css = _read_css(path=TOKENS_SEMANTIC_CSS_PATH)
         root_props = _extract_defined_properties(
             block_text="\n".join(
                 _extract_rule_blocks(css_text=tokens_css, selector=":root")
@@ -397,7 +411,7 @@ class TestTier2Tokens:
 
     def test_dark_theme_overrides_tier_2_tokens(self) -> None:
         """Verify .gallery-theme-dark and prefers-color-scheme: dark override Tier 2 tokens."""
-        tokens_css = _read_css(path=TOKENS_CSS_PATH)
+        tokens_css = _read_css(path=TOKENS_SEMANTIC_CSS_PATH)
         dark_blocks = _extract_rule_blocks(
             css_text=tokens_css,
             selector=".gallery-theme-dark",

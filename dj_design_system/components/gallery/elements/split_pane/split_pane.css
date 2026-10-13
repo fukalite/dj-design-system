@@ -98,16 +98,32 @@
     }
 
     & > [data-split-pane='primary'] {
-      flex: 0 0 var(--_split-pane-ratio);
+      display: var(--_split-pane-primary-display, flex);
+      flex: var(--_split-pane-primary-flex, 0 0 var(--_split-pane-ratio));
     }
 
     & > [data-split-pane='secondary'] {
-      flex: 1 1 0;
+      display: var(--_split-pane-secondary-display, flex);
+      flex: var(--_split-pane-secondary-flex, 1 1 0);
+    }
+
+    &[data-collapsed] {
+      --_split-pane-resizer-display: none;
+      --_split-pane-primary-flex: 1 1 100%;
+      --_split-pane-secondary-display: none;
+
+      &[data-active-pane='secondary'],
+      &[data-active-pane='sandbox'] {
+        --_split-pane-primary-display: none;
+        --_split-pane-secondary-display: flex;
+        --_split-pane-secondary-flex: 1 1 100%;
+      }
     }
 
     & > [data-split-resizer] {
       position: relative;
       z-index: var(--_split-pane-resizer-z-index);
+      display: var(--_split-pane-resizer-display, block);
       flex: 0 0 var(--_split-pane-resizer-size);
       inline-size: var(--_split-pane-resizer-size);
       margin: 0;

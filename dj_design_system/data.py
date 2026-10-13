@@ -103,6 +103,11 @@ class ComponentInfo:
         return is_builtin(self.component_class, app_label=self.app_label)
 
     @property
+    def class_name(self) -> str:
+        """Return the Python component class name."""
+        return self.component_class.__name__
+
+    @property
     def gallery_basic_kwargs(self) -> dict[str, Any]:
         warnings.warn(
             f"ComponentInfo.gallery_basic_kwargs for '{self.name}' is deprecated and will be removed "

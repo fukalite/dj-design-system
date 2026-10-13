@@ -40,25 +40,27 @@ def _generate_example_value(
     param_spec: Any, param_name: str, str_example_index: int = 0
 ) -> Any:
     """Generate a representative example value for a parameter."""
-    if param_spec.default is not None:
+    if param_spec.default is not None and param_spec.default != "":
         return param_spec.default
 
     if hasattr(param_spec, "choices") and param_spec.choices:
-        return param_spec.choices[0]
+        non_empty = [c for c in param_spec.choices if c != ""]
+        if non_empty:
+            return non_empty[0]
 
     if isinstance(param_spec, BoolParam):
+        if param_spec.default is not None:
+            return param_spec.default
         return True
     if isinstance(param_spec, StrParam):
         examples = ["foo", "bar", "baz"]
         return examples[str_example_index % len(examples)]
-    if isinstance(param_spec, BoolParam):
-        return True
 
     if isinstance(param_spec, ModelParam):
         model = param_spec._resolve_model()
         return model.objects.order_by("-pk").first()
 
-    return None
+    return param_spec.default if param_spec.default is not None else None
 
 
 def _format_param_for_tag(param_name: str, value: Any) -> str:
@@ -241,7 +243,8 @@ def _build_slot_lines(
         override_key = f"{SLOT_PARAM_PREFIX}{name}"
         if override_key in slot_overrides:
             value = _unwrap_example(slot_overrides[override_key])
-            lines.append(f'  {{% slot "{name}" %}}{value}{{% endslot %}}')
+            if value:
+                lines.append(f'  {{% slot "{name}" %}}{value}{{% endslot %}}')
             continue
 
         if required_only and not slot.required:
@@ -573,12 +576,8 @@ def generate_tag_signature(
         if k.startswith(SLOT_PARAM_PREFIX)
     }
 
-    basic_content_override = (
-        basic_kwargs.pop("content", None) if (is_block and not is_slotted) else None
-    )
-    maximal_content_override = (
-        maximal_kwargs.pop("content", None) if (is_block and not is_slotted) else None
-    )
+    basic_content_override = basic_kwargs.pop("content", None) if is_block else None
+    maximal_content_override = maximal_kwargs.pop("content", None) if is_block else None
 
     # Minimal Signature
     min_pos_fmt, min_pos_vals, min_str_index = _build_minimal_positional_values(
@@ -673,9 +672,9 @@ def generate_tag_signature(
                 )
 
             if override_key in maximal_slot_overrides:
-                maximal_slot_params[override_key] = _unwrap_example(
-                    maximal_slot_overrides[override_key]
-                )
+                val = _unwrap_example(maximal_slot_overrides[override_key])
+                if val:
+                    maximal_slot_params[override_key] = val
             else:
                 maximal_slot_params[override_key] = (
                     slot.default or f"Sample {slot_name} content"

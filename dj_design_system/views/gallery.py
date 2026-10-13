@@ -126,6 +126,7 @@ def _render_folder(request, context, node, app_label, path_parts):
             file_path=node.index_doc_path,
             app_label=doc_app_label,
             theme_dict=theme_dict,
+            color_scheme=context.get("active_color_scheme", "light"),
         )
         return render(
             request,
@@ -151,6 +152,7 @@ def _render_document(request, context, node, app_label, path_parts):
         file_path=node.doc_path,
         app_label=doc_app_label,
         theme_dict=theme_dict,
+        color_scheme=context.get("active_color_scheme", "light"),
     )
     context["doc_label"] = node.label
     context["breadcrumbs"] = build_breadcrumbs(

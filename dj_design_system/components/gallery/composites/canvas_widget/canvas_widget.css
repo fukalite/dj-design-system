@@ -34,7 +34,6 @@
     --_canvas-widget-stage-border-style: var(--dds-surface-stage-border-style);
     --_canvas-widget-stage-dark-bg-color: var(--dds-surface-code-bg-color);
     --_canvas-widget-stage-light-bg-color: var(--dds-surface-stage-bg-color);
-    --_canvas-widget-stage-padding: var(--dds-space-inset-default);
     --_canvas-widget-stage-white-bg-color: var(--dds-control-bg-color);
     --_canvas-widget-text-color: var(--dds-text-default-color);
     --_canvas-widget-toggle-gap: var(--dds-space-gap-tight);
@@ -114,9 +113,13 @@
     }
 
     & [data-canvas-stage] {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
       box-sizing: border-box;
+      min-block-size: 14rem;
       margin: 0;
-      padding: var(--_canvas-widget-stage-padding);
+      padding: 0;
       overflow-x: auto;
       background-color: var(--_canvas-widget-stage-bg-color);
     }
@@ -134,6 +137,9 @@
     }
 
     & [data-canvas-viewport] {
+      display: flex;
+      flex: 1 1 auto;
+      flex-direction: column;
       box-sizing: border-box;
       inline-size: var(--_canvas-widget-viewport-width, 100%);
       max-inline-size: 100%;
@@ -152,7 +158,9 @@
     }
 
     & [data-canvas-panel] {
+      flex: 1 1 auto;
       margin: 0;
+      overflow-y: auto;
       color: var(--_canvas-widget-code-text-color);
       background-color: var(--_canvas-widget-code-bg-color);
       border-block-start-width: var(--_canvas-widget-border-width);

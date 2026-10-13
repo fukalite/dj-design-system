@@ -34,21 +34,6 @@ SAMPLE_PARAM_ROWS: tuple[dict[str, object], ...] = (
     },
 )
 
-ERROR_PARAM_ROWS: tuple[dict[str, object], ...] = (
-    {
-        "name": "payload",
-        "field_id": "id_payload",
-        "spec": {
-            "description": "Structured JSON payload passed to the component.",
-            "required": True,
-        },
-        "field": safestring.SafeString(
-            '<textarea id="id_payload" name="payload" rows="3">{invalid}</textarea>'
-        ),
-        "errors": ["Enter a valid JSON or Python literal."],
-    },
-)
-
 config = gallery.GalleryConfig(
     group="Composites",
     param_defaults={
@@ -57,27 +42,4 @@ config = gallery.GalleryConfig(
         "active_theme": "light",
         "active_variant": "primary",
     },
-    variants=[
-        gallery.Variant(
-            name="basic",
-            label="Configurable Parameters Form",
-            description="Live sandbox parameters form with text and select controls.",
-            kwargs={
-                "param_rows": list(SAMPLE_PARAM_ROWS),
-                "action_url": "/design-system/components/button/",
-                "active_theme": "light",
-                "active_variant": "primary",
-            },
-        ),
-        gallery.Variant(
-            name="with_errors",
-            label="Parameters Form with Validation Errors",
-            description="Sandbox parameters form displaying field-level validation error alerts.",
-            kwargs={
-                "param_rows": list(ERROR_PARAM_ROWS),
-                "action_url": "/design-system/components/button/",
-                "active_theme": "dark",
-            },
-        ),
-    ],
 )

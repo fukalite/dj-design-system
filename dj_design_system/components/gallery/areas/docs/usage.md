@@ -7,27 +7,27 @@
 The Documentation Usage area provides live code signatures and interactive preview iframes demonstrating how to invoke the component in Django templates. It renders minimal examples with required parameters, maximal examples showcasing all available options, and namespaced import snippets.
 
 ```canvas
-<div style="border: 2px dashed #0284c7; background: rgba(2, 132, 199, 0.04); border-radius: 8px; padding: 14px;">
-  <div style="font-family: monospace; font-size: 11px; font-weight: 700; color: #0369a1; text-transform: uppercase; margin-bottom: 8px;">
+<div style="border: 2px dashed var(--dds-control-accent-color); background: var(--dds-state-hover-bg-color); border-radius: var(--dds-radius-md); padding: var(--dds-space-md);">
+  <div style="font-family: var(--dds-text-code-font); font-size: 11px; font-weight: 700; color: var(--dds-control-accent-color); text-transform: uppercase; margin-bottom: 8px;">
     &lt;l-stack&gt;
   </div>
 
   <l-stack style="--space: 14px;">
     <!-- Minimal Usage Block -->
-    <div style="border: 1px dashed #0284c7; background: #ffffff; border-radius: 6px; padding: 12px;">
-      <h3 style="margin: 0 0 6px 0; font-size: 13px; color: #0f172a;">Minimal Example</h3>
-      <div style="background: #0f172a; color: #94a3b8; padding: 14px; border-radius: 4px; text-align: center; font-size: 11px; margin-bottom: 8px;">
+    <div style="border: 1px dashed var(--dds-control-border-color); background: var(--dds-surface-bg-color); border-radius: var(--dds-control-border-radius); padding: 12px;">
+      <h3 style="margin: 0 0 6px 0; font-size: 13px; color: var(--dds-text-prominent-color);">Minimal Example</h3>
+      <div style="background: var(--dds-surface-stage-bg-color); color: var(--dds-text-muted-color); border: 1px dashed var(--dds-surface-stage-border-color); padding: 14px; border-radius: var(--dds-control-border-radius); text-align: center; font-size: 11px; margin-bottom: 8px;">
         data-surface="stage" (Preview Stage Iframe)
       </div>
-      <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 8px 10px; border-radius: 4px; font-family: monospace; font-size: 11px; color: #334155;">
+      <div style="background: var(--dds-surface-code-bg-color); border: 1px solid var(--dds-surface-code-border-color); padding: 8px 10px; border-radius: var(--dds-control-border-radius); font-family: var(--dds-text-code-font); font-size: 11px; color: var(--dds-surface-code-text-default-color);">
         {% verbatim %}{% dds__button label="Submit" %}{% endverbatim %}
       </div>
     </div>
 
     <!-- Maximal Usage Block -->
-    <div style="border: 1px dashed #0369a1; background: #ffffff; border-radius: 6px; padding: 12px;">
-      <h3 style="margin: 0 0 6px 0; font-size: 13px; color: #0f172a;">Maximal Example</h3>
-      <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 8px 10px; border-radius: 4px; font-family: monospace; font-size: 11px; color: #334155;">
+    <div style="border: 1px dashed var(--dds-control-border-color); background: var(--dds-surface-bg-color); border-radius: var(--dds-control-border-radius); padding: 12px;">
+      <h3 style="margin: 0 0 6px 0; font-size: 13px; color: var(--dds-text-prominent-color);">Maximal Example</h3>
+      <div style="background: var(--dds-surface-code-bg-color); border: 1px solid var(--dds-surface-code-border-color); padding: 8px 10px; border-radius: var(--dds-control-border-radius); font-family: var(--dds-text-code-font); font-size: 11px; color: var(--dds-surface-code-text-default-color);">
         {% verbatim %}{% dds__button label="Delete" variant="danger" icon="trash" size="lg" %}{% endverbatim %}
       </div>
     </div>

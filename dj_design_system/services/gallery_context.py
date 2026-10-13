@@ -566,6 +566,8 @@ def build_component_page_context(
         name=info.name,
         component=info,
     )
+    context["component_label"] = component_label
+    context["component_class_name"] = component_class.__name__
     crumbs = navigation_service.build_breadcrumbs(
         app_label=app_label,
         path_parts=path_parts[:-1] if path_parts else [],

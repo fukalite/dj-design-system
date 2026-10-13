@@ -333,6 +333,13 @@ class TestSandboxToolbarRenderingAndTemplate:
         assert 'data-icon="rtl"' in html
         assert 'data-action="reset-params"' not in html
         assert 'target="_blank"' not in html
+        assert 'class="dds-tooltip"' in html
+        assert "Background colour" in html
+        assert "Viewport width" in html
+        assert "Zoom level" in html
+        assert "Outline" in html
+        assert "Measure" in html
+        assert "RtL direction" in html
 
     def test_renders_variants_reset_and_canvas_links_when_provided(self) -> None:
         """Verify variants popout, reset button, and standalone canvas link render when configured."""
@@ -358,6 +365,9 @@ class TestSandboxToolbarRenderingAndTemplate:
         assert 'href="/gallery/button/"' in html
         assert 'href="/canvas/button/"' in html
         assert 'target="_blank"' in html
+        assert "Select variant preset" in html
+        assert "Reset" in html
+        assert "Open in new tab" in html
 
     def test_template_contains_no_filters_or_bem(self) -> None:
         """Verify sandbox_toolbar.html loads design_components and has zero template filters or BEM."""

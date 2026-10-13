@@ -10,4 +10,18 @@ config = gallery.GalleryConfig(
         "title": "Information",
         "content": "Component changes are reflected automatically in the preview canvas.",
     },
+    variants=[
+        gallery.Variant(
+            name="maximal",
+            label="Warning Alert with Custom Icon",
+            description="Notice in warning state showcasing explicit icon, title, and role.",
+            kwargs={
+                "variant": "warning",
+                "title": "Deprecated Parameter",
+                "icon": "warning",
+                "role": "alert",
+                "content": "Support for legacy CSS class parameters will be removed in a future release.",
+            },
+        ),
+    ],
 )

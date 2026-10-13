@@ -15,6 +15,10 @@ Before writing any code, read:
 - `conductor/code_styleguides/dds-components.md` (all sections)
 - `conductor/code_styleguides/python.md`
 - `conductor/code_styleguides/html-css.md`
+- User-facing foundations documentation:
+  - `dj_design_system/components/gallery/foundations/semantic_tokens.md`
+  - `dj_design_system/components/gallery/foundations/layout_primitives.md`
+  - `dj_design_system/components/gallery/foundations/typography_and_spacing.md`
 
 ## Hard Constraints
 1. **No Git Mutations:** Never run `git add`, `git commit`, `git restore`, or `git reset`.
