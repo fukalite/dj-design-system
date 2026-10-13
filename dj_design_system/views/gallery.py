@@ -82,9 +82,14 @@ def get_base_context(
         raw_color_scheme = ""
 
     theme_obj = get_theme(active_theme)
-    active_theme_supports_dark_mode = (
-        theme_obj.supports_dark_mode if theme_obj else False
-    )
+    if theme_obj is not None:
+        active_theme = theme_obj.value
+        active_theme_supports_dark_mode = theme_obj.supports_dark_mode
+    else:
+        default_theme = get_default_theme()
+        active_theme_supports_dark_mode = (
+            default_theme.supports_dark_mode if default_theme else False
+        )
     if active_theme_supports_dark_mode and raw_color_scheme in ("dark", "light"):
         active_color_scheme = raw_color_scheme
     else:

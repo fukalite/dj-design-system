@@ -362,6 +362,50 @@ class TestGalleryComponentView:
         assert 'class="gallery-ui-theme-classic"' in content
         assert 'data-gallery-ui-theme="classic"' in content
 
+    def test_dark_mode_toggle_enabled_on_markdown_document_when_theme_supports_dark_mode(
+        self, client, settings
+    ):
+        settings.DJ_DESIGN_SYSTEM = {
+            "GALLERY_THEMES": {
+                "custom": {
+                    "label": "Custom Theme",
+                    "dark_mode": {},
+                }
+            },
+            "GALLERY_DEFAULT_THEME": "custom",
+        }
+        url = "/dds/demo_nav/design_guidelines/"
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response.context["active_theme_supports_dark_mode"] is True
+        content = response.content.decode("utf-8")
+        assert 'data-supports-dark-mode="true"' in content
+        assert 'data-action="toggle-consumer-color-scheme"' in content
+        assert 'data-action="toggle-consumer-color-scheme" disabled' not in content
+
+    def test_dark_mode_toggle_falls_back_to_default_theme_on_markdown_document(
+        self, client, settings
+    ):
+        settings.DJ_DESIGN_SYSTEM = {
+            "GALLERY_THEMES": {
+                "custom": {
+                    "label": "Custom Theme",
+                    "dark_mode": {},
+                }
+            },
+            "GALLERY_DEFAULT_THEME": "custom",
+        }
+        client.cookies["dds_theme"] = "nonexistent_stale_theme"
+        url = "/dds/demo_nav/design_guidelines/"
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response.context["active_theme_supports_dark_mode"] is True
+        content = response.content.decode("utf-8")
+        assert 'data-supports-dark-mode="true"' in content
+        assert 'data-action="toggle-consumer-color-scheme"' in content
+        assert 'data-action="toggle-consumer-color-scheme" disabled' not in content
+
+
     def test_component_renders_section_headings_and_dividers(self, client):
         url = reverse(
             "gallery-node",
