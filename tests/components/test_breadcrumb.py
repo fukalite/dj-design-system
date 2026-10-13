@@ -482,9 +482,7 @@ class TestBreadcrumbGalleryAndDocs:
         )
         assert isinstance(cfg, gallery.GalleryConfig)
         assert len(cfg.variants) == 0
-        direct_html = breadcrumb_module.Breadcrumb(
-            **cfg.param_defaults
-        ).render()
+        direct_html = breadcrumb_module.Breadcrumb(**cfg.param_defaults).render()
         assert 'class="dds-breadcrumb"' in direct_html
         rendered = _render_template(
             source=(

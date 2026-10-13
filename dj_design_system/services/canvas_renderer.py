@@ -15,7 +15,7 @@ from dj_design_system.settings import (
     get_backgrounds,
     get_default_background,
 )
-from dj_design_system.types import Theme
+from dj_design_system.types import ColorScheme, Theme
 
 
 if TYPE_CHECKING:
@@ -58,11 +58,13 @@ def build_global_js_tags() -> str:
 
 
 def build_theme_app_media(
-    theme_dict: Optional[Theme], app_label: Optional[str]
+    theme_dict: Optional[Theme],
+    app_label: Optional[str],
+    color_scheme: ColorScheme = ColorScheme.LIGHT,
 ) -> tuple[str, str]:
     """Build CSS and JS tags for the specified theme and app."""
-    theme_css = theme_dict.css if theme_dict else []
-    theme_js = theme_dict.js if theme_dict else []
+    theme_css = list(theme_dict.css) if theme_dict else []
+    theme_js = list(theme_dict.js) if theme_dict else []
     theme_css_bundles = (
         media_service.get_bundle_urls(theme_dict.css_bundles, "css")
         if theme_dict
@@ -71,6 +73,21 @@ def build_theme_app_media(
     theme_js_bundles = (
         media_service.get_bundle_urls(theme_dict.js_bundles, "js") if theme_dict else []
     )
+
+    if (
+        color_scheme == ColorScheme.DARK
+        and theme_dict
+        and theme_dict.supports_dark_mode
+        and theme_dict.dark_mode
+    ):
+        theme_css.extend(theme_dict.dark_mode.css)
+        theme_js.extend(theme_dict.dark_mode.js)
+        theme_css_bundles.extend(
+            media_service.get_bundle_urls(theme_dict.dark_mode.css_bundles, "css")
+        )
+        theme_js_bundles.extend(
+            media_service.get_bundle_urls(theme_dict.dark_mode.js_bundles, "js")
+        )
 
     app_css: list[str] = []
     app_js: list[str] = []
@@ -169,6 +186,18 @@ def build_canvas_bg_styles(
                 f".canvas-bg-theme-{theme_dict.value}, body:has(.canvas-bg-theme-{theme_dict.value}) {{ background: {bg['color']}; }}"
             )
 
+    if (
+        theme_dict
+        and theme_dict.supports_dark_mode
+        and theme_dict.dark_mode
+        and isinstance(theme_dict.dark_mode.canvas_background, dict)
+    ):
+        bg_dark = theme_dict.dark_mode.canvas_background
+        if "color" in bg_dark:
+            rules.append(
+                f".canvas-bg-theme-{theme_dict.value}-dark, body:has(.canvas-bg-theme-{theme_dict.value}-dark) {{ background: {bg_dark['color']}; }}"
+            )
+
     nonce_attr = ""
     if csp_nonce:
         nonce_attr = f' nonce="{html.escape(str(csp_nonce))}"'
@@ -203,7 +232,9 @@ def _flatten_attrs(attrs: dict[str, str]) -> str:
 
 
 def build_html_attrs(
-    theme_dict: Optional[Theme] = None, app_label: Optional[str] = None
+    theme_dict: Optional[Theme] = None,
+    app_label: Optional[str] = None,
+    color_scheme: ColorScheme = ColorScheme.LIGHT,
 ) -> tuple[str, str]:
     """Build the HTML and BODY attributes for the canvas document.
 
@@ -216,6 +247,13 @@ def build_html_attrs(
     if theme_dict:
         html_dict.update(theme_dict.html_attrs.get("html", {}))
         body_dict.update(theme_dict.html_attrs.get("body", {}))
+        if (
+            color_scheme == ColorScheme.DARK
+            and theme_dict.supports_dark_mode
+            and theme_dict.dark_mode
+        ):
+            html_dict.update(theme_dict.dark_mode.html_attrs.get("html", {}))
+            body_dict.update(theme_dict.dark_mode.html_attrs.get("body", {}))
     if app_label:
         html_dict.update(get_app_html_attrs(app_label).get("html", {}))
         body_dict.update(get_app_html_attrs(app_label).get("body", {}))
@@ -232,6 +270,7 @@ def build_canvas_srcdoc(
     bg_class: Optional[str] = None,
     mode_class: str = "canvas-wrapper--basic",
     iframe_id: str = "",
+    color_scheme: ColorScheme = ColorScheme.LIGHT,
 ) -> str:
     """Build a full HTML document for srcdoc embedding.
 
@@ -244,6 +283,7 @@ def build_canvas_srcdoc(
         bg_class: Optional background CSS class. Defaults to the configured default.
         mode_class: The canvas mode class (e.g. 'canvas-wrapper--basic').
         iframe_id: Optional ID to uniquely identify this canvas instance for resize events.
+        color_scheme: Active ColorScheme for theme styling and media.
     """
     global_css = build_global_css_tags()
     global_js = build_global_js_tags()
@@ -260,12 +300,33 @@ def build_canvas_srcdoc(
         )
 
     if bg_class is None:
-        bg_class = f"canvas-bg-{get_default_background()['value']}"
+        if (
+            color_scheme == ColorScheme.DARK
+            and theme_dict
+            and theme_dict.supports_dark_mode
+            and theme_dict.dark_mode
+            and theme_dict.dark_mode.canvas_background
+        ):
+            if isinstance(theme_dict.dark_mode.canvas_background, str):
+                bg_class = f"canvas-bg-{theme_dict.dark_mode.canvas_background}"
+            elif isinstance(theme_dict.dark_mode.canvas_background, dict):
+                bg_class = f"canvas-bg-theme-{theme_dict.value}-dark"
+        elif theme_dict and theme_dict.canvas_background:
+            if isinstance(theme_dict.canvas_background, str):
+                bg_class = f"canvas-bg-{theme_dict.canvas_background}"
+            elif isinstance(theme_dict.canvas_background, dict):
+                bg_class = f"canvas-bg-theme-{theme_dict.value}"
+        else:
+            bg_class = f"canvas-bg-{get_default_background()['value']}"
 
-    theme_app_css_tags, theme_app_js_tags = build_theme_app_media(theme_dict, app_label)
+    theme_app_css_tags, theme_app_js_tags = build_theme_app_media(
+        theme_dict, app_label, color_scheme=color_scheme
+    )
     bg_styles = build_canvas_bg_styles(theme_dict=theme_dict)
     resize_script = build_resize_script(iframe_id=iframe_id)
-    html_attrs_str, body_attrs_str = build_html_attrs(theme_dict, app_label)
+    html_attrs_str, body_attrs_str = build_html_attrs(
+        theme_dict, app_label, color_scheme=color_scheme
+    )
 
     iframe_doc = (
         "<!DOCTYPE html>"

@@ -3,6 +3,9 @@
 import pytest
 from django.utils.safestring import SafeString
 
+from dj_design_system.components.gallery.composites.search_box.search_box import (
+    SearchBox,
+)
 from dj_design_system.components.gallery.elements.button.button import Button
 from dj_design_system.components.gallery.elements.code_block.code_block import CodeBlock
 from dj_design_system.components.gallery.elements.notice.notice import Notice
@@ -129,6 +132,16 @@ class TestTransformDocstringToMarkdown:
         assert "```django" in result
         assert '{% dds__button label="Save" %}' in result
 
+    def test_multiline_inline_code_normalized_to_single_line(self) -> None:
+        doc = """
+            Renders a ``<div data-search-results
+            role="listbox">`` element with `<script
+            type="application/json">` payload.
+        """
+        result = transform_docstring_to_markdown(docstring=doc)
+        assert '``<div data-search-results role="listbox">``' in result
+        assert '`<script type="application/json">`' in result
+
 
 @pytest.mark.django_db
 class TestRenderDocstring:
@@ -208,3 +221,28 @@ class TestRenderDocstring:
         assert "<strong>When to Use:</strong>" in html
         assert "<ul>" in html
         assert "Triggering actions" in html
+
+    def test_multiline_inline_code_rendered_without_internal_breaks(self) -> None:
+        doc = """
+            Floating ``<div data-search-results data-surface="popout"
+            role="listbox">`` container.
+        """
+        html = render_docstring(docstring=doc)
+        assert (
+            '<code>&lt;div data-search-results data-surface="popout" role="listbox"&gt;</code>'
+            in html
+        )
+        assert 'data-surface="popout"\n' not in str(html)
+
+    def test_search_box_docstring_end_to_end(self) -> None:
+        raw_doc = SearchBox.__doc__ or ""
+        html = render_docstring(docstring=raw_doc)
+        assert (
+            '<code>&lt;div data-search-results data-surface="popout" role="listbox"&gt;</code>'
+            in html
+        )
+        assert (
+            '<code>&lt;script type="application/json" data-search-index&gt;</code>'
+            in html
+        )
+        assert "data-search-results\n" not in str(html)

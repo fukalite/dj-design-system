@@ -72,3 +72,4 @@ tests/e2e/visual/output/
 
 # Compiled TypeScript Web Component outputs for built-in dds components
 dj_design_system/components/**/*.js
+dj_design_system/static/dj_design_system/gallery-shell.js

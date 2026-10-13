@@ -1,4 +1,4 @@
-"""Unit tests for the built-in ``dds__sandbox_params`` domain component."""
+"""Unit tests for the built-in ``dds__sandbox_params`` composite component."""
 
 import dataclasses
 import pathlib
@@ -9,14 +9,13 @@ import pytest
 from django import forms, template
 from django.utils import safestring
 
-from dj_design_system import components, data, gallery, parameters
-from dj_design_system.components.gallery.domain import (
+from dj_design_system import components, gallery, parameters
+from dj_design_system.components.gallery.composites import (
     sandbox_params as sandbox_params_package,
 )
-from dj_design_system.components.gallery.domain.sandbox_params import (
+from dj_design_system.components.gallery.composites.sandbox_params import (
     sandbox_params as sandbox_params_module,
 )
-from dj_design_system.services import canvas as canvas_service
 from dj_design_system.services import registry as registry_service
 from tests import conftest
 
@@ -24,15 +23,15 @@ from tests import conftest
 APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "sandbox_params"
 QUALIFIED_NAME = "dds__sandbox_params"
-RELATIVE_PATH = "gallery.domain.sandbox_params"
+RELATIVE_PATH = "gallery.composites.sandbox_params"
 TEMPLATE_PATH = (
-    "dj_design_system/components/gallery/domain/sandbox_params/sandbox_params.html"
+    "dj_design_system/components/gallery/composites/sandbox_params/sandbox_params.html"
 )
 CSS_MEDIA_PATH = (
-    "dj_design_system/components/gallery/domain/sandbox_params/sandbox_params.css"
+    "dj_design_system/components/gallery/composites/sandbox_params/sandbox_params.css"
 )
 JS_MEDIA_PATH = (
-    "dj_design_system/components/gallery/domain/sandbox_params/sandbox_params.js"
+    "dj_design_system/components/gallery/composites/sandbox_params/sandbox_params.js"
 )
 
 SANDBOX_PARAMS_DIR = (
@@ -40,7 +39,7 @@ SANDBOX_PARAMS_DIR = (
     / "dj_design_system"
     / "components"
     / "gallery"
-    / "domain"
+    / "composites"
     / "sandbox_params"
 )
 SANDBOX_PARAMS_PY_PATH = SANDBOX_PARAMS_DIR / "sandbox_params.py"
@@ -53,7 +52,8 @@ TOKENS_CSS_PATH = (
     / "dj_design_system"
     / "static"
     / "dj_design_system"
-    / "tokens.css"
+    / "tokens"
+    / "semantic.css"
 )
 
 
@@ -128,7 +128,7 @@ class TestSandboxParamsDiscoveryAndMetadata:
     """Verify SandboxParams exports, metadata, media, and registry discovery."""
 
     def test_exported_from_package_init(self) -> None:
-        """Verify SandboxParams is exported in dj_design_system.components.gallery.domain.sandbox_params."""
+        """Verify SandboxParams is exported in dj_design_system.components.gallery.composites.sandbox_params."""
         assert (
             sandbox_params_package.SandboxParams is sandbox_params_module.SandboxParams
         )
@@ -382,7 +382,7 @@ class TestSandboxParamsRenderingAndTemplate:
         ) in html
         assert 'hx-replace-url="true"' in html
         assert 'hx-target="closest [data-gallery-sandbox-body]"' in html
-        assert 'hx-swap="innerHTML"' in html
+        assert 'hx-swap="innerHTML show:none"' in html
         assert (
             'hx-trigger="change delay:400ms, keyup delay:400ms from:input, '
             'keyup delay:400ms from:textarea"'
@@ -532,25 +532,20 @@ class TestSandboxParamsGalleryAndDocs:
     """Verify co-located gallery.py and index.md for dds__sandbox_params."""
 
     def test_gallery_config_variants_render_via_canvas(self) -> None:
-        """Verify gallery.py exports a valid GalleryConfig whose variants all render."""
-        reg = _make_registry()
+        """Verify gallery.py exports a valid GalleryConfig with leaf node configuration."""
         cfg = gallery.load_gallery_config(
             source_dir=SANDBOX_PARAMS_DIR,
             component_name=COMPONENT_NAME,
         )
         assert isinstance(cfg, gallery.GalleryConfig)
-        assert len(cfg.variants) == 2
-        for variant in cfg.variants:
-            spec = data.CanvasSpec(
-                component_name=QUALIFIED_NAME,
-                variant=variant.name,
-            )
-            rendered = canvas_service.render_component(spec=spec, registry=reg)
-            assert 'class="dds-sandbox-params"' in rendered
+        assert cfg.variants == []
+        rendered = sandbox_params_module.SandboxParams(**cfg.param_defaults).render()
+        assert 'class="dds-sandbox-params"' in rendered
 
     def test_index_md_exists_and_documents_component(self) -> None:
         """Verify index.md exists and documents dds__sandbox_params and all parameters."""
         doc_text = _read_text(path=SANDBOX_PARAMS_INDEX_MD_PATH)
+        assert "```canvas" in doc_text
         assert "dds__sandbox_params" in doc_text
         assert "param_rows" in doc_text
         assert "action_url" in doc_text

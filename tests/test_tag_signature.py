@@ -519,6 +519,22 @@ class TestRequiredKeywordParam:
         assert 'subtitle="Default Subtitle"' in sig.maximal
         assert sig.maximal_spec.params.get("subtitle") == "Default Subtitle"
 
+    def test_maximal_signature_respects_mutually_exclusive_constraints(self):
+        """Mutually exclusive params are not simultaneously emitted in maximal signature."""
+        from dj_design_system.components.gallery.elements.button.button import Button
+
+        sig = generate_tag_signature(Button)
+        assert not (
+            "href" in sig.maximal_spec.params and "pressed" in sig.maximal_spec.params
+        )
+        kwargs = dict(sig.maximal_spec.params)
+        for name, val in zip(
+            Button.get_positional_args(), sig.maximal_spec.positional_args
+        ):
+            kwargs[name] = val
+        button_instance = Button(**kwargs)
+        assert button_instance.render()
+
 
 class TestBlockContentFromGalleryConfig:
     """Tests for usage example block content and param_defaults (#154, #162)."""

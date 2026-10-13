@@ -51,6 +51,33 @@ def get_base_context(
         active_variant = (
             get_control_param(request.GET, "variant", bare_fallback=bare_fallback) or ""
         ).strip() or None
+        raw_gallery_theme = (
+            request.GET.get("_dds_gallery_theme")
+            or request.COOKIES.get("dds_gallery_theme")
+            or ""
+        )
+        if raw_gallery_theme in ("dark", "light"):
+            gallery_theme = raw_gallery_theme
+        else:
+            gallery_theme = ""
+        raw_color_scheme = (
+            get_control_param(request.GET, "color_scheme", bare_fallback=bare_fallback)
+            or request.COOKIES.get("dds_color_scheme")
+            or ""
+        )
+    else:
+        gallery_theme = ""
+        raw_color_scheme = ""
+
+    theme_obj = get_theme(active_theme)
+    active_theme_supports_dark_mode = (
+        theme_obj.supports_dark_mode if theme_obj else False
+    )
+    if active_theme_supports_dark_mode and raw_color_scheme in ("dark", "light"):
+        active_color_scheme = raw_color_scheme
+    else:
+        active_color_scheme = "light"
+
     return {
         "nav_tree": nav_tree,
         "search_index": [] if is_htmx else build_search_index(nav_tree),
@@ -62,6 +89,9 @@ def get_base_context(
         "available_themes": get_themes(),
         "active_theme": active_theme,
         "global_active_theme": active_theme,
+        "active_color_scheme": active_color_scheme,
+        "active_theme_supports_dark_mode": active_theme_supports_dark_mode,
+        "gallery_theme": gallery_theme,
         "component_tabs": [
             {"id": "docs", "label": "Documentation"},
             {"id": "sandbox", "label": "Sandbox"},
@@ -96,6 +126,7 @@ def _render_folder(request, context, node, app_label, path_parts):
             file_path=node.index_doc_path,
             app_label=doc_app_label,
             theme_dict=theme_dict,
+            color_scheme=context.get("active_color_scheme", "light"),
         )
         return render(
             request,
@@ -121,6 +152,7 @@ def _render_document(request, context, node, app_label, path_parts):
         file_path=node.doc_path,
         app_label=doc_app_label,
         theme_dict=theme_dict,
+        color_scheme=context.get("active_color_scheme", "light"),
     )
     context["doc_label"] = node.label
     context["breadcrumbs"] = build_breadcrumbs(

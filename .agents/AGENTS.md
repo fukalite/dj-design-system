@@ -8,6 +8,15 @@ All contributions must strictly follow the domain styleguides in `conductor/code
 - [general.md](../conductor/code_styleguides/general.md): General engineering best practices, outcome-oriented naming, guard clauses, relative links.
 - [example-project.md](../conductor/code_styleguides/example-project.md): Showcase and consumer integration testing standards.
 
+## Authoritative Front-End Foundations & Gallery Architecture
+For detailed design system foundations, layout primitives, design tokens, and gallery chrome/viewport architecture, refer to the user-facing documents:
+- [Design System Foundations](../dj_design_system/components/gallery/foundations/index.md): Core architectural pillars, CUBE CSS cascade layers, and static file organisation.
+  - [Semantic Tokens & Naming Scheme](../dj_design_system/components/gallery/foundations/semantic_tokens.md): 3-tier hierarchy, token grammar, semantic domains, and live specimens.
+  - [Typography & Spacing System](../dj_design_system/components/gallery/foundations/typography_and_spacing.md): Font purposes, text roles, modular spacing scale (`3xs` to `3xl`), gaps, and insets.
+  - [Layout Primitives (Every Layout)](../dj_design_system/components/gallery/foundations/layout_primitives.md): The 11 intrinsic `<l-*>` composition elements, control variables, and examples.
+  - [Elevations & Surfaces](../dj_design_system/components/gallery/foundations/elevations_and_surfaces.md): Stacking layers (`z-index`), shadow geometry, and contextual `[data-surface]` delegation.
+- [Areas & Panes](../dj_design_system/components/gallery/areas/index.md): Structural chrome areas (`topbar`, `sidebar`, `tabs`), content panes (`docs`, `sandbox`, `folder`, `index`, `prose`), shell layout orchestration, and template overrides.
+
 # Agent Behaviours & Persona
 
 ## Operational Style

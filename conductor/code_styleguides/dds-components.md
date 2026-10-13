@@ -84,26 +84,16 @@ Python unit and integration tests remain under `tests/` so `ComponentRegistry.au
 - Components must **never** set outer margins (`margin: 0` on the component root) and must adapt to fill whatever space their parent layout provides.
 
 ### Every Layout Primitives (`@layer composition`)
-- Layout between components and internal structural flow is handled by **Every Layout** primitives in `@layer composition`, not ad-hoc flex/grid wrappers:
-  - `<l-stack>` (`.l-stack`) — Vertical flow with recursive/direct gap (`--space`).
-  - `<l-cluster>` (`.l-cluster`) — Wrapping horizontal groups (toolbars, badges, breadcrumbs).
-  - `<l-sidebar>` (`.l-sidebar`) — Fixed-basis sidebar alongside flexible main content.
-  - `<l-switcher>` (`.l-switcher`) — Container-width responsive row-to-column switching.
-  - `<l-box>` (`.l-box`) — Padded container/surface box.
-  - `<l-center>` (`.l-center`) — Horizontally centred max-measure container (`--measure`).
-  - `<l-cover>` (`.l-cover`) — Vertically centred hero/empty-state layout.
-  - `<l-frame>` (`.l-frame`) — Aspect-ratio / viewport frame container.
-  - `<l-grid>` (`.l-grid`) — Responsive auto-fit grid (`--min`).
-  - `<l-reel>` (`.l-reel`) — Horizontal scrolling strip (e.g. overflow tabs/chips).
-  - `<l-imposter>` (`.l-imposter`) — Positioned overlay/floating container.
+- Layout between components and internal structural flow is handled by **Every Layout** primitives in `@layer composition`, not ad-hoc flex/grid wrappers.
+- The 11 intrinsic primitives: `<l-stack>`, `<l-cluster>`, `<l-sidebar>`, `<l-switcher>`, `<l-box>`, `<l-center>`, `<l-cover>`, `<l-frame>`, `<l-grid>`, `<l-reel>`, and `<l-imposter>`.
 - **Usage Rule:** Prefer custom elements (`<l-stack>`, `<l-cluster>`, etc.) in templates. Use the matching `.l-*` class only when the layout container must be a specific semantic HTML element (e.g. `<nav class="l-cluster">`, `<ul class="l-stack">`).
-- **Documentation:** Every `<l-*>` primitive must have Markdown documentation in the `dds` gallery with visual debug/outline styling to demonstrate its behaviour.
+- **Authoritative Reference:** Complete primitive descriptions, control variables (`--space`, `--measure`, `--min`, `--side-width`), and interactive specimens are documented in [Layout Primitives (Every Layout)](../../dj_design_system/components/gallery/foundations/layout_primitives.md).
 
 ---
 
 ## 5. CSS Architecture: CUBE CSS, Nesting & Stylelint
 
-All component and layout CSS must strictly follow [html-css.md](html-css.md). Key invariants:
+All component and layout CSS must strictly follow [html-css.md](html-css.md). Static CSS layout, cascade organisation, and area/pane boundaries are documented in [Design System Foundations](../../dj_design_system/components/gallery/foundations/index.md) and [Areas & Panes](../../dj_design_system/components/gallery/areas/index.md). Key invariants:
 - **Strictly No BEM:** Never use `__` (element) or `--` (modifier) class naming anywhere in `dds` components or stylesheets. Enforced by Stylelint.
 - **Cascade Layers:** All gallery CSS is organised into explicit native `@layer` blocks:
   ```css
@@ -127,61 +117,28 @@ All component and layout CSS must strictly follow [html-css.md](html-css.md). Ke
 
 ## 6. Three-Tier Design Token System (`@layer tokens`)
 
+The design system enforces a strict three-tier token hierarchy. Detailed token listings, naming grammar, and rendered specimens are documented in [Semantic Tokens & Naming Scheme](../../dj_design_system/components/gallery/foundations/semantic_tokens.md), [Typography & Spacing System](../../dj_design_system/components/gallery/foundations/typography_and_spacing.md), [Elevations & Surfaces](../../dj_design_system/components/gallery/foundations/elevations_and_surfaces.md), and [Areas & Panes](../../dj_design_system/components/gallery/areas/index.md).
+
 ### Tier 1: Literal / Primitive Tokens (Private, `:root` only)
 - **Naming:** `--_dds-<palette-or-scale>-<step>` (leading `_` denotes private).
-- **Rule:** Defined exclusively on `:root` inside `tokens.css`. Never referenced outside `:root` / `.gallery-theme-dark` semantic mappings.
+- **Rule:** Defined exclusively on `:root` inside `tokens.css` (specifically `tokens/literal.css`). Never referenced outside `tokens/semantic.css` semantic mappings and `.gallery-theme-dark` overrides. Components, areas, and panes must never consume Tier 1 primitives directly.
 
 ### Tier 2: Semantic Tokens (Public Theming API)
 - **Naming:** `--dds-<domain>-<role>-<property>` (or `--dds-<domain>-<property>`).
-- **Rule:** All Tier 2 tokens are defined on `:root` (and `.gallery-theme-dark`). Surface selectors (`[data-surface='...']`) only alias `:root` Tier 2 tokens—they must **never** reference Tier 1 `--_dds-*` literals directly, ensuring consumer overrides on `:root` always propagate.
-
-#### Domain 1: Elevation Layers & Named Surfaces
-- **Elevation Layers (`--dds-layer-<layer>-z-index`):**
-  `sunken` (`0`), `base` (`1`), `raised` (`10`), `floating` (`20`), `overlay` (`30`).
-- **Named Surfaces (`[data-surface='<name>']`):**
-  - `stage` → `sunken` (recessed letterbox area around fixed-width preview iframes; the preview iframe itself is 100% exempt from gallery tokens).
-  - `code` → `sunken` (dark in light mode).
-  - `docs` → `base` (documentation pane and standalone pages).
-  - `sandbox` → `base` (sandbox pane and parameter drawer).
-  - `topbar` → `raised` (top header bar and sandbox toolbar).
-  - `sidebar` → `raised` (`overlay` on mobile; dark in light mode).
-  - `popout` → `floating` (dropdowns, search results, breadcrumb flyout).
-  - `overlay` → `overlay` (mobile drawer scrim, modals).
-- **Uniform Properties per Surface (`--dds-surface-<name>-<prop>` aliased to `--dds-surface-<prop>`):**
-  `bg-color`, `bg-blur`, `border-color`, `border-style`, `border-width`, `border-radius`, `shadow-color`, `shadow-shape`, `z-index` (plus foreground text/state remapping on inverted surfaces like `sidebar` and `code`).
-
-#### Domain 2: Typography & Text
-- **Font Purposes (`--dds-font-<purpose>`):** `ui`, `prose`, `technical`.
-- **Text Roles (`--dds-text-<role>-<prop>`):**
-  - Roles: `title`, `heading`, `subheading`, `overline`, `prose`, `body`, `control`, `caption`, `code`.
-  - Properties per role: `font`, `size`, `line-height`, `weight`, `letter-spacing`.
-- **Text Prominence (`--dds-text-<level>-color`):** `prominent`, `default`, `muted`.
-
-#### Domain 3: Spacing & Layout
-- **Scale (`--dds-space-<step>`):** `3xs`, `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `3xl`.
-- **Gaps (`--dds-space-gap-<role>`):** `tight`, `default`, `section`.
-- **Insets (`--dds-space-inset-<role>`):** `compact`, `default`, `page`.
-- **Layout Dimensions (`--dds-layout-<prop>`):** `sidebar-width`, `prose-measure`.
-
-#### Domain 4: Interactive States
-- **States (`--dds-state-<state>-<prop>`):** `interactive`, `hover`, `focus`, `active`, `selected`, `disabled`.
-- **Uniform Properties per State:**
-  `text-color`, `bg-color`, `border-color`, `border-style`, `border-width`, `outline-color`, `outline-style`, `outline-width`, `outline-offset`, `shadow-color`, `shadow-shape`, `opacity`.
-- **Transitions (`--dds-state-<direction>-<prop>`):**
-  `entry-duration`, `entry-easing`, `exit-duration`, `exit-easing`.
-
-#### Domain 5: Controls (Form Fields & Interactive Widgets)
-- **Control Box (`--dds-control-<prop>`):**
-  `bg-color`, `border-color`, `border-style`, `border-width`, `border-radius`, `shadow-color`, `shadow-shape`, `accent-color`.
-
-#### Domain 6: Status
-- **Status Levels (`--dds-status-<level>-<prop>`):** `info`, `success`, `warning`, `error`.
-- **Uniform Properties per Status:**
-  `text-color`, `bg-color`, `border-color`, `border-style`, `border-width`, `border-radius`, `shadow-color`, `shadow-shape`.
+- **Rule:** Defined in `tokens/semantic.css` on `:root` and overridden for dark schemes. Surface selectors (`[data-surface='...']`) only alias `:root` Tier 2 tokens—they must **never** reference Tier 1 `--_dds-*` literals directly, ensuring consumer overrides on `:root` always propagate.
+- **Authoritative Reference:** Complete naming grammar, token domains, and live visual specimens are documented in [Semantic Tokens & Naming Scheme](../../dj_design_system/components/gallery/foundations/semantic_tokens.md), [Typography & Spacing System](../../dj_design_system/components/gallery/foundations/typography_and_spacing.md), and [Elevations & Surfaces](../../dj_design_system/components/gallery/foundations/elevations_and_surfaces.md).
 
 ### Tier 3: Component-Local Tokens (Private, top of `<name>.css`)
 - **Naming:** `--_<component>-<prop>` (leading `_` denotes private to the component).
 - **Rule:** Declared at the top of `<name>.css` on the component root selector (`dds-<name>` or `.dds-<name>`), never on `:root`. Every Tier 3 token must map exclusively from Tier 2 `--dds-*` tokens, and all declarations inside `<name>.css` must reference only the component's own `--_<component>-*` tokens.
+
+### Token Tier Usage Matrix
+
+| Token Tier | Prefix / Format | Where Defined | Where Referenced | Usable in Component CSS Rules? |
+| :--- | :--- | :--- | :--- | :--- |
+| **Tier 1: Primitive** | `--_dds-*` | `:root` in `tokens/literal.css` | `:root` semantic maps in `tokens/semantic.css` | ❌ **Forbidden** |
+| **Tier 2: Semantic** | `--dds-*` | `:root`, surfaces in `tokens/semantic.css` | Layouts, `<l-*>`, component root Tier 3 maps | ❌ **Only as Tier 3 source** |
+| **Tier 3: Component** | `--_<component>-*` | Component root in `<name>.css` | Component internal rules in `<name>.css` | ✅ **Exclusively required** |
 
 ---
 

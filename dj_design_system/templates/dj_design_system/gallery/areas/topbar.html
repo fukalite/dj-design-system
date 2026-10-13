@@ -8,12 +8,21 @@
         <div data-toolbar-breadcrumb>{% dds__breadcrumb items=breadcrumbs %}</div>
     {% endif %}
     </l-cluster>
-    <l-cluster data-toolbar-actions>
+    <l-cluster data-toolbar-actions data-dark-mode-themes="{% for t in available_themes %}{% if t.supports_dark_mode %}{{ t.value }},{% endif %}{% endfor %}" data-active-theme="{{ global_active_theme }}" data-supports-dark-mode="{% if active_theme_supports_dark_mode %}true{% else %}false{% endif %}">
     {% if search_index %}
         {% dds__search_box search_index=search_index %}
     {% endif %}
+    {% if available_themes.1 %}
+        {% dds__theme_select themes=available_themes active_theme=global_active_theme show_icon=False %}
+    {% endif %}
     {% if available_themes %}
-        {% dds__theme_select themes=available_themes active_theme=global_active_theme %}
+        {% if not active_theme_supports_dark_mode %}
+            {% dds__button label="Consumer theme does not support dark mode" icon="sun" icon_only=True variant="default" size="lg" action="toggle-consumer-color-scheme" disabled=True %}
+        {% elif active_color_scheme == "dark" %}
+            {% dds__button label="Switch component preview to light mode" icon="moon" icon_only=True variant="default" size="lg" action="toggle-consumer-color-scheme" %}
+        {% else %}
+            {% dds__button label="Switch component preview to dark mode" icon="sun" icon_only=True variant="default" size="lg" action="toggle-consumer-color-scheme" %}
+        {% endif %}
     {% endif %}
     {% block toolbar_actions %}{% endblock %}
     </l-cluster>

@@ -106,10 +106,7 @@ class TestSettingsDdsGallery:
     def test_settings_dds_gallery_configuration(self) -> None:
         """Verify DJ_DESIGN_SYSTEM overrides in settings_dds_gallery."""
         dds_cfg = settings_dds_gallery.DJ_DESIGN_SYSTEM
-        assert (
-            dds_cfg["DESIGN_SYSTEM_NAME"]
-            == "dj-design-system Built-in Component Library"
-        )
+        assert dds_cfg["DESIGN_SYSTEM_NAME"] == "Built-in Component Library"
         assert dds_cfg["GALLERY_INCLUDE_APPS"] == ["dj_design_system"]
         assert dds_cfg["GLOBAL_CSS"] == ["example_project/theme-dds-consumer.css"]
 
@@ -134,14 +131,15 @@ class TestSettingsDdsGallery:
                     info.relative_path.removeprefix("gallery.").split(".")[0]
                     for info in visible
                 }
-                assert collections == {"domain", "elements"}
+                assert collections == {"composites", "elements"}
 
                 nav_tree = navigation_service.build_navigation()
                 assert [node.slug for node in nav_tree] == ["dj_design_system"]
                 assert [child.slug for child in nav_tree[0].children] == [
-                    "about",
-                    "domain",
+                    "areas",
+                    "composites",
                     "elements",
+                    "foundations",
                 ]
 
                 response = client.get(path=urls.reverse(viewname="gallery"))

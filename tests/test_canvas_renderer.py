@@ -6,11 +6,13 @@ from dj_design_system.data import ComponentMedia
 from dj_design_system.services.canvas_renderer import (
     build_canvas_bg_styles,
     build_canvas_srcdoc,
+    build_html_attrs,
     build_markdown_canvas_media,
+    build_theme_app_media,
     render_canvas_block,
 )
 from dj_design_system.settings import get_backgrounds, get_theme
-from dj_design_system.types import Theme
+from dj_design_system.types import ColorScheme, DarkModeConfig, Theme
 
 
 @pytest.mark.django_db
@@ -194,3 +196,118 @@ class TestBuildMarkdownCanvasMedia:
         assert "builtin/button.js" in js_tags
         assert "app/component.css" in css_tags
         assert "app/component.js" in js_tags
+
+
+class TestCanvasRendererColorScheme:
+    def test_build_html_attrs_light_mode(self):
+        theme = Theme(
+            value="dds",
+            label="DDS",
+            html_attrs={
+                "html": {"class": "gallery-theme-light", "lang": "en"},
+                "body": {"class": "dds-body"},
+            },
+            dark_mode=DarkModeConfig(
+                html_attrs={
+                    "html": {"class": "gallery-theme-dark"},
+                    "body": {"class": "dds-body-dark"},
+                },
+            ),
+        )
+        html_attrs, body_attrs = build_html_attrs(
+            theme_dict=theme, color_scheme=ColorScheme.LIGHT
+        )
+        assert 'class="gallery-theme-light"' in html_attrs
+        assert 'lang="en"' in html_attrs
+        assert 'class="dds-body"' in body_attrs
+
+    def test_build_html_attrs_dark_mode_overrides(self):
+        theme = Theme(
+            value="dds",
+            label="DDS",
+            html_attrs={
+                "html": {"class": "gallery-theme-light", "lang": "en"},
+                "body": {"class": "dds-body"},
+            },
+            dark_mode=DarkModeConfig(
+                html_attrs={
+                    "html": {"class": "gallery-theme-dark"},
+                    "body": {"class": "dds-body-dark"},
+                },
+            ),
+        )
+        html_attrs, body_attrs = build_html_attrs(
+            theme_dict=theme, color_scheme=ColorScheme.DARK
+        )
+        assert 'class="gallery-theme-dark"' in html_attrs
+        assert "gallery-theme-light" not in html_attrs
+        assert 'lang="en"' in html_attrs
+        assert 'class="dds-body-dark"' in body_attrs
+
+    def test_build_html_attrs_dark_mode_ignored_if_not_configured(self):
+        theme = Theme(
+            value="basic",
+            label="Basic",
+            html_attrs={"html": {"class": "theme-basic"}},
+        )
+        html_attrs, body_attrs = build_html_attrs(
+            theme_dict=theme, color_scheme=ColorScheme.DARK
+        )
+        assert 'class="theme-basic"' in html_attrs
+
+    def test_build_theme_app_media_dark_mode(self):
+        theme = Theme(
+            value="dds",
+            label="DDS",
+            css=["base.css"],
+            js=["base.js"],
+            dark_mode=DarkModeConfig(
+                css=["dark.css"],
+                js=["dark.js"],
+            ),
+        )
+        css_tags, js_tags = build_theme_app_media(
+            theme, None, color_scheme=ColorScheme.DARK
+        )
+        assert "base.css" in css_tags
+        assert "dark.css" in css_tags
+        assert "base.js" in js_tags
+        assert "dark.js" in js_tags
+
+    def test_build_canvas_bg_styles_dark_mode_custom(self):
+        theme = Theme(
+            value="brand",
+            label="Brand",
+            canvas_background={"color": "#ffffff"},
+            dark_mode=DarkModeConfig(
+                canvas_background={"color": "#111111"},
+            ),
+        )
+        styles = build_canvas_bg_styles(theme_dict=theme)
+        assert ".canvas-bg-theme-brand" in styles
+        assert "#ffffff" in styles
+        assert ".canvas-bg-theme-brand-dark" in styles
+        assert "#111111" in styles
+
+    def test_build_canvas_srcdoc_resolves_dark_mode_background(self):
+        theme = Theme(
+            value="brand",
+            label="Brand",
+            canvas_background="white",
+            dark_mode=DarkModeConfig(
+                canvas_background="dark",
+            ),
+        )
+        srcdoc_dark = build_canvas_srcdoc(
+            rendered_html="<p>dark</p>",
+            theme_dict=theme,
+            color_scheme=ColorScheme.DARK,
+        )
+        assert "canvas-bg-dark" in srcdoc_dark
+
+        srcdoc_light = build_canvas_srcdoc(
+            rendered_html="<p>light</p>",
+            theme_dict=theme,
+            color_scheme=ColorScheme.LIGHT,
+        )
+        assert "canvas-bg-white" in srcdoc_light

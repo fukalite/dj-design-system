@@ -1,0 +1,7 @@
+{% load design_components %}
+<dds-tooltip class="dds-tooltip" data-state="closed" {{ attrs }}>
+  {{ trigger_content }}
+  {% if has_tip %}
+    <div class="dds-tooltip-bubble" data-tooltip-bubble data-surface="popout" role="tooltip"{% if bubble_id %} id="{{ bubble_id }}"{% endif %} hidden>{{ tip_content }}</div>
+  {% endif %}
+</dds-tooltip>

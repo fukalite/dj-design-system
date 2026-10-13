@@ -16,8 +16,14 @@ SECONDARY_CONTROLS_HTML = (
 )
 
 
+SPLIT_PANE_CANVAS_TEMPLATE = (
+    '<div style="block-size: 24rem; display: flex;">\n    {{ component }}\n</div>'
+)
+
+
 config = gallery.GalleryConfig(
     group="Elements",
+    canvas_template=SPLIT_PANE_CANVAS_TEMPLATE,
     param_defaults={
         "orientation": "horizontal",
         "initial_ratio": 50,

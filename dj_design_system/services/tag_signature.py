@@ -3,6 +3,7 @@
 from typing import Any, NamedTuple, cast
 
 from dj_design_system.components import BaseComponent, BlockComponent
+from dj_design_system.components.base import get_own_meta
 from dj_design_system.data import BLOCK_CONTENT_PLACEHOLDER, CanvasSpec
 from dj_design_system.parameters import (
     BoolParam,
@@ -39,25 +40,27 @@ def _generate_example_value(
     param_spec: Any, param_name: str, str_example_index: int = 0
 ) -> Any:
     """Generate a representative example value for a parameter."""
-    if param_spec.default is not None:
+    if param_spec.default is not None and param_spec.default != "":
         return param_spec.default
 
     if hasattr(param_spec, "choices") and param_spec.choices:
-        return param_spec.choices[0]
+        non_empty = [c for c in param_spec.choices if c != ""]
+        if non_empty:
+            return non_empty[0]
 
     if isinstance(param_spec, BoolParam):
+        if param_spec.default is not None:
+            return param_spec.default
         return True
     if isinstance(param_spec, StrParam):
         examples = ["foo", "bar", "baz"]
         return examples[str_example_index % len(examples)]
-    if isinstance(param_spec, BoolParam):
-        return True
 
     if isinstance(param_spec, ModelParam):
         model = param_spec._resolve_model()
         return model.objects.order_by("-pk").first()
 
-    return None
+    return param_spec.default if param_spec.default is not None else None
 
 
 def _format_param_for_tag(param_name: str, value: Any) -> str:
@@ -240,7 +243,8 @@ def _build_slot_lines(
         override_key = f"{SLOT_PARAM_PREFIX}{name}"
         if override_key in slot_overrides:
             value = _unwrap_example(slot_overrides[override_key])
-            lines.append(f'  {{% slot "{name}" %}}{value}{{% endslot %}}')
+            if value:
+                lines.append(f'  {{% slot "{name}" %}}{value}{{% endslot %}}')
             continue
 
         if required_only and not slot.required:
@@ -481,6 +485,8 @@ def _build_maximal_keyword_values(
     params: dict[str, Any],
     overrides: dict[str, Any],
     start_str_index: int,
+    *,
+    mutually_exclusive: list[tuple[str, str]] | None = None,
 ) -> tuple[list[str], dict[str, Any]]:
     maximal_keyword = []
     maximal_keyword_values = {}
@@ -493,9 +499,22 @@ def _build_maximal_keyword_values(
         maximal_keyword.append(_format_param_for_tag(param_name, value))
         maximal_keyword_values[param_name] = _unwrap_example(value)
 
+    # Build mutually exclusive exclusion set based on overrides and positional args
+    excluded_params: set[str] = set()
+    if mutually_exclusive:
+        for a, b in mutually_exclusive:
+            if a in maximal_keyword_values or a in positional_args:
+                excluded_params.add(b)
+            elif b in maximal_keyword_values or b in positional_args:
+                excluded_params.add(a)
+
     # Then generate defaults for remaining params
     for param_name, spec in params.items():
-        if param_name in positional_args or param_name in overrides:
+        if (
+            param_name in positional_args
+            or param_name in overrides
+            or param_name in excluded_params
+        ):
             continue
 
         value = _generate_example_value(spec, param_name, str_index)
@@ -504,6 +523,14 @@ def _build_maximal_keyword_values(
         if value is not None:
             maximal_keyword.append(_format_param_for_tag(param_name, value))
             maximal_keyword_values[param_name] = _unwrap_example(value)
+
+            if mutually_exclusive:
+                for a, b in mutually_exclusive:
+                    if param_name == a:
+                        excluded_params.add(b)
+                    elif param_name == b:
+                        excluded_params.add(a)
+
     return maximal_keyword, maximal_keyword_values
 
 
@@ -549,12 +576,8 @@ def generate_tag_signature(
         if k.startswith(SLOT_PARAM_PREFIX)
     }
 
-    basic_content_override = (
-        basic_kwargs.pop("content", None) if (is_block and not is_slotted) else None
-    )
-    maximal_content_override = (
-        maximal_kwargs.pop("content", None) if (is_block and not is_slotted) else None
-    )
+    basic_content_override = basic_kwargs.pop("content", None) if is_block else None
+    maximal_content_override = maximal_kwargs.pop("content", None) if is_block else None
 
     # Minimal Signature
     min_pos_fmt, min_pos_vals, min_str_index = _build_minimal_positional_values(
@@ -599,11 +622,17 @@ def generate_tag_signature(
     )
 
     # Maximal Signature
+    meta = get_own_meta(component_class)
+    mutually_exclusive = getattr(meta, "mutually_exclusive", [])
     max_pos_fmt, max_pos_vals, str_index = _build_maximal_positional_values(
         positional_args, params, maximal_kwargs
     )
     max_kw_fmt, max_kw_vals = _build_maximal_keyword_values(
-        positional_args, params, maximal_kwargs, str_index
+        positional_args,
+        params,
+        maximal_kwargs,
+        str_index,
+        mutually_exclusive=mutually_exclusive,
     )
     maximal = _build_sig_raw(
         component_name,
@@ -643,9 +672,9 @@ def generate_tag_signature(
                 )
 
             if override_key in maximal_slot_overrides:
-                maximal_slot_params[override_key] = _unwrap_example(
-                    maximal_slot_overrides[override_key]
-                )
+                val = _unwrap_example(maximal_slot_overrides[override_key])
+                if val:
+                    maximal_slot_params[override_key] = val
             else:
                 maximal_slot_params[override_key] = (
                     slot.default or f"Sample {slot_name} content"

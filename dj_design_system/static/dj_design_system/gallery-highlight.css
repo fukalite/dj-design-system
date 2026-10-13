@@ -5,15 +5,15 @@
     --hl-block-bg: var(--dds-surface-code-bg-color, #272822);
     --hl-block-border: var(--dds-surface-code-border-color, #383838);
     --hl-block-text: var(--dds-surface-code-text-default-color, #f8f8f2);
-    --hl-comment: var(--hl-palette-comment);
-    --hl-error: var(--hl-palette-error);
-    --hl-error-bg: var(--hl-palette-error-bg);
-    --hl-function: var(--hl-palette-function);
-    --hl-keyword: var(--hl-palette-keyword);
-    --hl-line-bg: var(--hl-palette-bg-line);
-    --hl-literal: var(--hl-palette-literal);
-    --hl-name: var(--hl-palette-text);
-    --hl-operator: var(--hl-palette-operator);
+    --hl-comment: var(--dds-syntax-comment, var(--hl-palette-comment));
+    --hl-error: var(--dds-syntax-error, var(--hl-palette-error));
+    --hl-error-bg: var(--dds-syntax-error-bg, var(--hl-palette-error-bg));
+    --hl-function: var(--dds-syntax-function, var(--hl-palette-function));
+    --hl-keyword: var(--dds-syntax-keyword, var(--hl-palette-keyword));
+    --hl-line-bg: var(--dds-syntax-line-bg, var(--hl-palette-bg-line));
+    --hl-literal: var(--dds-syntax-literal, var(--hl-palette-literal));
+    --hl-name: var(--dds-syntax-name, var(--hl-palette-text));
+    --hl-operator: var(--dds-syntax-operator, var(--hl-palette-operator));
     --hl-palette-bg: #272822;
     --hl-palette-bg-line: #49483e;
     --hl-palette-comment: #75715e;
@@ -26,9 +26,9 @@
     --hl-palette-preproc: #ff79c6;
     --hl-palette-string: #e6db74;
     --hl-palette-text: #f8f8f2;
-    --hl-punctuation: var(--hl-palette-text);
-    --hl-string: var(--hl-palette-string);
-    --hl-tag-delimiter: var(--hl-palette-preproc);
+    --hl-punctuation: var(--dds-syntax-name, var(--hl-palette-text));
+    --hl-string: var(--dds-syntax-string, var(--hl-palette-string));
+    --hl-tag-delimiter: var(--dds-syntax-tag-delimiter, var(--hl-palette-preproc));
   }
 }
 
