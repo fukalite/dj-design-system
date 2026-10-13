@@ -198,7 +198,9 @@ class TestCascadeLayersAndImports:
         gallery_css = _read_css(path=GALLERY_CSS_PATH)
         head = "\n".join(gallery_css.splitlines()[:15])
         assert CASCADE_LAYER_ORDER in head
-        assert "@import 'tokens/literal.css';" in head or "@import 'tokens.css';" in head
+        assert (
+            "@import 'tokens/literal.css';" in head or "@import 'tokens.css';" in head
+        )
         assert (
             "@import 'composition.css';" in head
             or "@import url('composition.css');" in head

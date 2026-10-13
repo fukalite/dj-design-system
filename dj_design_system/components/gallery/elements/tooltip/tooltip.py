@@ -90,15 +90,9 @@ class Tooltip(components.BlockComponent):
         """
         context = super().get_context()
         resolved_placement = (
-            self.placement
-            if self.placement in PLACEMENT_CHOICES
-            else DEFAULT_PLACEMENT
+            self.placement if self.placement in PLACEMENT_CHOICES else DEFAULT_PLACEMENT
         )
-        resolved_align = (
-            self.align
-            if self.align in ALIGN_CHOICES
-            else DEFAULT_ALIGN
-        )
+        resolved_align = self.align if self.align in ALIGN_CHOICES else DEFAULT_ALIGN
         tip_content = self.text or ""
 
         context["placement"] = resolved_placement

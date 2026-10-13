@@ -191,14 +191,10 @@ class CanvasPreprocessor(Preprocessor):
                 color_scheme=ColorScheme.DARK,
             )
             initial_srcdoc = (
-                srcdoc_dark
-                if self.color_scheme == ColorScheme.DARK
-                else srcdoc_light
+                srcdoc_dark if self.color_scheme == ColorScheme.DARK else srcdoc_light
             )
             initial_background = (
-                "dark"
-                if self.color_scheme == ColorScheme.DARK
-                else "white"
+                "dark" if self.color_scheme == ColorScheme.DARK else "white"
             )
             widget_html = _build_widget_html(
                 source=source,

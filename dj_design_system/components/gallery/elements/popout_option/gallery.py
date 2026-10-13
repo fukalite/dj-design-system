@@ -71,4 +71,3 @@ config = gallery.GalleryConfig(
         ),
     ],
 )
-

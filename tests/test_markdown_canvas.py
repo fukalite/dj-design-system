@@ -129,9 +129,7 @@ class TestCanvasPreprocessor:
             ),
         )
         text = '```canvas\n{% button "Click" %}\n```'
-        result = self._process(
-            text, theme_dict=theme, color_scheme=ColorScheme.LIGHT
-        )
+        result = self._process(text, theme_dict=theme, color_scheme=ColorScheme.LIGHT)
         assert "data-srcdoc-light=" in result
         assert "data-srcdoc-dark=" in result
         assert "demo-dark.css" in result

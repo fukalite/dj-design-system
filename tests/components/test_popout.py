@@ -556,4 +556,3 @@ class TestPopoutStylesheetsAndTypeScriptContract:
             if variant.name == "maximal":
                 assert 'data-part="shortcut"' in rendered
                 assert "<kbd>⌘D</kbd>" in rendered
-
