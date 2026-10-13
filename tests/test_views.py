@@ -362,6 +362,68 @@ class TestGalleryComponentView:
         assert 'class="gallery-ui-theme-classic"' in content
         assert 'data-gallery-ui-theme="classic"' in content
 
+    def test_custom_gallery_ui_theme_without_dark_mode(self, client, settings):
+        settings.DJ_DESIGN_SYSTEM = {
+            "GALLERY_UI_THEMES": {
+                "minimal": {
+                    "label": "Minimal Theme",
+                },
+            },
+            "GALLERY_DEFAULT_UI_THEME": "minimal",
+        }
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response.context["gallery_ui_theme"] == "minimal"
+        assert response.context["gallery_ui_theme_supports_dark_mode"] is False
+        content = response.content.decode("utf-8")
+        assert 'class="gallery-ui-theme-minimal"' in content
+        assert 'data-gallery-ui-theme="minimal"' in content
+        assert 'data-gallery-ui-supports-dark-mode="false"' in content
+        assert "Minimal Theme theme does not support dark mode" in content
+
+    def test_custom_gallery_ui_theme_with_dark_mode_and_assets(self, client, settings):
+        settings.DJ_DESIGN_SYSTEM = {
+            "GALLERY_UI_THEMES": {
+                "cyber": {
+                    "label": "Cyberpunk",
+                    "css": ["css/cyber.css"],
+                    "js": ["js/cyber.js"],
+                    "dark_mode": {
+                        "css": ["css/cyber-dark.css"],
+                        "js": ["js/cyber-dark.js"],
+                    },
+                },
+            },
+            "GALLERY_DEFAULT_UI_THEME": "cyber",
+        }
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        # In light mode
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response.context["gallery_ui_theme"] == "cyber"
+        assert response.context["gallery_ui_theme_supports_dark_mode"] is True
+        content = response.content.decode("utf-8")
+        assert 'href="/static/css/cyber.css"' in content
+        assert 'src="/static/js/cyber.js"' in content
+        assert 'cyber-dark.css' not in content
+
+        # In dark mode
+        client.cookies["dds_gallery_theme"] = "dark"
+        response_dark = client.get(url)
+        assert response_dark.status_code == 200
+        content_dark = response_dark.content.decode("utf-8")
+        assert 'href="/static/css/cyber.css"' in content_dark
+        assert 'href="/static/css/cyber-dark.css"' in content_dark
+        assert 'src="/static/js/cyber.js"' in content_dark
+        assert 'src="/static/js/cyber-dark.js"' in content_dark
+
     def test_dark_mode_toggle_enabled_on_markdown_document_when_theme_supports_dark_mode(
         self, client, settings
     ):

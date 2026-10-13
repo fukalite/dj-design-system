@@ -22,7 +22,10 @@ from dj_design_system.services.navigation import (
 from dj_design_system.services.registry import component_registry
 from dj_design_system.settings import (
     dds_settings,
+    get_default_gallery_ui_theme,
     get_default_theme,
+    get_gallery_ui_theme,
+    get_gallery_ui_themes,
     get_theme,
     get_themes,
 )
@@ -65,12 +68,9 @@ def get_base_context(
             or request.COOKIES.get("dds_gallery_ui_theme")
             or ""
         )
-        if raw_gallery_ui_theme in ("desert", "classic"):
-            gallery_ui_theme = raw_gallery_ui_theme
-        else:
-            gallery_ui_theme = "desert"
-        if gallery_ui_theme == "classic":
-            gallery_theme = ""
+        ui_theme_obj = get_gallery_ui_theme(raw_gallery_ui_theme)
+        if ui_theme_obj is None:
+            ui_theme_obj = get_default_gallery_ui_theme()
         raw_color_scheme = (
             get_control_param(request.GET, "color_scheme", bare_fallback=bare_fallback)
             or request.COOKIES.get("dds_color_scheme")
@@ -78,8 +78,13 @@ def get_base_context(
         )
     else:
         gallery_theme = ""
-        gallery_ui_theme = "desert"
+        ui_theme_obj = get_default_gallery_ui_theme()
         raw_color_scheme = ""
+
+    gallery_ui_theme = ui_theme_obj.value
+    gallery_ui_theme_supports_dark_mode = ui_theme_obj.supports_dark_mode
+    if not gallery_ui_theme_supports_dark_mode:
+        gallery_theme = ""
 
     theme_obj = get_theme(active_theme)
     if theme_obj is not None:
@@ -104,12 +109,18 @@ def get_base_context(
         "active_variant": active_variant,
         "breadcrumbs": [],
         "available_themes": get_themes(),
+        "available_ui_themes": get_gallery_ui_themes(),
         "active_theme": active_theme,
+        "active_ui_theme": ui_theme_obj,
         "global_active_theme": active_theme,
         "active_color_scheme": active_color_scheme,
         "active_theme_supports_dark_mode": active_theme_supports_dark_mode,
         "gallery_theme": gallery_theme,
         "gallery_ui_theme": gallery_ui_theme,
+        "gallery_ui_theme_supports_dark_mode": gallery_ui_theme_supports_dark_mode,
+        "gallery_ui_theme_disabled_label": (
+            f"{ui_theme_obj.label} theme does not support dark mode"
+        ),
         "component_tabs": [
             {"id": "docs", "label": "Documentation"},
             {"id": "sandbox", "label": "Sandbox"},

@@ -1,9 +1,9 @@
 {% load static design_components dj_design_system_gallery %}
 <!DOCTYPE html>
-{% if gallery_ui_theme == "classic" %}
+{% if gallery_ui_theme and gallery_ui_theme != "desert" %}
     <html lang="en"
-          class="gallery-ui-theme-classic"
-          data-gallery-ui-theme="classic">
+          class="gallery-ui-theme-{{ gallery_ui_theme }}{% if gallery_theme == 'dark' %} gallery-theme-dark{% elif gallery_theme == 'light' %} gallery-theme-light{% endif %}"
+          data-gallery-ui-theme="{{ gallery_ui_theme }}">
 {% elif gallery_theme == "dark" %}
     <html lang="en" class="gallery-theme-dark">
 {% elif gallery_theme == "light" %}
@@ -21,10 +21,11 @@
         {% builtin_component_stylesheets %}
         {% component_stylesheets %}
         {% gallery_extra_stylesheets %}
+        {% gallery_ui_theme_stylesheets %}
         {% block extra_css %}{% endblock %}
     </head>
     <body>
-        <dds-gallery-shell class="dds-gallery-shell{% if gallery_ui_theme == 'classic' %} gallery-ui-theme-classic{% elif gallery_theme == 'dark' %} gallery-theme-dark{% elif gallery_theme == 'light' %} gallery-theme-light{% endif %}" data-drawer-state="closed" data-gallery-ui-theme="{% if gallery_ui_theme %}{{ gallery_ui_theme }}{% else %}desert{% endif %}" data-gallery-theme="{% if gallery_ui_theme == 'classic' %}light{% elif gallery_theme %}{{ gallery_theme }}{% else %}system{% endif %}" data-theme="{% if global_active_theme %}{{ global_active_theme }}{% elif active_theme %}{{ active_theme }}{% else %}light{% endif %}">
+        <dds-gallery-shell class="dds-gallery-shell{% if gallery_ui_theme and gallery_ui_theme != 'desert' %} gallery-ui-theme-{{ gallery_ui_theme }}{% endif %}{% if gallery_theme == 'dark' %} gallery-theme-dark{% elif gallery_theme == 'light' %} gallery-theme-light{% endif %}" data-drawer-state="closed" data-gallery-ui-theme="{% if gallery_ui_theme %}{{ gallery_ui_theme }}{% else %}desert{% endif %}" data-gallery-ui-supports-dark-mode="{% if gallery_ui_theme_supports_dark_mode %}true{% else %}false{% endif %}" data-gallery-theme="{% if not gallery_ui_theme_supports_dark_mode %}light{% elif gallery_theme %}{{ gallery_theme }}{% else %}system{% endif %}" data-theme="{% if global_active_theme %}{{ global_active_theme }}{% elif active_theme %}{{ active_theme }}{% else %}light{% endif %}">
         <div data-shell-topbar>
             {% block topbar %}
                 {% include "dj_design_system/gallery/areas/topbar.html" %}
@@ -50,6 +51,7 @@
         </div>
         </dds-gallery-shell>
 
+        {% gallery_ui_theme_scripts %}
         {% block extra_js %}{% endblock %}
         <script type="module"
                 src="{% static 'dj_design_system/gallery-shell.js' %}"

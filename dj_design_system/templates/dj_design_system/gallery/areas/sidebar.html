@@ -14,13 +14,14 @@
                     aria-label="Gallery UI theme"
                     title="Gallery UI theme"
                     class="dds-ui-theme-select">
-                <option value="desert"
-                        {% if gallery_ui_theme != "classic" %} selected{% endif %}>Desert</option>
-                <option value="classic"
-                        {% if gallery_ui_theme == "classic" %} selected{% endif %}>Classic</option>
+                {% for ui_theme in available_ui_themes %}
+                    <option value="{{ ui_theme.value }}"
+                            data-supports-dark-mode="{% if ui_theme.supports_dark_mode %}true{% else %}false{% endif %}"
+                            {% if gallery_ui_theme == ui_theme.value %} selected{% endif %}>{{ ui_theme.label }}</option>
+                {% endfor %}
             </select>
-            {% if gallery_ui_theme == "classic" %}
-                {% dds__button label="Classic theme does not support dark mode" icon_only=True variant="ghost" icon="sun" size="sm" action="toggle-theme" disabled=True %}
+            {% if not gallery_ui_theme_supports_dark_mode %}
+                {% dds__button label=gallery_ui_theme_disabled_label icon_only=True variant="ghost" icon="sun" size="sm" action="toggle-theme" disabled=True %}
             {% elif gallery_theme == "dark" %}
                 {% dds__button label="Switch to light theme" icon_only=True variant="ghost" icon="moon" size="sm" action="toggle-theme" %}
             {% else %}

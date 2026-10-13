@@ -528,6 +528,7 @@
     --dds-surface-code-bg-color: var(--_dds-neutral-100);
     --dds-surface-code-border-color: var(--_dds-neutral-300);
     --dds-surface-code-shadow-color: var(--_dds-alpha-dark-200);
+    --dds-surface-code-shadow-shape: var(--_dds-shadow-shape-sm);
     --dds-surface-code-state-active-bg-color: var(--_dds-neutral-200);
     --dds-surface-code-state-hover-bg-color: var(--_dds-neutral-100);
     --dds-surface-code-state-interactive-text-color: var(--_dds-neutral-600);
@@ -559,6 +560,7 @@
     --dds-surface-stage-bg-color: var(--_dds-neutral-50);
     --dds-surface-stage-border-color: var(--_dds-neutral-300);
     --dds-surface-stage-shadow-color: var(--_dds-alpha-dark-200);
+    --dds-surface-stage-shadow-shape: var(--_dds-shadow-shape-md);
     --dds-surface-topbar-bg-color: var(--_dds-neutral-0);
     --dds-surface-topbar-border-color: var(--_dds-neutral-300);
     --dds-surface-topbar-shadow-color: var(--_dds-alpha-dark-100);
@@ -576,6 +578,7 @@
     --dds-text-default-color: var(--_dds-neutral-800);
     --dds-text-muted-color: var(--_dds-neutral-600);
     --dds-text-prominent-color: var(--_dds-neutral-900);
+    color-scheme: light;
   }
 
   [data-surface='stage'] {

@@ -88,3 +88,73 @@ class TestThemeSettings:
 
         attrs = get_app_html_attrs("my_app")
         assert attrs == {"body": {"class": "my-app-body"}}
+
+
+class TestGalleryUIThemeSettings:
+    def test_default_gallery_ui_themes(self):
+        from dj_design_system.settings import (
+            get_default_gallery_ui_theme,
+            get_gallery_ui_themes,
+        )
+
+        ui_themes = get_gallery_ui_themes()
+        values = [t.value for t in ui_themes]
+        assert "desert" in values
+        assert "classic" in values
+
+        desert = next(t for t in ui_themes if t.value == "desert")
+        assert desert.supports_dark_mode is True
+
+        classic = next(t for t in ui_themes if t.value == "classic")
+        assert classic.supports_dark_mode is False
+
+        default_theme = get_default_gallery_ui_theme()
+        assert default_theme.value == "desert"
+
+    @override_settings(
+        DJ_DESIGN_SYSTEM={
+            "GALLERY_UI_THEMES": {
+                "nord": {
+                    "label": "Nordic Frost",
+                    "css": "nord/theme.css",
+                    "js": ["nord/theme.js"],
+                    "dark_mode": {
+                        "css": ["nord/dark.css"],
+                    },
+                },
+                "solarized": {
+                    "label": "Solarized Light",
+                    "css": ["solarized/light.css"],
+                },
+            },
+            "GALLERY_DEFAULT_UI_THEME": "nord",
+        }
+    )
+    def test_custom_gallery_ui_themes_override(self):
+        from dj_design_system.settings import (
+            get_default_gallery_ui_theme,
+            get_gallery_ui_theme,
+            get_gallery_ui_themes,
+        )
+
+        themes = get_gallery_ui_themes()
+        assert len(themes) == 2
+        assert themes[0].value == "nord"
+        assert themes[0].label == "Nordic Frost"
+        assert themes[0].css == ["nord/theme.css"]
+        assert themes[0].js == ["nord/theme.js"]
+        assert themes[0].supports_dark_mode is True
+        assert themes[0].dark_mode.css == ["nord/dark.css"]
+
+        assert themes[1].value == "solarized"
+        assert themes[1].supports_dark_mode is False
+
+        nord = get_gallery_ui_theme("nord")
+        assert nord is not None
+        assert nord.value == "nord"
+
+        nonexistent = get_gallery_ui_theme("nonexistent")
+        assert nonexistent is None
+
+        default_ui = get_default_gallery_ui_theme()
+        assert default_ui.value == "nord"

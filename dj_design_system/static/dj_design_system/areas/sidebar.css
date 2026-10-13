@@ -146,6 +146,11 @@
       font-family: var(--dds-text-control-font);
       font-size: var(--dds-text-control-size);
       font-weight: var(--dds-text-control-weight);
+
+      & option {
+        color: var(--dds-surface-sidebar-text-default-color);
+        background-color: var(--dds-surface-sidebar-bg-color);
+      }
     }
   }
 

@@ -170,6 +170,37 @@ DJ_DESIGN_SYSTEM = {
 **Default:** `"default"`  
 The slug of the default theme selected when loading the gallery.
 
+### `GALLERY_UI_THEMES`
+**Type:** `dict[str, dict]`  
+**Default:**
+```python
+{
+    "desert": {
+        "label": "Desert",
+        "dark_mode": {},
+    },
+    "classic": {
+        "label": "Classic",
+    },
+}
+```
+A dictionary of available gallery UI chrome themes governing the sidebar, topbar shell, documentation panes, and control widgets. See [Gallery UI Themes](../themes.md#configuring-gallery-ui-themes-gallery_ui_themes).
+
+Each UI theme dictionary supports:
+
+- **`label`** (`str`): Display label rendered in the sidebar footer UI theme dropdown.
+- **`html_attrs`** (`dict`): Custom attributes injected into the gallery document.
+- **`css`** (`list[str]`): Static CSS file paths or external URLs loaded for the gallery shell via `{% gallery_ui_theme_stylesheets %}`.
+- **`js`** (`list[str]`): Static JS file paths or external URLs loaded for the gallery shell via `{% gallery_ui_theme_scripts %}`.
+- **`css_bundles`** (`list[tuple[str, ...]]`): Optional Webpack CSS bundles for the gallery shell.
+- **`js_bundles`** (`list[tuple[str, ...]]`): Optional Webpack JS bundles for the gallery shell.
+- **`dark_mode`** (`dict | None`): Explicit dark mode configuration for the UI chrome theme. When omitted or `None`, dark mode is completely suppressed: the sidebar theme toggle is disabled with the tooltip `"<Theme> theme does not support dark mode"`, and all tokens lock to light mode (`color-scheme: light`). When defined, accepts `css`, `js`, `css_bundles`, `js_bundles`, and `html_attrs`.
+
+### `GALLERY_DEFAULT_UI_THEME`
+**Type:** `str`  
+**Default:** `"desert"`  
+The slug of the default gallery UI chrome theme.
+
 ### `GALLERY_CODEHILITE_STYLE`
 **Type:** `str`  
 **Default:** `"monokai"`  

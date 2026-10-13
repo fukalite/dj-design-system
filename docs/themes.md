@@ -10,11 +10,14 @@ The Django Design System cleanly decouples two independent layers of theming:
 
 1. **Gallery UI Theme (Chrome)**:
    Controls the visual appearance of the gallery shell itself (sidebar navigation, header topbar, documentation panes, controls, and form inputs).
-   - Supports **Light Mode**, **Dark Mode**, and **System Preference**.
-   - Toggled via the theme button in the **sidebar footer** (`action="toggle-theme"` with sun/moon icon).
-   - Governed by Tier 2 `--dds-*` semantic tokens on `:root` and `.gallery-theme-dark` in `tokens.css`.
-   - Persisted via the `dds_gallery_theme` cookie and `localStorage` (or `_dds_gallery_theme` query parameter).
-   - Dispatches a `dds:gallery-theme-change` DOM event.
+   - Configured via `GALLERY_UI_THEMES` and `GALLERY_DEFAULT_UI_THEME` in settings.
+   - Ships with two built-in UI themes: **Desert** (default, supports dark mode) and **Classic** (light-only minimalist).
+   - Selected via the **UI Theme Selector** in the sidebar footer (`name="_dds_gallery_ui_theme"`).
+   - Light/Dark mode toggled via the theme button in the **sidebar footer** (`action="toggle-theme"` with sun/moon icon).
+   - Governed by Tier 2 `--dds-*` semantic tokens on `:root`, `.gallery-theme-dark`, and `.gallery-ui-theme-<name>`.
+   - When a UI theme omits `dark_mode` (such as Classic), dark mode is completely suppressed: the sidebar toggle is disabled with a descriptive tooltip (`"<Theme> theme does not support dark mode"`), and all semantic tokens enforce light mode (`color-scheme: light`).
+   - Persisted via the `dds_gallery_ui_theme` and `dds_gallery_theme` cookies/`localStorage` (or `_dds_gallery_ui_theme`/`_dds_gallery_theme` query parameters).
+   - Dispatches `dds:gallery-ui-theme-change` and `dds:gallery-theme-change` DOM events.
 
 2. **Consumer Component Themes and Dark Mode (Canvas Previews)**:
    Controls the stylesheets, scripts, HTML attributes, and canvas backgrounds applied to the **previewed components** inside iframe canvases and markdown preview blocks.
@@ -25,6 +28,81 @@ The Django Design System cleanly decouples two independent layers of theming:
    - When the active theme does *not* configure `dark_mode`, the topbar toggle button is disabled with the tooltip `"Consumer theme does not support dark mode"`. Previews are strictly locked to light mode (`ColorScheme.LIGHT`), ensuring that host operating system dark mode settings do not unexpectedly alter components that lack dark mode styles.
    - Persisted via the `dds_color_scheme` cookie and `localStorage` (or `_dds_color_scheme` query parameter).
    - Dispatches a `dds:consumer-color-scheme-change` DOM event.
+
+---
+
+## Configuring Gallery UI Themes (`GALLERY_UI_THEMES`)
+
+While `GALLERY_THEMES` configures component previews inside the canvas, `GALLERY_UI_THEMES` configures the appearance and capabilities of the **gallery chrome itself** (the navigation sidebar, topbar shell, documentation panes, and control widgets).
+
+### Built-in UI Themes
+
+The Django Design System ships with two built-in UI themes:
+
+| UI Theme Slug | Label | Dark Mode Support | Description |
+|:---|:---|:---|:---|
+| `desert` | **Desert** *(Default)* | Yes | Modern warm palette with full light and dark mode styling. |
+| `classic` | **Classic** | No *(Light-only)* | Traditional minimalist palette. Locks all UI tokens to light mode (`color-scheme: light`) and disables the dark mode switcher. |
+
+### Defining Custom UI Themes
+
+You can define custom gallery UI themes in your Django `settings.py`:
+
+```python
+DJ_DESIGN_SYSTEM = {
+    "GALLERY_UI_THEMES": {
+        "desert": {
+            "label": "Desert",
+            "dark_mode": {},
+        },
+        "classic": {
+            "label": "Classic",
+            # No dark_mode defined: light-only
+        },
+        "corporate": {
+            "label": "Corporate Slate",
+            "css": ["css/gallery-theme-corporate.css"],
+            "js": ["js/gallery-theme-corporate.js"],
+            "dark_mode": {
+                "css": ["css/gallery-theme-corporate-dark.css"],
+            },
+        },
+    },
+    "GALLERY_DEFAULT_UI_THEME": "desert",
+}
+```
+
+### Key Properties of a UI Theme Configuration
+
+Each entry in `GALLERY_UI_THEMES` accepts:
+
+- **`label`** (`str`): The display label rendered in the sidebar footer UI theme dropdown.
+- **`css`** (`list[str]`): Static CSS file paths or external URLs injected into the `<head>` of the gallery chrome via `{% gallery_ui_theme_stylesheets %}`.
+- **`js`** (`list[str]`): Static JS file paths or external URLs injected before `</body>` via `{% gallery_ui_theme_scripts %}`.
+- **`css_bundles` / `js_bundles`** (`list[tuple[str, ...]]`): Optional Webpack bundle specifications.
+- **`html_attrs`** (`dict`): Custom attributes for the document element.
+- **`dark_mode`** (`dict | None`): Explicit dark mode configuration.
+  - When **defined** (`dark_mode={...}`), the theme's `supports_dark_mode` evaluates to `True`, enabling the sidebar light/dark mode switcher. Additional `css`, `js`, `css_bundles`, `js_bundles`, or `html_attrs` defined inside `dark_mode` are loaded when dark mode is activated.
+  - When **omitted** (or `None`), the theme's `supports_dark_mode` evaluates to `False`. The sidebar theme toggle is disabled with the tooltip `"<Theme> theme does not support dark mode"`, and the chrome strictly renders in light mode (`color-scheme: light`), guaranteeing that system `prefers-color-scheme: dark` settings do not bleed into the theme.
+
+### Scoped CSS Classes for Custom UI Themes
+
+When an active UI theme other than `"desert"` is selected, the gallery automatically attaches `gallery-ui-theme-<value>` to both `<html>` and `<dds-gallery-shell>`. This allows you to scope Tier 2 token overrides cleanly in your custom CSS:
+
+```css
+/* Custom UI theme styling */
+.gallery-ui-theme-corporate {
+  --dds-color-accent: #2563eb;
+  --dds-surface-sidebar-bg-color: #1e293b;
+  --dds-surface-sidebar-text-color: #f8fafc;
+}
+
+/* Dark mode styling (when dark_mode is configured) */
+.gallery-ui-theme-corporate.gallery-theme-dark {
+  --dds-color-accent: #60a5fa;
+  --dds-surface-sidebar-bg-color: #0f172a;
+}
+```
 
 ---
 
