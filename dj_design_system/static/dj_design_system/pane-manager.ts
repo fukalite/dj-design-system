@@ -118,6 +118,7 @@ export class PaneManager {
 
     this.initTabHashSync();
     this.syncStaticSnapshotNotice();
+    this.syncDocPreviewIframes(signal);
   }
 
   /**
@@ -363,6 +364,59 @@ export class PaneManager {
         const border = Math.max(0, iframe.offsetHeight - iframe.clientHeight);
         iframe.style.height = `${clampedHeight + border}px`;
       }
+    }
+  }
+
+  /**
+   * Requests or measures initial height for standalone documentation preview
+   * iframes that may have finished loading before module scripts connected.
+   *
+   * @param {!AbortSignal} signal AbortSignal for load listener cleanup.
+   */
+  private syncDocPreviewIframes(signal: AbortSignal): void {
+    const iframes = this.host.querySelectorAll<HTMLIFrameElement>(
+      'iframe[data-canvas-id]:not([data-canvas-iframe])',
+    );
+    const syncIframe = (iframe: HTMLIFrameElement): void => {
+      try {
+        iframe.contentWindow?.postMessage({ type: 'dds:canvas-stage' }, '*');
+      } catch {
+        // Ignore cross-origin postMessage errors.
+      }
+      try {
+        const doc = iframe.contentDocument;
+        if (!doc || doc.readyState !== 'complete') {
+          return;
+        }
+        const wrapper = doc.querySelector<HTMLElement>(
+          '.canvas-wrapper--basic',
+        );
+        if (!wrapper) {
+          return;
+        }
+        const measured = Math.max(wrapper.scrollHeight, wrapper.offsetHeight);
+        if (measured > 0) {
+          const clampedHeight = Math.max(24, measured);
+          const border = Math.max(
+            0,
+            iframe.offsetHeight - iframe.clientHeight,
+          );
+          iframe.style.height = `${clampedHeight + border}px`;
+        }
+      } catch {
+        // Ignore cross-origin access errors.
+      }
+    };
+
+    for (const iframe of iframes) {
+      iframe.addEventListener(
+        'load',
+        () => {
+          syncIframe(iframe);
+        },
+        { signal },
+      );
+      syncIframe(iframe);
     }
   }
 }

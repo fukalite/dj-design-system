@@ -25,13 +25,15 @@ interface CanvasStageMessage {
 
   /**
    * Measures `.canvas-wrapper` height and posts `canvas-resize` to parent.
+   *
+   * @param {unknown=} force Pass `true` to emit even if height has not changed.
    */
-  function sendResize(): void {
+  function sendResize(force?: unknown): void {
     if (!wrapper || !isBasicWrapper || !hasParentWindow) {
       return;
     }
     const height = Math.max(wrapper.scrollHeight, wrapper.offsetHeight);
-    if (height !== lastHeight) {
+    if (force === true || height !== lastHeight) {
       lastHeight = height;
       window.parent.postMessage(
         {
@@ -98,7 +100,7 @@ interface CanvasStageMessage {
       }
     }
 
-    sendResize();
+    sendResize(true);
   }
 
   window.addEventListener('message', (event: MessageEvent) => {

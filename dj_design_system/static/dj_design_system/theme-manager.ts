@@ -307,8 +307,6 @@ export class ThemeManager {
    *
    * @return {string} Current gallery UI theme.
    */
-  getGalleryUITheme(): 'desert' | 'classic';
-  getGalleryUITheme(): string;
   getGalleryUITheme(): string {
     if (this.host.dataset.galleryUiTheme) {
       return this.host.dataset.galleryUiTheme;
@@ -354,8 +352,6 @@ export class ThemeManager {
    *
    * @param {string} theme Target gallery UI theme.
    */
-  setGalleryUITheme(theme: 'desert' | 'classic'): void;
-  setGalleryUITheme(theme: string): void;
   setGalleryUITheme(theme: string): void {
     this.host.dataset.galleryUiTheme = theme;
     if (document.documentElement) {

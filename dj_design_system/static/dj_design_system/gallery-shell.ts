@@ -111,8 +111,6 @@ export class DDSGalleryShellElement
    *
    * @return {string} Current gallery UI theme.
    */
-  getGalleryUITheme(): 'desert' | 'classic';
-  getGalleryUITheme(): string;
   getGalleryUITheme(): string {
     return this.themeManager.getGalleryUITheme();
   }
@@ -122,8 +120,6 @@ export class DDSGalleryShellElement
    *
    * @param {string} theme Target gallery UI theme.
    */
-  setGalleryUITheme(theme: 'desert' | 'classic'): void;
-  setGalleryUITheme(theme: string): void;
   setGalleryUITheme(theme: string): void {
     this.themeManager.setGalleryUITheme(theme);
   }
