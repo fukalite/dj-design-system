@@ -1,5 +1,6 @@
 """Unit tests for the built-in ``dds__sandbox_toolbar`` composite component."""
 
+import dataclasses
 import pathlib
 import re
 
@@ -105,11 +106,22 @@ class TestSandboxToolbarDiscoveryAndMetadata:
     """Verify SandboxToolbar class exports, metadata, media, and registry discovery."""
 
     def test_exported_from_package_init(self) -> None:
-        """Verify SandboxToolbar is exported in dj_design_system.components.gallery.composites.sandbox_toolbar."""
+        """Verify SandboxToolbar and SandboxControlOption are exported in sandbox_toolbar package."""
         assert (
             sandbox_toolbar_package.SandboxToolbar
             is sandbox_toolbar_module.SandboxToolbar
         )
+        assert (
+            sandbox_toolbar_package.SandboxControlOption
+            is sandbox_toolbar_module.SandboxControlOption
+        )
+        assert dataclasses.is_dataclass(
+            sandbox_toolbar_module.SandboxControlOption
+        )
+        assert sandbox_toolbar_package.__all__ == [
+            "SandboxControlOption",
+            "SandboxToolbar",
+        ]
         assert issubclass(
             sandbox_toolbar_module.SandboxToolbar,
             components_base.TagComponent,
@@ -424,42 +436,6 @@ class TestSandboxToolbarStylesheet:
         assert "--_sandbox-toolbar-transition-duration" not in css_text
         assert "& [data-sandbox-controls]" in css_text
         assert "dds-sandbox-toolbar [" not in css_text
-
-
-class TestSandboxToolbarCustomElementTypeScript:
-    """Verify Light DOM <dds-sandbox-toolbar> TypeScript contract in sandbox_toolbar.ts."""
-
-    def test_ts_implements_custom_element_and_event_dispatch_contract(self) -> None:
-        """Verify sandbox_toolbar.ts defines DDSSandboxToolbarElement and dispatches semantic events."""
-        assert SANDBOX_TOOLBAR_TS_PATH.is_file()
-        ts_text = _read_text(path=SANDBOX_TOOLBAR_TS_PATH)
-        assert "import type { DDSCustomElement } from '../../types.js';" in ts_text
-        assert (
-            "export class DDSSandboxToolbarElement" in ts_text
-            and "extends HTMLElement" in ts_text
-            and "implements DDSCustomElement" in ts_text
-        )
-        assert "AbortController" in ts_text
-        assert "connectedCallback(): void" in ts_text
-        assert "disconnectedCallback(): void" in ts_text
-        assert "'dds:popout-select'" in ts_text
-        assert "'dds:sandbox-bg'" in ts_text
-        assert "'dds:sandbox-viewport'" in ts_text
-        assert "'dds:sandbox-zoom'" in ts_text
-        assert "'dds:sandbox-toggle'" in ts_text
-        assert "'dds:sandbox-reset'" in ts_text
-        assert "if (!customElements.get('dds-sandbox-toolbar'))" in ts_text
-        assert (
-            "customElements.define('dds-sandbox-toolbar', DDSSandboxToolbarElement);"
-            in ts_text
-        )
-        assert "attachShadow" not in ts_text
-        assert "document.querySelector" not in ts_text
-        assert '"' not in ts_text
-        assert "\t" not in ts_text
-        for line in ts_text.splitlines():
-            assert len(line) <= 80
-            assert line == line.rstrip()
 
 
 class TestSandboxToolbarGalleryAndDocs:

@@ -69,4 +69,16 @@ body {
   padding: 16px;
 }
 
+/* Stage inspection helpers activated via dds:canvas-stage postMessage */
+.canvas-wrapper[data-canvas-outline] * {
+  outline: 1px dashed rgb(99 102 241 / 60%);
+}
+
+.canvas-wrapper[data-canvas-measure] {
+  background-image:
+    linear-gradient(to right, rgb(99 102 241 / 12%) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(99 102 241 / 12%) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
 /* Background colours are generated dynamically from settings */

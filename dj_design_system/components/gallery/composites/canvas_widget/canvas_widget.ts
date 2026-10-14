@@ -15,8 +15,8 @@ interface CanvasResizeMessage {
   readonly height?: number | string;
 }
 
-/** Persisted stage state for the interactive sandbox canvas. */
-interface SandboxStageState {
+/** Stage configuration state for the interactive sandbox canvas. */
+export interface CanvasStageState {
   background?: string;
   viewport?: string;
   zoom?: string;
@@ -24,8 +24,6 @@ interface SandboxStageState {
   measure?: boolean;
   rtl?: boolean;
 }
-
-const TOOLBAR_STATE_KEY = 'dds_toolbar_state';
 
 /**
  * Light DOM custom element enhancing `<dds-canvas-widget>` with mode panel
@@ -37,8 +35,17 @@ export class DDSCanvasWidgetElement
   /** Instance AbortController used to clean up listeners on disconnect. */
   private abortController: AbortController | null = null;
 
+  /** Whether box-model outline overlay is active in the stage iframe. */
+  private outlineActive = false;
+
+  /** Whether measurement grid overlay is active in the stage iframe. */
+  private measureActive = false;
+
+  /** Whether right-to-left direction is active in the stage iframe. */
+  private rtlActive = false;
+
   /**
-   * Attaches idempotent mode button, `window` message, and sandbox listeners.
+   * Attaches idempotent mode button and `window` message listeners.
    */
   connectedCallback(): void {
     this.abortController?.abort();
@@ -81,19 +88,14 @@ export class DDSCanvasWidgetElement
         'load',
         () => {
           this.syncIframeHeight();
-          if (this.dataset.canvasId === 'sandbox') {
-            this.restoreSandboxState();
-          }
+          this.postStageState();
         },
         { signal },
       );
       this.syncIframeHeight();
     }
 
-    if (this.dataset.canvasId === 'sandbox') {
-      this.bindSandboxEvents(signal);
-      this.restoreSandboxState();
-    }
+    this.dispatchEvent(new CustomEvent('dds:canvas-ready', { bubbles: true }));
   }
 
   /**
@@ -116,224 +118,74 @@ export class DDSCanvasWidgetElement
   }
 
   /**
-   * Updates `data-background` and synchronises `.canvas-wrapper` classes inside
-   * same-origin preview iframes.
+   * Updates `data-background` and posts the updated stage state to the iframe.
    *
    * @param {string} background Target background preset identifier.
    */
   setBackground(background: string): void {
     this.dataset.background = background;
-    const wrapper = this.getIframeWrapper();
-    if (!wrapper) {
-      return;
-    }
-    const toRemove: string[] = [];
-    for (const cls of Array.from(wrapper.classList)) {
-      if (cls.startsWith('canvas-bg-')) {
-        toRemove.push(cls);
-      }
-    }
-    for (const cls of toRemove) {
-      wrapper.classList.remove(cls);
-    }
-    wrapper.classList.add(`canvas-bg-${background}`);
+    this.postStageState();
   }
 
   /**
-   * Updates `data-zoom` and synchronises `.canvas-wrapper` zoom inside
-   * same-origin preview iframes.
+   * Updates `data-zoom` and posts the updated stage state to the iframe.
    *
    * @param {string} zoom Target zoom percentage string.
    */
   setZoom(zoom: string): void {
     this.dataset.zoom = zoom;
-    const wrapper = this.getIframeWrapper();
-    if (!wrapper) {
-      return;
-    }
-    const numeric = Number(zoom);
-    if (!Number.isNaN(numeric) && numeric > 0) {
-      wrapper.style.zoom = numeric === 100 ? '' : String(numeric / 100);
-    }
+    this.postStageState();
   }
 
   /**
-   * Applies outline, measure, and RTL helpers inside the preview iframe.
+   * Applies a complete or partial stage state snapshot and posts it to the
+   * preview iframe via `postMessage`.
    *
-   * @param {!SandboxStageState} state Active stage enhancement state.
+   * @param {!CanvasStageState} state Stage state snapshot to apply.
    */
-  applyIframeEnhancements(state: SandboxStageState): void {
-    const iframeDoc = this.getIframeDocument();
-    if (!iframeDoc || !iframeDoc.head || !iframeDoc.documentElement) {
-      return;
-    }
-
-    const outlineId = 'dds-outline-style';
-    let outlineStyle = iframeDoc.getElementById(outlineId);
-    if (state.outline) {
-      if (!outlineStyle) {
-        outlineStyle = iframeDoc.createElement('style');
-        outlineStyle.id = outlineId;
-        outlineStyle.textContent =
-          '.canvas-wrapper * { outline: 1px dashed rgba(99, 102, 241, 0.6); }';
-        iframeDoc.head.appendChild(outlineStyle);
-      }
-    } else if (outlineStyle) {
-      outlineStyle.remove();
-    }
-
-    const measureId = 'dds-measure-style';
-    let measureStyle = iframeDoc.getElementById(measureId);
-    if (state.measure) {
-      if (!measureStyle) {
-        measureStyle = iframeDoc.createElement('style');
-        measureStyle.id = measureId;
-        measureStyle.textContent =
-          '.canvas-wrapper { background-image: ' +
-          'linear-gradient(to right, rgba(99,102,241,0.12) 1px, ' +
-          'transparent 1px), ' +
-          'linear-gradient(to bottom, rgba(99,102,241,0.12) 1px, ' +
-          'transparent 1px); background-size: 8px 8px; }';
-        iframeDoc.head.appendChild(measureStyle);
-      }
-    } else if (measureStyle) {
-      measureStyle.remove();
-    }
-
-    if (state.rtl) {
-      iframeDoc.documentElement.setAttribute('dir', 'rtl');
-    } else {
-      iframeDoc.documentElement.removeAttribute('dir');
-    }
-  }
-
-  /**
-   * Attaches document-level listeners for `<dds-sandbox-toolbar>` events.
-   *
-   * @param {!AbortSignal} signal Cleanup signal for the listeners.
-   */
-  private bindSandboxEvents(signal: AbortSignal): void {
-    document.addEventListener(
-      'dds:sandbox-bg',
-      (event: Event) => {
-        const customEvent = event as CustomEvent<{ background?: string }>;
-        const bg = customEvent.detail?.background ?? '';
-        if (bg) {
-          this.setBackground(bg);
-        }
-      },
-      { signal },
-    );
-
-    document.addEventListener(
-      'dds:sandbox-viewport',
-      (event: Event) => {
-        const customEvent = event as CustomEvent<{ viewport?: string }>;
-        const viewport = customEvent.detail?.viewport ?? '';
-        if (viewport) {
-          this.setViewport(viewport);
-        }
-      },
-      { signal },
-    );
-
-    document.addEventListener(
-      'dds:sandbox-zoom',
-      (event: Event) => {
-        const customEvent = event as CustomEvent<{ zoom?: string }>;
-        const zoom = customEvent.detail?.zoom ?? '';
-        if (zoom) {
-          this.setZoom(zoom);
-        }
-      },
-      { signal },
-    );
-
-    document.addEventListener(
-      'dds:sandbox-toggle',
-      (event: Event) => {
-        const customEvent = event as CustomEvent<
-          SandboxStageState & { state?: SandboxStageState }
-        >;
-        const state = customEvent.detail?.state ?? customEvent.detail;
-        if (state) {
-          this.applyIframeEnhancements(state);
-        }
-      },
-      { signal },
-    );
-  }
-
-  /**
-   * Restores persisted `sessionStorage` sandbox state onto the stage.
-   */
-  private restoreSandboxState(): void {
-    const state = this.readSandboxState();
-    if (state.background) {
-      this.setBackground(state.background);
-    }
+  setStageState(state: CanvasStageState): void {
     if (state.viewport) {
       this.setViewport(state.viewport);
     }
+    if (state.background) {
+      this.dataset.background = state.background;
+    }
     if (state.zoom) {
-      this.setZoom(state.zoom);
+      this.dataset.zoom = state.zoom;
     }
-    this.applyIframeEnhancements(state);
+    if (state.outline !== undefined) {
+      this.outlineActive = Boolean(state.outline);
+    }
+    if (state.measure !== undefined) {
+      this.measureActive = Boolean(state.measure);
+    }
+    if (state.rtl !== undefined) {
+      this.rtlActive = Boolean(state.rtl);
+    }
+    this.postStageState();
   }
 
   /**
-   * Reads persisted sandbox toolbar state from `sessionStorage`.
-   *
-   * @return {!SandboxStageState} Parsed state object.
+   * Posts the current stage configuration (`dds:canvas-stage`) to the preview
+   * iframe's `contentWindow`.
    */
-  private readSandboxState(): SandboxStageState {
-    try {
-      const raw = window.sessionStorage.getItem(TOOLBAR_STATE_KEY);
-      if (!raw) {
-        return {};
-      }
-      const parsed = JSON.parse(raw) as SandboxStageState;
-      if (parsed && typeof parsed === 'object') {
-        return parsed;
-      }
-      window.sessionStorage.removeItem(TOOLBAR_STATE_KEY);
-      return {};
-    } catch {
-      try {
-        window.sessionStorage.removeItem(TOOLBAR_STATE_KEY);
-      } catch {
-        // Ignore storage errors
-      }
-      return {};
-    }
-  }
-
-  /**
-   * Returns the same-origin preview iframe `Document` if accessible.
-   *
-   * @return {?Document} Iframe document or `null`.
-   */
-  private getIframeDocument(): Document | null {
+  postStageState(): void {
     const iframe = this.querySelector<HTMLIFrameElement>(
       '[data-canvas-iframe]',
     );
-    try {
-      return iframe?.contentDocument ?? null;
-    } catch {
-      return null;
+    if (!iframe || !iframe.contentWindow) {
+      return;
     }
-  }
-
-  /**
-   * Returns the `.canvas-wrapper` element inside the preview iframe.
-   *
-   * @return {?HTMLElement} Canvas wrapper element or `null`.
-   */
-  private getIframeWrapper(): HTMLElement | null {
-    return (
-      this.getIframeDocument()?.querySelector<HTMLElement>(
-        '.canvas-wrapper',
-      ) ?? null
+    iframe.contentWindow.postMessage(
+      {
+        type: 'dds:canvas-stage',
+        background: this.dataset.background ?? '',
+        zoom: this.dataset.zoom ?? '',
+        outline: this.outlineActive,
+        measure: this.measureActive,
+        rtl: this.rtlActive,
+      },
+      '*',
     );
   }
 

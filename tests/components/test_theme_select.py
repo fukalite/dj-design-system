@@ -1,5 +1,6 @@
 """Unit tests for the built-in ``dds__theme_select`` composite component."""
 
+import dataclasses
 import pathlib
 import re
 
@@ -101,8 +102,11 @@ class TestThemeSelectDiscoveryAndMetadata:
     """Verify ThemeSelect class exports, metadata, media, and registry discovery."""
 
     def test_exported_from_package_init(self) -> None:
-        """Verify ThemeSelect is exported in dj_design_system.components.gallery.composites.theme_select."""
+        """Verify ThemeSelect and ThemeOption are exported in theme_select package."""
         assert theme_select_package.ThemeSelect is theme_select_module.ThemeSelect
+        assert theme_select_package.ThemeOption is theme_select_module.ThemeOption
+        assert dataclasses.is_dataclass(theme_select_module.ThemeOption)
+        assert theme_select_package.__all__ == ["ThemeOption", "ThemeSelect"]
         assert issubclass(theme_select_module.ThemeSelect, components_base.TagComponent)
 
     def test_template_meta_and_media_declarations(self) -> None:
@@ -156,8 +160,9 @@ class TestThemeSelectParametersAndContext:
     ) -> None:
         """Verify Theme objects, dicts, and strings normalize without 'dark' substring icon heuristics."""
         themes_input = [
-            types.Theme(value="light", label="Light Mode"),
-            {"value": "dark", "label": "Dark Mode"},
+            theme_select_module.ThemeOption(value="light", label="Light Mode"),
+            types.Theme(value="dark", label="Dark Mode"),
+            {"value": "contrast", "label": "High Contrast"},
             "solarized-dark",
         ]
         comp = theme_select_module.ThemeSelect(
@@ -183,6 +188,11 @@ class TestThemeSelectParametersAndContext:
                 "value": "dark",
                 "label": "Dark Mode",
                 "is_selected": True,
+            },
+            {
+                "value": "contrast",
+                "label": "High Contrast",
+                "is_selected": False,
             },
             {
                 "value": "solarized-dark",
@@ -331,55 +341,6 @@ class TestThemeSelectStylesheet:
         assert "&:has([data-theme-select]:disabled) [data-theme-control]" in css_text
         assert "pointer-events: none;" in css_text
         assert "cursor: not-allowed;" in css_text
-
-
-class TestThemeSelectCustomElementTypeScript:
-    """Verify Light DOM <dds-theme-select> TypeScript and DOM contract."""
-
-    def test_ts_implements_custom_element_contract(self) -> None:
-        """Verify theme_select.ts defines DDSThemeSelectElement, persistence, and dds:theme-change."""
-        assert THEME_SELECT_TS_PATH.is_file()
-        ts_text = _read_text(path=THEME_SELECT_TS_PATH)
-        assert "import type { DDSCustomElement } from '../../types.js';" in ts_text
-        assert (
-            "export class DDSThemeSelectElement" in ts_text
-            and "extends HTMLElement" in ts_text
-            and "implements DDSCustomElement" in ts_text
-        )
-        assert "new AbortController()" in ts_text
-        assert "this.abortController?.abort()" in ts_text
-        assert "disconnectedCallback(): void" in ts_text
-        assert "this.querySelector<HTMLSelectElement>(" in ts_text
-        assert "'[data-theme-select]'" in ts_text
-        assert "const theme = selectEl.value;" in ts_text
-        assert "this.dataset.activeTheme = theme;" in ts_text
-        assert "document.cookie =" in ts_text
-        assert "'dds_theme=' +" in ts_text
-        assert "encodeURIComponent(theme) +" in ts_text
-        assert "'; path=/; max-age=31536000; SameSite=Lax';" in ts_text
-        assert "window.localStorage.setItem('dds_theme', theme);" in ts_text
-        assert "new CustomEvent('dds:theme-change'" in ts_text
-        assert "bubbles: true," in ts_text
-        assert "detail: { theme }," in ts_text
-        assert "if (!customElements.get('dds-theme-select'))" in ts_text
-        assert (
-            "customElements.define('dds-theme-select', DDSThemeSelectElement);"
-            in ts_text
-        )
-        assert "attachShadow" not in ts_text
-        assert "document.querySelector" not in ts_text
-        assert "document.getElementById" not in ts_text
-
-    def test_ts_styleguide_formatting_and_jsdoc(self) -> None:
-        """Verify theme_select.ts uses single quotes, <=80 chars per line, no tabs, and JSDoc."""
-        ts_text = _read_text(path=THEME_SELECT_TS_PATH)
-        assert '"' not in ts_text
-        assert "\t" not in ts_text
-        assert "@fileoverview" in ts_text
-        assert "@param {HTMLSelectElement} selectEl" in ts_text
-        for line in ts_text.splitlines():
-            assert len(line) <= 80
-            assert line == line.rstrip()
 
 
 class TestThemeSelectGalleryAndDocs:

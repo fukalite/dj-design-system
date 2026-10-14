@@ -1,5 +1,6 @@
 """Built-in interactive search box composite component for the dds gallery."""
 
+import dataclasses
 import json
 import typing
 
@@ -21,6 +22,25 @@ INDEX_ENTRY_KEYS: tuple[str, ...] = (
     "breadcrumb",
     "content",
 )
+
+
+@dataclasses.dataclass(frozen=True)
+class SearchIndexEntry:
+    """Typed search index entry descriptor for ``SearchBox``.
+
+    Attributes:
+        label: Display label for the search result option.
+        url: Destination URL for the search result option.
+        type: Categorical node type (e.g. ``component``, ``document``).
+        breadcrumb: Ancestor path breadcrumb trail.
+        content: Searchable body content snippet.
+    """
+
+    label: str
+    url: str
+    type: str = ""
+    breadcrumb: str = ""
+    content: str = ""
 
 
 class SearchBox(components.TagComponent):
@@ -49,7 +69,7 @@ class SearchBox(components.TagComponent):
         required=False,
     )
     search_index = parameters.ListParam(
-        description="Optional list of search index entry dicts.",
+        description="Optional list of SearchIndexEntry instances or dicts.",
         default=None,
         required=False,
     )
@@ -90,6 +110,17 @@ class SearchBox(components.TagComponent):
         normalized_index: list[dict[str, str]] = []
 
         for raw_entry in raw_index:
+            if isinstance(raw_entry, SearchIndexEntry):
+                normalized_index.append(
+                    {
+                        "label": raw_entry.label,
+                        "url": raw_entry.url,
+                        "type": raw_entry.type,
+                        "breadcrumb": raw_entry.breadcrumb,
+                        "content": raw_entry.content,
+                    }
+                )
+                continue
             if isinstance(raw_entry, dict):
                 raw_label = raw_entry.get("label")
                 if raw_label is None:

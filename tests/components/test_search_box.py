@@ -97,8 +97,13 @@ class TestSearchBoxDiscoveryAndExports:
     """Verify exports, registry discovery, and metadata for SearchBox."""
 
     def test_search_box_exports_and_inheritance(self) -> None:
-        """Verify SearchBox is exported from package and module and subclasses TagComponent."""
+        """Verify SearchBox and SearchIndexEntry are exported from package and module."""
         assert search_box_package.SearchBox is search_box_module.SearchBox
+        assert (
+            search_box_package.SearchIndexEntry is search_box_module.SearchIndexEntry
+        )
+        assert dataclasses.is_dataclass(search_box_module.SearchIndexEntry)
+        assert search_box_package.__all__ == ["SearchBox", "SearchIndexEntry"]
         assert issubclass(
             search_box_module.SearchBox,
             components_base.TagComponent,
@@ -148,6 +153,13 @@ class TestSearchBoxParametersAndContext:
     ) -> None:
         """Verify get_context() normalizes index entries and escapes </ sequences in JSON."""
         raw_index = [
+            search_box_module.SearchIndexEntry(
+                label="Badge",
+                url="/c/badge/",
+                type="component",
+                breadcrumb="Elements / Badge",
+                content="Badge component docs",
+            ),
             {
                 "label": "Button",
                 "url": "/c/button/",
@@ -177,15 +189,22 @@ class TestSearchBoxParametersAndContext:
         assert ctx["results_id"] == "custom-res"
         assert ctx["shortcut_hint"] == "⌘K"
         assert ctx["has_shortcut"] is True
-        assert len(ctx["normalized_index"]) == 2
+        assert len(ctx["normalized_index"]) == 3
         assert ctx["normalized_index"][0] == {
+            "label": "Badge",
+            "url": "/c/badge/",
+            "type": "component",
+            "breadcrumb": "Elements / Badge",
+            "content": "Badge component docs",
+        }
+        assert ctx["normalized_index"][1] == {
             "label": "Button",
             "url": "/c/button/",
             "type": "component",
             "breadcrumb": "Elements / Button",
             "content": "Contains </script> tag in docs",
         }
-        assert ctx["normalized_index"][1] == {
+        assert ctx["normalized_index"][2] == {
             "label": "Icon",
             "url": "/c/icon/",
             "type": "component",
@@ -334,102 +353,3 @@ class TestSearchBoxStylesheetAndHygiene:
         direct_html = search_box_module.SearchBox(**cfg.param_defaults).render()
         assert '<dds-search-box class="dds-search-box"' in direct_html
 
-
-class TestSearchBoxTypeScriptCustomElement:
-    """Verify Light DOM <dds-search-box> TypeScript contract in search_box.ts."""
-
-    def test_search_box_ts_implements_custom_element_and_lifecycle_contract(
-        self,
-    ) -> None:
-        """Verify search_box.ts defines DDSSearchBoxElement with AbortController and debounce cleanup."""
-        assert SEARCH_BOX_TS_PATH.is_file()
-        ts_text = SEARCH_BOX_TS_PATH.read_text(encoding="utf-8")
-        assert "import type { DDSCustomElement } from '../../types.js';" in ts_text
-        assert (
-            "export class DDSSearchBoxElement" in ts_text
-            and "extends HTMLElement" in ts_text
-            and "implements DDSCustomElement" in ts_text
-        )
-        assert "private abortController: AbortController | null = null;" in ts_text
-        assert "private debounceTimer: number | null = null;" in ts_text
-        assert "connectedCallback(): void" in ts_text
-        assert "disconnectedCallback(): void" in ts_text
-        assert "this.abortController?.abort();" in ts_text
-        assert "this.abortController = new AbortController();" in ts_text
-        assert "this.abortController = null;" in ts_text
-        assert "this.clearDebounceTimer();" in ts_text
-        assert "window.clearTimeout(this.debounceTimer);" in ts_text
-        assert (
-            "this.debounceTimer = window.setTimeout(() => {\n"
-            "            this.debounceTimer = null;\n"
-            "            this.handleInput();\n"
-            "          }, DEBOUNCE_DELAY_MS);" in ts_text
-        )
-        assert "this.querySelector<HTMLInputElement>('[data-search-input]')" in ts_text
-        assert "this.querySelector<HTMLElement>('[data-search-results]')" in ts_text
-        assert "this.querySelector<HTMLScriptElement>('[data-search-index]')" in ts_text
-        assert "if (!customElements.get('dds-search-box'))" in ts_text
-        assert (
-            "customElements.define('dds-search-box', DDSSearchBoxElement);" in ts_text
-        )
-
-    def test_search_box_ts_search_filtering_dom_creation_and_url_sanitization(
-        self,
-    ) -> None:
-        """Verify index parsing, 50-result limit, safe DOM creation, and URL sanitization."""
-        ts_text = SEARCH_BOX_TS_PATH.read_text(encoding="utf-8")
-        assert "const MAX_RESULTS = 50;" in ts_text
-        assert "JSON.parse(rawJson)" in ts_text
-        assert "matches.slice(0, MAX_RESULTS)" in ts_text
-        assert "new URL(rawUrl, window.location.origin)" in ts_text
-        assert "parsed.protocol === 'http:' || parsed.protocol === 'https:'" in ts_text
-        assert "return '#';" in ts_text
-        assert "document.createElement('a')" in ts_text
-        assert "document.createElement('mark')" in ts_text
-        assert "document.createElement('p')" in ts_text
-        assert "optionEl.setAttribute('role', 'option');" in ts_text
-        assert "optionEl.setAttribute('data-search-option', '');" in ts_text
-        assert "optionEl.setAttribute('data-node-type', entry.type);" in ts_text
-        assert "crumbEl.setAttribute('data-search-breadcrumb', '');" in ts_text
-        assert "emptyEl.setAttribute('data-search-empty', '');" in ts_text
-        assert "emptyEl.textContent = 'No results found.';" in ts_text
-        assert "this.dataset.state = isOpen ? 'open' : 'closed';" in ts_text
-        assert (
-            "inputEl.setAttribute('aria-expanded', isOpen ? 'true' : 'false');"
-            in ts_text
-        )
-        assert "resultsEl.hidden = !isOpen;" in ts_text
-
-    def test_search_box_ts_keyboard_navigation_shortcut_outside_click_and_events(
-        self,
-    ) -> None:
-        """Verify ArrowDown/Up, Enter, Escape, global '/' shortcut, outside click, and dds:search-select."""
-        ts_text = SEARCH_BOX_TS_PATH.read_text(encoding="utf-8")
-        for key in ("ArrowDown", "ArrowUp", "Enter", "Escape", "/"):
-            assert f"event.key === '{key}'" in ts_text
-        assert (
-            "optionEl.setAttribute('aria-selected', isActive ? 'true' : 'false');"
-            in ts_text
-        )
-        assert "optionEl.setAttribute('data-active', 'true');" in ts_text
-        assert "optionEl.removeAttribute('data-active');" in ts_text
-        assert "activeOption.click();" in ts_text
-        assert "new CustomEvent('dds:search-select'" in ts_text
-        assert "detail: { url, label }" in ts_text
-        assert "!this.contains(event.target as Node)" in ts_text
-        assert "target.isContentEditable" in ts_text
-
-    def test_search_box_ts_enforces_light_dom_encapsulation_and_styleguide(
-        self,
-    ) -> None:
-        """Verify search_box.ts uses Light DOM only, scoped queries, single quotes, and <=80 cols."""
-        ts_text = SEARCH_BOX_TS_PATH.read_text(encoding="utf-8")
-        assert "attachShadow" not in ts_text
-        assert "innerHTML" not in ts_text
-        assert "document.getElementById" not in ts_text
-        assert "document.querySelector" not in ts_text
-        assert '"' not in ts_text
-        assert "\t" not in ts_text
-        for line in ts_text.splitlines():
-            assert len(line) <= 80
-            assert line == line.rstrip()

@@ -162,8 +162,11 @@ class TestNavTreeDiscoveryAndMetadata:
     """Verify NavTree exports, metadata, media, and registry discovery."""
 
     def test_exported_from_package_init(self) -> None:
-        """Verify NavTree is exported in dj_design_system.components.gallery.composites.nav_tree."""
+        """Verify NavTree and NavTreeNode are exported in dj_design_system.components.gallery.composites.nav_tree."""
         assert nav_tree_package.NavTree is nav_tree_module.NavTree
+        assert nav_tree_package.NavTreeNode is nav_tree_module.NavTreeNode
+        assert dataclasses.is_dataclass(nav_tree_module.NavTreeNode)
+        assert nav_tree_package.__all__ == ["NavTree", "NavTreeNode"]
         assert issubclass(nav_tree_module.NavTree, components_base.TagComponent)
 
     def test_template_media_and_positional_args(self) -> None:
@@ -330,11 +333,12 @@ class TestNavTreeParametersAndContext:
     def test_python_module_contains_no_private_methods_or_html_building(
         self,
     ) -> None:
-        """Verify nav_tree.py has no private helper methods, nested defs, or HTML building."""
+        """Verify nav_tree.py has no private helper methods, nested defs, NavItemInputData coupling, or HTML building."""
         py_text = _read_text(path=NAV_TREE_PY_PATH)
         assert "format_html" not in py_text
         assert "mark_safe" not in py_text
         assert "Icon(" not in py_text
+        assert "NavItemInputData" not in py_text
         private_defs = re.findall(
             pattern=r"def _(?![_a-z]+__)[a-z0-9_]+", string=py_text
         )
@@ -506,57 +510,3 @@ class TestNavTreeGalleryAndDocs:
         assert "Behaviour & Accessibility" in doc_text
         assert "aria-current" in doc_text
 
-
-class TestNavTreeTypeScriptCustomElement:
-    """Verify Light DOM <dds-nav-tree> TypeScript contract in nav_tree.ts."""
-
-    def test_nav_tree_ts_implements_custom_element_and_lifecycle_contract(
-        self,
-    ) -> None:
-        """Verify nav_tree.ts defines DDSNavTreeElement with AbortController and dds:nav-toggle."""
-        assert NAV_TREE_TS_PATH.is_file()
-        ts_text = _read_text(path=NAV_TREE_TS_PATH)
-        assert "import type { DDSCustomElement } from '../../types.js';" in ts_text
-        assert (
-            "export class DDSNavTreeElement extends HTMLElement implements DDSCustomElement"
-            in ts_text
-        )
-        assert "private abortController: AbortController | null = null;" in ts_text
-        assert "connectedCallback(): void" in ts_text
-        assert "disconnectedCallback(): void" in ts_text
-        assert "this.abortController?.abort();" in ts_text
-        assert "this.abortController = new AbortController();" in ts_text
-        assert "this.abortController = null;" in ts_text
-        assert "closest<HTMLButtonElement>('[data-nav-toggle]')" in ts_text
-        assert "closest<HTMLElement>('[data-nav-folder]')" in ts_text
-        assert "':scope > [data-nav-children]'" in ts_text
-        assert (
-            "const expanded = toggle.getAttribute('aria-expanded') !== 'true';"
-            in ts_text
-        )
-        assert (
-            "toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');"
-            in ts_text
-        )
-        assert "folder.dataset.state = expanded ? 'open' : 'closed';" in ts_text
-        assert "childrenEl.hidden = !expanded;" in ts_text
-        assert "'dds:nav-toggle'" in ts_text
-        assert (
-            "detail: { folderId: folder.dataset.folderId ?? '', expanded }" in ts_text
-        )
-        assert "if (!customElements.get('dds-nav-tree'))" in ts_text
-        assert "customElements.define('dds-nav-tree', DDSNavTreeElement);" in ts_text
-
-    def test_nav_tree_ts_enforces_light_dom_encapsulation_and_styleguide(
-        self,
-    ) -> None:
-        """Verify nav_tree.ts uses Light DOM only, scoped queries, single quotes, and <=80 cols."""
-        ts_text = _read_text(path=NAV_TREE_TS_PATH)
-        assert "attachShadow" not in ts_text
-        assert "document.getElementById" not in ts_text
-        assert "document.querySelector" not in ts_text
-        assert '"' not in ts_text
-        assert "\t" not in ts_text
-        for line in ts_text.splitlines():
-            assert len(line) <= 80
-            assert line == line.rstrip()

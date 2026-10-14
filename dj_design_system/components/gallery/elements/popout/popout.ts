@@ -47,6 +47,10 @@ export class DDSPopoutElement extends HTMLElement implements DDSCustomElement {
       );
     }
 
+    if (this.dataset.selectedValue) {
+      this.selectValue(this.dataset.selectedValue);
+    }
+
     document.addEventListener(
       'keydown',
       (event: KeyboardEvent) => {
@@ -80,6 +84,31 @@ export class DDSPopoutElement extends HTMLElement implements DDSCustomElement {
   disconnectedCallback(): void {
     this.abortController?.abort();
     this.abortController = null;
+  }
+
+  /**
+   * Synchronises the selected radio option and trigger label for `value`.
+   *
+   * @param {string} value Target option value to select.
+   */
+  selectValue(value: string): void {
+    this.dataset.selectedValue = value;
+    const triggerLabel = this.querySelector<HTMLElement>(
+      '[data-popout-trigger] > span',
+    );
+    const radioOptions = this.querySelectorAll<HTMLElement>(
+      '[data-popout-option][role=menuitemradio]',
+    );
+    for (const item of radioOptions) {
+      const isSelected = item.dataset.value === value;
+      item.setAttribute('aria-checked', isSelected ? 'true' : 'false');
+      if (isSelected && triggerLabel) {
+        const optionLabel = item.textContent?.trim();
+        if (optionLabel) {
+          triggerLabel.textContent = optionLabel;
+        }
+      }
+    }
   }
 
   /**
@@ -118,17 +147,11 @@ export class DDSPopoutElement extends HTMLElement implements DDSCustomElement {
       return;
     }
 
+    const value = optionEl.dataset.value ?? '';
+    const label = optionEl.textContent?.trim() ?? '';
     const role = optionEl.getAttribute('role');
     if (role === 'menuitemradio') {
-      const radioOptions = menu.querySelectorAll<HTMLElement>(
-        '[data-popout-option][role="menuitemradio"]',
-      );
-      for (const item of radioOptions) {
-        item.setAttribute(
-          'aria-checked',
-          item === optionEl ? 'true' : 'false',
-        );
-      }
+      this.selectValue(value);
     } else if (role === 'menuitemcheckbox') {
       const isChecked = optionEl.getAttribute('aria-checked') === 'true';
       optionEl.setAttribute('aria-checked', String(!isChecked));
@@ -137,7 +160,7 @@ export class DDSPopoutElement extends HTMLElement implements DDSCustomElement {
     this.dispatchEvent(
       new CustomEvent('dds:popout-select', {
         bubbles: true,
-        detail: { value: optionEl.dataset.value ?? '' },
+        detail: { value, label },
       }),
     );
     this.setOpenState(false);

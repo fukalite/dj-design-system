@@ -1,79 +1,67 @@
 ---
 trigger: model_decision
-description: When editing javascript code
+description: When editing TypeScript or JavaScript code
 ---
 
-# Google JavaScript Style Guide Summary
+# TypeScript & JavaScript Style Guide
 
-This document summarizes key rules and best practices from the Google JavaScript
-Style Guide.
+This document defines the TypeScript and ES module standards for `dj-design-system`, based on the Google TypeScript / JavaScript Style Guide.
 
 ## 1. Source File Basics
 
--   **File Naming:** All lowercase, with underscores (`_`) or dashes (`-`).
-    Extension must be `.js`.
+-   **Language & Compilation:** Author all client-side component and gallery modules in strict TypeScript (`.ts`). Compiled `.js` sibling files are gitignored and emitted in place via `just build-ts` (`tsc -p tsconfig.json`).
+-   **File Naming:** All lowercase, using underscores (`_`) for co-located component modules (`search_box.ts`) and dashes (`-`) for static page-level modules (`theme-manager.ts`).
 -   **File Encoding:** UTF-8.
--   **Whitespace:** Use only ASCII horizontal spaces (0x20). Tabs are forbidden
-    for indentation.
+-   **Whitespace:** Use only ASCII horizontal spaces (`0x20`). Tabs (`\t`) and trailing whitespace are forbidden.
 
 ## 2. Source File Structure
 
--   New files should be ES modules (`import`/`export`).
--   **Exports:** Use named exports (`export {MyClass};`). **Do not use default
-    exports.**
--   **Imports:** Do not use line-wrapped imports. The `.js` extension in import
-    paths is mandatory.
+-   **File Header:** Every `.ts` file must start with a `@fileoverview` JSDoc block.
+-   **ES Modules:** All files are ES modules (`import`/`export`).
+-   **Exports:** Use named exports (`export class DDSPopoutElement ...`). **Do not use default exports** in package source files.
+-   **Imports:** Always include the `.js` extension in relative import paths (`import type { DDSCustomElement } from '../../types.js';`) so emitted ES2022 modules resolve natively in the browser without a bundler.
 
 ## 3. Formatting
 
--   **Braces:** Required for all control structures (`if`, `for`, `while`,
-    etc.), even single-line blocks. Use K&R style ("Egyptian brackets").
+-   **Braces:** Required for all control structures (`if`, `for`, `while`, etc.), even single-line blocks. Use K&R style ("Egyptian brackets").
 -   **Indentation:** +2 spaces for each new block.
 -   **Semicolons:** Every statement must be terminated with a semicolon.
--   **Column Limit:** 80 characters.
--   **Line-wrapping:** Indent continuation lines at least +4 spaces.
--   **Whitespace:** Use single blank lines between methods. No trailing
-    whitespace.
+-   **Column Limit:** 80 characters maximum per line (enforced by the test suite).
+-   **Whitespace:** Use single blank lines between methods. No trailing whitespace.
 
 ## 4. Language Features
 
--   **Variable Declarations:** Use `const` by default, `let` if reassignment is
-    needed. **`var` is forbidden.**
--   **Array Literals:** Use trailing commas. Do not use the `Array` constructor.
--   **Object Literals:** Use trailing commas and shorthand properties. Do not
-    use the `Object` constructor.
--   **Classes:** Do not use JavaScript getter/setter properties (`get name()`).
-    Provide ordinary methods instead.
--   **Functions:** Prefer arrow functions for nested functions to preserve
-    `this` context.
--   **String Literals:** Use single quotes (`'`). Use template literals (`` `
-    ``) for multi-line strings or complex interpolation.
--   **Control Structures:** Prefer `for-of` loops. `for-in` loops should only be
-    used on dict-style objects.
--   **`this`:** Only use `this` in class constructors, methods, or in arrow
-    functions defined within them.
--   **Equality Checks:** Always use identity operators (`===` / `!==`).
+-   **Strict Typing:** Must compile cleanly under `strict: true`, `noImplicitAny: true`, `strictNullChecks: true`, `noUnusedLocals: true`, `noUnusedParameters: true`, and `noImplicitReturns: true`.
+-   **Variable Declarations:** Use `const` by default, `let` if reassignment is needed. **`var` is forbidden.**
+-   **Array & Object Literals:** Use trailing commas on multiline literals and shorthand properties where appropriate.
+-   **Classes:** Avoid JavaScript getter/setter properties (`get name()`); provide ordinary methods instead (`isGalleryThemeDark()`, `selectValue(value)`).
+-   **Functions:** Prefer arrow functions for callbacks and event listeners to preserve lexical `this`.
+-   **String Literals:** Use single quotes (`'`) for string literals. Use template literals (`` ` ``) for interpolation or multi-line strings.
+-   **Control Structures:** Prefer `for (const item of items)` loops.
+-   **Equality Checks:** Always use strict identity operators (`===` / `!==`).
 
 ## 5. Disallowed Features
 
--   `with` keyword.
--   `eval()` or `Function(...string)`.
+-   `with` keyword, `eval()`, or `Function(...string)`.
 -   Automatic Semicolon Insertion.
--   Modifying builtin objects (`Array.prototype.foo = ...`).
+-   Modifying built-in prototypes.
+-   Shadow DOM (`attachShadow`) in `<dds-*>` custom elements.
+-   Global side-effects (`localStorage`, `sessionStorage`, `document.cookie`, `window.location.href`) inside reusable element or composite custom elements (delegate to page-level managers via bubbling `dds:*` `CustomEvent`s).
 
 ## 6. Naming
 
--   **Classes:** `UpperCamelCase`.
+-   **Classes & Interfaces:** `UpperCamelCase` (e.g. `DDSPopoutElement`, `ThemeManager`).
 -   **Methods & Functions:** `lowerCamelCase`.
--   **Constants:** `CONSTANT_CASE` (all uppercase with underscores).
+-   **Constants:** `CONSTANT_CASE`.
 -   **Non-constant Fields & Variables:** `lowerCamelCase`.
 
 ## 7. JSDoc
 
--   JSDoc is used on all classes, fields, and methods.
--   Use `@param`, `@return`, `@override`, `@deprecated`.
--   Type annotations are enclosed in braces (e.g., `/** @param {string} userName
-    */`).
+-   Include JSDoc comments on all classes, fields, and methods.
+-   Use `@fileoverview`, `@param`, `@return`.
 
-*Source:
-[Google JavaScript Style Guide](https://google.github.io/styleguide/jsguide.html)*
+## 8. Native Testing (`Vitest` + `happy-dom`)
+
+-   Test all `<dds-*>` custom elements and static managers natively in `tests/ts/<name>.test.ts` using Vitest (`just test-ts` or `just test`).
+-   Mount real DOM fixtures in `happy-dom`, trigger real events/methods, and assert on DOM state, ARIA attributes, custom event payloads, storage, and `AbortController` teardown.
+-   Never test `.ts` source files via substring assertions in Python `pytest` suites.

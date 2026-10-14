@@ -166,9 +166,31 @@ jobs:
       - name: Run E2E tests
         run: just e2e
 
+  test-ts:
+    name: TypeScript Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: extractions/setup-just@v2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Compile TypeScript components
+        run: just build-ts
+
+      - name: Run Vitest unit tests
+        run: just test-ts
+
   ci-complete:
     name: CI Complete
-    needs: [lint, typecheck, test, e2e]
+    needs: [lint, typecheck, test, test-ts, e2e]
     runs-on: ubuntu-latest
     if: always()
     steps:

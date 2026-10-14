@@ -40,5 +40,9 @@ The Sandbox Parameters area generates dynamic form controls mapped to a componen
 Include the parameters drawer into any custom workbench view:
 
 ```django
-{% dds__sandbox_params param_rows=param_rows action_url=request.path active_theme=sandbox_active_theme active_variant=active_variant hx_target="[data-gallery-sandbox-body]" %}
+{% dds__sandbox_params param_rows=param_rows action_url=request.path hx_target="[data-gallery-sandbox-body]" %}
+  {% slot "extra_inputs" %}
+    <input type="hidden" name="_iss" value="1">
+  {% endslot %}
+{% enddds__sandbox_params %}
 ```

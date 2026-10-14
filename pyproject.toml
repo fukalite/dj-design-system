@@ -83,6 +83,10 @@ packages = ["dj_design_system"]
 artifacts = [
   "dj_design_system/components/**/*.js",
   "dj_design_system/static/dj_design_system/gallery-shell.js",
+  "dj_design_system/static/dj_design_system/theme-manager.js",
+  "dj_design_system/static/dj_design_system/pane-manager.js",
+  "dj_design_system/static/dj_design_system/sandbox-manager.js",
+  "dj_design_system/static/dj_design_system/canvas-resize.js",
 ]
 
 [tool.hatch.build.targets.sdist]
@@ -99,6 +103,10 @@ include = [
 artifacts = [
   "dj_design_system/components/**/*.js",
   "dj_design_system/static/dj_design_system/gallery-shell.js",
+  "dj_design_system/static/dj_design_system/theme-manager.js",
+  "dj_design_system/static/dj_design_system/pane-manager.js",
+  "dj_design_system/static/dj_design_system/sandbox-manager.js",
+  "dj_design_system/static/dj_design_system/canvas-resize.js",
 ]
 
 [tool.ruff]
