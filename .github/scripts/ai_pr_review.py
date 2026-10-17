@@ -424,7 +424,10 @@ def _parse_iso_timestamp(value: str) -> datetime.datetime | None:
     if cleaned.endswith("Z"):
         cleaned = cleaned[:-1] + "+00:00"
     try:
-        return datetime.datetime.fromisoformat(cleaned)
+        dt = datetime.datetime.fromisoformat(cleaned)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=datetime.timezone.utc)
+        return dt
     except ValueError:
         return None
 
