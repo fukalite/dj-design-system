@@ -330,6 +330,7 @@ def _invoke_gemini_json(
 
 
 def call_gemini(
+    *,
     api_key: str,
     model: str,
     system_instructions: str,
@@ -613,7 +614,7 @@ def _read_file_at_head(*, path: str, head_sha: str) -> str | None:
                 ["git", "show", f"{head_sha}:{path}"],
                 stderr=subprocess.DEVNULL,
             ).decode("utf-8", errors="replace")
-        except Exception:
+        except (subprocess.CalledProcessError, OSError):
             raw_content = None
 
     if raw_content is None and os.path.isfile(path):
@@ -660,7 +661,7 @@ def _fetch_commit_file_diff(
             .decode("utf-8", errors="replace")
             .strip()
         )
-    except Exception:
+    except (subprocess.CalledProcessError, OSError):
         return ""
 
 
