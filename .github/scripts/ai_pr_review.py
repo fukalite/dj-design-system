@@ -605,7 +605,12 @@ def fetch_open_bot_threads(
     )
 
 
-def _read_file_at_head(*, path: str, head_sha: str) -> str | None:
+def _read_file_at_head(
+    *,
+    path: str,
+    head_sha: str,
+    target_line: int | None = None,
+) -> str | None:
     """Read file content at `head_sha` from git or local disk, returning numbered lines."""
     raw_content = None
     if head_sha:
@@ -630,10 +635,21 @@ def _read_file_at_head(*, path: str, head_sha: str) -> str | None:
     numbered = [
         f"{idx:4d}: {line}" for idx, line in enumerate(raw_content.splitlines(), 1)
     ]
-    if len(numbered) <= 400:
+    if len(numbered) <= 250:
         return "\n".join(numbered)
 
-    return "\n".join(numbered[:350]) + "\n... [file truncated] ..."
+    if target_line is not None and target_line > 100:
+        start_idx = max(40, target_line - 45)
+        end_idx = min(len(numbered), target_line + 45)
+        parts = ["\n".join(numbered[:40])]
+        if start_idx > 40:
+            parts.append("... [lines omitted] ...")
+        parts.append("\n".join(numbered[start_idx:end_idx]))
+        if end_idx < len(numbered):
+            parts.append("... [file truncated] ...")
+        return "\n".join(parts)
+
+    return "\n".join(numbered[:250]) + "\n... [file truncated] ..."
 
 
 def _fetch_commit_file_diff(
@@ -673,15 +689,14 @@ def build_thread_validation_payload(
 ) -> str:
     """Assemble the context payload for validating open prior review threads."""
     sections = []
-    file_cache: dict[str, str | None] = {}
 
     for thread in threads:
-        if thread.path not in file_cache:
-            file_cache[thread.path] = _read_file_at_head(
-                path=thread.path,
-                head_sha=head_sha,
-            )
-        current_file_text = file_cache[thread.path]
+        focus_line = thread.line if thread.line is not None else thread.original_line
+        current_file_text = _read_file_at_head(
+            path=thread.path,
+            head_sha=head_sha,
+            target_line=focus_line,
+        )
         commit_diff = _fetch_commit_file_diff(
             original_commit_oid=thread.original_commit_oid,
             head_sha=head_sha,
@@ -767,9 +782,10 @@ def validate_open_threads_with_gemini(
         "required": ["evaluations"],
     }
 
+    thread_id_list = ", ".join(f"`{t.thread_id}`" for t in threads)
     user_prompt = f"""
 You are performing the first pass of a Pull Request review.
-Below are open inline review comments that you previously made on earlier commits in this PR.
+Below are {len(threads)} open inline review comments that you previously made on earlier commits in this PR ({thread_id_list}).
 For each open comment thread:
 1. Inspect the original comment, any thread replies, the diff since the comment's commit, and the current state of the file at HEAD.
 2. Validate whether or not the issue raised in the comment is fixed/addressed now (`resolved`: true or false).
@@ -777,7 +793,7 @@ For each open comment thread:
    - If addressed (`resolved`: true): briefly confirm that the issue has been resolved.
    - If not addressed (`resolved`: false): briefly explain what remains unaddressed and how to fix it.
 
-Return an evaluation for every `thread_id` listed below.
+You MUST return an evaluation entry in `evaluations` for every single `thread_id` ({thread_id_list}).
 
 {validation_payload}
 """
