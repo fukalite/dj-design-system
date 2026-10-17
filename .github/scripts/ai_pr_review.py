@@ -632,8 +632,7 @@ def _read_file_at_head(*, path: str, head_sha: str) -> str | None:
     if len(numbered) <= 400:
         return "\n".join(numbered)
 
-    head_section = "\n".join(numbered[:60])
-    return head_section + "\n... [file truncated] ...\n" + "\n".join(numbered[60:350])
+    return "\n".join(numbered[:350]) + "\n... [file truncated] ..."
 
 
 def _fetch_commit_file_diff(
@@ -1069,7 +1068,11 @@ def main():
     pr_info = None
     if not head_sha or not base_sha or not pr_author or not is_merged_env:
         print(f"Fetching PR #{pr_number} metadata from GitHub API...")
-        pr_info = get_pr_info(repo, pr_number, github_token)
+        pr_info = get_pr_info(
+            repo=repo,
+            pr_number=pr_number,
+            github_token=github_token,
+        )
         head_sha = head_sha or pr_info.get("head", {}).get("sha", "")
         base_sha = base_sha or pr_info.get("base", {}).get("sha", "")
 
@@ -1120,8 +1123,14 @@ def main():
 
     # 3. Fetch & Parse Diff
     print(f"Fetching diff for PR #{pr_number} in {repo}...")
-    diff_text = fetch_diff(repo, pr_number, github_token, base_sha, head_sha)
-    files_data = parse_and_annotate_diff(diff_text)
+    diff_text = fetch_diff(
+        repo=repo,
+        pr_number=pr_number,
+        github_token=github_token,
+        base_sha=base_sha,
+        head_sha=head_sha,
+    )
+    files_data = parse_and_annotate_diff(diff_text=diff_text)
 
     # 4. First Pass: Validate, reply to, and resolve open prior review comments
     run_prior_comments_pass(
@@ -1158,7 +1167,12 @@ def main():
 
     # 7. Invoke Gemini
     try:
-        review_output = call_gemini(gemini_key, model, instructions, diff_payload)
+        review_output = call_gemini(
+            api_key=gemini_key,
+            model=model,
+            system_instructions=instructions,
+            diff_payload=diff_payload,
+        )
     except RuntimeError as e:
         print(f"\n❌ Gemini review generation failed: {e}", file=sys.stderr)
         outage_notice = (

@@ -57,7 +57,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.pull_request.head.sha || '' }}
+          ref: ${{ github.event.pull_request.head.sha || format('refs/pull/{0}/head', github.event.issue.number || github.event.inputs.pr_number) }}
           fetch-depth: 0
 
       - name: Set up Python
