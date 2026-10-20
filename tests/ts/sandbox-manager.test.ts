@@ -95,6 +95,12 @@ describe('SandboxManager', () => {
       '*',
     );
 
+    host
+      .querySelector<HTMLButtonElement>('[data-action="reset-params"]')!
+      .click();
+    expect(window.sessionStorage.getItem('dds_toolbar_state')).toBeNull();
+    expect(widget.dataset.background).toBe('white');
+
     controller.abort();
   });
 });

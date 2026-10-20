@@ -3,7 +3,6 @@
 import dataclasses
 import pathlib
 import re
-import types
 
 import pytest
 from django import forms, template
@@ -177,31 +176,10 @@ class TestSandboxParamsParametersAndContext:
         assert ctx["has_rows"] is False
         assert ctx["action_url"] == ""
         assert ctx["has_action_url"] is False
-        assert ctx["active_theme"] == ""
-        assert ctx["has_active_theme"] is False
-        assert ctx["active_variant"] == ""
-        assert ctx["has_active_variant"] is False
         assert ctx["hx_target"] == ""
         assert ctx["has_hx_target"] is False
         assert "DEFAULT_HX_TARGET" not in sandbox_params_module.__dict__
         assert ctx["empty_message"] == "This component has no configurable parameters."
-
-    def test_normalises_active_variant_object_in_init(self) -> None:
-        """Verify active_variant accepts a Variant dataclass or object with a name attribute."""
-        variant_obj = gallery.Variant(
-            name="secondary",
-            label="Secondary Button",
-            kwargs={"variant": "secondary"},
-        )
-        comp = sandbox_params_module.SandboxParams(active_variant=variant_obj)
-        ctx = comp.get_context()
-        assert comp.active_variant == "secondary"
-        assert ctx["active_variant"] == "secondary"
-        assert ctx["has_active_variant"] is True
-
-        namespace_variant = types.SimpleNamespace(name="ghost")
-        comp_ns = sandbox_params_module.SandboxParams(active_variant=namespace_variant)
-        assert comp_ns.active_variant == "ghost"
 
     def test_normalises_dict_rows_bound_fields_and_object_rows(self) -> None:
         """Verify get_context normalises BoundField dicts, fallback field dicts, and row objects."""
@@ -253,18 +231,12 @@ class TestSandboxParamsParametersAndContext:
                 ),
             ],
             action_url="/gallery/button/",
-            active_theme="dark",
-            active_variant="primary",
             hx_target="#sandbox-pane",
         )
         ctx = comp.get_context()
         assert ctx["has_rows"] is True
         assert ctx["action_url"] == "/gallery/button/"
         assert ctx["has_action_url"] is True
-        assert ctx["active_theme"] == "dark"
-        assert ctx["has_active_theme"] is True
-        assert ctx["active_variant"] == "primary"
-        assert ctx["has_active_variant"] is True
         assert ctx["hx_target"] == "#sandbox-pane"
 
         rows = ctx["normalized_rows"]
@@ -314,15 +286,14 @@ class TestSandboxParamsParametersAndContext:
             sandbox_params_module.SandboxParams(param_rows="not-a-list")
         with pytest.raises(expected_exception=TypeError, match="Expected str"):
             sandbox_params_module.SandboxParams(action_url=123)
-        with pytest.raises(expected_exception=TypeError, match="Expected str"):
-            sandbox_params_module.SandboxParams(active_theme=123)
 
     def test_python_module_purity_and_no_private_methods(self) -> None:
-        """Verify sandbox_params.py has no private helper methods, service imports, HTML tags, or comments."""
+        """Verify sandbox_params.py has no private helper methods, service/data imports, HTML tags, or comments."""
         py_text = _read_text(path=SANDBOX_PARAMS_PY_PATH)
         assert "format_html" not in py_text
         assert "<input" not in py_text
         assert "dj_design_system.services" not in py_text
+        assert "dj_design_system import components, data" not in py_text
         assert "#" not in py_text
         private_methods = [
             name
@@ -451,9 +422,8 @@ class TestSandboxParamsRenderingAndTemplate:
     def test_escapes_untrusted_strings(self) -> None:
         """Verify untrusted strings in labels, descriptions, errors, and empty_message are escaped."""
         html_with_rows = _render_template(
-            source="{% dds__sandbox_params param_rows active_theme=theme %}{% enddds__sandbox_params %}",
+            source="{% dds__sandbox_params param_rows %}{% enddds__sandbox_params %}",
             context={
-                "theme": '"><script>alert(1)</script>',
                 "param_rows": [
                     {
                         "name": "title",
@@ -564,7 +534,5 @@ class TestSandboxParamsGalleryAndDocs:
         assert "dds__sandbox_params" in doc_text
         assert "param_rows" in doc_text
         assert "action_url" in doc_text
-        assert "active_theme" in doc_text
-        assert "active_variant" in doc_text
         assert "hx_target" in doc_text
         assert "empty_message" in doc_text

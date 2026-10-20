@@ -87,12 +87,11 @@ export class DDSCanvasWidgetElement
       iframe.addEventListener(
         'load',
         () => {
-          this.syncIframeHeight();
           this.postStageState();
         },
         { signal },
       );
-      this.syncIframeHeight();
+      this.postStageState();
     }
 
     this.dispatchEvent(new CustomEvent('dds:canvas-ready', { bubbles: true }));
@@ -264,38 +263,6 @@ export class DDSCanvasWidgetElement
       return;
     }
     this.applyIframeHeight(iframe, clampedHeight);
-  }
-
-  /**
-   * Synchronises iframe height directly from same-origin or `srcdoc`
-   * `contentDocument` when the iframe finishes loading before upgrade.
-   */
-  private syncIframeHeight(): void {
-    const iframe = this.querySelector<HTMLIFrameElement>(
-      '[data-canvas-iframe]',
-    );
-    if (!iframe) {
-      return;
-    }
-    try {
-      const doc = iframe.contentDocument;
-      if (!doc || doc.readyState !== 'complete') {
-        return;
-      }
-      const wrapper = doc.querySelector<HTMLElement>(
-        '.canvas-wrapper--basic',
-      );
-      const target = wrapper ?? doc.documentElement;
-      if (!target) {
-        return;
-      }
-      const measured = Math.max(target.scrollHeight, target.offsetHeight);
-      if (measured > 0) {
-        this.applyIframeHeight(iframe, Math.max(24, measured));
-      }
-    } catch {
-      return;
-    }
   }
 
   /**

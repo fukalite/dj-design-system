@@ -27,7 +27,21 @@ interface SandboxCanvasElement extends HTMLElement {
   setStageState?(state: SandboxState): void;
 }
 
+/** Duck-typed `<dds-sandbox-params>` element interface. */
+interface SandboxParamsElement extends HTMLElement {
+  resetParams?(): void;
+}
+
 const TOOLBAR_STATE_KEY = 'dds_toolbar_state';
+
+const DEFAULT_SANDBOX_STATE: Required<SandboxState> = {
+  background: 'white',
+  viewport: 'responsive',
+  zoom: '100',
+  outline: false,
+  measure: false,
+  rtl: false,
+};
 
 /**
  * Mediates sandbox toolbar selections, stage updates, variant URL navigation,
@@ -143,7 +157,7 @@ export class SandboxManager {
     this.host.addEventListener(
       'dds:sandbox-reset',
       () => {
-        this.restorePersistedState();
+        this.resetSandbox();
       },
       { signal },
     );
@@ -168,6 +182,30 @@ export class SandboxManager {
   }
 
   /**
+   * Clears persisted `sessionStorage` toolbar state and resets toolbar
+   * controls, canvas stage state, and `<dds-sandbox-params>` form values.
+   */
+  resetSandbox(): void {
+    try {
+      window.sessionStorage.removeItem(TOOLBAR_STATE_KEY);
+    } catch {
+      // Ignore storage errors.
+    }
+    const toolbar = this.getSandboxToolbar();
+    if (toolbar && typeof toolbar.applyState === 'function') {
+      toolbar.applyState(DEFAULT_SANDBOX_STATE);
+    }
+    const canvas = this.getSandboxCanvas();
+    if (canvas && typeof canvas.setStageState === 'function') {
+      canvas.setStageState(DEFAULT_SANDBOX_STATE);
+    }
+    const params = this.getSandboxParams();
+    if (params && typeof params.resetParams === 'function') {
+      params.resetParams();
+    }
+  }
+
+  /**
    * Restores persisted `sessionStorage` state onto the sandbox toolbar and
    * sandbox canvas widget if present.
    */
@@ -182,6 +220,10 @@ export class SandboxManager {
     if (!canvas) {
       return;
     }
+    if (typeof canvas.setStageState === 'function') {
+      canvas.setStageState(state);
+      return;
+    }
     if (state.background && typeof canvas.setBackground === 'function') {
       canvas.setBackground(state.background);
     }
@@ -190,9 +232,6 @@ export class SandboxManager {
     }
     if (state.zoom && typeof canvas.setZoom === 'function') {
       canvas.setZoom(state.zoom);
-    }
-    if (typeof canvas.setStageState === 'function') {
-      canvas.setStageState(state);
     }
   }
 
@@ -238,6 +277,15 @@ export class SandboxManager {
     return this.host.querySelector<SandboxCanvasElement>(
       'dds-canvas-widget[data-canvas-id=sandbox]',
     );
+  }
+
+  /**
+   * Returns the `<dds-sandbox-params>` element inside the shell host.
+   *
+   * @return {?SandboxParamsElement} Sandbox params element or `null`.
+   */
+  private getSandboxParams(): SandboxParamsElement | null {
+    return this.host.querySelector<SandboxParamsElement>('dds-sandbox-params');
   }
 
   /**

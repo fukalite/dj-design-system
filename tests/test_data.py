@@ -3,17 +3,23 @@ from types import SimpleNamespace
 
 import pytest
 
+from dj_design_system.components.gallery.composites.sandbox_params import (
+    FormFieldRowData,
+)
+from dj_design_system.components.gallery.composites.sandbox_toolbar.sandbox_toolbar import (
+    SandboxControlOption,
+)
 from dj_design_system.data import (
     ComponentMedia,
-    FormFieldRowData,
-    NavItemInputData,
     ParamRowData,
     ParamSpecData,
-    ParamTableRowData,
-    SandboxControlOptionData,
-    SlotTableRowData,
 )
 from dj_design_system.parameters.base import JSONParam, StrParam
+from dj_design_system.services.gallery_context import (
+    ParamTableRowData,
+    SlotTableRowData,
+)
+from dj_design_system.services.navigation import NavItemInputData
 from example_project.demo_components.components.button.button import ButtonComponent
 from example_project.demo_components.components.card.info_card import InfoCardComponent
 from example_project.demo_components.components.rich_button import RichButtonComponent
@@ -342,15 +348,15 @@ class TestDomainDataNormalisers:
     def test_sandbox_control_option_data_normalises_strings_tuples_dicts_and_objects(
         self,
     ):
-        from_str = SandboxControlOptionData.from_raw("dark")
+        from_str = SandboxControlOption.from_raw("dark")
         assert from_str.value == "dark"
         assert from_str.label == "Dark"
 
-        from_tuple = SandboxControlOptionData.from_raw(("768", "Tablet — 768px"))
+        from_tuple = SandboxControlOption.from_raw(("768", "Tablet — 768px"))
         assert from_tuple.value == "768"
         assert from_tuple.label == "Tablet — 768px"
 
-        from_dict = SandboxControlOptionData.from_raw(
+        from_dict = SandboxControlOption.from_raw(
             {"name": "primary", "label": "Primary"},
             base_url="/dds/button/",
             is_variant=True,
@@ -359,7 +365,7 @@ class TestDomainDataNormalisers:
         assert from_dict.label == "Primary"
         assert from_dict.href == "/dds/button/?variant=primary"
 
-        from_obj = SandboxControlOptionData.from_raw(
+        from_obj = SandboxControlOption.from_raw(
             SimpleNamespace(value="125%", label="125%"),
             is_zoom=True,
         )

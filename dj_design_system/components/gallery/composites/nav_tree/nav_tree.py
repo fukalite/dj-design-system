@@ -17,7 +17,6 @@ ICON_COMPONENT_VARIANTS = "component-variants"
 ICON_DOC = "doc"
 ICON_FOLDER = "folder"
 ICON_VARIANT = "variant"
-MAX_TREE_DEPTH = 3
 NODE_KIND_APP = "app"
 NODE_KIND_FOLDER = "folder"
 NODE_KIND_LEAF = "leaf"
@@ -216,7 +215,7 @@ class NavTree(components.TagComponent):
             url = parsed.url
             node_type = parsed.node_type
 
-            raw_children = parsed.children if depth < MAX_TREE_DEPTH else []
+            raw_children = parsed.children
             has_children = bool(raw_children) or bool(parsed.has_children)
 
             is_component = (
@@ -343,7 +342,36 @@ class NavTree(components.TagComponent):
             )
             node_dict["aria_expanded"] = "true" if is_open else "false"
 
+        tree_events: list[dict[str, typing.Any]] = []
+        event_stack: list[tuple[str, dict[str, typing.Any]]] = [
+            ("open", node) for node in reversed(normalized_nodes)
+        ]
+        while event_stack:
+            action, node = event_stack.pop()
+            if action == "close":
+                close_kind = (
+                    "app_close"
+                    if node["node_kind"] == NODE_KIND_APP
+                    else "folder_close"
+                )
+                tree_events.append({"event": close_kind, "node": node})
+                continue
+
+            if node["node_kind"] == NODE_KIND_APP:
+                tree_events.append({"event": "app_open", "node": node})
+                event_stack.append(("close", node))
+                for child in reversed(node["children"]):
+                    event_stack.append(("open", child))
+            elif node["node_kind"] == NODE_KIND_FOLDER:
+                tree_events.append({"event": "folder_open", "node": node})
+                event_stack.append(("close", node))
+                for child in reversed(node["children"]):
+                    event_stack.append(("open", child))
+            else:
+                tree_events.append({"event": "leaf", "node": node})
+
         context["normalized_nodes"] = normalized_nodes
+        context["tree_events"] = tree_events
         context["has_nodes"] = bool(normalized_nodes)
         context["aria_label"] = self.aria_label or DEFAULT_ARIA_LABEL
         return context

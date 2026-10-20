@@ -39,7 +39,5 @@ config = gallery.GalleryConfig(
     param_defaults={
         "param_rows": list(SAMPLE_PARAM_ROWS),
         "action_url": "/design-system/components/button/",
-        "active_theme": "light",
-        "active_variant": "primary",
     },
 )

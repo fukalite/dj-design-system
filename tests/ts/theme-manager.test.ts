@@ -37,8 +37,8 @@ describe('ThemeManager', () => {
     expect(host.classList.contains('gallery-theme-dark')).toBe(true);
     expect(window.localStorage.getItem('dds_gallery_theme')).toBe('dark');
     expect(
-      host.querySelector('use')?.getAttribute('href'),
-    ).toBe('#dds-icon-moon');
+      host.querySelector('svg.dds-icon')?.getAttribute('data-icon'),
+    ).toBe('moon');
     expect(events).toEqual([{ theme: 'dark' }]);
   });
 

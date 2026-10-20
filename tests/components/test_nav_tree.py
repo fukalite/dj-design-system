@@ -421,6 +421,63 @@ class TestNavTreeRenderingAndTemplate:
         )
         assert not bem_matches
 
+    def test_renders_arbitrary_depth_beyond_four_levels(self) -> None:
+        """Verify nested folders, components, and variants at depth >= 4 render without truncation."""
+        deep_tree = [
+            {
+                "label": "Consumer App",
+                "slug": "consumer",
+                "node_type": "app",
+                "url": "/gallery/consumer/",
+                "active_path": "consumer",
+                "children": [
+                    {
+                        "label": "Forms",
+                        "slug": "forms",
+                        "node_type": "folder",
+                        "url": "/gallery/consumer/forms/",
+                        "active_path": "consumer/forms",
+                        "children": [
+                            {
+                                "label": "Inputs",
+                                "slug": "inputs",
+                                "node_type": "folder",
+                                "url": "/gallery/consumer/forms/inputs/",
+                                "active_path": "consumer/forms/inputs",
+                                "children": [
+                                    {
+                                        "label": "Date Picker",
+                                        "slug": "date_picker",
+                                        "node_type": "component",
+                                        "url": "/gallery/consumer/forms/inputs/date_picker/",
+                                        "active_path": "consumer/forms/inputs/date_picker",
+                                        "base_active_path": "consumer/forms/inputs/date_picker",
+                                        "children": [
+                                            {
+                                                "label": "Range",
+                                                "slug": "range",
+                                                "node_type": "variant",
+                                                "url": "/gallery/consumer/forms/inputs/date_picker/?variant=range",
+                                                "active_path": "consumer/forms/inputs/date_picker",
+                                                "base_active_path": "consumer/forms/inputs/date_picker",
+                                            },
+                                        ],
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+        ]
+        html = _render_template(
+            source='{% dds__nav_tree nodes active_path="consumer/forms/inputs/date_picker" active_variant="range" %}',
+            context={"nodes": deep_tree},
+        )
+        assert 'data-depth="4"' in html
+        assert "<span>Range</span>" in html
+        assert 'data-variant-link="true"' in html
+
 
 class TestNavTreeStylesheet:
     """Verify CUBE CSS @layer blocks, Tier 3 tokens, and formatting in nav_tree.css."""

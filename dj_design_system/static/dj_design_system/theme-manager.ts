@@ -3,20 +3,6 @@
  * colour schemes, consumer preview themes, and storage persistence.
  */
 
-const SUN_SVG =
-  '<circle cx=\'12\' cy=\'12\' r=\'5\'></circle>' +
-  '<line x1=\'12\' y1=\'1\' x2=\'12\' y2=\'3\'></line>' +
-  '<line x1=\'12\' y1=\'21\' x2=\'12\' y2=\'23\'></line>' +
-  '<line x1=\'4.22\' y1=\'4.22\' x2=\'5.64\' y2=\'5.64\'></line>' +
-  '<line x1=\'18.36\' y1=\'18.36\' x2=\'19.78\' y2=\'19.78\'></line>' +
-  '<line x1=\'1\' y1=\'12\' x2=\'3\' y2=\'12\'></line>' +
-  '<line x1=\'21\' y1=\'12\' x2=\'23\' y2=\'12\'></line>' +
-  '<line x1=\'4.22\' y1=\'19.78\' x2=\'5.64\' y2=\'18.36\'></line>' +
-  '<line x1=\'18.36\' y1=\'5.64\' x2=\'19.78\' y2=\'4.22\'></line>';
-
-const MOON_SVG =
-  '<path d=\'M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z\'></path>';
-
 /**
  * Mediates gallery UI themes, gallery dark/light mode, consumer component
  * preview theme (`dds:theme-change`), and consumer colour scheme across
@@ -44,6 +30,9 @@ export class ThemeManager {
           const isDark = this.isGalleryThemeDark();
           const nextTheme = isDark ? 'light' : 'dark';
           this.setGalleryTheme(nextTheme);
+          if (this.getGalleryUIHasDarkModeAssets()) {
+            this.reloadForExternalThemeAssets();
+          }
         },
         { signal },
       );
@@ -56,8 +45,17 @@ export class ThemeManager {
       select.addEventListener(
         'change',
         () => {
+          const prevHasExternal =
+            this.getGalleryUIThemeOptionHasExternalAssets(
+              this.getGalleryUITheme(),
+            );
           const targetTheme = select.value.trim() || 'desert';
+          const nextHasExternal =
+            this.getGalleryUIThemeOptionHasExternalAssets(targetTheme);
           this.setGalleryUITheme(targetTheme);
+          if (prevHasExternal || nextHasExternal) {
+            this.reloadForExternalThemeAssets();
+          }
         },
         { signal },
       );
@@ -106,6 +104,57 @@ export class ThemeManager {
     this.syncInitialGalleryUITheme();
     this.syncInitialGalleryTheme();
     this.syncInitialConsumerColorScheme();
+  }
+
+  /**
+   * Returns true if the specified gallery UI theme option declares external
+   * CSS or JS assets (`data-has-external-assets="true"`).
+   *
+   * @param {string} themeValue Gallery UI theme value.
+   * @return {boolean} True if the option declares external assets.
+   */
+  getGalleryUIThemeOptionHasExternalAssets(themeValue: string): boolean {
+    const select = this.host.querySelector<HTMLSelectElement>(
+      '[data-action=select-ui-theme], [data-ui-theme-select]',
+    );
+    if (!select) {
+      return false;
+    }
+    for (const option of Array.from(select.options)) {
+      if (option.value === themeValue) {
+        return option.dataset.hasExternalAssets === 'true';
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Returns true if the active gallery UI theme declares dark-mode-specific
+   * external CSS or JS assets (`data-has-dark-mode-assets="true"`).
+   *
+   * @return {boolean} True if active UI theme dark mode uses external assets.
+   */
+  getGalleryUIHasDarkModeAssets(): boolean {
+    const select = this.host.querySelector<HTMLSelectElement>(
+      '[data-action=select-ui-theme], [data-ui-theme-select]',
+    );
+    if (select && select.selectedIndex >= 0) {
+      const activeOption = select.options[select.selectedIndex];
+      return activeOption?.dataset.hasDarkModeAssets === 'true';
+    }
+    return false;
+  }
+
+  /**
+   * Reloads the current page so server-rendered `<head>` theme assets are
+   * updated after persisting the UI theme cookie.
+   */
+  reloadForExternalThemeAssets(): void {
+    try {
+      window.location.reload();
+    } catch {
+      // Ignore reload errors in non-browser test environments.
+    }
   }
 
   /**
@@ -225,7 +274,7 @@ export class ThemeManager {
   }
 
   /**
-   * Synchronises SVG icons in all gallery theme toggle buttons.
+   * Synchronises `data-icon` on SVG icons in all gallery theme toggle buttons.
    *
    * @param {boolean} isDark Whether gallery chrome is dark.
    */
@@ -257,17 +306,6 @@ export class ThemeManager {
       if (svg) {
         svg.dataset.icon = iconName;
         svg.setAttribute('data-icon', iconName);
-        const iconUse = svg.querySelector('use');
-        if (iconUse) {
-          iconUse.setAttribute('href', `#dds-icon-${iconName}`);
-          iconUse.setAttributeNS(
-            'http://www.w3.org/1999/xlink',
-            'href',
-            `#dds-icon-${iconName}`,
-          );
-        } else {
-          svg.innerHTML = isDark ? MOON_SVG : SUN_SVG;
-        }
       }
     }
   }
@@ -711,17 +749,6 @@ export class ThemeManager {
       if (svg) {
         svg.dataset.icon = iconName;
         svg.setAttribute('data-icon', iconName);
-        const iconUse = svg.querySelector('use');
-        if (iconUse) {
-          iconUse.setAttribute('href', `#dds-icon-${iconName}`);
-          iconUse.setAttributeNS(
-            'http://www.w3.org/1999/xlink',
-            'href',
-            `#dds-icon-${iconName}`,
-          );
-        } else {
-          svg.innerHTML = isDark ? MOON_SVG : SUN_SVG;
-        }
       }
     }
   }

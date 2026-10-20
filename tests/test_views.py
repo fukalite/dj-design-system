@@ -24,6 +24,9 @@ from dj_design_system.views import (
     component as component_views,
 )
 from dj_design_system.views import (
+    gallery as gallery_views,
+)
+from dj_design_system.views import (
     gallery_index,
     get_base_context,
 )
@@ -1212,7 +1215,7 @@ class TestCSPCompliance:
 
 class TestThinViewsAndImmutableParams:
     def test_component_and_canvas_views_define_no_private_helpers(self):
-        for mod in (component_views, canvas_views):
+        for mod in (component_views, canvas_views, gallery_views):
             private_funcs = [
                 name
                 for name, fn in inspect.getmembers(mod, inspect.isfunction)

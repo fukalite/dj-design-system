@@ -1264,3 +1264,36 @@ def test_foundations_views_render(client):
             assert b"gallery-canvas-error" not in response.content, (
                 f"Canvas error on path: {path}"
             )
+
+
+def test_consumer_app_ignores_builtin_folder_and_doc_maps(tmp_path):
+    """Verify FOLDER_ORDER_MAP, FOLDER_LABEL_OVERRIDES, and DOC_ORDER_MAP only apply to dj_design_system."""
+    from dj_design_system.data import NavNode
+    from dj_design_system.services.navigation import (
+        _AppTreeBuilder,
+        to_display_label,
+    )
+
+    assert (
+        to_display_label("areas_and_panes", app_label="consumer_app")
+        == "Areas and panes"
+    )
+    assert (
+        to_display_label("areas_and_panes", app_label="dj_design_system")
+        == "Areas & Panes"
+    )
+
+    consumer_root = NavNode(
+        label="Consumer",
+        slug="consumer_app",
+        node_type=NodeType.APP,
+    )
+    builder = _AppTreeBuilder(consumer_root)
+    about_folder = builder.get_or_create_folder(["about"])
+    assert about_folder.order == 0
+
+    md_file = tmp_path / "semantic_tokens.md"
+    md_file.write_text("# Tokens", encoding="utf-8")
+    builder.add_markdown(["about"], md_file)
+    assert about_folder.children[0].order == 0
+

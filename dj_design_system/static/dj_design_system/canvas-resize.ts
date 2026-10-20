@@ -38,7 +38,7 @@ interface CanvasStageMessage {
       window.parent.postMessage(
         {
           type: 'canvas-resize',
-          id: window.name || '',
+          id: wrapper.dataset.canvasId || window.name || '',
           height,
         },
         '*',

@@ -2,6 +2,24 @@
 
 @layer blocks {
   [data-docs-pane] {
+    --_docs-pane-divider-color: var(--dds-surface-border-color);
+    --_docs-pane-divider-style: var(--dds-surface-border-style);
+    --_docs-pane-divider-width: var(--dds-control-border-width);
+    --_docs-pane-header-gap: var(--dds-space-lg);
+    --_docs-pane-heading-color: var(--dds-text-prominent-color);
+    --_docs-pane-heading-font: var(--dds-text-control-font);
+    --_docs-pane-heading-font-size: var(--dds-text-control-size);
+    --_docs-pane-heading-font-weight: var(--dds-text-overline-weight);
+    --_docs-pane-heading-letter-spacing: var(--dds-text-overline-letter-spacing);
+    --_docs-pane-heading-line-height: var(--dds-text-control-line-height);
+    --_docs-pane-section-gap: var(--dds-space-md);
+    --_docs-pane-stack-gap: var(--dds-space-xl);
+    --_docs-pane-title-color: var(--dds-text-prominent-color);
+    --_docs-pane-title-font: var(--dds-text-title-font);
+    --_docs-pane-title-font-size: var(--dds-text-title-size);
+    --_docs-pane-title-font-weight: var(--dds-text-title-weight);
+    --_docs-pane-title-letter-spacing: var(--dds-text-title-letter-spacing);
+    --_docs-pane-title-line-height: var(--dds-text-title-line-height);
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
@@ -15,11 +33,11 @@
   }
 
   [data-docs-stack] {
-    --space: var(--_gallery-shell-docs-stack-gap);
+    --space: var(--_docs-pane-stack-gap);
   }
 
   [data-docs-header-stack] {
-    --space: var(--_gallery-shell-docs-header-gap);
+    --space: var(--_docs-pane-header-gap);
   }
 
   [data-docs-header] {
@@ -28,27 +46,27 @@
 
     & [data-docs-title] {
       margin: 0;
-      color: var(--_gallery-shell-docs-title-color);
-      font-family: var(--_gallery-shell-docs-title-font);
-      font-size: var(--_gallery-shell-docs-title-font-size);
-      font-weight: var(--_gallery-shell-docs-title-font-weight);
-      line-height: var(--_gallery-shell-docs-title-line-height);
-      letter-spacing: var(--_gallery-shell-docs-title-letter-spacing);
+      color: var(--_docs-pane-title-color);
+      font-family: var(--_docs-pane-title-font);
+      font-size: var(--_docs-pane-title-font-size);
+      font-weight: var(--_docs-pane-title-font-weight);
+      line-height: var(--_docs-pane-title-line-height);
+      letter-spacing: var(--_docs-pane-title-letter-spacing);
     }
   }
 
   [data-docs-section] > l-stack {
-    --space: var(--_gallery-shell-docs-section-gap);
+    --space: var(--_docs-pane-section-gap);
   }
 
   [data-docs-heading] {
     margin: 0;
-    color: var(--_gallery-shell-docs-heading-color);
-    font-family: var(--_gallery-shell-docs-heading-font);
-    font-size: var(--_gallery-shell-docs-heading-font-size);
-    font-weight: var(--_gallery-shell-docs-heading-font-weight);
-    line-height: var(--_gallery-shell-docs-heading-line-height);
-    letter-spacing: var(--_gallery-shell-docs-heading-letter-spacing);
+    color: var(--_docs-pane-heading-color);
+    font-family: var(--_docs-pane-heading-font);
+    font-size: var(--_docs-pane-heading-font-size);
+    font-weight: var(--_docs-pane-heading-font-weight);
+    line-height: var(--_docs-pane-heading-line-height);
+    letter-spacing: var(--_docs-pane-heading-letter-spacing);
     text-transform: uppercase;
   }
 
@@ -56,9 +74,9 @@
     margin: 0;
     border-bottom: 0;
     border-inline: 0;
-    border-block-start-color: var(--_gallery-shell-border-color);
-    border-block-start-style: var(--_gallery-shell-border-style);
-    border-block-start-width: var(--_gallery-shell-docs-divider-width);
+    border-block-start-color: var(--_docs-pane-divider-color);
+    border-block-start-style: var(--_docs-pane-divider-style);
+    border-block-start-width: var(--_docs-pane-divider-width);
   }
 
   .dds-variant-view {

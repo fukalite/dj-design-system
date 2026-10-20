@@ -45,10 +45,10 @@ describe('DDSGalleryShellElement', () => {
     `;
     document.body.appendChild(shell);
 
-    shell.setGalleryTheme('dark');
-    expect(shell.isGalleryThemeDark()).toBe(true);
+    shell.themeManager.setGalleryTheme('dark');
+    expect(shell.themeManager.isGalleryThemeDark()).toBe(true);
 
-    shell.setDrawerOpen(true);
+    shell.paneManager.setDrawerState(true);
     expect(shell.getAttribute('data-drawer-state')).toBe('open');
   });
 

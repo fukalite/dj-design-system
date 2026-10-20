@@ -205,22 +205,18 @@ def build_canvas_bg_styles(
     return f"<style{nonce_attr}>\n" + "\n".join(rules) + "\n</style>"
 
 
-def build_resize_script(iframe_id: str = "") -> str:
-    """Build the ResizeObserver script used by auto-height iframes."""
-    id_field = f'id:"{iframe_id}",' if iframe_id else ""
-    return (
-        "<script>"
-        "(function(){"
-        'const w=document.querySelector(".canvas-wrapper");'
-        "if(!w||!window.parent||window.parent===window)return;"
-        "new ResizeObserver(function(){"
-        "window.parent.postMessage({"
-        f'type:"canvas-resize",{id_field}height:Math.max(w.scrollHeight,w.offsetHeight)'
-        '},"*");'
-        "}).observe(w);"
-        "})();"
-        "</script>"
+def build_resize_script(
+    iframe_id: str = "",
+    *,
+    csp_nonce: Optional[str] = None,
+) -> str:
+    """Build the script tag for auto-height and stage message handling in iframes."""
+    del iframe_id
+    nonce_attr = (
+        f' nonce="{html.escape(str(csp_nonce))}"' if csp_nonce else ""
     )
+    script_url = static("dj_design_system/canvas-resize.js")
+    return f'<script src="{script_url}"{nonce_attr}></script>'
 
 
 def _flatten_attrs(attrs: dict[str, str]) -> str:
@@ -271,6 +267,7 @@ def build_canvas_srcdoc(
     mode_class: str = "canvas-wrapper--basic",
     iframe_id: str = "",
     color_scheme: ColorScheme = ColorScheme.LIGHT,
+    csp_nonce: Optional[str] = None,
 ) -> str:
     """Build a full HTML document for srcdoc embedding.
 
@@ -284,6 +281,7 @@ def build_canvas_srcdoc(
         mode_class: The canvas mode class (e.g. 'canvas-wrapper--basic').
         iframe_id: Optional ID to uniquely identify this canvas instance for resize events.
         color_scheme: Active ColorScheme for theme styling and media.
+        csp_nonce: Optional CSP nonce string for inline styles and scripts.
     """
     global_css = build_global_css_tags()
     global_js = build_global_js_tags()
@@ -291,10 +289,14 @@ def build_canvas_srcdoc(
         f'<link rel="stylesheet" href="{static("dj_design_system/canvas.css")}">'
     )
 
+    nonce_attr = (
+        f' nonce="{html.escape(str(csp_nonce))}"' if csp_nonce else ""
+    )
+
     basic_mode_css = ""
     if mode_class == "canvas-wrapper--basic":
         basic_mode_css = (
-            "<style>"
+            f"<style{nonce_attr}>"
             "html, body { min-height: 0 !important; height: auto !important; overflow: hidden !important; }"
             "</style>"
         )
@@ -322,10 +324,17 @@ def build_canvas_srcdoc(
     theme_app_css_tags, theme_app_js_tags = build_theme_app_media(
         theme_dict, app_label, color_scheme=color_scheme
     )
-    bg_styles = build_canvas_bg_styles(theme_dict=theme_dict)
-    resize_script = build_resize_script(iframe_id=iframe_id)
+    bg_styles = build_canvas_bg_styles(
+        theme_dict=theme_dict, csp_nonce=csp_nonce
+    )
+    resize_script = build_resize_script(
+        iframe_id=iframe_id, csp_nonce=csp_nonce
+    )
     html_attrs_str, body_attrs_str = build_html_attrs(
         theme_dict, app_label, color_scheme=color_scheme
+    )
+    canvas_id_attr = (
+        f' data-canvas-id="{html.escape(str(iframe_id))}"' if iframe_id else ""
     )
 
     iframe_doc = (
@@ -342,7 +351,7 @@ def build_canvas_srcdoc(
         f"{bg_styles}"
         "</head>"
         f"<body{body_attrs_str}>"
-        f'<div class="canvas-wrapper {mode_class} {bg_class}">'
+        f'<div class="canvas-wrapper {mode_class} {bg_class}"{canvas_id_attr}>'
         f"{rendered_html}"
         "</div>"
         f"{global_js}"
