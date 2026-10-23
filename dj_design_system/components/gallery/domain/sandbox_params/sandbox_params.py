@@ -20,19 +20,9 @@ class SandboxParams(components.TagComponent):
     Each row in ``param_rows`` is normalised in ``get_context()`` and delegated
     to ``{% dds__form_field %}`` inside an Every Layout ``<l-stack data-params-fields>``.
 
-    Args:
-        param_rows: Parameter form row dicts or objects with ``name``, ``spec``,
-            and ``field`` entries.
-        action_url: Form GET ``action`` and ``hx-get`` URL.
-        active_theme: Active theme value preserved as a hidden ``_dds_theme`` input.
-        active_variant: Active variant name (or ``Variant`` instance) preserved
-            as a hidden ``_dds_variant`` input.
-        hx_target: HTMX target selector for live sandbox swaps.
-        empty_message: Fallback message displayed when ``param_rows`` is empty.
-
-    Example usage::
-
-        {% dds__sandbox_params param_rows action_url=request.path active_theme=active_theme active_variant=active_variant %}
+    When to Use:
+        - Rendering the parameter customization form in the component sandbox pane.
+        - Updating live component previews dynamically on parameter field changes.
     """
 
     param_rows = parameters.ListParam(

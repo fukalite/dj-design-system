@@ -31,25 +31,5 @@ config = gallery.GalleryConfig(
                 "active_theme": "light",
             },
         ),
-        gallery.Variant(
-            name="dark_active",
-            label="Dark Theme Active",
-            description="Theme selector with Dark selected.",
-            kwargs={
-                "themes": list(STANDARD_THEMES),
-                "active_theme": "dark",
-            },
-        ),
-        gallery.Variant(
-            name="maximal",
-            label="Custom Label and Multiple Themes",
-            description="Extended theme list with custom accessible label and select ID.",
-            kwargs={
-                "themes": list(EXTENDED_THEMES),
-                "active_theme": "high-contrast-dark",
-                "label": "Preview Canvas Theme",
-                "select_id": "canvas-theme-select",
-            },
-        ),
     ],
 )

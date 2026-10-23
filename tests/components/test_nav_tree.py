@@ -236,14 +236,14 @@ class TestNavTreeParametersAndContext:
         assert button_node["depth"] == 2
         assert button_node["is_active"] is True
         assert button_node["is_open"] is True
-        assert button_node["resolved_icon"] == "component"
+        assert button_node["resolved_icon"] == "component-variants"
 
         primary_node = button_node["children"][0]
         assert primary_node["node_kind"] == "leaf"
         assert primary_node["depth"] == 3
         assert primary_node["is_variant"] is True
         assert primary_node["is_active"] is False
-        assert primary_node["resolved_icon"] == "code"
+        assert primary_node["resolved_icon"] == "variant"
 
         doc_node = folder_node["children"][1]
         assert doc_node["node_kind"] == "leaf"
@@ -479,7 +479,7 @@ class TestNavTreeGalleryAndDocs:
             component_name=COMPONENT_NAME,
         )
         assert isinstance(cfg, gallery.GalleryConfig)
-        assert len(cfg.variants) >= 3
+        assert len(cfg.variants) == 1
         for variant in cfg.variants:
             direct_html = nav_tree_module.NavTree(**variant.kwargs).render()
             assert 'class="dds-nav-tree"' in direct_html
@@ -500,13 +500,11 @@ class TestNavTreeGalleryAndDocs:
             assert 'class="dds-nav-tree"' in rendered
 
     def test_index_md_exists_and_documents_component(self) -> None:
-        """Verify index.md exists and documents dds__nav_tree and its parameters."""
+        """Verify index.md exists and documents <dds-nav-tree> behaviour and accessibility."""
         doc_text = _read_text(path=NAV_TREE_INDEX_MD_PATH)
-        assert "dds__nav_tree" in doc_text
-        assert "nodes" in doc_text
-        assert "active_path" in doc_text
-        assert "active_variant" in doc_text
-        assert "aria_label" in doc_text
+        assert "<dds-nav-tree" in doc_text
+        assert "Behaviour & Accessibility" in doc_text
+        assert "aria-current" in doc_text
 
 
 class TestNavTreeTypeScriptCustomElement:

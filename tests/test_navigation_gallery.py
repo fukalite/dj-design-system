@@ -363,8 +363,8 @@ class TestNavTreeTemplate:
         tree = _build_navigation([info])
 
         html = NavTree(nodes=tree, active_path="", active_variant="").render()
-        assert 'data-icon="component"' in html
-        assert 'data-icon="code"' in html
+        assert 'data-icon="component-variants"' in html
+        assert 'data-icon="variant"' in html
 
     def test_component_without_variants_icon_renders(self):
         info = make_info_with_config("button", GalleryConfig())

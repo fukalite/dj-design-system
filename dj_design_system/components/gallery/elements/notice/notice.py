@@ -18,21 +18,11 @@ class Notice(components.BlockComponent):
     interactive controls. Automatically maps ``warning`` and ``error`` variants
     to ``role="alert"`` and ``info`` and ``success`` variants to ``role="note"``.
 
-    Variants:
-        - ``info`` (default): General informational callout or tip.
-        - ``success``: Positive confirmation or verified status message.
-        - ``warning``: Caution, deprecation, or non-blocking alert.
-        - ``error``: Critical failure, validation blocker, or destructive warning.
-
-    Example usage::
-
-        {% dds__notice variant="info" title="Note" %}
-            Changes take effect immediately.
-        {% enddds__notice %}
-
-        {% dds__notice variant="error" title="Configuration Error" %}
-            Missing required template setting.
-        {% enddds__notice %}
+    When to Use:
+        - Highlighting informational notes, tips, or configuration guidance in documentation pages.
+        - Displaying positive confirmation messages after an operation succeeds.
+        - Surfacing deprecation notices or non-blocking cautions.
+        - Presenting validation failures or rendering errors.
     """
 
     variant = parameters.StrParam(
@@ -76,11 +66,7 @@ class Notice(components.BlockComponent):
         context = super().get_context()
         variant = self.variant if self.variant is not None else DEFAULT_VARIANT
         show_icon = self.icon != "none"
-        resolved_icon = (
-            self.icon
-            if self.icon and self.icon != "none"
-            else variant
-        )
+        resolved_icon = self.icon if self.icon and self.icon != "none" else variant
         resolved_role = (
             self.role
             if self.role

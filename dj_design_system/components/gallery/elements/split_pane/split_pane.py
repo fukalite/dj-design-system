@@ -25,24 +25,9 @@ class SplitPane(components.BlockComponent):
     Supports both ``"horizontal"`` (side-by-side) and ``"vertical"`` (stacked)
     orientations, clamped ratio bounds (10% to 90%), and slotted pane content.
 
-    Args:
-        orientation: Split orientation (``'horizontal'`` for side-by-side or
-            ``'vertical'`` for stacked).
-        initial_ratio: Initial primary pane percentage (clamped within bounds).
-        min_ratio: Minimum primary pane percentage (clamped to 10-90).
-        max_ratio: Maximum primary pane percentage (clamped to min_ratio-90).
-        resizer_label: Accessible label for the resize separator handle.
-
-    Example usage::
-
-        {% dds__split_pane orientation="horizontal" initial_ratio=60 %}
-            {% slot "primary" %}
-                <div>Primary pane content</div>
-            {% endslot %}
-            {% slot "secondary" %}
-                <div>Secondary pane content</div>
-            {% endslot %}
-        {% enddds__split_pane %}
+    When to Use:
+        - Providing interactive side-by-side or stacked resizable split panes.
+        - Laying out preview canvas and parameter control panels.
     """
 
     orientation = parameters.StrParam(

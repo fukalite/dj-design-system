@@ -73,25 +73,5 @@ config = gallery.GalleryConfig(
                 "active_path": "dj_design_system/elements/button",
             },
         ),
-        gallery.Variant(
-            name="active_variant",
-            label="Active Variant Node",
-            description="Navigation tree highlighting a nested component variant link.",
-            kwargs={
-                "nodes": list(SAMPLE_NODES),
-                "active_path": "dj_design_system/elements/button",
-                "active_variant": "primary",
-            },
-        ),
-        gallery.Variant(
-            name="collapsed",
-            label="All Folders Collapsed",
-            description="Navigation tree rendered without an active route so folders start collapsed.",
-            kwargs={
-                "nodes": list(SAMPLE_NODES),
-                "active_path": "",
-                "aria_label": "Gallery sidebar navigation",
-            },
-        ),
     ],
 )

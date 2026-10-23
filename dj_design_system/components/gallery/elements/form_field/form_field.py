@@ -17,6 +17,11 @@ class FormField(components.BlockComponent):
     consistent label typography, spacing, focus outlines, and accessible error
     messaging backed by Tier 2 ``--dds-control-*`` and ``--dds-status-error-*``
     tokens. Pass the control markup as the component block content.
+
+    When to Use:
+        - Wrapping parameter inputs, filter controls, and settings fields so labels, descriptions, and validation messages share consistent spacing and typography.
+        - Use ``layout="stacked"`` (default) for standard text inputs, selects, and textareas.
+        - Use ``layout="inline"`` for compact horizontal label-and-control pairs such as checkboxes or switch toggles.
     """
 
     label = parameters.StrParam(description="Field label text.")

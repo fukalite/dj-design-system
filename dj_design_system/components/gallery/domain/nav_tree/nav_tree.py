@@ -12,8 +12,10 @@ FOLDER_STATE_CLOSED = "closed"
 FOLDER_STATE_OPEN = "open"
 ICON_CODE = "code"
 ICON_COMPONENT = "component"
+ICON_COMPONENT_VARIANTS = "component-variants"
 ICON_DOC = "doc"
 ICON_FOLDER = "folder"
+ICON_VARIANT = "variant"
 MAX_TREE_DEPTH = 3
 NODE_KIND_APP = "app"
 NODE_KIND_FOLDER = "folder"
@@ -34,17 +36,9 @@ class NavTree(components.TagComponent):
     in ``get_context()`` so the template remains purely declarative without
     filters or recursive partial includes.
 
-    Args:
-        nodes: Top-level navigation nodes (``NavNode`` instances or dicts).
-        active_path: Current active gallery route path used to compute
-            ``aria-current="page"`` and initial folder expansion.
-        active_variant: Optional active variant slug or ``Variant`` instance.
-        aria_label: Accessible ``aria-label`` for the ``<nav>`` landmark.
-
-    Example usage::
-
-        {% dds__nav_tree nodes=nav_tree active_path=active_path active_variant=active_variant %}
-        {% dds__nav_tree nav_tree aria_label="Design system navigation" %}
+    When to Use:
+        - Rendering the gallery sidebar navigation with collapsible folder sections and active page indicators.
+        - Hierarchical navigation menus representing apps, components, documentation pages, and variants.
     """
 
     nodes = parameters.ListParam(
@@ -178,6 +172,8 @@ class NavTree(components.TagComponent):
             icon_str = parsed.icon
             if icon_str in icon_element.ICON_NAMES:
                 resolved_icon = icon_str
+            elif is_component and has_children:
+                resolved_icon = ICON_COMPONENT_VARIANTS
             elif is_component:
                 resolved_icon = ICON_COMPONENT
             elif is_document or (has_index_doc and not has_children):
@@ -185,7 +181,7 @@ class NavTree(components.TagComponent):
             elif has_children or node_type == NODE_TYPE_FOLDER:
                 resolved_icon = ICON_FOLDER
             elif is_variant:
-                resolved_icon = ICON_CODE
+                resolved_icon = ICON_VARIANT
             else:
                 resolved_icon = ICON_COMPONENT
 

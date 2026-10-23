@@ -35,28 +35,10 @@ class CanvasWidget(components.TagComponent):
     ``{% dds__icon %}`` buttons for toggling between ``"preview"``, ``"code"``,
     and ``"html"`` panels.
 
-    Args:
-        canvas_id: Unique identifier for the canvas instance and postMessage
-            resize correlation.
-        iframe_src: URL for the isolated preview iframe.
-        iframe_srcdoc: Inline HTML document string for srcdoc preview embedding.
-        source_code: Raw template source code snippet.
-        rendered_html: Raw rendered HTML output snippet.
-        mode: Initial active panel mode (``'preview'``, ``'code'``, or ``'html'``).
-        viewport: Initial viewport width preset (``'responsive'`` or pixel width
-            string such as ``'768'``).
-        background: Initial canvas stage background preset (``'white'``,
-            ``'light'``, ``'dark'``).
-        zoom: Initial zoom percentage string (e.g. ``'100'``).
-        sandbox_attrs: Optional iframe sandbox attribute value.
-        title: Accessible title attribute for the preview iframe.
-        show_toggles: Whether to render the preview/code/html mode toggle bar.
-
-    Example usage::
-
-        {% dds__canvas_widget "/gallery/canvas/?component=dds__button" canvas_id="main" source_code="{% dds__button 'Save' %}" rendered_html="<button class='dds-button'>Save</button>" %}
-
-        {% dds__canvas_widget iframe_srcdoc="<button>Hello</button>" background="dark" viewport="768" zoom="125" %}
+    When to Use:
+        - Hosting an isolated iframe preview stage with responsive viewport sizing, background switching, and zoom controls.
+        - Inspecting live template invocation source code alongside server-rendered HTML output.
+        - Embedding interactive component demos in documentation pages.
     """
 
     canvas_id = parameters.StrParam(

@@ -37,16 +37,10 @@ class Tabs(components.BlockComponent):
     ``content`` key, or pass custom ``<div role="tabpanel" data-tab-panel="...">``
     markup inside the component's block body.
 
-    Example usage::
-
-        {% dds__tabs tabs=tab_items active_tab="overview" aria_label="Component views" %}
-        {% enddds__tabs %}
-
-        {% dds__tabs tabs=tab_headers active_tab="preview" %}
-            <div role="tabpanel" id="dds-panel-preview" data-tab-panel="preview" aria-labelledby="dds-tab-preview">
-                Custom preview content
-            </div>
-        {% enddds__tabs %}
+    When to Use:
+        - Switching between related views within the same context (such as Preview, Source Code, and Documentation panes).
+        - Grouping parallel content sections without full page navigation.
+        - Rendering standalone view switchers via ``variant="switcher"``.
     """
 
     tabs = parameters.ListParam(
@@ -92,9 +86,7 @@ class Tabs(components.BlockComponent):
             str(self.id_prefix) if self.id_prefix else DEFAULT_ID_PREFIX
         )
         resolved_variant = (
-            str(self.variant)
-            if self.variant in VALID_VARIANTS
-            else DEFAULT_VARIANT
+            str(self.variant) if self.variant in VALID_VARIANTS else DEFAULT_VARIANT
         )
         slot_content = context.get("content")
         resolved_slot_content = (
@@ -135,9 +127,7 @@ class Tabs(components.BlockComponent):
                         else (str(raw_content) if raw_content is not None else "")
                     ),
                     "has_panel": (
-                        bool(raw_has_panel)
-                        if raw_has_panel is not None
-                        else None
+                        bool(raw_has_panel) if raw_has_panel is not None else None
                     ),
                 }
             )

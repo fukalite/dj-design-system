@@ -39,6 +39,8 @@ EXPECTED_ICON_NAMES: tuple[str, ...] = (
     "ruler",
     "rtl",
     "component",
+    "component-variants",
+    "variant",
     "doc",
     "folder",
     "folder-open",
@@ -286,10 +288,9 @@ class TestIconStylesheetAndColocation:
             source_dir=ICON_DIR,
             component_name="icon",
         )
-        assert cfg.variants
-        for variant in cfg.variants:
-            rendered = Icon(**variant.kwargs).render()
-            assert "<svg" in rendered
+        assert cfg.variants == []
+        rendered = Icon(**cfg.param_defaults).render()
+        assert "<svg" in rendered
 
         assert ICON_INDEX_MD_PATH.is_file()
         assert ICON_INDEX_MD_PATH.read_text(encoding="utf-8").strip()

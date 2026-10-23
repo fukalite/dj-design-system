@@ -878,13 +878,14 @@
    * ------------------------------------------------------------------------- */
   .dds-params-table {
     --_params-table-choices-gap: var(--dds-space-2xs);
-    --_params-table-code-bg-color: var(--dds-state-hover-bg-color);
-    --_params-table-code-border-color: var(--dds-control-border-color);
-    --_params-table-code-border-radius: var(--dds-control-border-radius);
-    --_params-table-code-border-style: var(--dds-control-border-style);
-    --_params-table-code-border-width: var(--dds-surface-border-width);
-    --_params-table-code-color: var(--dds-text-prominent-color);
+    --_params-table-code-bg-color: var(--dds-surface-code-bg-color);
+    --_params-table-code-border-color: var(--dds-surface-code-border-color);
+    --_params-table-code-border-radius: var(--dds-surface-code-border-radius);
+    --_params-table-code-border-style: var(--dds-surface-code-border-style);
+    --_params-table-code-border-width: var(--dds-surface-code-border-width);
+    --_params-table-code-color: var(--dds-surface-code-text-default-color);
     --_params-table-code-font: var(--dds-text-code-font);
+    --_params-table-code-letter-spacing: var(--dds-text-code-letter-spacing);
     --_params-table-code-line-height: var(--dds-text-code-line-height);
     --_params-table-code-padding-block: var(--dds-space-3xs);
     --_params-table-code-padding-inline: var(--dds-space-2xs);
@@ -952,7 +953,10 @@
       font-family: var(--_params-table-code-font);
       font-size: var(--_params-table-code-size);
       font-weight: var(--_params-table-code-weight);
+      font-variant-ligatures: none;
       line-height: var(--_params-table-code-line-height);
+      letter-spacing: var(--_params-table-code-letter-spacing);
+      white-space: break-spaces;
     }
 
     & [data-param-choices] {
@@ -984,11 +988,12 @@
     --_prose-blockquote-padding-block: var(--dds-space-sm);
     --_prose-blockquote-padding-inline: var(--dds-space-lg);
     --_prose-border-color: var(--dds-surface-border-color);
-    --_prose-code-bg-color: var(--dds-state-hover-bg-color);
-    --_prose-code-border-color: var(--dds-control-border-color);
-    --_prose-code-border-radius: var(--dds-control-border-radius);
-    --_prose-code-border-style: var(--dds-control-border-style);
-    --_prose-code-border-width: var(--dds-surface-border-width);
+    --_prose-code-bg-color: var(--dds-surface-code-bg-color);
+    --_prose-code-border-color: var(--dds-surface-code-border-color);
+    --_prose-code-border-radius: var(--dds-surface-code-border-radius);
+    --_prose-code-border-style: var(--dds-surface-code-border-style);
+    --_prose-code-border-width: var(--dds-surface-code-border-width);
+    --_prose-code-color: var(--dds-surface-code-text-default-color);
     --_prose-code-font: var(--dds-text-code-font);
     --_prose-code-letter-spacing: var(--dds-text-code-letter-spacing);
     --_prose-code-line-height: var(--dds-text-code-line-height);
@@ -1030,7 +1035,10 @@
     --_prose-pre-border-style: var(--dds-surface-code-border-style);
     --_prose-pre-border-width: var(--dds-surface-code-border-width);
     --_prose-pre-color: var(--dds-surface-code-text-default-color);
-    --_prose-pre-padding: var(--dds-space-md);
+    --_prose-pre-padding-block: var(--dds-space-md);
+    --_prose-pre-padding-inline: var(--dds-space-lg);
+    --_prose-pre-shadow-color: var(--dds-surface-code-shadow-color);
+    --_prose-pre-shadow-shape: var(--dds-surface-code-shadow-shape);
     --_prose-subheading-font: var(--dds-text-subheading-font);
     --_prose-subheading-letter-spacing: var(--dds-text-subheading-letter-spacing);
     --_prose-subheading-line-height: var(--dds-text-subheading-line-height);
@@ -1228,25 +1236,29 @@
       }
     }
 
-    & code {
+    & code:not(dds-code-block *) {
       padding-block: var(--_prose-code-padding-block);
       padding-inline: var(--_prose-code-padding-inline);
       border-width: var(--_prose-code-border-width);
       border-style: var(--_prose-code-border-style);
       border-color: var(--_prose-code-border-color);
       border-radius: var(--_prose-code-border-radius);
+      color: var(--_prose-code-color);
       background-color: var(--_prose-code-bg-color);
       font-family: var(--_prose-code-font);
       font-size: var(--_prose-code-size);
       font-weight: var(--_prose-code-weight);
+      font-variant-ligatures: none;
       line-height: var(--_prose-code-line-height);
       letter-spacing: var(--_prose-code-letter-spacing);
+      white-space: break-spaces;
     }
 
-    & pre {
+    & pre:not(dds-code-block *) {
       margin-block-start: 0;
       margin-block-end: 0;
-      padding: var(--_prose-pre-padding);
+      padding-block: var(--_prose-pre-padding-block);
+      padding-inline: var(--_prose-pre-padding-inline);
       border-width: var(--_prose-pre-border-width);
       border-style: var(--_prose-pre-border-style);
       border-color: var(--_prose-pre-border-color);
@@ -1254,15 +1266,29 @@
       overflow-x: auto;
       color: var(--_prose-pre-color);
       background-color: var(--_prose-pre-bg-color);
+      box-shadow: var(--_prose-pre-shadow-shape) var(--_prose-pre-shadow-color);
       font-family: var(--_prose-code-font);
       font-size: var(--_prose-code-size);
+      font-weight: var(--_prose-code-weight);
+      font-variant-ligatures: none;
       line-height: var(--_prose-code-line-height);
+      letter-spacing: var(--_prose-code-letter-spacing);
+      white-space: pre;
+      tab-size: 4;
 
       & code {
         padding: 0;
         border-width: 0;
         color: inherit;
         background-color: transparent;
+        font-family: inherit;
+        font-size: inherit;
+        font-weight: inherit;
+        font-variant-ligatures: none;
+        line-height: inherit;
+        letter-spacing: inherit;
+        white-space: pre;
+        tab-size: 4;
       }
     }
 

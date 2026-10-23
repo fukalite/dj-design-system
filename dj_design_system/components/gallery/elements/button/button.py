@@ -27,25 +27,10 @@ class Button(components.TagComponent):
     accessible icon-only controls, toggle buttons via ``aria-pressed``, and
     declarative ``data-action`` hooks for parent Web Components.
 
-    Variants:
-        - ``default``: Standard bordered control surface button.
-        - ``primary``: High-emphasis action button using selected state tokens.
-        - ``ghost``: Low-emphasis borderless toolbar and inline action button.
-        - ``danger``: Destructive action button using error status tokens.
-
-    Args:
-        label: Button text label (or accessible ``aria-label`` when ``icon_only=True``).
-        variant: Visual button style (``"default"``, ``"primary"``, ``"ghost"``, ``"danger"``).
-        size: Button size step (``"sm"``, ``"md"``, ``"lg"``).
-        icon: Optional leading or standalone icon identifier from ``ICON_NAMES``.
-        icon_trailing: Optional trailing icon identifier from ``ICON_NAMES``.
-        icon_only: Render only the icon and expose ``label`` as ``aria-label``.
-        href: Optional URL; renders an anchor element when non-empty and not disabled.
-        target: Optional link target attribute (e.g. ``"_blank"``).
-        button_type: HTML button type attribute (``"button"``, ``"submit"``, ``"reset"``).
-        disabled: Whether user interaction is disabled.
-        pressed: Optional boolean toggle state for ``aria-pressed`` (``"true"``/``"false"``).
-        action: Optional ``data-action`` hook for parent Web Components.
+    When to Use:
+        - Triggering actions, form submissions, toolbar toggles (``pressed``), and declarative parent Web Component hooks (``action``).
+        - Navigating to internal or external URLs with button styling (``href`` and ``target``).
+        - Rendering compact icon-only controls (``icon_only=True``) with mandatory ``aria-label`` accessibility.
     """
 
     label = parameters.StrParam(

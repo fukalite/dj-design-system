@@ -481,29 +481,26 @@ class TestBreadcrumbGalleryAndDocs:
             component_name=COMPONENT_NAME,
         )
         assert isinstance(cfg, gallery.GalleryConfig)
-        assert len(cfg.variants) >= 3
-        for variant in cfg.variants:
-            direct_html = breadcrumb_module.Breadcrumb(**variant.kwargs).render()
-            assert 'class="dds-breadcrumb"' in direct_html
-            rendered = _render_template(
-                source=(
-                    "{% dds__breadcrumb items=items aria_label=aria_label "
-                    "separator_icon=separator_icon %}"
-                ),
-                context={
-                    "items": variant.kwargs.get("items", []),
-                    "aria_label": variant.kwargs.get("aria_label", "Breadcrumb"),
-                    "separator_icon": variant.kwargs.get(
-                        "separator_icon", "chevron-right"
-                    ),
-                },
-            )
-            assert 'class="dds-breadcrumb"' in rendered
+        assert len(cfg.variants) == 0
+        direct_html = breadcrumb_module.Breadcrumb(
+            **cfg.param_defaults
+        ).render()
+        assert 'class="dds-breadcrumb"' in direct_html
+        rendered = _render_template(
+            source=(
+                "{% dds__breadcrumb items=items aria_label=aria_label "
+                "separator_icon=separator_icon %}"
+            ),
+            context={
+                "items": cfg.param_defaults.get("items", []),
+                "aria_label": "Breadcrumb",
+                "separator_icon": "chevron-right",
+            },
+        )
+        assert 'class="dds-breadcrumb"' in rendered
 
     def test_index_md_exists_and_documents_component(self) -> None:
-        """Verify index.md exists and documents dds__breadcrumb and its parameters."""
+        """Verify index.md exists and documents Breadcrumb data contract and accessibility."""
         doc_text = _read_text(path=BREADCRUMB_INDEX_MD_PATH)
-        assert "dds__breadcrumb" in doc_text
-        assert "items" in doc_text
-        assert "aria_label" in doc_text
-        assert "separator_icon" in doc_text
+        assert "BreadcrumbItem" in doc_text
+        assert "Behaviour & Accessibility" in doc_text

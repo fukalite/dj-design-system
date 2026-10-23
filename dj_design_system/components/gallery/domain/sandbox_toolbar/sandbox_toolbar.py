@@ -56,30 +56,9 @@ class SandboxToolbar(components.TagComponent):
       model outline, measurement overlay, RTL direction, optional parameter
       reset, and optional standalone canvas link.
 
-    Args:
-        variants: Optional list of ``Variant`` instances or dicts with ``name``
-            and ``label``.
-        active_variant: Currently active variant name or ``Variant`` instance.
-        component_url: Base component URL for variant switching.
-        backgrounds: Available canvas background dicts with ``value``, ``label``,
-            and optional ``color``.
-        active_background: Currently active background identifier.
-        viewports: Optional viewport preset dicts with ``value`` and ``label``.
-        active_viewport: Currently active viewport preset value.
-        zoom_levels: Optional zoom percentage presets.
-        active_zoom: Currently active zoom level.
-        outline_active: Whether box model outline is initially enabled.
-        measure_active: Whether measurement overlay is initially enabled.
-        rtl_active: Whether RTL direction is initially enabled.
-        canvas_url: Optional standalone canvas URL for opening in a new tab.
-        reset_url: Optional URL to reset sandbox parameters.
-        aria_label: Accessible toolbar label.
-
-    Example usage::
-
-        {% dds__sandbox_toolbar variants=variants active_variant="primary" component_url="/gallery/button/" %}
-
-        {% dds__sandbox_toolbar active_background="dark" active_viewport="768" outline_active=True canvas_url="/canvas/button/" %}
+    When to Use:
+        - Providing interactive viewport width presets, canvas background switching, zoom controls, and variant preset selection above a sandbox preview stage.
+        - Exposing box model outline, measurement overlay, and RTL direction toggles alongside parameter reset and standalone canvas actions.
     """
 
     variants = parameters.ListParam(

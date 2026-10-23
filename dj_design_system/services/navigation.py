@@ -12,6 +12,7 @@ from urllib.parse import urlencode
 
 import markdown as markdown_lib
 from django.apps import apps
+from django.conf import settings
 from django.urls import reverse
 
 from dj_design_system.constants import (
@@ -24,6 +25,15 @@ from dj_design_system.services import visibility as visibility_service
 from dj_design_system.services.registry import component_registry
 from dj_design_system.settings import dds_settings
 from dj_design_system.types import NodeType
+
+
+DOC_ORDER_MAP: dict[str, int] = {
+    "semantic_tokens": 1,
+    "typography_and_spacing": 2,
+    "layout_primitives": 3,
+    "areas_and_token_delegation": 4,
+    "templates": 5,
+}
 
 
 _SEARCH_INDEX_CACHE_MAXSIZE = 32
@@ -109,10 +119,12 @@ class _AppTreeBuilder:
                         path=".".join(path_parts[: depth + 1]),
                     )
                 )
+                order = -10 if path_parts[depth] == "about" else 0
                 node = NavNode(
                     label=label,
                     slug=path_parts[depth],
                     node_type=NodeType.FOLDER,
+                    order=order,
                 )
                 current.children.append(node)
                 self._nodes_by_path[path_key] = node
@@ -201,11 +213,13 @@ class _AppTreeBuilder:
             parent.index_doc_path = md_path
         else:
             stem = md_path.stem
+            order = DOC_ORDER_MAP.get(stem, 0)
             node = NavNode(
                 label=to_display_label(stem),
                 slug=stem,
                 node_type=NodeType.DOCUMENT,
                 doc_path=md_path,
+                order=order,
             )
             parent.children.append(node)
 
@@ -333,6 +347,8 @@ def _cached_build_navigation() -> list[NavNode]:
 
 def build_navigation() -> list[NavNode]:
     """Build the full gallery navigation tree from the component registry and markdown files (cached)."""
+    if settings.DEBUG:
+        clear_navigation_cache()
     return _cached_build_navigation()
 
 
@@ -613,7 +629,7 @@ def normalize_folder_items(
 
         if parsed.is_component or parsed.node_type == "component":
             node_kind = "component"
-            icon = "component"
+            icon = "component-variants" if parsed.has_children else "component"
             badge_label = "Component"
             badge_variant = "info"
         elif parsed.is_document or parsed.node_type in ("document", "doc"):
@@ -623,7 +639,7 @@ def normalize_folder_items(
             badge_variant = "neutral"
         elif parsed.is_variant or parsed.node_type == "variant":
             node_kind = "variant"
-            icon = "code"
+            icon = "variant"
             badge_label = "Variant"
             badge_variant = "code"
         else:

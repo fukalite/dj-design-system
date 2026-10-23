@@ -31,7 +31,6 @@ BUTTON_DIR = (
 BUTTON_CSS_PATH = BUTTON_DIR / "button.css"
 BUTTON_HTML_PATH = BUTTON_DIR / "button.html"
 BUTTON_PY_PATH = BUTTON_DIR / "button.py"
-BUTTON_INDEX_MD_PATH = BUTTON_DIR / "index.md"
 
 EXPECTED_VARIANTS: tuple[str, ...] = ("default", "primary", "ghost", "danger")
 EXPECTED_SIZES: tuple[str, ...] = ("sm", "md", "lg")
@@ -455,5 +454,5 @@ class TestButtonStylesheetAndColocation:
             rendered = Button(**variant.kwargs).render()
             assert 'class="dds-button"' in rendered
 
-        assert BUTTON_INDEX_MD_PATH.is_file()
-        assert BUTTON_INDEX_MD_PATH.read_text(encoding="utf-8").strip()
+        doc = Button.__doc__ or ""
+        assert "When to Use:" in doc

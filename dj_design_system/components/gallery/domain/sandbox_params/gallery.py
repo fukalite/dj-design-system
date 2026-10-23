@@ -79,14 +79,5 @@ config = gallery.GalleryConfig(
                 "active_theme": "dark",
             },
         ),
-        gallery.Variant(
-            name="empty",
-            label="Empty Parameters State",
-            description="Fallback message displayed when a component has no editable parameters.",
-            kwargs={
-                "param_rows": [],
-                "empty_message": "This component has no configurable parameters.",
-            },
-        ),
     ],
 )

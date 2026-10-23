@@ -22,24 +22,10 @@ class Badge(components.TagComponent):
     parameter requirements, status indicators, or technical type annotations
     within the gallery and documentation views.
 
-    Variants:
-        - ``neutral`` (default): General-purpose metadata pill using control surface styling.
-        - ``info``: Informational status or highlighted note pill.
-        - ``success``: Positive status, active state, or completion indicator.
-        - ``warning``: Caution or deprecation indicator.
-        - ``error``: Required parameter indicator, error state, or critical status.
-
-    Parameters:
-        label: Badge text content. Positional argument 1.
-        variant: Semantic status style (``"neutral"``, ``"info"``, ``"success"``, ``"warning"``, ``"error"``).
-        is_code: Render badge text as inline monospace code.
-
-    Example usage::
-
-        {% dds__badge "Optional" %}
-        {% dds__badge "Required" variant="error" %}
-        {% dds__badge "str" is_code=True %}
-        {% dds__badge "DeprecatedType" variant="warning" is_code=True %}
+    When to Use:
+        - Highlighting parameter requirements (``Required``, ``Optional``) in parameter tables.
+        - Displaying parameter data types (``str``, ``bool``, ``int``) using the ``is_code`` monospace style.
+        - Indicating semantic status (``info``, ``success``, ``warning``, ``error``) in headers, lists, and cards.
     """
 
     label = parameters.StrParam(description="Badge text content.")

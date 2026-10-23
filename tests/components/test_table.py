@@ -97,9 +97,7 @@ class TestTableExportAndRegistration:
         registry = _make_table_registry()
         info = registry.get_by_name(name="table", app_label=APP_LABEL)
         gallery_cfg = info.gallery_config
-        variant_names = [variant.name for variant in gallery_cfg.variants]
-        assert "basic" in variant_names
-        assert DENSITY_COMPACT in variant_names
+        assert len(gallery_cfg.variants) == 0
         assert (TABLE_DIR / "index.md").is_file()
 
 

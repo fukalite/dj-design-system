@@ -112,6 +112,8 @@ def _render_folder(request, context, node, app_label, path_parts):
 
 def _render_document(request, context, node, app_label, path_parts):
     """Render a standalone markdown document."""
+    if not node.doc_path or not node.doc_path.is_file():
+        raise Http404(f"Document {node.label} not found")
     active_theme = str(context.get("active_theme") or "")
     theme_dict = get_theme(identifier=active_theme) or get_default_theme()
     doc_app_label = node.app_label or app_label
