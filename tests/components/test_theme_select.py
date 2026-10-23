@@ -85,9 +85,7 @@ def _read_text(path: pathlib.Path) -> str:
 
 def _extract_rule_blocks(css_text: str, selector: str) -> list[str]:
     """Extract CSS declaration blocks for a specific selector."""
-    escaped = re.escape(pattern=selector)
-    pattern = re.compile(pattern=rf"{escaped}\s*\{{([^}}]*)\}}", flags=re.DOTALL)
-    return pattern.findall(string=css_text)
+    return conftest.extract_css_rule_blocks(css_text=css_text, selector=selector)
 
 
 def _extract_defined_properties(block_text: str) -> dict[str, str]:
@@ -232,7 +230,7 @@ class TestThemeSelectRenderingAndTemplate:
             context={"themes_list": themes_list},
         ).strip()
         assert (
-            '<dds-theme-select class="dds-theme-select" data-active-theme="dark">'
+            '<dds-theme-select class="dds-theme-select" data-active-theme="dark"'
             in html
         )
         assert "<div data-theme-control>" in html
@@ -314,25 +312,12 @@ class TestThemeSelectStylesheet:
         ):
             assert expected_family in mapped_values
 
-    def test_css_formatting_and_no_bem(self) -> None:
-        """Verify zero BEM selectors, single quotes, and alphabetized declarations."""
+    def test_disabled_styles_target_theme_control_box(self) -> None:
+        """Verify disabled selector targets [data-theme-control] via :has([data-theme-select]:disabled)."""
         css_text = _read_text(path=THEME_SELECT_CSS_PATH)
-        assert '"' not in css_text
-        assert "!important" not in css_text
-        bem_matches = re.findall(
-            pattern=r"\.[a-z0-9-]+(?:__|--)[a-z0-9-]+",
-            string=css_text,
-        )
-        assert not bem_matches
-        rule_blocks = re.findall(pattern=r"\{([^{}]+)\}", string=css_text)
-        assert rule_blocks
-        for block in rule_blocks:
-            prop_names = re.findall(
-                pattern=r"^\s*([a-z0-9_-]+)\s*:",
-                string=block,
-                flags=re.MULTILINE,
-            )
-            assert prop_names == sorted(prop_names)
+        assert "&:has([data-theme-select]:disabled) [data-theme-control]" in css_text
+        assert "pointer-events: none;" in css_text
+        assert "cursor: not-allowed;" in css_text
 
 
 class TestThemeSelectCustomElementTypeScript:

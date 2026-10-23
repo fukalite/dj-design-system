@@ -8,10 +8,24 @@ A responsive, accessible table primitive for structured tabular data.
 - Use `density="default"` for general documentation tables.
 - Use `density="compact"` for dense parameter or metadata listings.
 
+## Parameters
+
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `caption` | `str` | `""` | Optional accessible table caption. |
+| `density` | `str` | `"default"` | Row padding density (`"default"` or `"compact"`). |
+
 ## Slots
 
-- **`head` (optional):** Table header rows (`<tr>` containing `<th>` cells), rendered inside `<thead>`.
-- **`body` (required):** Table body rows (`<tr>` containing `<td>` cells), rendered inside `<tbody>`.
+| Slot | Required | Description |
+| :--- | :--- | :--- |
+| `head` | `False` | Table header rows (`<tr>` containing `<th>` cells), rendered inside `<thead>`. |
+| `body` | `True` | Table body rows (`<tr>` containing `<td>` or `<th>` cells), rendered inside `<tbody>`. |
+| `foot` | `False` | Optional table footer rows (`<tr>` containing `<td>` or `<th>` cells), rendered inside `<tfoot>`. |
+
+## Accessibility
+
+- The responsive outer container enforces `overflow-x: auto`, `tabindex="0"`, and `role="region"` with an `aria-label` matching the caption (or falling back to `"Data table"`). This guarantees keyboard-only users can scroll wide tables horizontally.
 
 ## Example Usage
 

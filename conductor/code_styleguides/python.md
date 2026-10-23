@@ -15,6 +15,7 @@ enforced by tooling and is not repeated here.
 - **Layering**: Follow [layered-architecture.md](layered-architecture.md). Business logic holds rules and processes (including side effects); services read and change data for their own app.
 - **Decoupling**: Minimise dependencies and coupling. Wrap side-effect libraries in services to limit the blast radius.
 - **Global State**: Avoid mutable global state.
+- **No HTML or `mark_safe` in Python**: Python modules (views, services, component classes) must never construct raw HTML strings or call `mark_safe()` / `format_html()`. HTML generation belongs exclusively in Django templates.
 - **Scripts**: Executable files keep their logic in a `main()` function, called from an `if __name__ == "__main__":` block.
 
 ## Imports
@@ -24,7 +25,7 @@ enforced by tooling and is not repeated here.
 
 ## Language
 - **Keyword Arguments**: Always use keyword arguments when calling functions.
-- **Data Handling**: Use dataclasses instead of raw dicts or lists for passing data.
+- **Data Handling**: Use dataclasses instead of raw dicts or lists for passing data. When components accept collections of structured items (e.g. items, rows, options), define an explicit `@dataclass` in the component module and re-export it from the component package `__init__.py`.
 - **Constants**: Use a constant for any string referenced in more than one place, and collate constants.
 - **Default Arguments**: Never use mutable objects (`[]`, `{}`) as default values.
 - **Comprehensions**: Use for simple cases. Prefer a full loop when the logic is complex.

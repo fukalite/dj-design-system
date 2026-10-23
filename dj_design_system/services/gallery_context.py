@@ -16,6 +16,8 @@ from dj_design_system.data import (
     NavNode,
     ParamRowData,
     ParamSpecData,
+    ParamTableRowData,
+    SlotTableRowData,
 )
 from dj_design_system.exceptions import VariantNotFoundError
 from dj_design_system.forms import build_component_form
@@ -478,6 +480,26 @@ def build_component_page_context(
         if issubclass(component_class, BlockComponent) and component_class.has_slots()
         else []
     )
+    context["normalized_params"] = [
+        ParamTableRowData.from_raw(
+            (name, spec),
+            empty_placeholder="—",
+            fallback_type_name="any",
+        ).to_dict()
+        for name, spec in params.items()
+    ]
+    context["normalized_slots"] = [
+        SlotTableRowData.from_raw(
+            (slot_name, slot),
+            empty_placeholder="—",
+        ).to_dict()
+        for slot_name, slot in (
+            component_class.get_slots().items()
+            if issubclass(component_class, BlockComponent)
+            and component_class.has_slots()
+            else []
+        )
+    ]
     context["component_tabs"] = [
         {"id": "docs", "label": "Documentation"},
         {"id": "sandbox", "label": "Sandbox"},
@@ -492,7 +514,8 @@ def build_component_page_context(
 
     try:
         raw_rendered_html = canvas_service.render_component(
-            sandbox_spec, registry_service.component_registry
+            spec=sandbox_spec,
+            registry=registry_service.component_registry,
         ).strip()
     except Exception as exc:
         raw_rendered_html = f"<!-- Error rendering component: {exc} -->"
@@ -509,11 +532,14 @@ def build_component_page_context(
     context["active_theme"] = active_theme
     context["sandbox_active_theme"] = active_theme
 
-    component_label = navigation_service.to_display_label(info.name, component=info)
+    component_label = navigation_service.to_display_label(
+        name=info.name,
+        component=info,
+    )
     crumbs = navigation_service.build_breadcrumbs(
-        app_label,
-        path_parts[:-1] if path_parts else [],
-        component_label,
+        app_label=app_label,
+        path_parts=path_parts[:-1] if path_parts else [],
+        current_label=component_label,
     )
     if active_variant:
         crumbs[-1]["url"] = node.url

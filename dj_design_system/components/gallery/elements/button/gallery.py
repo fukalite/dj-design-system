@@ -73,5 +73,24 @@ config = gallery.GalleryConfig(
                 "icon_trailing": "external-link",
             },
         ),
+        gallery.Variant(
+            name="toggle",
+            label="Toggle (Pressed)",
+            description="Active toggle button with aria-pressed state.",
+            kwargs={
+                "label": "Pin panel",
+                "icon": "box-model",
+                "pressed": True,
+            },
+        ),
+        gallery.Variant(
+            name="disabled",
+            label="Disabled",
+            description="Disabled button preventing user interaction.",
+            kwargs={
+                "label": "Unavailable",
+                "disabled": True,
+            },
+        ),
     ],
 )

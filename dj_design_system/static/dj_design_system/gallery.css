@@ -1,6 +1,7 @@
 @layer reset, tokens, global, composition, blocks, utilities;
 @import 'tokens.css';
 @import 'composition.css';
+@import 'gallery-layout.css';
 
 @layer reset {
   *,
@@ -17,15 +18,15 @@
 @layer global {
   html,
   body {
-    background-color: var(--dds-surface-bg-color);
     block-size: 100%;
+    margin: 0;
+    padding: 0;
     color: var(--dds-text-default-color);
+    background-color: var(--dds-surface-bg-color);
     font-family: var(--dds-text-body-font);
     font-size: var(--dds-text-body-size);
     font-weight: var(--dds-text-body-weight);
-    letter-spacing: var(--dds-text-body-letter-spacing);
     line-height: var(--dds-text-body-line-height);
-    margin: 0;
-    padding: 0;
+    letter-spacing: var(--dds-text-body-letter-spacing);
   }
 }

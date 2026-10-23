@@ -1,8 +1,7 @@
 {% extends "dj_design_system/gallery/base.html" %}
-{% load design_components %}
 
 {% block title %}{{ folder_label }} — {{ design_system_name }}{% endblock %}
 
 {% block content %}
-    {% dds__folder_listing title=folder_label items=children show_debug_hint=is_debug %}
+    {% include "dj_design_system/gallery/panes/folder.html" %}
 {% endblock %}

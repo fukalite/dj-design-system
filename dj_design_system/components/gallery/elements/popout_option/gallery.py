@@ -35,9 +35,30 @@ config = gallery.GalleryConfig(
             label="Link Option",
             description="Navigation menu item rendered as an anchor element.",
             kwargs={
-                "label": "Open standalone canvas",
-                "href": "/dds/canvas/",
+                "label": "Documentation",
+                "href": "https://example.com/docs",
                 "icon": "external-link",
+            },
+        ),
+        gallery.Variant(
+            name="action",
+            label="Action Menu Item",
+            description="Immediate action button item using role='menuitem'.",
+            kwargs={
+                "label": "Save changes",
+                "icon": "check",
+                "role": "menuitem",
+            },
+        ),
+        gallery.Variant(
+            name="shortcut",
+            label="Option with Shortcut Hint",
+            description="Menu item with keyboard shortcut hint.",
+            kwargs={
+                "label": "Quick search",
+                "icon": "search",
+                "shortcut": "⌘K",
+                "role": "menuitem",
             },
         ),
         gallery.Variant(

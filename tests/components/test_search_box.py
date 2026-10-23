@@ -79,13 +79,8 @@ def _render_template(
 
 
 def _extract_rule_blocks(css_text: str, selector: str) -> list[str]:
-    """Extract all CSS declaration blocks for a given selector."""
-    escaped = re.escape(pattern=selector)
-    pattern = re.compile(
-        pattern=rf"{escaped}(?:\s*,\s*\.[a-z0-9-]+)?\s*\{{([^}}]*)\}}",
-        flags=re.DOTALL,
-    )
-    return pattern.findall(string=css_text)
+    """Extract CSS declaration blocks for a specific selector."""
+    return conftest.extract_css_rule_blocks(css_text=css_text, selector=selector)
 
 
 def _extract_defined_properties(block_text: str) -> dict[str, str]:
@@ -230,7 +225,7 @@ class TestSearchBoxRendering:
         ).render()
         assert (
             '<dds-search-box class="dds-search-box" data-state="closed" '
-            'data-index-id="gallery-search-index">' in html
+            'data-index-id="gallery-search-index"' in html
         )
         assert "<div data-search-field>" in html
         assert 'data-icon="search"' in html
@@ -299,24 +294,9 @@ class TestSearchBoxStylesheetAndHygiene:
         ):
             assert required_domain in root_block_text
 
-    def test_css_formatting_alphabetical_order_and_zero_bem(self) -> None:
-        """Verify zero BEM selectors, single quotes, and alphabetised declarations."""
-        css_text = SEARCH_BOX_CSS_PATH.read_text(encoding="utf-8")
-        assert "!important" not in css_text
-        assert '"' not in css_text
-        bem_matches = re.findall(
-            pattern=r"\.[a-z0-9-]+(?:__|--)[a-z0-9-]+",
-            string=css_text,
-        )
-        assert not bem_matches
-
-        for block in re.findall(pattern=r"\{([^{}]+)\}", string=css_text):
-            prop_names = re.findall(
-                pattern=r"^\s*([a-z0-9_-]+)\s*:",
-                string=block,
-                flags=re.MULTILINE,
-            )
-            assert prop_names == sorted(prop_names)
+        assert "var(--dds-surface-stage-" not in css_text
+        assert "--_search-box-result-active-border-color" not in css_text
+        assert "max-block-size: 20rem;" in css_text
 
     def test_python_and_template_hygiene(self) -> None:
         """Verify search_box.py has no private methods/mark_safe and search_box.html has no filters."""

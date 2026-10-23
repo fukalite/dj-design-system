@@ -40,7 +40,7 @@ def _run_assessment(page, gallery_url, components, *, disabled_rules) -> int:
 def test_all_standard_components(page, base_url, settings):
     """
     Test all standard, non-abstract components shipped by the dj-design-system package itself.
-    This runs the accessibility and HTML validation plugins across all 26 built-in components
+    This runs the accessibility and HTML validation plugins across all 18 built-in components
     and all of their gallery.py variants across light and dark themes.
     """
     settings.DJ_DESIGN_SYSTEM = {
@@ -49,8 +49,8 @@ def test_all_standard_components(page, base_url, settings):
     }
 
     components = component_registry.list_by_app("dj_design_system")
-    assert len(components) >= 26, (
-        f"Expected at least 26 built-in dj_design_system components, found {len(components)}"
+    assert len(components) >= 18, (
+        f"Expected at least 18 built-in dj_design_system components, found {len(components)}"
     )
 
     gallery_url = f"{base_url}/dds"

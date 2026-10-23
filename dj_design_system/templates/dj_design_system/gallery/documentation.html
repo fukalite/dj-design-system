@@ -1,8 +1,9 @@
 {% extends "dj_design_system/gallery/base.html" %}
-{% load design_components %}
 
 {% block title %}{% if doc_label %}{{ doc_label }}{% else %}{{ node.label }}{% endif %} — {{ design_system_name }}{% endblock %}
 
 {% block content %}
-    {% dds__prose html=doc_html %}{% enddds__prose %}
+    <div class="dds-prose" data-surface="docs">
+        <div data-prose-body>{{ doc_html }}</div>
+    </div>
 {% endblock %}

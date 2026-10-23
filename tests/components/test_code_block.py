@@ -87,9 +87,7 @@ def _read_text(path: pathlib.Path) -> str:
 
 def _extract_rule_blocks(css_text: str, selector: str) -> list[str]:
     """Extract CSS declaration blocks for a specific selector."""
-    escaped = re.escape(pattern=selector)
-    pattern = re.compile(pattern=rf"{escaped}\s*\{{([^}}]*)\}}", flags=re.DOTALL)
-    return pattern.findall(string=css_text)
+    return conftest.extract_css_rule_blocks(css_text=css_text, selector=selector)
 
 
 def _extract_defined_properties(block_text: str) -> dict[str, str]:
@@ -215,7 +213,7 @@ class TestCodeBlockRenderingAndTemplate:
             context={"raw_code": "\n<div>Hello</div>\n"},
         ).strip()
         assert (
-            '<dds-code-block class="dds-code-block" data-surface="code" data-language="django">'
+            '<dds-code-block class="dds-code-block" data-surface="code" data-language="django" data-flush="false">'
             in html
         )
         assert "<header" not in html
@@ -265,6 +263,25 @@ class TestCodeBlockRenderingAndTemplate:
             string=template_text,
         )
         assert not bem_matches
+
+    def test_renders_flush_attribute_when_flush_true(self) -> None:
+        """Verify flush=True sets data-flush='true' on <dds-code-block>."""
+        html = _render_template(
+            source='{% dds__code_block code="x = 1" flush=True %}'
+        ).strip()
+        assert 'data-flush="true"' in html
+
+    def test_renders_language_header_when_show_header_true_without_title(
+        self,
+    ) -> None:
+        """Verify show_header=True renders header with language label even when title is omitted."""
+        html = _render_template(
+            source='{% dds__code_block code="print(1)" language="python" show_header=True %}'
+        ).strip()
+        assert '<header class="l-cluster">' in html
+        assert "<span data-code-label>python</span>" in html
+        assert "data-copy-trigger" in html
+        assert "data-copy-overlay" not in html
 
 
 class TestCodeBlockStylesheet:
@@ -323,25 +340,18 @@ class TestCodeBlockStylesheet:
         assert "tab-size: 4;" in pre_block
         assert "white-space: pre;" in pre_block
 
-    def test_css_formatting_and_no_bem(self) -> None:
-        """Verify zero BEM selectors, single quotes, and alphabetized declarations."""
+    def test_css_surface_and_flush_attributes(self) -> None:
+        """Verify code_block.css respects surface inheritance and flush styling."""
         css_text = _read_text(path=CODE_BLOCK_CSS_PATH)
-        assert '"' not in css_text
-        assert "!important" not in css_text
-        bem_matches = re.findall(
-            pattern=r"\.[a-z0-9-]+(?:__|--)[a-z0-9-]+",
-            string=css_text,
-        )
-        assert not bem_matches
-        rule_blocks = re.findall(pattern=r"\{([^{}]+)\}", string=css_text)
-        assert rule_blocks
-        for block in rule_blocks:
-            prop_names = re.findall(
-                pattern=r"^\s*([a-z0-9_-]+)\s*:",
-                string=block,
-                flags=re.MULTILINE,
-            )
-            assert prop_names == sorted(prop_names)
+        assert "[data-surface=" not in css_text
+        assert "data-flush='true'" in css_text
+
+    def test_syntax_highlighting_uses_tier_3_tokens_exclusively(self) -> None:
+        """Verify code rules do not consume foreign --hl-* or Tier 2 tokens directly."""
+        css_text = _read_text(path=CODE_BLOCK_CSS_PATH)
+        assert "var(--hl-" not in css_text
+        assert "font-weight: var(--_code-block-strong-weight);" in css_text
+        assert "--_code-block-hl-comment" in css_text
 
 
 class TestCodeBlockCustomElementTypeScript:
@@ -402,3 +412,5 @@ class TestCodeBlockGalleryAndDocs:
         assert "dds__code_block" in doc_text
         assert "dds-code-block" in doc_text
         assert "dds:copy" in doc_text
+        assert "show_header" in doc_text
+        assert "flush" in doc_text

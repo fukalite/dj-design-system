@@ -71,5 +71,17 @@ config = gallery.GalleryConfig(
                 "content": DEFAULT_MENU_HTML,
             },
         ),
+        gallery.Variant(
+            name="dialog",
+            label="Dialog Popover",
+            description="Popout configured with role='dialog' for custom content popovers.",
+            kwargs={
+                "label": "Component options",
+                "icon": "component",
+                "role": "dialog",
+                "menu_label": "Component settings",
+                "content": DEFAULT_MENU_HTML,
+            },
+        ),
     ],
 )

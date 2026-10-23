@@ -1,0 +1,42 @@
+{% load design_components %}
+{% if active_variant %}
+    <section class="dds-variant-view" data-surface="docs">
+        <l-stack>
+        <l-cluster data-variant-header>
+        {% dds__badge label="Variant" variant="info" %}
+        <h2 data-variant-title>{{ active_variant.label }}</h2>
+        </l-cluster>
+        {% if variant_description %}
+            <div data-variant-description>{{ variant_description }}</div>
+        {% endif %}
+        {% if variant_preview_url %}
+            <h3 data-variant-subheading>Preview</h3>
+            <div data-variant-preview data-surface="stage">
+                <iframe src="{{ variant_preview_url }}"
+                        name="variant"
+                        data-canvas-id="variant"
+                        title="{{ active_variant.label }} variant preview"></iframe>
+                <div data-variant-sandbox-link>
+                    {% dds__button label="Open in sandbox" icon="external-link" icon_only=True variant="ghost" size="sm" href=variant_preview_url %}
+                </div>
+            </div>
+        {% endif %}
+        {% if variant_signature.minimal %}
+            {% dds__code_block code=variant_signature.minimal language="django" %}
+        {% endif %}
+        </l-stack>
+    </section>
+{% else %}
+    <section data-docs-section="description">
+        <l-stack>
+        <h2 data-docs-heading>Description</h2>
+        {% if component_description %}
+            <div class="dds-prose" data-surface="docs">
+                <div data-prose-body>{{ component_description }}</div>
+            </div>
+        {% else %}
+            <p data-docs-empty>No description provided. Add a docstring to the component class.</p>
+        {% endif %}
+        </l-stack>
+    </section>
+{% endif %}

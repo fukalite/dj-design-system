@@ -15,7 +15,9 @@ The `dds__code_block` tag component renders formatted source code inside a `<dds
 | `code` | `str` | *(required)* | Source code snippet to render (positional argument 0). Leading and trailing newlines are stripped and syntax-highlighted via Pygments. |
 | `language` | `str` | `"django"` | Code language identifier exposed via `data-language` and used for Pygments lexer selection. |
 | `title` | `str` | `""` | Optional header title or filename. When set, renders a full `<header>` bar with `[data-code-label]`. |
+| `show_header` | `bool` | `None` | Explicitly control header visibility. Defaults to True when `title` is set, or falls back to displaying `language` when `True` without `title`. |
 | `copyable` | `bool` | `True` | Whether to render the `[data-copy-trigger]` copy-to-clipboard button (inside `<header>` when `title` is set, or as a compact `[data-copy-overlay]` button when `title` is omitted). |
+| `flush` | `bool` | `False` | When `True`, renders the code block without outer border or border-radius (`data-flush="true"`), suited for embedded drawers. |
 
 ## Client-Side Behaviour (`<dds-code-block>`)
 

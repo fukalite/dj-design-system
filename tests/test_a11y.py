@@ -312,6 +312,17 @@ class TestNavtreeAccessibility:
             "dj_design_system/templates/dj_design_system/gallery/folder.html",
             "dj_design_system/templates/dj_design_system/gallery/component.html",
             "dj_design_system/templates/dj_design_system/gallery/sandbox_fragment.html",
+            "dj_design_system/templates/dj_design_system/gallery/areas/topbar.html",
+            "dj_design_system/templates/dj_design_system/gallery/areas/sidebar.html",
+            "dj_design_system/templates/dj_design_system/gallery/areas/tabs.html",
+            "dj_design_system/templates/dj_design_system/gallery/panes/docs.html",
+            "dj_design_system/templates/dj_design_system/gallery/panes/docs/header.html",
+            "dj_design_system/templates/dj_design_system/gallery/panes/docs/usage.html",
+            "dj_design_system/templates/dj_design_system/gallery/panes/docs/params.html",
+            "dj_design_system/templates/dj_design_system/gallery/panes/docs/further.html",
+            "dj_design_system/templates/dj_design_system/gallery/panes/sandbox.html",
+            "dj_design_system/templates/dj_design_system/gallery/panes/folder.html",
+            "dj_design_system/templates/dj_design_system/gallery/panes/index.html",
             "dj_design_system/templates/dj_design_system/canvas_widget.html",
         ):
             content = Path(rel_path).read_text(encoding="utf-8")

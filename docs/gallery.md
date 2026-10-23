@@ -583,6 +583,7 @@ DJ_DESIGN_SYSTEM = {
 | `GALLERY_CANVAS_EXTRA_BACKGROUNDS`  | `dict`                    | `{}`                                                       | Extra backgrounds merged into the built-in set.             |
 | `GALLERY_CANVAS_HTML_ATTRS`         | `dict`                    | `{}`                                                       | Extra attributes for the canvas `<html>` and `<body>` tags. |
 | `GALLERY_CODEHILITE_STYLE`          | `str`                     | `"monokai"`                                                | Pygments style for code highlighting. `""` to disable.      |
+| `GALLERY_EXTRA_CSS`                 | `list[str]`               | `[]`                                                       | Custom CSS static paths or external URLs loaded in `<head>`.|
 
 ### Navigation sort order
 
@@ -622,31 +623,91 @@ By default, the gallery is public. To restrict access, set
 
 ---
 
-## Built-in `dds` Gallery Architecture & Visibility
+## Customising Gallery Look and Feel
 
-The gallery UI itself is built entirely from self-contained `dj_design_system` components located under `dj_design_system/components/` in two collections:
+The gallery UI employs a modular, 3-tiered customisation architecture that allows consumers to tailor the appearance and layout from lightweight design token tweaks to bespoke template structures:
 
-- **`elements/`** (`badge`, `breadcrumb`, `button`, `code_block`, `form_field`, `icon`, `notice`, `popout`, `table`, `tabs`, `theme_select`, `toolbar`) — reusable UI primitives registered with `FlattenStrategy.ALL` as `{% dds__<name> %}`.
-- **`domain/`** (`canvas_widget`, `folder_listing`, `gallery_shell`, `nav_tree`, `params_form`, `params_table`, `prose`, `sandbox`, `sandbox_toolbar`, `search_box`, `sidebar`, `split_pane`, `usage_example`, `variant_view`) — gallery shell, navigation, documentation, and sandbox components also registered as `{% dds__<name> %}`.
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Tier 1: Design Tokens (GALLERY_EXTRA_CSS)                   │
+│ Override :root --dds-* tokens (colours, fonts, surfaces)    │
+├─────────────────────────────────────────────────────────────┤
+│ Tier 2: Template Areas & Panes                              │
+│ Override areas (topbar, sidebar, tabs) & panes (docs, etc.) │
+├─────────────────────────────────────────────────────────────┤
+│ Tier 3: Component Shadowing                                 │
+│ Shadow interactive widgets (canvas_widget, sandbox_params)  │
+└─────────────────────────────────────────────────────────────┘
+```
 
-Interactive gallery behaviours are implemented as Light DOM Custom Elements (`<dds-gallery-shell>`, `<dds-nav-tree>`, `<dds-search-box>`, `<dds-theme-select>`, `<dds-tabs>`, `<dds-popout>`, `<dds-code-block>`, `<dds-canvas-widget>`, `<dds-sandbox>`, `<dds-sandbox-toolbar>`, `<dds-params-form>`), while structural layout is composed with **Every Layout** primitives (`<l-stack>`, `<l-cluster>`, `<l-sidebar>`, `<l-switcher>`, `<l-box>`, `<l-center>`, `<l-cover>`, `<l-frame>`, `<l-grid>`, `<l-reel>`, `<l-imposter>`) in `@layer composition`.
+### Tier 1: Token Overrides via `GALLERY_EXTRA_CSS`
 
-### Inspecting Built-in `dds` Components (`GALLERY_INCLUDE_APPS` & `GALLERY_EXCLUDE_APPS`)
-
-By default, built-in `dj_design_system` components are excluded from consumer galleries, so the gallery sidebar and search index display only your project's own Django apps.
-
-To browse and inspect the built-in `dj_design_system` component library inside the gallery in isolation, use `GALLERY_INCLUDE_APPS` (see [`example_project/settings_dds_gallery.py`](../example_project/settings_dds_gallery.py)):
+To brand the gallery chrome without modifying any templates, supply one or more CSS file paths in `GALLERY_EXTRA_CSS`. These files are linked in `<head>` after all built-in styles and component stylesheets:
 
 ```python
 DJ_DESIGN_SYSTEM = {
-    "DESIGN_SYSTEM_NAME": "dj-design-system Built-in Component Library",
-    "GALLERY_INCLUDE_APPS": ["dj_design_system"],
+    "GALLERY_EXTRA_CSS": [
+        "myapp/css/gallery-theme.css",
+    ],
 }
 ```
 
-### Shadowing Built-in `dds__*` Components
+Inside your CSS file, override the semantic `--dds-*` custom properties on `:root`:
 
-Because gallery page templates render all chrome via `{% dds__<name> %}` template tags, consumer projects can override (shadow) any built-in gallery component by mapping a directory to `"prefix": "dds"` with `"flatten": FlattenStrategy.ALL` in `COMPONENT_DIRECTORIES`:
+```css
+:root {
+  /* Brand accents */
+  --dds-brand-primary-color: #0052cc;
+  --dds-brand-primary-hover-color: #0747a6;
+
+  /* Typography */
+  --dds-text-body-font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --dds-text-heading-font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Surface & background colours */
+  --dds-surface-bg-color: #f8fafc;
+  --dds-surface-topbar-bg: #ffffff;
+  --dds-surface-sidebar-bg: #f1f5f9;
+  --dds-border-default-color: #e2e8f0;
+}
+```
+
+### Tier 2: Overriding Template Areas and Panes
+
+Layout and presentation markup are structured into modular Django templates under `dj_design_system/gallery/areas/` and `dj_design_system/gallery/panes/`. Structural layout across areas and panes is composed with **Every Layout** primitives (`<l-stack>`, `<l-cluster>`, `<l-sidebar>`, `<l-grid>`) in `@layer composition`. To customise any section, place a template with the matching path in your project's `templates/` directory:
+
+#### Layout Areas (`dj_design_system/gallery/areas/`)
+
+- **`areas/topbar.html`**: Header branding bar, mobile drawer toggle, breadcrumbs, search box trigger, theme dropdown, and toolbar actions slot.
+- **`areas/sidebar.html`**: Navigation drawer containing brand link, the interactive `<dds-nav-tree>`, and theme toggle button.
+- **`areas/tabs.html`**: Mobile responsive tabs switcher toggling between Documentation and Sandbox views.
+
+#### Content Panes (`dj_design_system/gallery/panes/`)
+
+- **`panes/docs.html`**: The documentation column on component pages. Composed of modular sub-templates:
+  - `panes/docs/header.html`: Component title, docstring description, or active variant badge & preview.
+  - `panes/docs/usage.html`: Minimal, maximal, and qualified tag code blocks and preview canvases.
+  - `panes/docs/params.html`: Parameter specifications table and named slots table.
+  - `panes/docs/further.html`: Extended Markdown documentation rendered from co-located `index.md`.
+- **`panes/sandbox.html`**: The interactive testing canvas, controls toolbar, and live parameter editing form (`{% dds__sandbox_params %}`).
+- **`panes/folder.html`**: Navigable card grid rendered when browsing folder nodes without an `index.md`.
+- **`panes/index.html`**: Landing page welcome message and static snapshot notices.
+
+#### The `<dds-gallery-shell>` Custom Element
+
+While structural markup lives in templates, client-side coordination is handled by the `<dds-gallery-shell>` custom element (located in `dj_design_system/static/dj_design_system/gallery-shell.ts`). The custom element encapsulates:
+1. **Responsive Drawer State:** Toggling `data-drawer-state="open|closed"` on mobile viewports.
+2. **Backdrop & Keyboard Traps:** Managing focus and dismissing the drawer on backdrop clicks or Escape key presses.
+3. **URL Hash Synchronisation:** Switching between Documentation and Sandbox tabs based on URL `#pane-*` fragments.
+4. **Cross-Iframe Theme Event Relay:** Forwarding `dds:theme-change` CustomEvents from the outer gallery chrome into canvas iframes.
+
+### Tier 3: Built-in `dds` Primitives & Component Shadowing
+
+The gallery UI delegates interactive widgets to built-in components:
+- **`elements/`** (`badge`, `breadcrumb`, `button`, `code_block`, `form_field`, `icon`, `notice`, `popout`, `table`, `tabs`, `theme_select`) — reusable UI primitives registered as `{% dds__<name> %}`.
+- **`domain/`** (`canvas_widget`, `nav_tree`, `sandbox_params`, `sandbox_toolbar`, `search_box`, `split_pane`) — interactive domain widgets registered as `{% dds__<name> %}`.
+
+To shadow any built-in component with your own implementation, map a directory in `COMPONENT_DIRECTORIES`:
 
 ```python
 from dj_design_system.types import FlattenStrategy
@@ -663,7 +724,18 @@ DJ_DESIGN_SYSTEM = {
 }
 ```
 
-Any component defined inside `myapp/components/dds_overrides/` (for example, `BadgeComponent` in `badge.py`) registers as `dds__badge` and takes precedence over the built-in `dj_design_system` implementation across both `{% dds__badge %}` template tags and gallery canvas resolution. For visual customisation without replacing markup, prefer [Tier 2 `--dds-*` token theming](themes.md#theming-the-gallery-ui-with-tier-2---dds--tokens).
+### Inspecting Built-in `dds` Components (`GALLERY_INCLUDE_APPS` & `GALLERY_EXCLUDE_APPS`)
+
+By default, built-in `dj_design_system` components are excluded from consumer galleries, so the gallery sidebar and search index display only your project's own Django apps.
+
+To browse and inspect the built-in `dj_design_system` component library inside the gallery in isolation, use `GALLERY_INCLUDE_APPS` (see [`example_project/settings_dds_gallery.py`](../example_project/settings_dds_gallery.py)):
+
+```python
+DJ_DESIGN_SYSTEM = {
+    "DESIGN_SYSTEM_NAME": "dj-design-system Built-in Component Library",
+    "GALLERY_INCLUDE_APPS": ["dj_design_system"],
+}
+```
 
 ---
 

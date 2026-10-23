@@ -1,5 +1,12 @@
-# Code stylguides
-There are clear styleguides to follow, you can find them in `conductor/code_styleguides`. For Python/Django code, follow `layered-architecture.md`.
+# Code Styleguides
+All contributions must strictly follow the domain styleguides in `conductor/code_styleguides/`:
+- [html-css.md](../conductor/code_styleguides/html-css.md): HTML5 semantics, CUBE CSS layers, native nesting (`&`), zero-leakage component encapsulation, Stylelint rules, and 5-group property ordering.
+- [dds-components.md](../conductor/code_styleguides/dds-components.md): Built-in `dds` gallery components, 100% co-location, Every Layout (`<l-*>`), 3-tier token hierarchy (`--dds-*`), and Light DOM Web Components.
+- [layered-architecture.md](../conductor/code_styleguides/layered-architecture.md): Service and business logic layering, keyword-only signatures (`*`), precise typing (`Sequence[...]` over `list[Any]`).
+- [python.md](../conductor/code_styleguides/python.md): Python conventions, keyword call sites, dataclasses, pytest assertions.
+- [javascript.md](../conductor/code_styleguides/javascript.md): TypeScript Web Components, ES modules.
+- [general.md](../conductor/code_styleguides/general.md): General engineering best practices, outcome-oriented naming, guard clauses, relative links.
+- [example-project.md](../conductor/code_styleguides/example-project.md): Showcase and consumer integration testing standards.
 
 # Agent Behaviours & Persona
 

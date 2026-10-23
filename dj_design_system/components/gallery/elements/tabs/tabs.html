@@ -1,8 +1,8 @@
 {% load design_components %}
-<dds-tabs class="dds-tabs" data-active-tab="{{ resolved_active }}">
+<dds-tabs class="dds-tabs" data-variant="{{ variant }}" data-active-tab="{{ resolved_active }}">
   <div role="tablist" aria-label="{{ aria_label }}" class="l-cluster">
     {% for tab in normalized_tabs %}
-      <button type="button" role="tab" id="{{ tab.tab_dom_id }}" data-tab-trigger="{{ tab.id }}" aria-selected="{{ tab.aria_selected }}" aria-controls="{{ tab.panel_dom_id }}" tabindex="{{ tab.tabindex }}">
+      <button type="button" role="tab" id="{{ tab.tab_dom_id }}" data-tab-trigger="{{ tab.id }}" aria-selected="{{ tab.aria_selected }}"{% if tab.has_panel %} aria-controls="{{ tab.panel_dom_id }}"{% endif %} tabindex="{{ tab.tabindex }}">
         {% if tab.has_icon %}
           {% dds__icon name=tab.icon size="sm" %}
         {% endif %}

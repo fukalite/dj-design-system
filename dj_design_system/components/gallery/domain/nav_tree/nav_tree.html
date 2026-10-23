@@ -1,5 +1,5 @@
 {% load design_components %}
-<dds-nav-tree class="dds-nav-tree">
+<dds-nav-tree class="dds-nav-tree" {{ attrs }}>
   <nav class="dds-nav-tree-nav" aria-label="{{ aria_label }}">
     {% if has_nodes %}
       {% for item in normalized_nodes %}

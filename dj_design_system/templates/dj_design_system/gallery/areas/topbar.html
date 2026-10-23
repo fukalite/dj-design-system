@@ -1,0 +1,21 @@
+{% load design_components %}
+<header class="dds-toolbar" data-surface="topbar">
+    <l-cluster data-toolbar-inner>
+    <l-cluster data-toolbar-leading>
+    {% dds__button label="Toggle navigation" icon="menu" icon_only=True variant="ghost" size="sm" action="toggle-drawer" %}
+    <a href="{% url 'gallery' %}" data-toolbar-brand>{{ design_system_name }}</a>
+    {% if breadcrumbs %}
+        <div data-toolbar-breadcrumb>{% dds__breadcrumb items=breadcrumbs %}</div>
+    {% endif %}
+    </l-cluster>
+    <l-cluster data-toolbar-actions>
+    {% if search_index %}
+        {% dds__search_box search_index=search_index %}
+    {% endif %}
+    {% if available_themes %}
+        {% dds__theme_select themes=available_themes active_theme=global_active_theme %}
+    {% endif %}
+    {% block toolbar_actions %}{% endblock %}
+    </l-cluster>
+    </l-cluster>
+</header>

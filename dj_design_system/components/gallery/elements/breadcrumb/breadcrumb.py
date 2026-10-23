@@ -1,5 +1,4 @@
-"""Built-in breadcrumb navigation trail element component."""
-
+import dataclasses
 import typing
 
 from dj_design_system import components, parameters
@@ -10,13 +9,23 @@ DEFAULT_ARIA_LABEL = "Breadcrumb"
 DEFAULT_SEPARATOR_ICON = "chevron-right"
 
 
+@dataclasses.dataclass(frozen=True)
+class BreadcrumbItem:
+    """Explicit data contract for a breadcrumb trail segment."""
+
+    label: str
+    url: str | None = None
+    icon: str | None = None
+
+
 class Breadcrumb(components.TagComponent):
     """Hierarchical breadcrumb trail navigation primitive.
 
     Renders an accessible ``<nav class="dds-breadcrumb">`` landmark wrapping an
     Every Layout ``<ol class="l-cluster">`` trail. Each item in ``items`` may be
-    provided as a dictionary (with ``label`` and optional ``url``/``href`` and
-    ``icon`` keys), an object exposing those attributes, or a plain string.
+    provided as a ``BreadcrumbItem``, a dictionary (with ``label`` and optional
+    ``url``/``href`` and ``icon`` keys), an object exposing those attributes, or
+    a plain string.
 
     The final item in the trail is automatically marked as the current page
     (``<span aria-current="page">``) and its link URL is cleared in
@@ -32,8 +41,8 @@ class Breadcrumb(components.TagComponent):
 
     items = parameters.ListParam(
         description=(
-            "Ordered list of trail items (dicts with 'label' and optional "
-            "'url'/'href' and 'icon')."
+            "Ordered list of trail items (BreadcrumbItem instances, dicts with 'label' "
+            "and optional 'url'/'href' and 'icon', or strings)."
         ),
         default=None,
         required=False,
@@ -67,10 +76,14 @@ class Breadcrumb(components.TagComponent):
 
         for idx, raw_item in enumerate(raw_items):
             is_current = idx == total - 1
-            if isinstance(raw_item, str):
-                raw_label: typing.Any = raw_item
-                raw_url: typing.Any = None
-                raw_icon: typing.Any = None
+            if isinstance(raw_item, BreadcrumbItem):
+                raw_label: typing.Any = raw_item.label
+                raw_url: typing.Any = raw_item.url
+                raw_icon: typing.Any = raw_item.icon
+            elif isinstance(raw_item, str):
+                raw_label = raw_item
+                raw_url = None
+                raw_icon = None
             elif isinstance(raw_item, dict):
                 raw_label = raw_item.get("label")
                 if raw_label is None:

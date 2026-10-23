@@ -66,6 +66,8 @@ DEFAULTS: dict = {
     # App labels hidden from the gallery (navigation, search, index count,
     # node URLs and the REST API). Hidden components still work as tags.
     "GALLERY_EXCLUDE_APPS": [],
+    # Additional stylesheets injected into the gallery UI chrome (to override :root tokens, custom fonts, etc.)
+    "GALLERY_EXTRA_CSS": [],
     "APP_THEMES": {},
     "APP_CSS": {},
     "APP_CSS_BUNDLES": {},
@@ -77,7 +79,7 @@ DEFAULTS: dict = {
 }
 
 # Settings whose values are normalised to a list of strings.
-_PATH_LIST_SETTINGS = {"GLOBAL_CSS", "GLOBAL_JS"}
+_PATH_LIST_SETTINGS = {"GLOBAL_CSS", "GLOBAL_JS", "GALLERY_EXTRA_CSS"}
 
 
 class DjangoDesignSystemSettings:
@@ -98,6 +100,7 @@ class DjangoDesignSystemSettings:
     GALLERY_DEFAULT_THEME: str
     GALLERY_INCLUDE_APPS: list[str] | None
     GALLERY_EXCLUDE_APPS: list[str]
+    GALLERY_EXTRA_CSS: list[str]
     APP_THEMES: dict[str, list[str]]
     APP_CSS: dict[str, list[str] | str]
     APP_CSS_BUNDLES: dict[str, list[tuple[str, ...]]]
@@ -195,7 +198,7 @@ def get_theme(identifier: str) -> Theme | None:
 def get_default_theme() -> Theme:
     """Return the default theme as a dict."""
     val = dds_settings.GALLERY_DEFAULT_THEME
-    theme = get_theme(val)
+    theme = get_theme(identifier=val)
     if theme:
         return theme
     themes = get_themes()

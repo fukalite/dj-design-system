@@ -65,6 +65,11 @@ A list of global CSS static file paths or external URLs to include in the galler
 **Default:** `[]`  
 A list of global JavaScript static file paths or external URLs to include in the gallery canvas and when using `{% global_scripts %}`. See [External asset URLs](#external-asset-urls).
 
+### `GALLERY_EXTRA_CSS`
+**Type:** `list[str]`  
+**Default:** `[]`  
+A list of CSS static file paths or external URLs injected into the `<head>` of the gallery UI chrome (via `{% gallery_extra_stylesheets %}`). These stylesheets are rendered after all built-in and component stylesheets, making it the recommended mechanism for overriding `:root` `--dds-*` design tokens (colours, fonts, typography, surface backgrounds) without modifying gallery templates. See [External asset URLs](#external-asset-urls).
+
 ### `GLOBAL_CSS_BUNDLES`
 **Type:** `list[tuple[str, ...]]`  
 **Default:** `[]`  
@@ -76,7 +81,7 @@ A list of Webpack CSS bundles to load globally. Ignored if `django-webpack-loade
 A list of Webpack JavaScript bundles to load globally.
 
 ### External asset URLs
-`GLOBAL_CSS`, `GLOBAL_JS`, `APP_CSS`, `APP_JS`, a theme's `css` and `js`, and component `Media` entries accept external URLs as well as static file paths. Entries starting with `http://`, `https://` or `//` (case-insensitive) are used as-is; anything else is resolved with Django's `static()`.
+`GLOBAL_CSS`, `GLOBAL_JS`, `GALLERY_EXTRA_CSS`, `APP_CSS`, `APP_JS`, a theme's `css` and `js`, and component `Media` entries accept external URLs as well as static file paths. Entries starting with `http://`, `https://` or `//` (case-insensitive) are used as-is; anything else is resolved with Django's `static()`.
 
 ```python
 "GLOBAL_CSS": [

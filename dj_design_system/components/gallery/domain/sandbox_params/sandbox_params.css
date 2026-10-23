@@ -1,0 +1,64 @@
+@layer blocks {
+  dds-sandbox-params,
+  .dds-sandbox-params {
+    --_sandbox-params-bg-color: var(--dds-surface-bg-color);
+    --_sandbox-params-border-color: var(--dds-surface-border-color);
+    --_sandbox-params-border-radius: var(--dds-surface-border-radius);
+    --_sandbox-params-border-style: var(--dds-surface-border-style);
+    --_sandbox-params-border-width: var(--dds-surface-border-width);
+    --_sandbox-params-empty-color: var(--dds-text-muted-color);
+    --_sandbox-params-empty-padding-block: var(--dds-space-inset-compact);
+    --_sandbox-params-font: var(--dds-text-body-font);
+    --_sandbox-params-font-size: var(--dds-text-body-size);
+    --_sandbox-params-font-weight: var(--dds-text-body-weight);
+    --_sandbox-params-letter-spacing: var(--dds-text-body-letter-spacing);
+    --_sandbox-params-line-height: var(--dds-text-body-line-height);
+    --_sandbox-params-row-border-width: var(--dds-control-border-width);
+    --_sandbox-params-row-padding-block: var(--dds-space-sm);
+    --_sandbox-params-row-padding-inline: var(--dds-space-inset-compact);
+    --_sandbox-params-text-color: var(--dds-text-default-color);
+    display: block;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border-width: var(--_sandbox-params-border-width);
+    border-style: var(--_sandbox-params-border-style);
+    border-color: var(--_sandbox-params-border-color);
+    border-radius: var(--_sandbox-params-border-radius);
+    color: var(--_sandbox-params-text-color);
+    background-color: var(--_sandbox-params-bg-color);
+    font-family: var(--_sandbox-params-font);
+    font-size: var(--_sandbox-params-font-size);
+    font-weight: var(--_sandbox-params-font-weight);
+    line-height: var(--_sandbox-params-line-height);
+    letter-spacing: var(--_sandbox-params-letter-spacing);
+
+    & [data-params-form] {
+      margin: 0;
+    }
+
+    & [data-params-fields] {
+      --space: 0;
+
+      & > * {
+        margin: 0;
+        padding-block: var(--_sandbox-params-row-padding-block);
+        padding-inline: var(--_sandbox-params-row-padding-inline);
+        border-block-end-width: var(--_sandbox-params-row-border-width);
+        border-block-end-style: var(--_sandbox-params-border-style);
+        border-block-end-color: var(--_sandbox-params-border-color);
+
+        &:last-child {
+          border-block-end-width: 0;
+        }
+      }
+    }
+
+    & [data-params-empty] {
+      margin: 0;
+      padding-block: var(--_sandbox-params-empty-padding-block);
+      padding-inline: var(--_sandbox-params-row-padding-inline);
+      color: var(--_sandbox-params-empty-color);
+    }
+  }
+}

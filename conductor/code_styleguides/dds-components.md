@@ -44,11 +44,35 @@ Python unit and integration tests remain under `tests/` so `ComponentRegistry.au
 ### Python (`<name>.py`)
 - **View-Level Presentation Logic Only:** Components sit at the presentation boundary. They must **never** call `dj_design_system.services.*` or `dj_design_system.business_logic.*` (views resolve data via services/business logic and pass domain dataclasses into components).
 - **No Python-Level Component Composition:** A component must **never** import, instantiate, or call `.render()` on another component inside Python (`get_context()` or helper methods). All component composition happens in `<name>.html` via `{% dds__... %}` template tags and `{% slot %}` blocks.
-- **No HTML String Building in Python:** Do not construct markup with `format_html()` or string concatenation inside `<name>.py`.
+- **Zero HTML String Building & No `mark_safe` in Python:** Component Python modules (`<name>.py`) must **never** import `mark_safe` or `format_html`, and must never construct raw HTML markup. Enforced strictly by automated tests (`test_no_html_or_mark_safe_in_python_module`). Presentation logic prepares context; templates own all markup generation.
+- **Parameter Specification & Attribute Reflection (`attr`, `data_attr`, `attr_style`):**
+  - Declare HTML attributes and data attributes declaratively on parameter specifications:
+    - `attr=True`: Emits `<param-name>="<value>"` (e.g. `name = StrParam(default=None, attr=True)`).
+    - `attr="custom-name"`: Emits `<custom-name>="<value>"` (e.g. `pressed = BoolParam(default=None, attr="aria-pressed", attr_style="string")`).
+    - `data_attr=True`: Emits `data-<param-name>="<value>"` (e.g. `variant = StrParam(..., data_attr=True)` -> `data-variant="..."`).
+    - `data_attr="custom-name"`: Emits `data-<custom-name>="<value>"`.
+    - `attr_style="boolean"`: Renders a standalone HTML boolean attribute when `True` (e.g. `disabled = BoolParam(default=False, attr=True, attr_style="boolean")` renders `disabled`), and omits it entirely when `False`.
+    - `attr_style="string"` (default): Renders string booleans (e.g. `aria-pressed="true"` / `aria-pressed="false"`).
+    - Optional parameters default to `default=None` so unset attributes are automatically omitted by the parameter descriptor engine.
+- **Orthogonal Parameter & Variant Design:**
+  - A component's `variant` parameter must represent purely semantic or visual intent (e.g. `neutral`, `info`, `success`, `warning`, `error`, `primary`, `danger`, `ghost`).
+  - **Never conflate variants with orthogonal dimensions:**
+    - Typography (e.g. `is_code = BoolParam(default=False)`) is an orthogonal dimension. Never create a `code` variant.
+    - Sizing and geometry (e.g. `size = StrParam(...)`, `icon_only = BoolParam(default=False)`) are orthogonal dimensions.
+    - Interactive state (e.g. `disabled`, `selected`, `pressed`) is an orthogonal dimension.
+  - Reject pragmatic compromises that collapse orthogonal concerns; refactor the parameter API cleanly and cascade updates across consumer templates, gallery configurations, and unit tests.
+- **Structured Data Contracts & Public Re-exports:**
+  - When a component accepts structured items or collections (e.g. breadcrumb items, tab items, table headers/rows), define a typed `@dataclass` in `<name>.py` (e.g. `BreadcrumbItem`, `TabItem`).
+  - Re-export the dataclass and component in `dj_design_system/components/<collection>/<name>/__init__.py` (e.g. `__all__ = ["Breadcrumb", "BreadcrumbItem"]`).
+  - Never accept loose dictionaries or untyped tuples when a structured contract can be typed.
 - **Bias Logic into `get_context()`:** All parameter defaults, parameter interaction rules (e.g. `disabled` clearing `href`), data sorting/shaping, and complex state resolution belong in `get_context()` (and private helper methods on the component class).
 
 ### Templates (`<name>.html`)
 - **Declarative Structure:** Templates own DOM structure, child component invocation (`{% dds__... %}`), loops (`{% for ... %}` / `{% empty %}`), and structural branching (`{% if %}` / `{% elif %}` / `{% else %}`) to select polymorphic HTML tags (e.g. `<a>` vs `<button>`), widget types, or optional child elements/attributes.
+- **Mandatory Template Attribute Consumption (`{{ attrs }}`):**
+  - Templates must render `{{ attrs }}` on the target root or interactive element instead of duplicating attribute rendering with manual `{% if %}` attribute conditions.
+  - Attributes rendered through `{{ attrs }}` are automatically escaped and formatted by the framework parameter engine.
+  - For components with multiple target elements or polymorphic tag branches, use scoped `{{ <param>_attr }}` helpers (e.g. `{{ disabled_attr }}`) or `{{ attrs }}` appropriately.
 - **No Template Value Computation:** Do not use Django template filters (`|default`, `|lower`, etc.) or multi-clause boolean logic to compute fallback values or transform data in templates—prepare those values in `get_context()`.
 
 ---
@@ -77,18 +101,27 @@ Python unit and integration tests remain under `tests/` so `ComponentRegistry.au
 
 ---
 
-## 5. CSS Architecture: CUBE CSS & `@layer`
+## 5. CSS Architecture: CUBE CSS, Nesting & Stylelint
 
-- **Strictly No BEM:** Never use `__` (element) or `--` (modifier) class naming anywhere in `dds` components or stylesheets.
+All component and layout CSS must strictly follow [html-css.md](html-css.md). Key invariants:
+- **Strictly No BEM:** Never use `__` (element) or `--` (modifier) class naming anywhere in `dds` components or stylesheets. Enforced by Stylelint.
 - **Cascade Layers:** All gallery CSS is organised into explicit native `@layer` blocks:
   ```css
   @layer reset, tokens, global, composition, blocks, utilities;
   ```
+- **Native CSS Nesting:** Always prefer native nesting (`&`) for pseudo-classes, states, and internal descendants rather than repeating flat selectors at the same level.
+- **Component Boundary Encapsulation (Zero Leakage):**
+  - Never reach into a child component's internal selectors from a parent component or layout CSS.
+  - Components encapsulate their own internal markup, typography, and syntax highlighting.
+  - Components must never set outer margins (`margin: 0` on root); parent layout primitives (`<l-*>`) manage spacing.
 - **One CSS Module per Component (`@layer blocks`):**
   - Each component's `<name>.css` wraps its rules in `@layer blocks { ... }`.
   - All rules are scoped under the component root selector (`dds-<name>` for interactive Web Components, or `.dds-<name>` for purely static components).
   - Style internal elements using semantic HTML descendants, `aria-*` attributes (`[aria-selected='true']`), or `data-*` state/variant attributes (`[data-variant='ghost']`, `[data-state='open']`).
-  - Never reach into a child component's internal selectors from a parent component's CSS.
+- **Variant & Interactive State Preservation:**
+  - Pseudo-class state rules (`:hover`, `:active`, `:focus-visible`) must never blanket-reset visual properties (`background-color`, `border-color`, `color`) to neutral tokens if the component supports variants (`primary`, `danger`, status variants).
+  - State selectors must either use Tier 3 tokens that adjust dynamically per variant, or provide nested variant state rules (e.g. `&[data-variant='primary']:hover`, `&[data-variant='danger']:hover`) so variant identity is maintained during user interactions.
+- **Declaration Grouping & Property Order:** Strictly follow the 5-group property order (Positioning -> Display & Box -> Colour -> Type -> Other). Verified via `just check` (`stylelint`).
 
 ---
 

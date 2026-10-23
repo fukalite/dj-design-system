@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import OrderedDict
+from collections.abc import Sequence
 from functools import lru_cache
 from html.parser import HTMLParser
 from pathlib import Path
@@ -17,7 +18,7 @@ from dj_design_system.constants import (
     BUILTIN_APP_LABEL,
     BUILTIN_GALLERY_SUBFOLDER,
 )
-from dj_design_system.data import NavNode
+from dj_design_system.data import NavItemInputData, NavNode
 from dj_design_system.services import component_dirs as component_dirs_service
 from dj_design_system.services import visibility as visibility_service
 from dj_design_system.services.registry import component_registry
@@ -596,3 +597,68 @@ def build_breadcrumbs(
 
     crumbs.append({"label": current_label})
     return crumbs
+
+
+def normalize_folder_items(
+    *, items: Sequence[NavNode | dict[str, Any] | Any]
+) -> list[dict[str, Any]]:
+    """Normalise child navigation nodes into card view models for folder listing."""
+    normalized: list[dict[str, Any]] = []
+    for raw_item in items:
+        parsed = NavItemInputData.from_raw(
+            raw_item,
+            default_label_from_name=True,
+            default_url="#",
+        )
+
+        if parsed.is_component or parsed.node_type == "component":
+            node_kind = "component"
+            icon = "component"
+            badge_label = "Component"
+            badge_variant = "info"
+        elif parsed.is_document or parsed.node_type in ("document", "doc"):
+            node_kind = "document"
+            icon = "doc"
+            badge_label = "Document"
+            badge_variant = "neutral"
+        elif parsed.is_variant or parsed.node_type == "variant":
+            node_kind = "variant"
+            icon = "code"
+            badge_label = "Variant"
+            badge_variant = "code"
+        else:
+            node_kind = "folder"
+            icon = "folder"
+            badge_label = "Folder"
+            badge_variant = "neutral"
+
+        if parsed.icon:
+            icon = parsed.icon
+
+        if parsed.child_count is not None:
+            child_count = parsed.child_count
+        elif parsed.has_children is False:
+            child_count = 0
+        else:
+            child_count = len(parsed.children)
+
+        if child_count == 1:
+            child_count_label = "1 item"
+        elif child_count > 1:
+            child_count_label = f"{child_count} items"
+        else:
+            child_count_label = ""
+
+        normalized.append(
+            {
+                "label": parsed.label,
+                "url": parsed.url,
+                "node_kind": node_kind,
+                "icon": icon,
+                "badge_label": badge_label,
+                "badge_variant": badge_variant,
+                "child_count_label": child_count_label,
+                "has_child_count": bool(child_count_label),
+            }
+        )
+    return normalized

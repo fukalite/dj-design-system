@@ -58,6 +58,73 @@ def make_info(
     )
 
 
+def extract_css_rule_blocks(css_text: str, selector: str) -> list[str]:
+    """Extract CSS declaration blocks for a selector, resolving native CSS nesting and &."""
+    import re
+
+    clean_css = re.sub(r"/\*.*?\*/", "", css_text, flags=re.DOTALL)
+
+    def norm_sel(s: str) -> str:
+        s = re.sub(r"\s+", " ", s.strip())
+        return s.replace('"', "'")
+
+    target_selectors = {norm_sel(s) for s in selector.split(",")}
+    rules: dict[str, list[str]] = {}
+    stack: list[tuple[list[str], list[str]]] = []
+
+    i = 0
+    n = len(clean_css)
+    token: list[str] = []
+
+    while i < n:
+        char = clean_css[i]
+        if char == ";":
+            token.append(";")
+            stmt = "".join(token).strip()
+            token = []
+            if stack and not stack[-1][0][0].startswith("@"):
+                stack[-1][1].append(stmt)
+        elif char == "{":
+            raw_sel = "".join(token).strip()
+            token = []
+            if stack:
+                parent_sels = stack[-1][0]
+                resolved_list: list[str] = []
+                for p in parent_sels:
+                    if p.startswith("@"):
+                        resolved_list.extend(raw_sel.split(","))
+                    elif "&" in raw_sel:
+                        for s in raw_sel.split(","):
+                            resolved_list.append(s.strip().replace("&", p))
+                    else:
+                        for s in raw_sel.split(","):
+                            resolved_list.append(f"{p} {s.strip()}")
+            else:
+                resolved_list = raw_sel.split(",")
+
+            selectors = [norm_sel(s) for s in resolved_list]
+            stack.append((selectors, []))
+        elif char == "}":
+            stmt = "".join(token).strip()
+            token = []
+            if stmt and stack and not stack[-1][0][0].startswith("@"):
+                stack[-1][1].append(stmt)
+            if stack:
+                curr_selectors, decls = stack.pop()
+                block_text = "\n".join(decls)
+                for sel in curr_selectors:
+                    rules.setdefault(sel, []).append(block_text)
+        else:
+            token.append(char)
+        i += 1
+
+    matched: list[str] = []
+    for target in target_selectors:
+        if target in rules:
+            matched.extend(rules[target])
+    return matched
+
+
 @pytest.fixture()
 def builtin_modules(tmp_path):
     """Factory adding temporary modules under ``dj_design_system.components``.

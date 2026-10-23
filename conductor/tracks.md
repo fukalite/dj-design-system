@@ -70,4 +70,8 @@
 - [x] **Track: Gallery Rebuild 9 — Packaging, Engine & Architectural Hardening**
   *Link: [tracks/gallery_rebuild_09_arch_hardening_20261009/index.md](tracks/gallery_rebuild_09_arch_hardening_20261009/index.md)*
 
+- [ ] **Track: Gallery Rebuild 10 — Domain Component Architecture, Event Decoupling & Shell Mediator**
+  *Link: [tracks/gallery_rebuild_10_domain_architecture_events_20261012/index.md](tracks/gallery_rebuild_10_domain_architecture_events_20261012/index.md)*
+
+
 

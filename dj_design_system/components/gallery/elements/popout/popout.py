@@ -3,39 +3,42 @@
 import typing
 
 from dj_design_system import components, parameters, slots
-from dj_design_system.components.gallery.elements import icon as icon_element
 
 
 ALIGN_START = "start"
 ALIGN_END = "end"
 ALIGN_CHOICES: tuple[str, ...] = (ALIGN_START, ALIGN_END)
 DEFAULT_ALIGN = ALIGN_START
+DEFAULT_ROLE = "menu"
+ROLE_CHOICES: tuple[str, ...] = ("menu", "dialog", "region", "none")
 
 
 class Popout(components.BlockComponent):
     """Accessible dropdown menu and popover primitive backed by ``<dds-popout>``.
 
     Renders a ``<dds-popout class="dds-popout">`` Light DOM custom element with
-    either a default trigger ``<button data-popout-trigger>`` or custom trigger
-    markup supplied via ``{% slot "trigger" %}``, paired with a floating
-    ``<div data-popout-menu data-surface="popout" role="menu">`` container.
+    either a default trigger ``<button class="dds-popout-trigger" data-popout-trigger>``
+    or custom trigger markup supplied via ``{% slot "trigger" %}``, paired with a
+    floating ``<div data-popout-menu data-surface="popout">`` container.
 
     Args:
         label: Trigger button text label (also used as ``aria-label`` when
             ``icon_only=True`` and as fallback for ``menu_label``).
-        icon: Optional leading trigger icon name from ``ICON_NAMES``.
+        icon: Optional leading trigger icon name.
         icon_only: Render an icon-only trigger button without label span or
             trailing chevron icon.
         align: Horizontal alignment of the floating menu (``"start"`` or ``"end"``).
         open: Whether the popout menu is initially open.
-        menu_label: Accessible ``aria-label`` for the ``role="menu"`` surface;
-            falls back to ``label`` when omitted.
+        role: ARIA role for the floating pane (``"menu"``, ``"dialog"``,
+            ``"region"``, or ``"none"``).
+        menu_label: Accessible ``aria-label`` for the floating surface; falls
+            back to ``label`` when omitted.
 
     Example usage::
 
         {% dds__popout "Theme" icon="sun" %}
             {% slot "trigger" %}
-                <button type="button" data-popout-trigger aria-haspopup="true" aria-expanded="false">
+                <button type="button" class="dds-button" data-popout-trigger aria-haspopup="true" aria-expanded="false">
                     Theme
                 </button>
             {% endslot %}
@@ -51,7 +54,6 @@ class Popout(components.BlockComponent):
         description="Optional leading trigger icon name.",
         default="",
         required=False,
-        choices=["", *icon_element.ICON_NAMES],
     )
     icon_only = parameters.BoolParam(
         description="Render icon-only trigger button.",
@@ -68,6 +70,12 @@ class Popout(components.BlockComponent):
         description="Whether the popout menu is initially open.",
         default=False,
         required=False,
+    )
+    role = parameters.StrParam(
+        description="ARIA role for the floating pane ('menu', 'dialog', 'region', or 'none').",
+        default=DEFAULT_ROLE,
+        required=False,
+        choices=list(ROLE_CHOICES),
     )
     menu_label = parameters.StrParam(
         description="Accessible label for the floating menu.",
@@ -107,14 +115,23 @@ class Popout(components.BlockComponent):
         has_icon = bool(self.icon)
         show_label = bool(self.label) and not self.icon_only
         aria_label = str(self.label) if self.icon_only else None
+        role = self.role or DEFAULT_ROLE
+        aria_haspopup = "dialog" if role == "dialog" else "true"
 
         context["align"] = self.align or DEFAULT_ALIGN
         context["state"] = state
         context["aria_expanded"] = aria_expanded
+        context["role"] = role
+        context["aria_haspopup"] = aria_haspopup
         context["resolved_menu_label"] = resolved_menu_label
         context["has_icon"] = has_icon
         context["show_label"] = show_label
         context["aria_label"] = aria_label
         context["slots"] = self.slots
         context["content"] = self.content or ""
+        context["menu_content"] = (
+            self.slots.get("menu")
+            if (self.slots and self.slots.get("menu"))
+            else (self.content or "")
+        )
         return context

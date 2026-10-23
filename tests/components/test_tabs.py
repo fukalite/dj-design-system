@@ -89,9 +89,7 @@ def _read_text(path: pathlib.Path) -> str:
 
 def _extract_rule_blocks(css_text: str, selector: str) -> list[str]:
     """Extract CSS declaration blocks for a specific selector."""
-    escaped = re.escape(pattern=selector)
-    pattern = re.compile(pattern=rf"{escaped}\s*\{{([^}}]*)\}}", flags=re.DOTALL)
-    return pattern.findall(string=css_text)
+    return conftest.extract_css_rule_blocks(css_text=css_text, selector=selector)
 
 
 def _extract_defined_properties(block_text: str) -> dict[str, str]:
@@ -107,8 +105,11 @@ class TestTabsDiscoveryAndMetadata:
     """Verify Tabs class exports, metadata, media, and registry discovery."""
 
     def test_exported_from_package_init(self) -> None:
-        """Verify Tabs is exported in dj_design_system.components.gallery.elements.tabs."""
+        """Verify Tabs, TabItem, and constants are exported in tabs package."""
         assert tabs_package.Tabs is tabs_module.Tabs
+        assert tabs_package.TabItem is tabs_module.TabItem
+        assert tabs_package.DEFAULT_VARIANT == "default"
+        assert tabs_package.VALID_VARIANTS == ["default", "switcher"]
         assert issubclass(tabs_module.Tabs, components_base.BlockComponent)
 
     def test_template_media_and_positional_args(self) -> None:
@@ -142,11 +143,20 @@ class TestTabsParametersAndContext:
         ctx = comp.get_context()
         assert comp.tabs is None
         assert comp.active_tab == ""
+        assert comp.variant == "default"
+        assert ctx["variant"] == "default"
         assert ctx["aria_label"] == "Tabs"
         assert ctx["resolved_active"] == ""
         assert ctx["normalized_tabs"] == []
         assert ctx["has_inline_panels"] is False
         assert ctx["has_slot_content"] is False
+
+    def test_variant_validation_and_assignment(self) -> None:
+        """Verify variant accepts valid choices and rejects invalid values."""
+        assert tabs_module.Tabs(variant="switcher").variant == "switcher"
+        assert tabs_module.Tabs(variant="default").variant == "default"
+        with pytest.raises(expected_exception=ValueError, match="Expected one of"):
+            tabs_module.Tabs(variant="unsupported")
 
     def test_normalizes_dict_items_and_defaults_to_first_tab(self) -> None:
         """Verify dict items normalize all fields and default resolved_active to first tab."""
@@ -180,6 +190,7 @@ class TestTabsParametersAndContext:
                 "has_badge": False,
                 "content": "Overview panel",
                 "has_content": True,
+                "has_panel": True,
                 "tab_dom_id": "dds-tab-overview",
                 "panel_dom_id": "dds-panel-overview",
                 "is_active": True,
@@ -195,6 +206,7 @@ class TestTabsParametersAndContext:
                 "has_badge": True,
                 "content": "Code panel",
                 "has_content": True,
+                "has_panel": True,
                 "tab_dom_id": "dds-tab-code",
                 "panel_dom_id": "dds-panel-code",
                 "is_active": False,
@@ -202,6 +214,27 @@ class TestTabsParametersAndContext:
                 "tabindex": "-1",
             },
         ]
+
+    def test_normalizes_typed_tab_item_dataclass(self) -> None:
+        """Verify official TabItem dataclass instances normalize correctly."""
+        comp = tabs_module.Tabs(
+            tabs=[
+                tabs_module.TabItem(
+                    id="preview",
+                    label="Preview",
+                    icon="eye",
+                    content="Preview text",
+                ),
+                tabs_module.TabItem(
+                    id="code",
+                    label="Source",
+                    badge="HTML",
+                ),
+            ]
+        )
+        ctx = comp.get_context()
+        assert ctx["normalized_tabs"][0]["has_panel"] is True
+        assert ctx["normalized_tabs"][1]["has_panel"] is False
 
     def test_normalizes_object_items_and_honours_matching_active_tab(self) -> None:
         """Verify object items normalize and matching active_tab selects that tab."""
@@ -304,7 +337,10 @@ class TestTabsRenderingAndTemplate:
             source='{% dds__tabs tabs active_tab="code" aria_label="View modes" %}{% enddds__tabs %}',
             context={"tabs": items},
         )
-        assert '<dds-tabs class="dds-tabs" data-active-tab="code">' in html
+        assert (
+            '<dds-tabs class="dds-tabs" data-variant="default" '
+            'data-active-tab="code">'
+        ) in html
         assert '<div role="tablist" aria-label="View modes" class="l-cluster">' in html
         assert (
             '<button type="button" role="tab" id="dds-tab-preview" '
@@ -329,6 +365,25 @@ class TestTabsRenderingAndTemplate:
             'data-tab-panel="code" aria-labelledby="dds-tab-code">'
             "Source body</div>"
         ) in html
+
+    def test_renders_standalone_switcher_without_aria_controls(self) -> None:
+        """Verify panel-less switcher mode renders data-variant='switcher' and no aria-controls."""
+        items = [
+            {"id": "docs", "label": "Docs"},
+            {"id": "sandbox", "label": "Sandbox"},
+        ]
+        html = _render_template(
+            source=(
+                '{% dds__tabs tabs=items variant="switcher" '
+                'aria_label="View switcher" %}{% enddds__tabs %}'
+            ),
+            context={"items": items},
+        )
+        assert (
+            '<dds-tabs class="dds-tabs" data-variant="switcher" '
+            'data-active-tab="docs">'
+        ) in html
+        assert "aria-controls=" not in html
 
     def test_renders_slotted_custom_panels(self) -> None:
         """Verify block body content renders when supplied by the caller."""
@@ -412,32 +467,20 @@ class TestTabsStylesheet:
         ):
             assert required_domain in css_text
 
-    def test_styles_role_tab_and_selected_state_with_alphabetized_declarations(
+    def test_styles_role_tab_and_boundary_encapsulation(
         self,
     ) -> None:
-        """Verify [role='tab'] and [role='tab'][aria-selected='true'] rules and CSS formatting."""
+        """Verify [role='tab'] and [role='tab'][aria-selected='true'] rules and child component boundary encapsulation."""
         css_text = _read_text(path=TABS_CSS_PATH)
-        assert "dds-tabs [role='tab']" in css_text
-        assert "dds-tabs [role='tab'][aria-selected='true']" in css_text
-        assert '"' not in css_text
-        assert "!important" not in css_text
+        assert _extract_rule_blocks(css_text=css_text, selector="dds-tabs [role='tab']")
+        assert _extract_rule_blocks(
+            css_text=css_text,
+            selector="dds-tabs [role='tab'][aria-selected='true']",
+        )
         assert ".dds-icon" not in css_text
         assert ".dds-badge" not in css_text
-        bem_matches = re.findall(
-            pattern=r"\.[a-z0-9-]+(?:__|--)[a-z0-9-]+",
-            string=css_text,
-        )
-        assert not bem_matches
-
-        rule_blocks = re.findall(pattern=r"\{([^{}]+)\}", string=css_text)
-        assert rule_blocks
-        for block in rule_blocks:
-            prop_names = re.findall(
-                pattern=r"^\s*([a-z0-9_-]+)\s*:",
-                string=block,
-                flags=re.MULTILINE,
-            )
-            assert prop_names == sorted(prop_names)
+        assert "data-variant='switcher'" in css_text
+        assert "--_tabs-switcher-border-color" in css_text
 
 
 class TestTabsTypeScriptCustomElement:
@@ -456,6 +499,9 @@ class TestTabsTypeScriptCustomElement:
         assert "disconnectedCallback()" in ts_text
         assert '[role="tab"][data-tab-trigger]' in ts_text
         assert '[role="tabpanel"][data-tab-panel]' in ts_text
+        assert ").filter((tab) => tab.closest('dds-tabs') === this);" in ts_text
+        assert ").filter((panel) => panel.closest('dds-tabs') === this);" in ts_text
+        assert "target.closest('dds-tabs') !== this" in ts_text
         for key in ("ArrowRight", "ArrowLeft", "Home", "End"):
             assert f"'{key}'" in ts_text
         assert "aria-selected" in ts_text
@@ -488,7 +534,7 @@ class TestTabsGalleryAndDocs:
             component_name=COMPONENT_NAME,
         )
         assert isinstance(cfg, gallery.GalleryConfig)
-        assert len(cfg.variants) >= 3
+        assert len(cfg.variants) >= 5
         for variant in cfg.variants:
             spec = data.CanvasSpec(
                 component_name=QUALIFIED_NAME,

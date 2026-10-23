@@ -37,7 +37,7 @@ def render_component_node(
     if request.headers.get("HX-Request"):
         return render(
             request,
-            "dj_design_system/gallery/sandbox_fragment.html",
+            "dj_design_system/gallery/panes/sandbox.html",
             context,
         )
 
