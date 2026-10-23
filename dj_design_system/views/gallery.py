@@ -25,7 +25,7 @@ from dj_design_system.settings import (
     get_theme,
     get_themes,
 )
-from dj_design_system.views.component import _render_component
+from dj_design_system.views.component import render_component_node
 from dj_design_system.views.decorators import gallery_access_required
 
 
@@ -50,11 +50,6 @@ def get_base_context(
         active_variant = (
             get_control_param(request.GET, "variant", bare_fallback=bare_fallback) or ""
         ).strip() or None
-    theme_body_class = (
-        "gallery-theme-dark"
-        if "dark" in str(active_theme).lower()
-        else "gallery-theme-light"
-    )
     return {
         "nav_tree": nav_tree,
         "search_index": [] if is_htmx else build_search_index(nav_tree),
@@ -66,7 +61,6 @@ def get_base_context(
         "available_themes": get_themes(),
         "active_theme": active_theme,
         "global_active_theme": active_theme,
-        "theme_body_class": theme_body_class,
         "component_tabs": [
             {"id": "docs", "label": "Documentation"},
             {"id": "sandbox", "label": "Sandbox"},
@@ -164,7 +158,7 @@ def gallery_node(
     context["active_path"] = node.active_path
 
     if node.is_component:
-        return _render_component(request, context, node, app_label, path_parts)
+        return render_component_node(request, context, node, app_label, path_parts)
 
     if node.is_document:
         return _render_document(request, context, node, app_label, path_parts)

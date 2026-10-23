@@ -87,3 +87,61 @@ class TestComponentsPackage:
             ensure_component_loaders_and_finders()
             assert COMPONENTS_STATIC_FINDER in settings.STATICFILES_FINDERS
             assert COMPONENTS_TEMPLATE_LOADER in engines["django"].engine.loaders
+
+
+class TestBuiltinColocationZeroBoilerplate:
+    """Verify built-in dds components rely on co-location instead of boilerplate attributes."""
+
+    def test_builtin_components_do_not_declare_redundant_template_name_or_media(
+        self,
+    ) -> None:
+        """Verify built-in components omit hardcoded template_name, _template_name, and co-located Media."""
+        from pathlib import Path
+
+        components_root = Path(components_package.__file__).resolve().parent
+        component_files = [
+            *sorted((components_root / "elements").glob("*/*.py")),
+            *sorted((components_root / "domain").glob("*/*.py")),
+        ]
+        component_files = [
+            p for p in component_files if p.name not in ("__init__.py", "gallery.py")
+        ]
+        assert len(component_files) > 0
+
+        for py_file in component_files:
+            source = py_file.read_text(encoding="utf-8")
+            assert "template_name =" not in source, (
+                f"{py_file.name} should rely on co-located template discovery instead of 'template_name ='"
+            )
+            assert "_template_name =" not in source, (
+                f"{py_file.name} should not define '_template_name ='"
+            )
+            assert "class Media:" not in source, (
+                f"{py_file.name} should rely on co-located CSS/JS discovery instead of 'class Media:'"
+            )
+
+    def test_all_builtin_components_auto_discover_templates_and_media(self) -> None:
+        """Verify ComponentRegistry auto-discovers .html, .css, and .ts/.js for all built-in components."""
+        from pathlib import Path
+
+        reg = ComponentRegistry()
+        discover_app_into_registry(reg, "dj_design_system", "dj_design_system")
+        infos = reg.list_by_app("dj_design_system")
+        assert len(infos) > 0
+
+        components_root = Path(components_package.__file__).resolve().parent
+        for info in infos:
+            rel_dir = Path(*info.relative_path.split("."))
+            comp_dir = components_root / rel_dir
+            assert info.template_name == (
+                f"dj_design_system/components/{rel_dir.as_posix()}/{info.name}.html"
+            )
+            assert (
+                f"dj_design_system/components/{rel_dir.as_posix()}/{info.name}.css"
+                in info.media.css
+            )
+            if (comp_dir / f"{info.name}.ts").is_file():
+                assert (
+                    f"dj_design_system/components/{rel_dir.as_posix()}/{info.name}.js"
+                    in info.media.js
+                )

@@ -105,9 +105,11 @@ class TestBreadcrumbDiscoveryAndMetadata:
         assert issubclass(breadcrumb_module.Breadcrumb, components_base.TagComponent)
 
     def test_template_media_and_positional_args(self) -> None:
-        """Verify Breadcrumb declares co-located template_name, Media.css, and positional_args."""
-        assert breadcrumb_module.Breadcrumb.template_name == TEMPLATE_PATH
-        assert breadcrumb_module.Breadcrumb.Media.css == CSS_MEDIA_PATH
+        """Verify Breadcrumb relies on co-located template_name, Media.css, and positional_args."""
+        reg = _make_registry()
+        info = reg.get_by_name(name=COMPONENT_NAME, app_label=APP_LABEL)
+        assert info.template_name == TEMPLATE_PATH
+        assert info.media.css == [CSS_MEDIA_PATH]
         assert breadcrumb_module.Breadcrumb.get_positional_args() == ["items"]
 
     def test_discovered_as_dds_breadcrumb_in_registry(self) -> None:
@@ -308,6 +310,32 @@ class TestBreadcrumbRenderingAndTemplate:
         assert "<script>" not in html
         assert "&lt;script&gt;alert(1)&lt;/script&gt;" in html
         assert "Nav &quot;unsafe&quot;" in html
+
+    def test_composes_dds_popout_and_dds_popout_option_in_template(
+        self,
+    ) -> None:
+        """Verify breadcrumb.html composes {% dds__popout %} and {% dds__popout_option %} instead of raw <dds-popout> markup."""
+        template_text = _read_text(path=BREADCRUMB_HTML_PATH)
+        assert "{% dds__popout " in template_text
+        assert "{% dds__popout_option " in template_text
+        assert "<dds-popout" not in template_text
+
+        trail = [
+            {"label": "Gallery", "url": "/gallery/"},
+            {"label": "Elements", "url": "/gallery/elements/"},
+            {"label": "Static Folder"},
+            {"label": "Breadcrumb"},
+        ]
+        html = _render_template(
+            source="{% dds__breadcrumb items=trail %}",
+            context={"trail": trail},
+        )
+        assert (
+            '<dds-popout class="dds-popout" data-align="start" data-state="closed">'
+            in html
+        )
+        assert 'class="dds-popout-option"' in html
+        assert 'href="/gallery/elements/"' in html
 
     def test_template_contains_no_filters_or_bem(self) -> None:
         """Verify breadcrumb.html loads design_components and has no filters or BEM."""

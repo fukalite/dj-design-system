@@ -32,19 +32,22 @@
       {% if forloop.first and has_collapsed_items %}
         <li data-breadcrumb-ellipsis-item>
           {% dds__icon name=separator_icon size="xs" %}
-          <dds-popout class="dds-popout" data-align="start" data-state="closed">
-            <button type="button" data-popout-trigger data-breadcrumb-ellipsis aria-haspopup="true" aria-expanded="false" aria-label="Show intermediate breadcrumbs">&hellip;</button>
-            <div data-popout-menu data-surface="popout" data-breadcrumb-flyout role="menu" aria-label="Intermediate breadcrumbs" hidden>
-              {% for collapsed in collapsed_items %}
-                {% if collapsed.has_url %}
-                  <a href="{{ collapsed.url }}" role="menuitem">{{ collapsed.label }}</a>
-                {% else %}
-                  <span role="menuitem">{{ collapsed.label }}</span>
-                {% endif %}
-                <span aria-hidden="true">/</span>
-              {% endfor %}
-            </div>
-          </dds-popout>
+          {% dds__popout align="start" menu_label="Intermediate breadcrumbs" %}
+            {% slot "trigger" %}
+              <button type="button" data-popout-trigger data-breadcrumb-ellipsis aria-haspopup="true" aria-expanded="false" aria-label="Show intermediate breadcrumbs">&hellip;</button>
+            {% endslot %}
+            {% slot "menu" %}
+              <div data-breadcrumb-flyout>
+                {% for collapsed in collapsed_items %}
+                  {% if collapsed.has_url %}
+                    {% dds__popout_option label=collapsed.label href=collapsed.url %}
+                  {% else %}
+                    {% dds__popout_option label=collapsed.label disabled=True %}
+                  {% endif %}
+                {% endfor %}
+              </div>
+            {% endslot %}
+          {% enddds__popout %}
         </li>
       {% endif %}
     {% endfor %}

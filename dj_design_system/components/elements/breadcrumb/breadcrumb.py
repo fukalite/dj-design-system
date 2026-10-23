@@ -30,9 +30,6 @@ class Breadcrumb(components.TagComponent):
         {% dds__breadcrumb items separator_icon="chevron-right" aria_label="Component path" %}
     """
 
-    template_name = "dj_design_system/components/elements/breadcrumb/breadcrumb.html"
-    _template_name = template_name
-
     items = parameters.ListParam(
         description=(
             "Ordered list of trail items (dicts with 'label' and optional "
@@ -55,9 +52,6 @@ class Breadcrumb(components.TagComponent):
 
     class Meta:
         positional_args = ["items"]
-
-    class Media:
-        css = "dj_design_system/components/elements/breadcrumb/breadcrumb.css"
 
     def get_context(self) -> dict[str, typing.Any]:
         """Build the normalized template context for the breadcrumb trail.

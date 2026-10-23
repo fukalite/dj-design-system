@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Any
 
 from django.template.loader import render_to_string
-from django.utils.html import format_html
+from django.utils.html import conditional_escape, format_html
 from django.utils.safestring import SafeString, mark_safe
 
 from dj_design_system.parameters import BaseParam
@@ -53,7 +53,12 @@ class BaseComponent:
 
     def __init__(self, **kwargs):
         self.context = {}
+        declared_params = type(self).get_params()
         for var_name, var_value in kwargs.items():
+            if var_name not in declared_params:
+                raise TypeError(
+                    f"{type(self).__name__}() got an unexpected keyword argument '{var_name}'"
+                )
             setattr(self, var_name, var_value)
 
         self._validate_meta_constraints()
@@ -136,8 +141,15 @@ class BaseComponent:
         return " ".join(classes)
 
     def render(self) -> str:
-        """Render the component as an HTML string."""
-        template_name: str | None = getattr(type(self), "_template_name", None)
+        """Render the component as an HTML string.
+
+        Co-located ``.html`` templates and explicit ``template_name`` attributes
+        are resolved and bound to ``cls._template_name`` during application
+        startup by ``ComponentRegistry._bind_template()``.
+        """
+        template_name: str | None = getattr(
+            type(self), "_template_name", None
+        ) or getattr(type(self), "template_name", None)
         if template_name:
             return mark_safe(render_to_string(template_name, self.get_context()))
         return format_html(format_string=self.template_format_str, **self.get_context())
@@ -284,30 +296,43 @@ class BlockComponent(BaseComponent):
 
     def __init__(
         self,
-        content: SafeString | None = None,
+        content: SafeString | str | None = None,
         *,
-        slots: dict[str, SafeString] | None = None,
+        slots: dict[str, SafeString | str] | None = None,
         **kwargs,
     ):
+        normalized_content = (
+            (
+                content
+                if isinstance(content, SafeString)
+                else conditional_escape(content)
+            )
+            if content is not None
+            else mark_safe("")
+        )
         if self.has_slots():
-            if slots is None:
-                slots = {}
+            normalized_slots: dict[str, SafeString] = {
+                name: (val if isinstance(val, SafeString) else conditional_escape(val))
+                if val is not None
+                else mark_safe("")
+                for name, val in (slots or {}).items()
+            }
             tag_name = get_meta_name(type(self)) or derive_name(type(self))
-            self.slots = validate_slots(self.get_slots(), slots, tag_name)
-            self.content = None
+            self.slots = validate_slots(self.get_slots(), normalized_slots, tag_name)
+            self.content = normalized_content
         else:
-            self.content = content
+            self.content = normalized_content
             self.slots = {}
         super().__init__(**kwargs)
 
     def get_context(self) -> dict[str, Any]:
-        """Add ``content`` or slot values to the context automatically."""
+        """Add ``content`` and slot values to the context automatically."""
         context = super().get_context()
+        context["content"] = self.content
+        context["slots"] = self.slots
         if self.has_slots():
             for name, value in self.slots.items():
                 context[name] = value
-        else:
-            context["content"] = self.content
         return context
 
     @classmethod

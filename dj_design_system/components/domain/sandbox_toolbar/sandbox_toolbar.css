@@ -1,4 +1,5 @@
 @layer blocks {
+  dds-sandbox-toolbar,
   .dds-sandbox-toolbar {
     --_sandbox-toolbar-bg-blur: var(--dds-surface-sandbox-bg-blur);
     --_sandbox-toolbar-bg-color: var(--dds-surface-sandbox-bg-color);
@@ -57,6 +58,7 @@
     z-index: var(--_sandbox-toolbar-z-index);
   }
 
+  dds-sandbox-toolbar [data-sandbox-controls],
   .dds-sandbox-toolbar [data-sandbox-controls] {
     align-items: center;
     gap: var(--_sandbox-toolbar-gap);
@@ -64,6 +66,7 @@
     margin: 0;
   }
 
+  dds-sandbox-toolbar [data-sandbox-control],
   .dds-sandbox-toolbar [data-sandbox-control] {
     align-items: center;
     display: inline-flex;
@@ -71,6 +74,7 @@
     margin: 0;
   }
 
+  dds-sandbox-toolbar [data-sandbox-toggles],
   .dds-sandbox-toolbar [data-sandbox-toggles] {
     align-items: center;
     border-inline-start-color: var(--_sandbox-toolbar-divider-color);

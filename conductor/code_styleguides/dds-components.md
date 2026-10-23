@@ -19,15 +19,15 @@ This styleguide governs **only** the built-in gallery components and UI assets i
 
 ### Two Collections (`elements/` vs `domain/`)
 All built-in gallery components live under `dj_design_system/components/` in one of two top-level collections, flattened (`FlattenStrategy.ALL`) under the `dds` prefix (`{% dds__<name> %}`):
-- **`elements/`:** Reusable, domain-agnostic UI primitives (`badge`, `breadcrumb`, `button`, `code_block`, `form_field`, `icon`, `notice`, `popout`, `table`, `tabs` + `tabs/tab_trigger`).
+- **`elements/`:** Reusable, domain-agnostic UI primitives (`badge`, `breadcrumb`, `button`, `code_block`, `form_field`, `icon`, `notice`, `popout`, `popout_option`, `table`, `tabs`).
 - **`domain/`:** Domain-specific gallery UI blocks ("the way the gallery displays X"). Each represents a meaningful unit of design attention, customisation, and consumer shadowing (`gallery_shell`, `sidebar`, `toolbar`, `nav_tree`, `search_box`, `theme_select`, `folder_listing`, `prose`, `params_table`, `usage_example`, `variant_view`, `split_pane`, `sandbox_toolbar`, `params_form`, `canvas_widget`).
 
 ### Granularity Threshold
-- Do **not** create 1-line wrapper components for trivial HTML tags or single-loop wrappers (e.g. no `UsageExamples` or `PopoutOption` wrapper components).
+- Do **not** create 1-line wrapper components for trivial HTML tags or single-loop wrappers (e.g. no `UsageExamples` wrapper component).
 - A `domain/` component takes a single primary domain dataclass (e.g. `VariantViewData`, `FolderListingData`, `NavTreeData`) and decomposes it internally, delegating to `elements/` via template tags where appropriate.
 
 ### 100% Co-location & Documentation
-Every component lives in its own folder (`dj_design_system/components/<collection>/<name>/`, or nested subfolder for tightly coupled sub-components like `tabs/tab_trigger/`) containing:
+Every component lives in its own folder (`dj_design_system/components/<collection>/<name>/`) containing:
 - `<name>.py` — Component class with a comprehensive docstring explaining what the component does, when to use it, and how/why to use its variants.
 - `<name>.html` — Co-located Django template.
 - `<name>.css` — Co-located CUBE CSS block stylesheet.

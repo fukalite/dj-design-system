@@ -2,7 +2,7 @@
 
 import typing
 
-from dj_design_system import components, parameters
+from dj_design_system import components, data, parameters
 
 
 DEFAULT_ACTIVE_VARIANT = ""
@@ -82,11 +82,6 @@ class SandboxToolbar(components.TagComponent):
         {% dds__sandbox_toolbar active_background="dark" active_viewport="768" outline_active=True canvas_url="/canvas/button/" %}
     """
 
-    template_name = (
-        "dj_design_system/components/domain/sandbox_toolbar/sandbox_toolbar.html"
-    )
-    _template_name = template_name
-
     variants = parameters.ListParam(
         description="Optional list of Variant instances or dicts with 'name' and 'label'.",
         default=None,
@@ -163,9 +158,6 @@ class SandboxToolbar(components.TagComponent):
         required=False,
     )
 
-    class Media:
-        css = "dj_design_system/components/domain/sandbox_toolbar/sandbox_toolbar.css"
-
     def __init__(self, **kwargs: typing.Any) -> None:
         """Initialise the sandbox toolbar, normalising non-string active variant and zoom inputs.
 
@@ -210,103 +202,32 @@ class SandboxToolbar(components.TagComponent):
         active_variant_label = DEFAULT_VARIANT_LABEL
 
         for raw_variant in raw_variants:
-            if isinstance(raw_variant, str):
-                raw_name: typing.Any = raw_variant
-                raw_label: typing.Any = (
-                    raw_variant.capitalize()
-                    if raw_variant.islower()
-                    else raw_variant
-                )
-                raw_href: typing.Any = None
-            elif isinstance(raw_variant, dict):
-                raw_name = raw_variant.get("name")
-                raw_label = raw_variant.get("label")
-                raw_href = raw_variant.get("href")
-            else:
-                raw_name = getattr(raw_variant, "name", None)
-                raw_label = getattr(raw_variant, "label", None)
-                raw_href = getattr(raw_variant, "href", None)
-
-            name = str(raw_name) if raw_name is not None else ""
-            if raw_label is not None:
-                label = str(raw_label)
-            elif name:
-                label = name.capitalize() if name.islower() else name
-            else:
-                label = DEFAULT_VARIANT_LABEL
-
-            if raw_href is not None and str(raw_href):
-                href = str(raw_href)
-            elif base_url:
-                if name:
-                    separator = "&" if "?" in base_url else "?"
-                    href = f"{base_url}{separator}variant={name}"
-                else:
-                    href = base_url
-            else:
-                href = ""
-
+            opt = data.SandboxControlOptionData.from_raw(
+                raw_variant,
+                base_url=base_url,
+                is_variant=True,
+                default_label=DEFAULT_VARIANT_LABEL,
+            )
             is_selected = bool(resolved_active_variant) and (
-                name == resolved_active_variant
+                opt.name == resolved_active_variant
             )
             if is_selected:
-                active_variant_label = label
-
-            normalized_variants.append(
-                {
-                    "name": name,
-                    "label": label,
-                    "href": href,
-                    "is_selected": is_selected,
-                }
-            )
+                active_variant_label = opt.label
+            normalized_variants.append(opt.to_dict(is_selected=is_selected))
 
         raw_backgrounds: list[typing.Any] = (
             list(self.backgrounds)
             if self.backgrounds is not None
             else list(DEFAULT_BACKGROUNDS)
         )
-        extracted_backgrounds: list[tuple[str, str]] = []
-        for raw_bg in raw_backgrounds:
-            if isinstance(raw_bg, tuple | list) and len(raw_bg) >= 2:
-                bg_value = str(raw_bg[0])
-                bg_label = str(raw_bg[1])
-            elif isinstance(raw_bg, str):
-                bg_value = raw_bg
-                bg_label = raw_bg.capitalize() if raw_bg.islower() else raw_bg
-            elif isinstance(raw_bg, dict):
-                raw_bg_value = raw_bg.get("value")
-                raw_bg_label = raw_bg.get("label")
-                bg_value = str(raw_bg_value) if raw_bg_value is not None else ""
-                bg_label = (
-                    str(raw_bg_label)
-                    if raw_bg_label is not None
-                    else (
-                        bg_value.capitalize()
-                        if bg_value.islower()
-                        else bg_value
-                    )
-                )
-            else:
-                raw_bg_value = getattr(raw_bg, "value", None)
-                raw_bg_label = getattr(raw_bg, "label", None)
-                bg_value = str(raw_bg_value) if raw_bg_value is not None else ""
-                bg_label = (
-                    str(raw_bg_label)
-                    if raw_bg_label is not None
-                    else (
-                        bg_value.capitalize()
-                        if bg_value.islower()
-                        else bg_value
-                    )
-                )
-            extracted_backgrounds.append((bg_value, bg_label))
-
-        bg_values = [val for val, _ in extracted_backgrounds]
+        extracted_backgrounds = [
+            data.SandboxControlOptionData.from_raw(raw_bg) for raw_bg in raw_backgrounds
+        ]
+        bg_values = [opt.value for opt in extracted_backgrounds]
         if self.active_background and str(self.active_background) in bg_values:
             resolved_background = str(self.active_background)
         elif extracted_backgrounds:
-            resolved_background = extracted_backgrounds[0][0]
+            resolved_background = extracted_backgrounds[0].value
         else:
             resolved_background = str(
                 self.active_background or DEFAULT_ACTIVE_BACKGROUND
@@ -318,68 +239,27 @@ class SandboxToolbar(components.TagComponent):
             if resolved_background.islower()
             else resolved_background
         )
-        for bg_value, bg_label in extracted_backgrounds:
-            is_bg_selected = bg_value == resolved_background
+        for opt in extracted_backgrounds:
+            is_bg_selected = opt.value == resolved_background
             if is_bg_selected:
-                active_background_label = bg_label
-            normalized_backgrounds.append(
-                {
-                    "value": bg_value,
-                    "label": bg_label,
-                    "is_selected": is_bg_selected,
-                }
-            )
+                active_background_label = opt.label
+            normalized_backgrounds.append(opt.to_dict(is_selected=is_bg_selected))
 
         raw_viewports: list[typing.Any] = (
             list(self.viewports)
             if self.viewports is not None
             else list(DEFAULT_VIEWPORTS)
         )
-        extracted_viewports: list[tuple[str, str]] = []
-        for raw_vp in raw_viewports:
-            if isinstance(raw_vp, tuple | list) and len(raw_vp) >= 2:
-                vp_value = str(raw_vp[0])
-                vp_label = str(raw_vp[1])
-            elif isinstance(raw_vp, str):
-                vp_value = raw_vp
-                vp_label = raw_vp.capitalize() if raw_vp.islower() else raw_vp
-            elif isinstance(raw_vp, dict):
-                raw_vp_value = raw_vp.get("value")
-                raw_vp_label = raw_vp.get("label")
-                vp_value = str(raw_vp_value) if raw_vp_value is not None else ""
-                vp_label = (
-                    str(raw_vp_label)
-                    if raw_vp_label is not None
-                    else (
-                        vp_value.capitalize()
-                        if vp_value.islower()
-                        else vp_value
-                    )
-                )
-            else:
-                raw_vp_value = getattr(raw_vp, "value", None)
-                raw_vp_label = getattr(raw_vp, "label", None)
-                vp_value = str(raw_vp_value) if raw_vp_value is not None else ""
-                vp_label = (
-                    str(raw_vp_label)
-                    if raw_vp_label is not None
-                    else (
-                        vp_value.capitalize()
-                        if vp_value.islower()
-                        else vp_value
-                    )
-                )
-            extracted_viewports.append((vp_value, vp_label))
-
-        vp_values = [val for val, _ in extracted_viewports]
+        extracted_viewports = [
+            data.SandboxControlOptionData.from_raw(raw_vp) for raw_vp in raw_viewports
+        ]
+        vp_values = [opt.value for opt in extracted_viewports]
         if self.active_viewport and str(self.active_viewport) in vp_values:
             resolved_viewport = str(self.active_viewport)
         elif extracted_viewports:
-            resolved_viewport = extracted_viewports[0][0]
+            resolved_viewport = extracted_viewports[0].value
         else:
-            resolved_viewport = str(
-                self.active_viewport or DEFAULT_ACTIVE_VIEWPORT
-            )
+            resolved_viewport = str(self.active_viewport or DEFAULT_ACTIVE_VIEWPORT)
 
         normalized_viewports: list[dict[str, typing.Any]] = []
         active_viewport_label = (
@@ -387,69 +267,38 @@ class SandboxToolbar(components.TagComponent):
             if resolved_viewport.islower()
             else resolved_viewport
         )
-        for vp_value, vp_label in extracted_viewports:
-            is_vp_selected = vp_value == resolved_viewport
+        for opt in extracted_viewports:
+            is_vp_selected = opt.value == resolved_viewport
             if is_vp_selected:
-                active_viewport_label = vp_label
-            normalized_viewports.append(
-                {
-                    "value": vp_value,
-                    "label": vp_label,
-                    "is_selected": is_vp_selected,
-                }
-            )
+                active_viewport_label = opt.label
+            normalized_viewports.append(opt.to_dict(is_selected=is_vp_selected))
 
         raw_zoom_levels: list[typing.Any] = (
             list(self.zoom_levels)
             if self.zoom_levels is not None
             else list(DEFAULT_ZOOM_LEVELS)
         )
-        extracted_zooms: list[tuple[str, str]] = []
-        for raw_zoom in raw_zoom_levels:
-            if isinstance(raw_zoom, tuple | list) and len(raw_zoom) >= 2:
-                zoom_value = str(raw_zoom[0]).rstrip("%")
-                zoom_label = str(raw_zoom[1])
-            elif isinstance(raw_zoom, dict):
-                raw_zoom_val = raw_zoom.get("value")
-                raw_zoom_lbl = raw_zoom.get("label")
-                zoom_value = (
-                    str(raw_zoom_val).rstrip("%")
-                    if raw_zoom_val is not None
-                    else ""
-                )
-                zoom_label = (
-                    str(raw_zoom_lbl)
-                    if raw_zoom_lbl is not None
-                    else f"{zoom_value}%"
-                )
-            else:
-                zoom_value = str(raw_zoom).rstrip("%")
-                zoom_label = f"{zoom_value}%"
-            extracted_zooms.append((zoom_value, zoom_label))
-
+        extracted_zooms = [
+            data.SandboxControlOptionData.from_raw(raw_zoom, is_zoom=True)
+            for raw_zoom in raw_zoom_levels
+        ]
         raw_active_zoom = (
             str(self.active_zoom).rstrip("%")
             if self.active_zoom
             else DEFAULT_ACTIVE_ZOOM
         )
-        zoom_values = [val for val, _ in extracted_zooms]
+        zoom_values = [opt.value for opt in extracted_zooms]
         if raw_active_zoom in zoom_values:
             resolved_zoom = raw_active_zoom
         elif extracted_zooms:
-            resolved_zoom = extracted_zooms[0][0]
+            resolved_zoom = extracted_zooms[0].value
         else:
             resolved_zoom = raw_active_zoom
 
-        normalized_zoom_levels: list[dict[str, typing.Any]] = []
-        for zoom_value, zoom_label in extracted_zooms:
-            is_zoom_selected = zoom_value == resolved_zoom
-            normalized_zoom_levels.append(
-                {
-                    "value": zoom_value,
-                    "label": zoom_label,
-                    "is_selected": is_zoom_selected,
-                }
-            )
+        normalized_zoom_levels: list[dict[str, typing.Any]] = [
+            opt.to_dict(is_selected=(opt.value == resolved_zoom))
+            for opt in extracted_zooms
+        ]
 
         active_zoom_label = f"{resolved_zoom}%"
         canvas_url = str(self.canvas_url) if self.canvas_url else ""

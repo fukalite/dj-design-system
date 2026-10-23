@@ -12,9 +12,18 @@ import pytest
 from dj_design_system import finders
 
 
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib  # type: ignore[import-not-found,no-redef]
+
+
 ROOT_DIR = pathlib.Path(__file__).resolve().parent.parent
 TSCONFIG_PATH = ROOT_DIR / "tsconfig.json"
 JUSTFILE_PATH = ROOT_DIR / "justfile"
+PYPROJECT_PATH = ROOT_DIR / "pyproject.toml"
+PUBLISH_WORKFLOW_PATH = ROOT_DIR / ".github" / "workflows" / "publish.yml"
+PUBLISH_TEST_WORKFLOW_PATH = ROOT_DIR / ".github" / "workflows" / "publish-test.yml"
 COMPONENTS_DIR = ROOT_DIR / "dj_design_system" / "components"
 SHARED_TYPES_PATH = COMPONENTS_DIR / "types.ts"
 
@@ -190,3 +199,42 @@ class TestTypeScriptCompilationPipeline:
             assert rejected_ts == []
         finally:
             shutil.rmtree(path=PROBE_COMPONENT_DIR, ignore_errors=True)
+
+
+class TestPackageArtifactsAndReleaseWorkflows:
+    """Verify compiled .js Web Component bundles are packaged into wheel/sdist releases."""
+
+    def test_pyproject_includes_compiled_js_artifacts_in_wheel_and_sdist(self) -> None:
+        """Verify Hatch wheel and sdist targets include gitignored component .js bundles."""
+        config = tomllib.loads(PYPROJECT_PATH.read_text(encoding="utf-8"))
+        targets = config["tool"]["hatch"]["build"]["targets"]
+        assert (
+            "dj_design_system/components/**/*.js"
+            in targets["wheel"].get("artifacts", [])
+        )
+        assert (
+            "dj_design_system/components/**/*.js"
+            in targets["sdist"].get("artifacts", [])
+        )
+
+    @pytest.mark.parametrize(
+        "workflow_path",
+        [PUBLISH_WORKFLOW_PATH, PUBLISH_TEST_WORKFLOW_PATH],
+        ids=["publish.yml", "publish-test.yml"],
+    )
+    def test_publish_workflows_compile_typescript_before_uv_build(
+        self,
+        workflow_path: pathlib.Path,
+    ) -> None:
+        """Verify release workflows set up Node and compile TypeScript prior to uv build."""
+        content = workflow_path.read_text(encoding="utf-8")
+        assert "actions/setup-node" in content
+        assert "npm ci" in content
+        tsc_pos = content.find("tsc -p tsconfig.json")
+        build_pos = content.find("uv build")
+        assert tsc_pos != -1, f"{workflow_path.name} must run tsc -p tsconfig.json"
+        assert build_pos != -1, f"{workflow_path.name} must run uv build"
+        assert tsc_pos < build_pos, (
+            f"{workflow_path.name} must compile TypeScript before uv build"
+        )
+

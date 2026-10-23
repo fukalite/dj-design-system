@@ -25,6 +25,13 @@
     --_tabs-selected-bg-color: var(--dds-state-selected-bg-color);
     --_tabs-selected-border-color: var(--dds-state-selected-border-color);
     --_tabs-selected-text-color: var(--dds-state-selected-text-color);
+    --_tabs-switcher-border-color: var(--dds-control-accent-color);
+    --_tabs-switcher-border-width: var(--dds-state-focus-outline-width);
+    --_tabs-switcher-font-size: var(--dds-text-overline-size);
+    --_tabs-switcher-font-weight: var(--dds-text-overline-weight);
+    --_tabs-switcher-letter-spacing: var(--dds-text-overline-letter-spacing);
+    --_tabs-switcher-padding-block: var(--dds-space-sm);
+    --_tabs-switcher-selected-text-color: var(--dds-text-prominent-color);
     --_tabs-tab-bg-color: var(--dds-state-interactive-bg-color);
     --_tabs-tab-border-color: var(--dds-state-interactive-bg-color);
     --_tabs-tab-gap: var(--dds-space-2xs);
@@ -105,5 +112,39 @@
 
   dds-tabs [role='tabpanel'][hidden] {
     display: none;
+  }
+
+  dds-tabs:not(:has([role='tabpanel'])) [role='tablist'] {
+    --space: var(--_tabs-gap);
+    border-bottom-width: 0;
+    margin: 0;
+  }
+
+  dds-tabs:not(:has([role='tabpanel'])) [role='tab'] {
+    background-color: var(--_tabs-tab-bg-color);
+    border-bottom-color: var(--_tabs-tab-bg-color);
+    border-bottom-width: var(--_tabs-switcher-border-width);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    color: var(--_tabs-tab-text-color);
+    font-family: var(--_tabs-font);
+    font-size: var(--_tabs-switcher-font-size);
+    font-weight: var(--_tabs-switcher-font-weight);
+    letter-spacing: var(--_tabs-switcher-letter-spacing);
+    line-height: var(--_tabs-line-height);
+    padding-block: var(--_tabs-switcher-padding-block);
+    padding-inline: var(--_tabs-tab-padding-inline);
+    text-transform: uppercase;
+  }
+
+  dds-tabs:not(:has([role='tabpanel'])) [role='tab']:hover {
+    background-color: var(--_tabs-hover-bg-color);
+    color: var(--_tabs-hover-text-color);
+  }
+
+  dds-tabs:not(:has([role='tabpanel'])) [role='tab'][aria-selected='true'] {
+    background-color: var(--_tabs-tab-bg-color);
+    border-bottom-color: var(--_tabs-switcher-border-color);
+    color: var(--_tabs-switcher-selected-text-color);
   }
 }

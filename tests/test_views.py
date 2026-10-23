@@ -1,5 +1,6 @@
 """Tests for the gallery views."""
 
+import inspect
 from urllib.parse import parse_qs, urlsplit
 
 import pytest
@@ -7,11 +8,25 @@ from django.contrib.auth.models import Permission
 from django.test import override_settings
 from django.urls import reverse
 
+from dj_design_system.components import BlockComponent
+from dj_design_system.data import ParamRowData
+from dj_design_system.forms import build_component_form
+from dj_design_system.parameters.base import JSONParam, StrParam
+from dj_design_system.services.gallery_context import build_param_rows
 from dj_design_system.services.navigation import (
     build_breadcrumbs,
     find_node,
 )
-from dj_design_system.views import get_base_context
+from dj_design_system.views import (
+    canvas as canvas_views,
+)
+from dj_design_system.views import (
+    component as component_views,
+)
+from dj_design_system.views import (
+    gallery_index,
+    get_base_context,
+)
 
 
 def _get_nav_tree():
@@ -186,15 +201,20 @@ class TestGalleryComponentView:
         assert "<p>A dismissable alert banner" in content
         assert "&lt;p&gt;A dismissable alert banner" not in content
 
-    def test_dark_only_component_preserves_global_theme_body_class(self, client):
+    def test_consumer_theme_does_not_force_gallery_chrome_theme_class(self, client):
         url = reverse(
             "gallery-node",
             kwargs={"app_label": "demo_components", "path": "alert"},
         )
-        response = client.get(url)
+        response = client.get(f"{url}?_dds_theme=dark")
         assert response.status_code == 200
-        assert response.context["theme_body_class"] == "gallery-theme-light"
+        assert "theme_body_class" not in response.context
+        assert response.context["global_active_theme"] == "dark"
         assert response.context["sandbox_active_theme"] == "dark"
+        content = response.content.decode("utf-8")
+        assert '<html lang="en">' in content
+        assert "gallery-theme-dark" not in content
+        assert "gallery-theme-light" not in content
 
     def test_component_renders_section_headings_and_dividers(self, client):
         url = reverse(
@@ -210,9 +230,7 @@ class TestGalleryComponentView:
         assert "<h2 data-docs-heading>Further documentation</h2>" in content
         assert "<hr data-docs-divider>" in content
 
-    def test_variant_view_renders_parameters_and_further_documentation(
-        self, client
-    ):
+    def test_variant_view_renders_parameters_and_further_documentation(self, client):
         url = reverse(
             "gallery-node",
             kwargs={"app_label": "demo_components", "path": "badge"},
@@ -342,8 +360,10 @@ class TestGalleryComponentFormIntegration:
         """When the component page first loads without parameters, form should have initial data from gallery kwargs."""
         from django.test import RequestFactory
 
+        from dj_design_system.services.gallery_context import (
+            get_form_and_sandbox_spec as _get_form_and_sandbox_spec,
+        )
         from dj_design_system.services.tag_signature import generate_tag_signature
-        from dj_design_system.views.component import _get_form_and_sandbox_spec
 
         nav_tree = _get_nav_tree()
         component = _find_component_with_params(nav_tree)
@@ -378,8 +398,10 @@ class TestGalleryComponentFormIntegration:
         from dj_design_system.data import CanvasSpec
         from dj_design_system.parameters import StrParam
         from dj_design_system.parameters.model import ModelParam
+        from dj_design_system.services.gallery_context import (
+            get_form_and_sandbox_spec as _get_form_and_sandbox_spec,
+        )
         from dj_design_system.services.tag_signature import TagSignature
-        from dj_design_system.views.component import _get_form_and_sandbox_spec
 
         dummy_qs = MagicMock()
         dummy_qs.order_by.return_value = dummy_qs
@@ -422,12 +444,12 @@ class TestGalleryComponentFormIntegration:
         assert form_kwargs.get("user") == fake_instance
 
     def test_is_sandbox_form_submission(self):
-        """_is_sandbox_form_submission returns True if and only if _iss is in GET."""
+        """is_sandbox_form_submission returns True if and only if _iss is in GET."""
         from django.test import RequestFactory
 
-        from dj_design_system.views.component import (
-            SANDBOX_SUBMISSION_PARAM,
-            _is_sandbox_form_submission,
+        from dj_design_system.services.control_params import SANDBOX_SUBMISSION_PARAM
+        from dj_design_system.services.gallery_context import (
+            is_sandbox_form_submission as _is_sandbox_form_submission,
         )
 
         rf = RequestFactory()
@@ -469,11 +491,13 @@ class TestGalleryComponentFormIntegration:
             assert "field" in row
 
     def test_param_rows_handles_tuple_type(self):
-        """_build_param_rows should handle parameter specs with tuple type definitions without raising AttributeError."""
+        """build_param_rows should handle parameter specs with tuple type definitions without raising AttributeError."""
         from dj_design_system.components import BlockComponent
         from dj_design_system.forms import build_component_form
         from dj_design_system.parameters.base import JSONParam
-        from dj_design_system.views.component import _build_param_rows
+        from dj_design_system.services.gallery_context import (
+            build_param_rows as _build_param_rows,
+        )
 
         class TupleParamComponent(BlockComponent):
             data = JSONParam("JSON data")
@@ -667,37 +691,45 @@ class TestSmokeAllPages:
 class TestToolbarButtons:
     """Test that all sandbox toolbar buttons render on component pages."""
 
-    @pytest.fixture()
-    def component_response(self, client):
+    @staticmethod
+    def _get_component_response(client):
         nav_tree = _get_nav_tree()
         for node in _collect_all_nodes(nav_tree):
             if node.is_component:
                 return client.get(node.url)
         pytest.skip("No components registered")
 
-    def test_outline_toggle(self, component_response):
-        assert b'data-action="toggle-outline"' in component_response.content
+    def test_outline_toggle(self, client):
+        response = self._get_component_response(client=client)
+        assert b'data-action="toggle-outline"' in response.content
 
-    def test_measure_toggle(self, component_response):
-        assert b'data-action="toggle-measure"' in component_response.content
+    def test_measure_toggle(self, client):
+        response = self._get_component_response(client=client)
+        assert b'data-action="toggle-measure"' in response.content
 
-    def test_rtl_toggle(self, component_response):
-        assert b'data-action="toggle-rtl"' in component_response.content
+    def test_rtl_toggle(self, client):
+        response = self._get_component_response(client=client)
+        assert b'data-action="toggle-rtl"' in response.content
 
-    def test_viewport_toggle(self, component_response):
-        assert b'data-sandbox-control="viewport"' in component_response.content
+    def test_viewport_toggle(self, client):
+        response = self._get_component_response(client=client)
+        assert b'data-sandbox-control="viewport"' in response.content
 
-    def test_zoom_toggle(self, component_response):
-        assert b'data-sandbox-control="zoom"' in component_response.content
+    def test_zoom_toggle(self, client):
+        response = self._get_component_response(client=client)
+        assert b'data-sandbox-control="zoom"' in response.content
 
-    def test_bg_toggle(self, component_response):
-        assert b'data-sandbox-control="background"' in component_response.content
+    def test_bg_toggle(self, client):
+        response = self._get_component_response(client=client)
+        assert b'data-sandbox-control="background"' in response.content
 
-    def test_measure_script_data_attribute(self, component_response):
-        assert b'data-action="toggle-measure"' in component_response.content
+    def test_measure_script_data_attribute(self, client):
+        response = self._get_component_response(client=client)
+        assert b'data-action="toggle-measure"' in response.content
 
-    def test_viewport_presets(self, component_response):
-        content = component_response.content
+    def test_viewport_presets(self, client):
+        response = self._get_component_response(client=client)
+        content = response.content
         assert b'data-value="320"' in content
         assert b'data-value="1920"' in content
         assert b'data-value="2560"' in content
@@ -825,8 +857,6 @@ class TestCanvasHtmlAttrs:
 
 class TestCSPCompliance:
     def test_csp_nonce_in_gallery_views(self, rf):
-        from dj_design_system.views import gallery_index
-
         request = rf.get("/dds/")
         request.csp_nonce = "sample-nonce-987"
         response = gallery_index(request)
@@ -834,9 +864,39 @@ class TestCSPCompliance:
         assert 'nonce="sample-nonce-987"' in content
 
     def test_no_inline_style_attributes_in_index(self, rf):
-        from dj_design_system.views import gallery_index
-
         request = rf.get("/dds/")
         response = gallery_index(request)
         content = response.content.decode()
         assert 'style="' not in content
+
+    def test_single_gallery_search_index_script_in_rendered_page(self, rf):
+        request = rf.get("/dds/")
+        response = gallery_index(request)
+        content = response.content.decode()
+        assert content.count('<script id="gallery-search-index"') == 1
+
+
+class TestThinViewsAndImmutableParams:
+    def test_component_and_canvas_views_define_no_private_helpers(self):
+        for mod in (component_views, canvas_views):
+            private_funcs = [
+                name
+                for name, fn in inspect.getmembers(mod, inspect.isfunction)
+                if fn.__module__ == mod.__name__ and name.startswith("_")
+            ]
+            assert private_funcs == [], (
+                f"{mod.__name__} defines private helper functions: {private_funcs}"
+            )
+
+    def test_build_param_rows_does_not_mutate_base_param_descriptors(self):
+        class ImmutableParamComponent(BlockComponent):
+            title = StrParam("Title", default="Hi")
+            payload = JSONParam("JSON data")
+
+        form = build_component_form(ImmutableParamComponent)()
+        params = ImmutableParamComponent.get_params()
+        rows = build_param_rows(form, params, ImmutableParamComponent)
+
+        assert all(isinstance(r, ParamRowData) for r in rows)
+        for param_obj in params.values():
+            assert "type_name" not in param_obj.__dict__

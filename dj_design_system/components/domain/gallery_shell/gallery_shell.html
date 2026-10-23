@@ -15,7 +15,15 @@
       {% if has_sidebar_slot %}
         {{ slots.sidebar }}
       {% else %}
-        {% dds__sidebar brand_name=brand_name brand_url=brand_url nodes=nodes active_path=active_path active_variant=active_variant %}{% enddds__sidebar %}
+        {% dds__sidebar brand_name=brand_name brand_url=brand_url nodes=nodes active_path=active_path active_variant=active_variant %}
+          {% slot "footer" %}
+            {% if resolved_theme == 'dark' %}
+              {% dds__button label="Toggle theme" icon_only=True variant="ghost" icon="moon" size="sm" action="toggle-theme" %}
+            {% else %}
+              {% dds__button label="Toggle theme" icon_only=True variant="ghost" icon="sun" size="sm" action="toggle-theme" %}
+            {% endif %}
+          {% endslot %}
+        {% enddds__sidebar %}
       {% endif %}
     </div>
     <main class="dds-gallery-shell-main" data-surface="docs" data-shell-main id="gallery-main-content">{{ main_content }}</main>

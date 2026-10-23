@@ -1,6 +1,6 @@
 # Sandbox Toolbar (`dds__sandbox_toolbar`)
 
-The `dds__sandbox_toolbar` domain component renders an accessible `<div class="dds-sandbox-toolbar" data-surface="sandbox" role="toolbar">` control bar for interactive component sandboxes and canvas previews. It composes Every Layout `<l-cluster>`, `{% dds__popout %}`, `{% dds__popout_option %}`, and `{% dds__button %}` primitives.
+The `dds__sandbox_toolbar` domain component renders an accessible `<dds-sandbox-toolbar class="dds-sandbox-toolbar" data-surface="sandbox" role="toolbar">` Light DOM custom element control bar for interactive component sandboxes and canvas previews. It composes Every Layout `<l-cluster>`, `{% dds__popout %}`, `{% dds__popout_option %}`, and `{% dds__button %}` primitives, persists toolbar state to `sessionStorage` (`dds_toolbar_state`), and dispatches bubbling `dds:sandbox-bg`, `dds:sandbox-viewport`, `dds:sandbox-zoom`, `dds:sandbox-toggle`, and `dds:sandbox-reset` events.
 
 ## When to Use
 

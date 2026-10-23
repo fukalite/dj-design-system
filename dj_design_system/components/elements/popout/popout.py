@@ -2,8 +2,6 @@
 
 import typing
 
-from django.utils import safestring
-
 from dj_design_system import components, parameters, slots
 from dj_design_system.components.elements import icon as icon_element
 
@@ -43,9 +41,6 @@ class Popout(components.BlockComponent):
             {% endslot %}
         {% enddds__popout %}
     """
-
-    template_name = "dj_design_system/components/elements/popout/popout.html"
-    _template_name = template_name
 
     label = parameters.StrParam(
         description="Trigger button label.",
@@ -95,38 +90,6 @@ class Popout(components.BlockComponent):
                 description="Optional floating menu content markup.",
             ),
         }
-
-    class Media:
-        css = "dj_design_system/components/elements/popout/popout.css"
-        js = "dj_design_system/components/elements/popout/popout.js"
-
-    def __init__(
-        self,
-        content: safestring.SafeString | str | None = None,
-        *,
-        slots: dict[str, safestring.SafeString] | None = None,
-        **kwargs: typing.Any,
-    ) -> None:
-        """Initialise the popout component and preserve menu block content.
-
-        Args:
-            content: Optional floating menu inner markup.
-            slots: Optional mapping of named slot values (e.g. ``"trigger"``, ``"menu"``).
-            **kwargs: Component parameter keyword arguments.
-        """
-        normalized_slots = {
-            name: safestring.SafeString(val) if val else val
-            for name, val in (slots or {}).items()
-        }
-        normalized_content = (
-            safestring.SafeString(content) if content is not None else ""
-        )
-        super().__init__(
-            content=normalized_content,
-            slots=normalized_slots,
-            **kwargs,
-        )
-        self.content = normalized_content
 
     def get_context(self) -> dict[str, typing.Any]:
         """Compute normalized template context for trigger, menu, and slots.

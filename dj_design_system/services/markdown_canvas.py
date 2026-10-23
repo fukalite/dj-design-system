@@ -40,7 +40,6 @@ from dj_design_system.services.canvas_renderer import (
     render_canvas_block,
 )
 from dj_design_system.services.registry import component_registry
-from dj_design_system.services.tag_signature import highlight_code, highlight_html
 
 
 if TYPE_CHECKING:
@@ -64,15 +63,10 @@ def _build_widget_html(
     ``:checked ~ .target`` selectors can show/hide preview and code.
 
     """
-    code_markup = highlight_code(source) or html.escape(source)
-    html_markup = highlight_html(rendered_html.strip()) or html.escape(
-        rendered_html.strip()
-    )
-
     context = {
         "unique_id": unique_id,
-        "source_html": code_markup,
-        "rendered_output_html": html_markup,
+        "source_html": source,
+        "rendered_output_html": rendered_html.strip(),
         "iframe_srcdoc": srcdoc,
     }
     return render_to_string("dj_design_system/canvas_widget.html", context)

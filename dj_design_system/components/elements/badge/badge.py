@@ -38,9 +38,6 @@ class Badge(components.TagComponent):
         {% dds__badge "str" variant="code" %}
     """
 
-    template_name = "dj_design_system/components/elements/badge/badge.html"
-    _template_name = template_name
-
     label = parameters.StrParam(description="Badge text content.")
     variant = parameters.StrParam(
         description="Semantic badge style.",
@@ -51,9 +48,6 @@ class Badge(components.TagComponent):
 
     class Meta:
         positional_args = ["label"]
-
-    class Media:
-        css = "dj_design_system/components/elements/badge/badge.css"
 
     def get_context(self) -> dict[str, typing.Any]:
         """Return the normalized template context for rendering the badge.

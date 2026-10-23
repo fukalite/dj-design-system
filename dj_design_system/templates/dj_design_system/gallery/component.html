@@ -33,10 +33,10 @@
         <h2 data-docs-heading>Usage</h2>
         {% dds__usage_example title="Minimal example" code=tag_signature.minimal preview_url=minimal_preview_url canvas_id="minimal" show_sandbox_link=True %}
         {% if tag_signature.maximal != tag_signature.minimal %}
-            {% dds__usage_example title="All parameters" code=tag_signature.maximal preview_url=maximal_preview_url canvas_id="maximal" show_sandbox_link=True %}
+            <div>{% dds__usage_example title="All parameters" code=tag_signature.maximal preview_url=maximal_preview_url canvas_id="maximal" show_sandbox_link=True %}</div>
         {% endif %}
         {% if component_info.qualified_name != component_info.name %}
-            {% dds__usage_example title="Qualified tag usage" code=tag_signature_long.minimal canvas_id="qualified" show_sandbox_link=False %}
+            <div>{% dds__usage_example title="Qualified tag usage" code=tag_signature_long.minimal canvas_id="qualified" show_sandbox_link=False %}</div>
         {% endif %}
         </l-stack>
     </section>

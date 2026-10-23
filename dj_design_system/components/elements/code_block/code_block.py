@@ -40,11 +40,6 @@ class CodeBlock(components.TagComponent):
         {% dds__code_block code=python_snippet language="python" title="views.py" %}
     """
 
-    template_name = (
-        "dj_design_system/components/elements/code_block/code_block.html"
-    )
-    _template_name = template_name
-
     code = parameters.StrParam(description="Source code snippet to render.")
     language = parameters.StrParam(
         description="Code language identifier.",
@@ -64,10 +59,6 @@ class CodeBlock(components.TagComponent):
 
     class Meta:
         positional_args = ["code"]
-
-    class Media:
-        css = "dj_design_system/components/elements/code_block/code_block.css"
-        js = "dj_design_system/components/elements/code_block/code_block.js"
 
     def get_context(self) -> dict[str, typing.Any]:
         """Compute normalized template context for code formatting and header state.

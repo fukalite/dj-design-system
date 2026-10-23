@@ -50,6 +50,11 @@ e2e:
     @just build-ts
     uv run --no-sync pytest tests/e2e/ -m "e2e and not visual"
 
+# Run the built-in dds component accessibility and HTML validation assessment harness
+test-components:
+    @just build-ts
+    uv run --no-sync pytest tests/e2e/test_package_components.py -m e2e
+
 # Run the gallery visual regression suite directly (used by CI inside the pinned container)
 visual-run *args:
     @just build-ts
@@ -128,18 +133,24 @@ build:
     @just build-ts
     uv build
 
-# Start the example project gallery and open it in the browser
-demo:
+# Start the example project gallery and open it in the browser (target: "demo" or "dds")
+demo target="demo":
     #!/usr/bin/env sh
     just build-ts
-    uv run --no-sync python example_project/manage.py migrate --run-syncdb
-    uv run --no-sync python example_project/manage.py runserver 8000 &
-    SERVER_PID=$!
-    echo "Starting example project (PID $SERVER_PID) at http://localhost:8000/ ..."
-    sleep 2
-    xdg-open "http://localhost:8000/" 2>/dev/null || open "http://localhost:8000/" 2>/dev/null || echo "Open http://localhost:8000/ in your browser"
-    echo "Press Ctrl+C to stop the server"
-    wait $SERVER_PID
+    if [ "{{target}}" = "dds" ] || [ "{{target}}" = "settings_dds" ]; then
+        SETTINGS="example_project.settings_dds_gallery"
+        echo "Starting DDS internal component gallery with $SETTINGS..."
+    else
+        SETTINGS="example_project.settings"
+        echo "Starting example project gallery with $SETTINGS..."
+    fi
+    uv run --no-sync python example_project/manage.py migrate --run-syncdb --settings="$SETTINGS"
+    echo "Starting example project at http://localhost:8000/ (Press Ctrl+C to stop) ..."
+    (
+        sleep 2
+        xdg-open "http://localhost:8000/" 2>/dev/null || open "http://localhost:8000/" 2>/dev/null || echo "Open http://localhost:8000/ in your browser"
+    ) &
+    exec uv run --no-sync python example_project/manage.py runserver 0.0.0.0:8000 --settings="$SETTINGS"
 
 # Fetch, parse, and display unresolved PR comments
 comments pr_number="":

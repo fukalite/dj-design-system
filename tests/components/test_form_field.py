@@ -78,17 +78,13 @@ class TestFormFieldDiscoveryAndContract:
         assert form_field_mod.FormField.has_slots() is True
 
     def test_template_and_media_paths(self) -> None:
-        """Verify template_name and Media.css match the co-located paths."""
-        assert (
-            form_field_mod.FormField.template_name
-            == "dj_design_system/components/elements/form_field/form_field.html"
-        )
-        assert (
-            form_field_mod.FormField.Media.css
-            == "dj_design_system/components/elements/form_field/form_field.css"
-        )
+        """Verify template_name and Media.css match the co-located paths via auto-discovery."""
         reg = _make_builtin_registry()
         info = reg.get_by_name(name="form_field", app_label="dj_design_system")
+        assert (
+            info.template_name
+            == "dj_design_system/components/elements/form_field/form_field.html"
+        )
         assert (
             "dj_design_system/components/elements/form_field/form_field.css"
             in info.media.css

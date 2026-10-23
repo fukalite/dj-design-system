@@ -72,7 +72,7 @@ class TestRenderMarkdownService:
         from dj_design_system.parameters.base import StrParam
         from dj_design_system.services.registry import component_registry
         from dj_design_system.types import NodeType
-        from dj_design_system.views.component import _render_component
+        from dj_design_system.views.component import render_component_node
         from dj_design_system.views.gallery import get_base_context
 
         class DocWidget(TagComponent):
@@ -110,7 +110,7 @@ class TestRenderMarkdownService:
                 active_app="promoted",
                 active_path="promoted/doc_widget",
             )
-            _render_component(
+            render_component_node(
                 request=request,
                 context=context,
                 node=node,

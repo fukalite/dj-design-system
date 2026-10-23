@@ -2,8 +2,6 @@
 
 import typing
 
-from django.utils import safestring
-
 from dj_design_system import components, parameters, slots
 
 
@@ -53,9 +51,6 @@ class SplitPane(components.BlockComponent):
             {% endslot %}
         {% enddds__split_pane %}
     """
-
-    template_name = "dj_design_system/components/domain/split_pane/split_pane.html"
-    _template_name = template_name
 
     orientation = parameters.StrParam(
         description="Split orientation ('horizontal' for side-by-side or 'vertical' for stacked).",
@@ -115,38 +110,6 @@ class SplitPane(components.BlockComponent):
                 description="Secondary (trailing/bottom) pane content.",
             ),
         }
-
-    class Media:
-        css = "dj_design_system/components/domain/split_pane/split_pane.css"
-        js = "dj_design_system/components/domain/split_pane/split_pane.js"
-
-    def __init__(
-        self,
-        content: safestring.SafeString | str | None = None,
-        *,
-        slots: dict[str, safestring.SafeString] | None = None,
-        **kwargs: typing.Any,
-    ) -> None:
-        """Initialise the split pane component, normalising safe slots and content.
-
-        Args:
-            content: Optional primary body markup when instantiated directly in Python.
-            slots: Optional mapping of named slot values (``"primary"``, ``"secondary"``).
-            **kwargs: Component parameter keyword arguments.
-        """
-        normalized_slots = {
-            name: safestring.SafeString(val) if val else val
-            for name, val in (slots or {}).items()
-        }
-        normalized_content = (
-            safestring.SafeString(content) if content is not None else ""
-        )
-        super().__init__(
-            content=normalized_content,
-            slots=normalized_slots,
-            **kwargs,
-        )
-        self.content = normalized_content
 
     def get_context(self) -> dict[str, typing.Any]:
         """Compute normalized template context for the split pane and separator handle.

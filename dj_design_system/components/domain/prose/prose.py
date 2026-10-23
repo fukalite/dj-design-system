@@ -34,9 +34,6 @@ class Prose(components.BlockComponent):
         {% enddds__prose %}
     """
 
-    template_name = "dj_design_system/components/domain/prose/prose.html"
-    _template_name = template_name
-
     html = parameters.StrParam(
         description="Optional pre-rendered HTML prose string (trusted markdown output).",
         default="",
@@ -55,29 +52,6 @@ class Prose(components.BlockComponent):
 
     class Meta:
         positional_args = ["html"]
-
-    class Media:
-        css = "dj_design_system/components/domain/prose/prose.css"
-
-    def __init__(
-        self,
-        content: safestring.SafeString | str | None = None,
-        *,
-        slots: dict[str, safestring.SafeString] | None = None,
-        **kwargs: typing.Any,
-    ) -> None:
-        """Initialise the prose component and wrap block content as a SafeString.
-
-        Args:
-            content: Optional HTML body content passed via block tag or Python instantiation.
-            slots: Optional slot dictionary.
-            **kwargs: Component parameter keyword arguments.
-        """
-        normalized_content = (
-            safestring.SafeString(content) if content is not None else ""
-        )
-        super().__init__(content=normalized_content, slots=slots, **kwargs)
-        self.content = normalized_content
 
     def get_context(self) -> dict[str, typing.Any]:
         """Compute template context with resolved prose HTML, title, and measure state.
