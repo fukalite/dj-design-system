@@ -171,6 +171,7 @@ class TestBindTemplate:
             "button",
             "alert",
             "badge",
+            "callout",
             "rich_button",
             "user_card",
             "info_card",
@@ -301,7 +302,7 @@ class TestListByApp:
     def test_returns_correct_app(self, registry_with_two_apps):
         reg = registry_with_two_apps
         components = reg.list_by_app("demo_components")
-        assert len(components) == 11
+        assert len(components) == 12
         assert all(c.app_label == "demo_components" for c in components)
 
     def test_returns_other_app(self, registry_with_two_apps):

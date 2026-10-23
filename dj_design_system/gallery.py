@@ -6,9 +6,14 @@ import hashlib
 import importlib.util
 import sys
 import warnings
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Mapping
+from typing import TYPE_CHECKING, Any
+
+
+if TYPE_CHECKING:
+    from dj_design_system.types import DocVariantConfig
 
 
 @dataclass
@@ -28,9 +33,13 @@ class Variant:
         icon: Optional icon name or SVG path for sidebar navigation.
         theme: Optional theme override when previewing this variant.
         show_in_nav: Whether to display this variant as a child node in the gallery sidebar navigation.
-            When left as None, defaults to False for standard built-in variants ("basic", "maximal")
-            so they do not clutter the sidebar tree, and True for custom named variants.
+            When left as None, defaults to False for standard global documentation variants
+            (e.g. ``"basic"``, ``"maximal"``, ``"defaults"``, ``"all_slots"``) so they do not
+            clutter the sidebar tree, and True for custom named variants.
             Explicitly set to True or False to override this default.
+        show_in_docs: Whether to render this variant as an example in the component documentation pane.
+            When left as None, defaults to True for enabled documentation variants
+            (e.g. ``"basic"``, ``"maximal"``) and False for other variants.
     """
 
     name: str
@@ -43,17 +52,71 @@ class Variant:
     icon: str | None = None
     theme: str | None = None
     show_in_nav: bool | None = None
+    show_in_docs: bool | None = None
+    _explicit_label: str | None = field(
+        default=None, init=False, repr=False, compare=False
+    )
+    _explicit_show_in_docs: bool | None = field(
+        default=None, init=False, repr=False, compare=False
+    )
+    _explicit_show_in_nav: bool | None = field(
+        default=None, init=False, repr=False, compare=False
+    )
 
     def __post_init__(self) -> None:
+        from dj_design_system.settings import get_doc_variants
+
+        self._explicit_label = self.label
         if self.label is None:
             self.label = self.name.replace("_", " ").replace("-", " ").title()
 
-        if self.show_in_nav is None:
-            self.show_in_nav = False if self.name in ("basic", "maximal") else True
+        self._explicit_show_in_docs = self.show_in_docs
+        self._explicit_show_in_nav = self.show_in_nav
+
+        doc_variants = get_doc_variants()
+        self.show_in_docs = self.is_shown_in_docs(doc_variants=doc_variants)
+        self.show_in_nav = self.is_shown_in_nav(doc_variants=doc_variants)
 
         self.positional_args = tuple(self.positional_args or ())
         self.kwargs = dict(self.kwargs or {})
         self.extra_context = dict(self.extra_context or {})
+
+    def is_shown_in_docs(
+        self,
+        *,
+        doc_variants: Sequence[DocVariantConfig] | None = None,
+    ) -> bool:
+        """Return whether this variant should be rendered in component documentation."""
+        if self._explicit_show_in_docs is not None:
+            return self._explicit_show_in_docs
+        from dj_design_system.settings import get_doc_variants
+
+        resolved_doc_variants = (
+            doc_variants if doc_variants is not None else get_doc_variants()
+        )
+        enabled_doc_names = {dv.name for dv in resolved_doc_variants if dv.show_in_docs}
+        return self.name in enabled_doc_names
+
+    def is_shown_in_nav(
+        self,
+        *,
+        doc_variants: Sequence[DocVariantConfig] | None = None,
+    ) -> bool:
+        """Return whether this variant should be rendered in sidebar navigation."""
+        if self._explicit_show_in_nav is not None:
+            return self._explicit_show_in_nav
+        from dj_design_system.settings import get_doc_variants
+        from dj_design_system.types import DocVariantStrategy
+
+        resolved_doc_variants = (
+            doc_variants if doc_variants is not None else get_doc_variants()
+        )
+        standard_doc_names = {
+            dv.name
+            for dv in resolved_doc_variants
+            if dv.strategy != DocVariantStrategy.CUSTOM
+        } | {dv.name for dv in get_doc_variants()}
+        return self.name not in standard_doc_names
 
     @classmethod
     def from_dict(cls, data: Mapping[str, Any], name: str | None = None) -> Variant:
@@ -80,6 +143,7 @@ class Variant:
             and self.icon == other.icon
             and self.theme == other.theme
             and self.show_in_nav == other.show_in_nav
+            and self.show_in_docs == other.show_in_docs
         )
 
 
@@ -98,6 +162,8 @@ class GalleryConfig:
             raw template syntax.
         extra_context: Context variables passed to preview templates.
         param_defaults: Mapping of param names to default values or callables.
+        doc_variants: Optional component-level documentation variant overrides (mapping or sequence)
+            layered on top of the global ``GALLERY_DOC_VARIANTS`` setting.
         variants: List of named Variant instances. To construct from dictionary mappings,
             use ``GalleryConfig.from_dict(...)``.
     """
@@ -110,6 +176,7 @@ class GalleryConfig:
     canvas_template: str | None = None
     extra_context: dict[str, Any] = field(default_factory=dict)
     param_defaults: dict[str, Any] = field(default_factory=dict)
+    doc_variants: Mapping[str, Any] | Sequence[Any] | None = None
     variants: list[Variant] = field(default_factory=list)
 
     @classmethod
@@ -165,6 +232,24 @@ class GalleryConfig:
                     f"Duplicate variant name: '{v.name}' in GalleryConfig."
                 )
             seen_names.add(v.name)
+
+        if self.doc_variants is not None:
+            comp_doc_variants = self.get_doc_variants()
+            for v in self.variants:
+                v.show_in_docs = v.is_shown_in_docs(doc_variants=comp_doc_variants)
+                v.show_in_nav = v.is_shown_in_nav(doc_variants=comp_doc_variants)
+
+    def get_doc_variants(self) -> list[DocVariantConfig]:
+        """Return resolved documentation variant configurations for this component."""
+        from dj_design_system.settings import get_doc_variants, resolve_doc_variants
+
+        global_variants = get_doc_variants()
+        if self.doc_variants is None:
+            return global_variants
+        return resolve_doc_variants(
+            raw_setting=self.doc_variants,
+            base_variants=global_variants,
+        )
 
     def get_variant(self, name: str) -> Variant | None:
         """Return the variant matching *name*, or None."""

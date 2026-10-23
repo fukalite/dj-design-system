@@ -181,3 +181,48 @@ class TestGalleryConfig:
         assert len(cfg.variants) == 2
         assert cfg.variants[0].name == "v1"
         assert cfg.variants[1].name == "v2"
+
+    def test_variant_show_in_docs_and_nav_orthogonal_defaults(self):
+        v_basic = Variant(name="basic", kwargs={"label": "A"})
+        assert v_basic.show_in_docs is True
+        assert v_basic.show_in_nav is False
+
+        v_custom = Variant(name="danger", kwargs={"label": "B"})
+        assert v_custom.show_in_docs is False
+        assert v_custom.show_in_nav is True
+
+        v_doc_custom = Variant(name="danger", kwargs={"label": "B"}, show_in_docs=True)
+        assert v_doc_custom.show_in_docs is True
+        assert v_doc_custom.show_in_nav is True
+
+        v_doc_only = Variant(
+            name="danger", kwargs={"label": "B"}, show_in_docs=True, show_in_nav=False
+        )
+        assert v_doc_only.show_in_docs is True
+        assert v_doc_only.show_in_nav is False
+
+    def test_gallery_config_doc_variants_mapping_and_sequence(self):
+        cfg_dict = GalleryConfig(
+            doc_variants={"maximal": False, "all_slots": True},
+            variants=[
+                Variant(name="basic", kwargs={"label": "Basic"}),
+                Variant(name="all_slots", kwargs={"label": "All Slots"}),
+            ],
+        )
+        resolved_dict = {dv.name: dv.show_in_docs for dv in cfg_dict.get_doc_variants()}
+        assert resolved_dict["basic"] is True
+        assert resolved_dict["maximal"] is False
+        assert resolved_dict["all_slots"] is True
+        assert cfg_dict.get_variant("all_slots").show_in_docs is True
+        assert cfg_dict.get_variant("all_slots").show_in_nav is False
+
+        cfg_seq = GalleryConfig(
+            doc_variants=["basic", "with_actions"],
+            variants=[
+                Variant(name="with_actions", kwargs={"label": "Act"}),
+            ],
+        )
+        resolved_seq = [dv.name for dv in cfg_seq.get_doc_variants() if dv.show_in_docs]
+        assert resolved_seq == ["basic", "with_actions"]
+        assert cfg_seq.get_variant("with_actions").show_in_docs is True
+        assert cfg_seq.get_variant("with_actions").show_in_nav is True

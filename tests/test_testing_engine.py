@@ -95,3 +95,28 @@ def test_iteration_engine_explicit_variants_override_gallery_config(mocker):
     )
     combinations = list(engine.get_combinations())
     assert combinations == [(mock_comp, "basic", "light")]
+
+
+def test_iteration_engine_respects_gallery_doc_variants_and_suppression(
+    mocker, settings
+):
+    """IterationEngine uses enabled GALLERY_DOC_VARIANTS and skips suppressed component variants."""
+    settings.DJ_DESIGN_SYSTEM = {
+        "GALLERY_DOC_VARIANTS": {
+            "minimal": {"name": "simple", "show_in_docs": True},
+            "maximal": {"name": "maximal", "show_in_docs": True},
+            "defaults": {"name": "defaults", "show_in_docs": True},
+        }
+    }
+    mock_comp = mocker.Mock()
+    mock_comp.name = "badge"
+    mock_comp.gallery_config = GalleryConfig(
+        doc_variants={"maximal": False},
+        variants=[
+            Variant(name="extra", kwargs={"label": "Extra"}),
+        ],
+    )
+
+    engine = IterationEngine(components=[mock_comp], themes=["light"])
+    combinations = list(engine.get_combinations())
+    assert [v for _, v, _ in combinations] == ["simple", "defaults", "extra"]
