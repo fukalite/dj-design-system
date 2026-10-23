@@ -91,7 +91,7 @@ class TestCanvasRenderer:
         assert 'href="https://cdn.example.com/theme.css"' in srcdoc
         assert 'src="//cdn.example.com/theme.js"' in srcdoc
         assert 'href="https://cdn.example.com/app.css?v=1&amp;min=1"' in srcdoc
-        
+
     def test_srcdoc_loads_global_js_before_component_js(self):
         with override_settings(
             DJ_DESIGN_SYSTEM={"GLOBAL_JS": ["https://cdn.example.com/global.js"]}

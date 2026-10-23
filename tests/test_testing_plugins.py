@@ -161,15 +161,15 @@ def test_visual_regression_update_snapshot(mocker, tmp_path):
 
 def test_visual_regression_diff_mismatch(mocker, tmp_path):
     from dj_design_system.testing.plugins import VisualRegressionPlugin
+    from dj_design_system.testing.visual import ImageComparison
 
-    # Mock Image and pixelmatch
-    mock_image = mocker.patch("dj_design_system.testing.plugins.Image")
-    mock_img_obj = mocker.Mock()
-    mock_img_obj.size = (100, 100)
-    mock_image.open.return_value.convert.return_value = mock_img_obj
-
-    mock_pixelmatch = mocker.patch("dj_design_system.testing.plugins.pixelmatch")
-    mock_pixelmatch.return_value = 50  # 50 pixels differ
+    mock_diff = mocker.Mock()
+    mock_compare = mocker.patch(
+        "dj_design_system.testing.plugins.compare_images",
+        return_value=ImageComparison(
+            mismatched_pixels=50, total_pixels=10_000, diff=mock_diff
+        ),
+    )
 
     mock_page = mocker.Mock()
 
@@ -191,7 +191,10 @@ def test_visual_regression_diff_mismatch(mocker, tmp_path):
     with pytest.raises(AssertionError, match="Visual regression detected"):
         plugin.run_assessment(mock_comp, "basic", "light")
 
-    mock_pixelmatch.assert_called_once()
+    mock_compare.assert_called_once()
+    mock_diff.save.assert_called_once_with(
+        tmp_path / "diff" / "test_comp_basic_light.png"
+    )
 
 
 def test_accessibility_plugin_passes(mocker):

@@ -9,5 +9,7 @@ class DjangoDesignSystemConfig(AppConfig):
 
     def ready(self) -> None:
         from dj_design_system import component_registry
+        from dj_design_system.services import media as media_service
 
         component_registry.autodiscover()
+        media_service.ensure_component_loaders_and_finders()

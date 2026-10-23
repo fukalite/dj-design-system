@@ -1,0 +1,150 @@
+# Subagent Orchestration Strategy & Prompt Templates (`gallery_rebuild`)
+
+To prevent context window exhaustion across Tracks 2–7, the main session acts strictly as **Conductor & Contract Keeper** while delegating file-heavy implementation, TypeScript compilation, CSS token authoring, and multi-styleguide code reviews to four single-responsibility subagents defined in `.agents/agents/`:
+
+| Subagent Name | Definition File | Single Responsibility | Parallelisable? |
+| :--- | :--- | :--- | :--- |
+| `dds-css-architect` | [`.agents/agents/dds-css-architect.md`](../../../.agents/agents/dds-css-architect.md) | Global `@layer` cascade, Tier 1 (`--_dds-*`) & Tier 2 (`--dds-*`) tokens in `tokens.css`, Every Layout `<l-*>` / `.l-*` rules in `composition.css`, and CSS contract tests. | Single instance per CSS task |
+| `dds-component-builder` | [`.agents/agents/dds-component-builder.md`](../../../.agents/agents/dds-component-builder.md) | One self-contained component vertical slice (`dj_design_system/components/<collection>/<name>/` — `.py`, `.html`, `.css`, `gallery.py`, `index.md`) + `tests/components/test_<name>.py`. | **Yes** (2–4 concurrent subagents across non-overlapping component directories) |
+| `dds-ts-specialist` | [`.agents/agents/dds-ts-specialist.md`](../../../.agents/agents/dds-ts-specialist.md) | TypeScript build pipeline (`tsconfig.json`, `just build-ts`) and Light DOM `<dds-*>` custom elements (`<name>.ts`) + DOM/Playwright interaction tests. | **Yes** across distinct `<name>.ts` files once `tsconfig.json` exists |
+| `dds-reviewer` | [`.agents/agents/dds-reviewer.md`](../../../.agents/agents/dds-reviewer.md) | End-of-phase `/code-review` audit across all 7 styleguides, direct refactoring of violations, and running `just test`, `just check`, and `mypy`. | Single instance at the end of each phase |
+
+> **Fallback Note:** If starting a session where `.agents/agents/*.md` is not pre-loaded in `invoke_subagent`, either register the needed subagent once via `define_subagent` (copying the frontmatter/body from `.agents/agents/<name>.md` with `enable_write_tools=True`) or invoke `TypeName="self"` with the prompt templates below.
+
+---
+
+## 1. Orchestrator Rules (Keeping Main Context Lean)
+
+1. **Never Read Every File in the Main Session:**
+   - The main session reads only `conductor/tracks.md`, the active track's `metadata.json`, `spec.md`, and `plan.md`.
+   - Do **not** read every styleguide or every component file in the main session—subagents read those in their own disposable context windows and return a <=25-line summary.
+2. **Pre-Dispatch Contract Locking:**
+   - Before spawning `dds-component-builder` or `dds-ts-specialist` subagents in a phase, the main session locks down the **Component Contract** in the prompt:
+     - Exact tag name (`{% dds__<name> %}`) and root element (`<dds-name>` vs `<tag class="dds-name">`).
+     - Exact Python parameters (`name`, type, default) and slots.
+     - Child `{% dds__* %}` tags it composes (if any) and their parameter names.
+     - Custom events (`dds:<event>`) and `data-*` / `aria-*` hooks shared between `<name>.html` and `<name>.ts`.
+3. **Parallel Batching without File Contention:**
+   - Leaf components (e.g. `icon`, `badge`, `notice`, `table`, `breadcrumb`, `form_field`) have zero dependencies on each other. Spawn up to 3–4 `dds-component-builder` subagents in a **single `invoke_subagent` call** with `Workspace="inherit"`.
+   - Because each `dds-component-builder` is restricted to `dj_design_system/components/<collection>/<name>/` and `tests/components/test_<name>.py`, parallel subagents never edit the same file.
+   - Composite components that invoke a child component (e.g. `toolbar` invoking `{% dds__search_box %}` and `{% dds__theme_select %}`) are dispatched **after** their child components exist, or with the child's exact tag signature locked in the prompt.
+4. **Handling Drift (`[DRIFT & CONTEXT NOTES]`):**
+   - Each prompt template below includes a `[DRIFT & CONTEXT NOTES]` block.
+   - Whenever a subagent reports back a nuance (e.g. a new Tier 2 token name, a helper in `tests/conftest.py`, or a specific parameter name on `dds__button`), the orchestrator records that one-liner and pastes it into `[DRIFT & CONTEXT NOTES]` for subsequent subagent calls.
+
+---
+
+## 2. Adaptable Subagent Prompt Templates
+
+### Template A: `dds-css-architect` (Track 2 Phase 1 & Token/Layout Updates)
+```markdown
+## Task
+Implement the global CSS cascade, 3-Tier Design Token System, and Every Layout composition primitives for Track 2 Phase 1.
+
+## Assigned Files (Strict Boundary)
+- Create/Edit:
+  - `dj_design_system/static/dj_design_system/tokens.css`
+  - `dj_design_system/static/dj_design_system/composition.css`
+  - `dj_design_system/static/dj_design_system/gallery.css` (prepend `@layer` order and `@import` rules only; do not delete legacy rules yet—that happens in Track 6)
+  - `tests/test_dds_tokens_and_layout.py`
+
+## Specifications
+1. Read `conductor/code_styleguides/dds-components.md` (Sections 4, 5, 6) and `conductor/code_styleguides/html-css.md`.
+2. Follow TDD:
+   - First write `tests/test_dds_tokens_and_layout.py` asserting:
+     - `@layer reset, tokens, global, composition, blocks, utilities;` is declared.
+     - All Tier 1 (`--_dds-*`) tokens are defined only on `:root`.
+     - All Tier 2 (`--dds-*`) tokens across all 6 domains (`layer`/`surface`, `font`/`text`, `space`/`layout`, `state`, `control`, `status`) are defined on `:root` and `.gallery-theme-dark`.
+     - All 8 `[data-surface='<name>']` scopes (`stage`, `code`, `docs`, `sandbox`, `topbar`, `sidebar`, `popout`, `overlay`) alias only Tier 2 `--dds-*` tokens (zero `--_dds-*` references inside `[data-surface]`).
+     - All 11 Every Layout primitives (`l-stack`, `l-cluster`, `l-sidebar`, `l-switcher`, `l-box`, `l-center`, `l-cover`, `l-frame`, `l-grid`, `l-reel`, `l-imposter` and matching `.l-*` classes) are defined in `@layer composition`.
+   - Implement `tokens.css` and `composition.css` and run `just test` and `just check`.
+
+## [DRIFT & CONTEXT NOTES]
+- Do not define `@pytest.fixture` inside `tests/test_dds_tokens_and_layout.py` (use module-level helper functions per `python.md`).
+- <Insert any additional notes discovered in session>
+```
+
+---
+
+### Template B: `dds-component-builder` (Tracks 3, 4, 5 — Per-Component Vertical Slice)
+```markdown
+## Task
+Build the co-located `dds__<name>` component in `dj_design_system/components/<collection>/<name>/` and its unit tests in `tests/components/test_<name>.py`.
+
+## Assigned Files (Strict Boundary — Do Not Touch Other Files)
+- `dj_design_system/components/<collection>/<name>/__init__.py`
+- `dj_design_system/components/<collection>/<name>/<name>.py`
+- `dj_design_system/components/<collection>/<name>/<name>.html`
+- `dj_design_system/components/<collection>/<name>/<name>.css`
+- `dj_design_system/components/<collection>/<name>/gallery.py`
+- `dj_design_system/components/<collection>/<name>/index.md`
+- `tests/components/test_<name>.py`
+
+## Component Contract
+- **Class & Tag Type:** `<ClassName>(TagComponent | BlockComponent)` → registered as `{% dds__<name> %}`
+- **Root Selector:** `<root_element_and_class, e.g. <button class="dds-button"> or <dds-tabs class="dds-tabs">>`
+- **Parameters:**
+  - `<param_name>`: `<ParamType(default=..., description=...)>`
+- **Slots (if BlockComponent):**
+  - `<slot_name>`: `<Slot(...)>`
+- **Context Shaping (`get_context()`):**
+  - `<Specify any parameter interaction, e.g. icon_only=True requires label for aria-label>`
+- **Child Components / Every Layout Primitives Used in `<name>.html`:**
+  - `<e.g. {% dds__icon name=icon_name %}, <l-cluster>>`
+- **Tier 3 Tokens (`--_<component>-*` in `<name>.css`):**
+  - Map exclusively from Tier 2 `--dds-*` tokens defined in `dj_design_system/static/dj_design_system/tokens.css`.
+
+## [DRIFT & CONTEXT NOTES]
+- Read `conductor/code_styleguides/dds-components.md`, `conductor/code_styleguides/python.md`, and `conductor/code_styleguides/html-css.md` before writing code.
+- Never define `@pytest.fixture` inside `tests/components/test_<name>.py`; use module-level helper functions.
+- Run `uv run --no-sync pytest tests/components/test_<name>.py` and `uv run --no-sync ruff check dj_design_system/components/<collection>/<name> tests/components/test_<name>.py`.
+- <Insert any additional drift notes from earlier phases>
+```
+
+---
+
+### Template C: `dds-ts-specialist` (Track 2 Phase 2 & Interactive `<dds-*>` Custom Elements)
+```markdown
+## Task
+<Either: "Configure the TypeScript build pipeline (`tsconfig.json`, `just build-ts`)" OR "Implement the Light DOM `<dds-name>` custom element in `dj_design_system/components/<collection>/<name>/<name>.ts` and its tests">
+
+## Assigned Files (Strict Boundary)
+- `<List exact .ts, tsconfig.json, justfile, or test files>`
+
+## Custom Element Contract (when implementing `<name>.ts`)
+- **Custom Element Tag:** `<dds-name>`
+- **DOM Queries (within `this` only):** `<e.g. [data-trigger], [role='tab'], iframe>`
+- **State / ARIA Mutations:** `<e.g. aria-expanded, aria-selected, data-state='open'>`
+- **Bubbling CustomEvents Dispatched:** `<e.g. dds:tab-change, dds:theme-change, dds:params-change>`
+- **Lifecycle Cleanup:** Abort instance `AbortController` in `disconnectedCallback()` for all listeners and observers.
+
+## [DRIFT & CONTEXT NOTES]
+- Read `conductor/code_styleguides/dds-components.md` (Section 7) and `conductor/code_styleguides/javascript.md`.
+- Compiled `<name>.js` files in `dj_design_system/components/**/*.js` are gitignored; verify compilation via `just build-ts`.
+- <Insert any additional drift notes from earlier phases>
+```
+
+---
+
+### Template D: `dds-reviewer` (End-of-Phase Quality & Architecture Gate)
+```markdown
+## Task
+Execute the `/code-review` audit on all files created or modified in the current phase before the phase checkpoint.
+
+## Target Files to Audit
+- `<List directories/files touched in this phase>`
+
+## Audit Instructions
+1. Read `conductor/code_styleguides/dds-components.md`, `conductor/code_styleguides/example-project.md` (if `example_project/` was touched), `conductor/code_styleguides/general.md`, `conductor/code_styleguides/python.md`, `conductor/code_styleguides/layered-architecture.md`, `conductor/code_styleguides/html-css.md`, and `conductor/code_styleguides/javascript.md`.
+2. Inspect every target file against the styleguides:
+   - Check 100% co-location (`<name>.py`, `<name>.html`, `<name>.css`, `<name>.ts`, `gallery.py`, `index.md`).
+   - Check zero BEM (`__` or `--`), `@layer blocks` wrapping, `margin: 0` on component roots, and Tier 3 `--_<component>-*` tokens mapped exclusively from Tier 2 `--dds-*` tokens.
+   - Check Python-biased `get_context()` (no template filters for value computation, no `.render()` in Python, no `services/` imports in components).
+   - Check test files for zero inline `@pytest.fixture` decorators and module-level imports.
+3. Immediately fix any violations found using IDE edit tools.
+4. Run `just test`, `just check`, and `uv run --no-sync mypy dj_design_system`.
+5. Return a <=25-line summary of fixes applied and verification output. Do NOT run any `git` stage/commit commands.
+
+## [DRIFT & CONTEXT NOTES]
+- <Insert any phase-specific nuances>
+```
