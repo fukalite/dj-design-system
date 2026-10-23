@@ -19,11 +19,11 @@ This styleguide governs **only** the built-in gallery components and UI assets i
 
 ### Two Collections (`elements/` vs `domain/`)
 All built-in gallery components live under `dj_design_system/components/` in one of two top-level collections, flattened (`FlattenStrategy.ALL`) under the `dds` prefix (`{% dds__<name> %}`):
-- **`elements/`:** Reusable, domain-agnostic UI primitives (`button`, `icon`, `code_block`, `table`, `notice`, `tabs` + `tabs/tab_trigger`, `popout`, `split_pane`, `search_box`, `breadcrumb`).
-- **`domain/`:** Domain-specific gallery UI blocks ("the way the gallery displays X"). Each represents a meaningful unit of design attention, customisation, and consumer shadowing (`gallery_shell`, `nav_tree`, `folder_listing`, `params_table`, `usage_example`, `variant_view`, `canvas_widget`, `sandbox_toolbar`, `params_form`).
+- **`elements/`:** Reusable, domain-agnostic UI primitives (`badge`, `breadcrumb`, `button`, `code_block`, `form_field`, `icon`, `notice`, `popout`, `table`, `tabs` + `tabs/tab_trigger`).
+- **`domain/`:** Domain-specific gallery UI blocks ("the way the gallery displays X"). Each represents a meaningful unit of design attention, customisation, and consumer shadowing (`gallery_shell`, `sidebar`, `toolbar`, `nav_tree`, `search_box`, `theme_select`, `folder_listing`, `prose`, `params_table`, `usage_example`, `variant_view`, `split_pane`, `sandbox_toolbar`, `params_form`, `canvas_widget`).
 
 ### Granularity Threshold
-- Do **not** create 1-line wrapper components for trivial HTML tags or single-loop wrappers (e.g. no `Prose`, `UsageExamples`, or `PopoutOption` wrapper components).
+- Do **not** create 1-line wrapper components for trivial HTML tags or single-loop wrappers (e.g. no `UsageExamples` or `PopoutOption` wrapper components).
 - A `domain/` component takes a single primary domain dataclass (e.g. `VariantViewData`, `FolderListingData`, `NavTreeData`) and decomposes it internally, delegating to `elements/` via template tags where appropriate.
 
 ### 100% Co-location & Documentation

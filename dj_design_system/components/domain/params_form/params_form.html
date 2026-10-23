@@ -1,0 +1,29 @@
+{% load design_components %}
+<dds-params-form class="dds-params-form" data-surface="sandbox">
+  {% if has_rows %}
+    <form method="get"
+          data-params-form
+          {% if has_action_url %}action="{{ action_url }}" hx-get="{{ action_url }}"{% endif %}
+          hx-replace-url="true"
+          hx-target="{{ hx_target }}"
+          hx-swap="innerHTML"
+          hx-trigger="change delay:400ms, keyup delay:400ms from:input, keyup delay:400ms from:textarea">
+      <input type="hidden" name="_iss" value="1">
+      {% if has_active_theme %}
+        <input type="hidden" name="_dds_theme" value="{{ active_theme }}">
+      {% endif %}
+      {% if has_active_variant %}
+        <input type="hidden" name="_dds_variant" value="{{ active_variant }}">
+      {% endif %}
+      <l-stack data-params-fields>
+        {% for row in normalized_rows %}
+          {% dds__form_field label=row.label field_id=row.field_id description=row.description error=row.error required_field=row.required %}
+            {% slot "control" %}{{ row.field_html }}{% endslot %}
+          {% enddds__form_field %}
+        {% endfor %}
+      </l-stack>
+    </form>
+  {% else %}
+    <p data-params-empty>{{ empty_message }}</p>
+  {% endif %}
+</dds-params-form>

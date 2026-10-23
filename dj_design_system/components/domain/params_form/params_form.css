@@ -1,0 +1,52 @@
+@layer blocks {
+  dds-params-form,
+  .dds-params-form {
+    --_params-form-bg-color: var(--dds-surface-bg-color);
+    --_params-form-border-color: var(--dds-surface-border-color);
+    --_params-form-border-radius: var(--dds-surface-border-radius);
+    --_params-form-border-style: var(--dds-surface-border-style);
+    --_params-form-border-width: var(--dds-surface-border-width);
+    --_params-form-empty-color: var(--dds-text-muted-color);
+    --_params-form-empty-padding-block: var(--dds-space-inset-compact);
+    --_params-form-fields-gap: var(--dds-space-gap-default);
+    --_params-form-font: var(--dds-text-body-font);
+    --_params-form-font-size: var(--dds-text-body-size);
+    --_params-form-font-weight: var(--dds-text-body-weight);
+    --_params-form-letter-spacing: var(--dds-text-body-letter-spacing);
+    --_params-form-line-height: var(--dds-text-body-line-height);
+    --_params-form-padding: var(--dds-space-inset-default);
+    --_params-form-text-color: var(--dds-text-default-color);
+    background-color: var(--_params-form-bg-color);
+    border-color: var(--_params-form-border-color);
+    border-radius: var(--_params-form-border-radius);
+    border-style: var(--_params-form-border-style);
+    border-width: var(--_params-form-border-width);
+    box-sizing: border-box;
+    color: var(--_params-form-text-color);
+    display: block;
+    font-family: var(--_params-form-font);
+    font-size: var(--_params-form-font-size);
+    font-weight: var(--_params-form-font-weight);
+    letter-spacing: var(--_params-form-letter-spacing);
+    line-height: var(--_params-form-line-height);
+    margin: 0;
+    padding: var(--_params-form-padding);
+  }
+
+  dds-params-form [data-params-form],
+  .dds-params-form [data-params-form] {
+    margin: 0;
+  }
+
+  dds-params-form [data-params-fields],
+  .dds-params-form [data-params-fields] {
+    --space: var(--_params-form-fields-gap);
+  }
+
+  dds-params-form [data-params-empty],
+  .dds-params-form [data-params-empty] {
+    color: var(--_params-form-empty-color);
+    margin: 0;
+    padding-block: var(--_params-form-empty-padding-block);
+  }
+}

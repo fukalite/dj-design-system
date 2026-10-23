@@ -22,6 +22,7 @@ The `dds__popout` block component renders a `<dds-popout class="dds-popout">` Li
 | Slot | Required | Description |
 | :--- | :--- | :--- |
 | `trigger` | `False` | Optional custom trigger markup; when omitted, renders a default trigger button. |
+| `menu` | `False` | Optional floating menu content markup. |
 
 ## Client-Side Behaviour (`<dds-popout>`)
 
@@ -35,7 +36,9 @@ The `dds__popout` block component renders a `<dds-popout class="dds-popout">` Li
 {% load design_components %}
 
 {% dds__popout "Theme" icon="sun" align="end" menu_label="Choose theme" %}
-  {% dds__popout_option "Light" value="light" icon="sun" selected=True %}
-  {% dds__popout_option "Dark" value="dark" icon="moon" %}
+  {% slot "menu" %}
+    {% dds__popout_option "Light" value="light" icon="sun" selected=True %}
+    {% dds__popout_option "Dark" value="dark" icon="moon" %}
+  {% endslot %}
 {% enddds__popout %}
 ```

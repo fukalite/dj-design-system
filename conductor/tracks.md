@@ -55,7 +55,7 @@
 - [x] **Track: Gallery Rebuild 4 — Built-in `domain` Collection: Shell, Navigation & Docs**
   *Link: [tracks/gallery_rebuild_04_domain_shell_nav_docs_20261007/index.md](tracks/gallery_rebuild_04_domain_shell_nav_docs_20261007/index.md)*
 
-- [ ] **Track: Gallery Rebuild 5 — Built-in `domain` Collection: Sandbox, Controls & Canvas**
+- [x] **Track: Gallery Rebuild 5 — Built-in `domain` Collection: Sandbox, Controls & Canvas**
   *Link: [tracks/gallery_rebuild_05_domain_sandbox_canvas_20261007/index.md](tracks/gallery_rebuild_05_domain_sandbox_canvas_20261007/index.md)*
 
 - [ ] **Track: Gallery Rebuild 6 — Gallery Page Composition, Legacy Asset Removal & Visual Baselines**
