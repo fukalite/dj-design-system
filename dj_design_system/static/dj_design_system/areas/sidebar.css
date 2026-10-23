@@ -14,6 +14,15 @@
     --_sidebar-brand-font-weight: var(--dds-text-subheading-weight);
     --_sidebar-brand-letter-spacing: var(--dds-text-subheading-letter-spacing);
     --_sidebar-brand-line-height: var(--dds-text-subheading-line-height);
+    --_sidebar-control-bg-color: var(--dds-control-bg-color);
+    --_sidebar-control-border-color: var(--dds-control-border-color);
+    --_sidebar-control-border-style: var(--dds-control-border-style);
+    --_sidebar-control-border-width: var(--dds-control-border-width);
+    --_sidebar-control-font: var(--dds-text-control-font);
+    --_sidebar-control-font-size: var(--dds-text-control-size);
+    --_sidebar-control-font-weight: var(--dds-text-control-weight);
+    --_sidebar-control-padding-block: var(--dds-space-3xs);
+    --_sidebar-control-padding-inline: var(--dds-space-xs);
     --_sidebar-focus-outline-color: var(--dds-state-focus-outline-color);
     --_sidebar-focus-outline-offset: var(--dds-state-focus-outline-offset);
     --_sidebar-focus-outline-style: var(--dds-state-focus-outline-style);
@@ -21,11 +30,14 @@
     --_sidebar-font: var(--dds-text-body-font);
     --_sidebar-font-size: var(--dds-text-body-size);
     --_sidebar-font-weight: var(--dds-text-body-weight);
+    --_sidebar-footer-controls-gap: var(--dds-space-xs);
     --_sidebar-gap: var(--dds-space-gap-default);
     --_sidebar-hover-text-color: var(--dds-state-hover-text-color);
     --_sidebar-letter-spacing: var(--dds-text-body-letter-spacing);
     --_sidebar-line-height: var(--dds-text-body-line-height);
     --_sidebar-muted-color: var(--dds-text-muted-color);
+    --_sidebar-option-bg-color: var(--dds-surface-sidebar-bg-color);
+    --_sidebar-option-text-color: var(--dds-surface-sidebar-text-default-color);
     --_sidebar-padding-block: var(--dds-space-md);
     --_sidebar-padding-inline: var(--dds-space-lg);
     --_sidebar-shadow-color: var(--dds-surface-sidebar-shadow-color);
@@ -95,7 +107,7 @@
       }
     }
 
-      & [data-sidebar-body] {
+    & [data-sidebar-body] {
       display: flex;
       flex: 1 1 0;
       flex-direction: column;
@@ -125,31 +137,29 @@
     }
 
     & [data-sidebar-footer-controls] {
-      display: flex;
-      gap: var(--dds-space-xs);
-      align-items: center;
-      justify-content: space-between;
+      --cluster-gap: var(--_sidebar-footer-controls-gap);
+      --cluster-justify: space-between;
       inline-size: 100%;
     }
 
     & [data-ui-theme-select] {
       flex: 1 1 auto;
       min-inline-size: 0;
-      padding-block: var(--dds-space-3xs);
-      padding-inline: var(--dds-space-xs);
-      border-width: var(--dds-control-border-width);
-      border-style: var(--dds-control-border-style);
-      border-color: var(--dds-control-border-color);
-      border-radius: var(--dds-control-border-radius);
-      color: var(--dds-text-default-color);
-      background-color: var(--dds-control-bg-color);
-      font-family: var(--dds-text-control-font);
-      font-size: var(--dds-text-control-size);
-      font-weight: var(--dds-text-control-weight);
+      padding-block: var(--_sidebar-control-padding-block);
+      padding-inline: var(--_sidebar-control-padding-inline);
+      border-width: var(--_sidebar-control-border-width);
+      border-style: var(--_sidebar-control-border-style);
+      border-color: var(--_sidebar-control-border-color);
+      border-radius: var(--_sidebar-border-radius);
+      color: var(--_sidebar-text-color);
+      background-color: var(--_sidebar-control-bg-color);
+      font-family: var(--_sidebar-control-font);
+      font-size: var(--_sidebar-control-font-size);
+      font-weight: var(--_sidebar-control-font-weight);
 
       & option {
-        color: var(--dds-surface-sidebar-text-default-color);
-        background-color: var(--dds-surface-sidebar-bg-color);
+        color: var(--_sidebar-option-text-color);
+        background-color: var(--_sidebar-option-bg-color);
       }
     }
   }

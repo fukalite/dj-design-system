@@ -6,7 +6,6 @@ import pytest
 from django.test import override_settings
 
 from dj_design_system.services.markdown import render_markdown_doc
-from dj_design_system.views.gallery import _render_markdown
 
 
 @pytest.mark.django_db
@@ -40,14 +39,6 @@ class TestRenderMarkdownService:
         html = render_markdown_doc(doc)
         assert "gallery-highlight" in html
 
-    def test_deprecated_views_render_markdown_shim(self, tmp_path: Path):
-        doc = tmp_path / "shim.md"
-        doc.write_text("## Subtitle\n\nContent", encoding="utf-8")
-
-        html_service = render_markdown_doc(file_path=doc)
-        html_shim = _render_markdown(file_path=doc)
-        assert html_shim == html_service
-
     @override_settings(
         DJ_DESIGN_SYSTEM={
             "GALLERY_DEFAULT_THEME": "light",
@@ -63,7 +54,7 @@ class TestRenderMarkdownService:
     def test_render_component_uses_validated_theme_and_owning_app_label(
         self, tmp_path: Path
     ):
-        """_render_component passes validated theme and info.app_label to render_markdown_doc (#186, #187)."""
+        """render_component_node passes validated theme and info.app_label to render_markdown_doc (#186, #187)."""
         from django.test import RequestFactory
 
         from dj_design_system.components import TagComponent
@@ -140,15 +131,15 @@ class TestRenderMarkdownService:
     def test_render_folder_and_document_fallback_theme_and_owning_app_label(
         self, tmp_path: Path
     ):
-        """_render_folder and _render_document fall back to default theme and use node.app_label (#186, #187)."""
+        """render_folder_node and render_document_node fall back to default theme and use node.app_label (#186, #187)."""
         from django.test import RequestFactory
 
         from dj_design_system.data import NavNode
         from dj_design_system.types import NodeType
         from dj_design_system.views.gallery import (
-            _render_document,
-            _render_folder,
             get_base_context,
+            render_document_node,
+            render_folder_node,
         )
 
         doc = tmp_path / "index.md"
@@ -168,7 +159,7 @@ class TestRenderMarkdownService:
         folder_ctx = get_base_context(
             request=request, active_app="promoted", active_path="promoted/guides"
         )
-        _render_folder(
+        render_folder_node(
             request=request,
             context=folder_ctx,
             node=folder_node,
@@ -188,7 +179,7 @@ class TestRenderMarkdownService:
         doc_ctx = get_base_context(
             request=request, active_app="promoted", active_path="promoted/overview"
         )
-        _render_document(
+        render_document_node(
             request=request,
             context=doc_ctx,
             node=doc_node,
@@ -197,3 +188,4 @@ class TestRenderMarkdownService:
         )
         assert "themes/light.css" in doc_ctx["doc_html"]
         assert "demo_components/app_bundle.css" in doc_ctx["doc_html"]
+

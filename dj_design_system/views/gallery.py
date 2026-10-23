@@ -1,7 +1,5 @@
 """Gallery view and general navigation / document rendering."""
 
-from pathlib import Path
-
 from django.conf import settings
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import render
@@ -133,14 +131,7 @@ def get_base_context(
     }
 
 
-def _render_markdown(file_path: Path, app_label: str = "", theme_dict=None) -> str:
-    """Render a markdown file to HTML (deprecated internal helper; use services.markdown.render_markdown_doc)."""
-    return markdown_service.render_markdown_doc(
-        file_path=file_path, app_label=app_label, theme_dict=theme_dict
-    )
-
-
-def _render_folder(request, context, node, app_label, path_parts):
+def render_folder_node(request, context, node, app_label, path_parts):
     """Render a folder node — index.md if present, otherwise a listing."""
     context["node"] = node
     context["breadcrumbs"] = build_breadcrumbs(
@@ -170,7 +161,7 @@ def _render_folder(request, context, node, app_label, path_parts):
     return render(request, "dj_design_system/gallery/folder.html", context)
 
 
-def _render_document(request, context, node, app_label, path_parts):
+def render_document_node(request, context, node, app_label, path_parts):
     """Render a standalone markdown document."""
     if not node.doc_path or not node.doc_path.is_file():
         raise Http404(f"Document {node.label} not found")
@@ -226,6 +217,7 @@ def gallery_node(
         return render_component_node(request, context, node, app_label, path_parts)
 
     if node.is_document:
-        return _render_document(request, context, node, app_label, path_parts)
+        return render_document_node(request, context, node, app_label, path_parts)
 
-    return _render_folder(request, context, node, app_label, path_parts)
+    return render_folder_node(request, context, node, app_label, path_parts)
+

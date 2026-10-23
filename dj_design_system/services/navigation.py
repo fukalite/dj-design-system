@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from collections.abc import Sequence
+from dataclasses import dataclass
 from functools import lru_cache
 from html.parser import HTMLParser
 from pathlib import Path
@@ -19,12 +20,114 @@ from dj_design_system.constants import (
     BUILTIN_APP_LABEL,
     BUILTIN_GALLERY_SUBFOLDER,
 )
-from dj_design_system.data import NavItemInputData, NavNode
+from dj_design_system.data import NavNode
 from dj_design_system.services import component_dirs as component_dirs_service
 from dj_design_system.services import visibility as visibility_service
 from dj_design_system.services.registry import component_registry
 from dj_design_system.settings import dds_settings
 from dj_design_system.types import NodeType
+
+
+def _get_field(raw: Any, key: str, default: Any = None) -> Any:
+    """Read *key* from a mapping or attribute from an object."""
+    if isinstance(raw, dict):
+        return raw.get(key, default)
+    return getattr(raw, key, default)
+
+
+@dataclass(frozen=True)
+class NavItemInputData:
+    """Normalized navigation node input fields for ``normalize_folder_items``."""
+
+    label: str
+    slug: str
+    node_type: str
+    url: str
+    active_path: str
+    base_active_path: str
+    children: list[Any]
+    icon: str
+    is_component: bool | None
+    is_document: bool | None
+    is_variant: bool | None
+    has_children: bool | None
+    has_index_doc: bool
+    child_count: int | None
+
+    @classmethod
+    def from_raw(
+        cls,
+        raw_node: Any,
+        *,
+        default_label_from_name: bool = False,
+        default_url: str = "#",
+    ) -> NavItemInputData:
+        """Extract normalized attributes from a ``NavNode``, dict, or duck-typed object."""
+        raw_label = _get_field(raw_node, "label")
+        if raw_label is None:
+            if default_label_from_name:
+                raw_label = _get_field(
+                    raw_node,
+                    "name",
+                    "" if isinstance(raw_node, dict) else str(raw_node),
+                )
+            else:
+                raw_label = ""
+        raw_slug = _get_field(raw_node, "slug", "")
+        raw_type = (
+            _get_field(raw_node, "node_type")
+            or _get_field(raw_node, "type")
+            or _get_field(raw_node, "node_kind")
+            or ""
+        )
+        raw_url = _get_field(raw_node, "url") or _get_field(raw_node, "href")
+        raw_active = _get_field(raw_node, "active_path", "")
+        raw_base_active = _get_field(raw_node, "base_active_path", "")
+        raw_children_val = _get_field(raw_node, "children")
+        raw_icon = _get_field(raw_node, "icon")
+        raw_is_component = _get_field(raw_node, "is_component")
+        raw_is_document = _get_field(raw_node, "is_document")
+        raw_is_variant = _get_field(raw_node, "is_variant")
+        raw_has_children = _get_field(raw_node, "has_children")
+        raw_has_index_doc = _get_field(raw_node, "has_index_doc")
+        if raw_has_index_doc is None:
+            raw_has_index_doc = _get_field(raw_node, "index_doc_path") is not None
+        raw_child_count = _get_field(raw_node, "child_count")
+
+        node_type_val = getattr(raw_type, "value", raw_type)
+        node_type = str(node_type_val).lower() if node_type_val else ""
+
+        children = (
+            list(raw_children_val)
+            if isinstance(raw_children_val, (list, tuple, set))
+            else (list(raw_children_val) if raw_children_val is not None else [])
+        )
+        child_count = (
+            max(0, raw_child_count)
+            if isinstance(raw_child_count, int)
+            and not isinstance(raw_child_count, bool)
+            else None
+        )
+        return cls(
+            label=str(raw_label) if raw_label is not None else "",
+            slug=str(raw_slug) if raw_slug is not None else "",
+            node_type=node_type,
+            url=str(raw_url) if raw_url else default_url,
+            active_path=str(raw_active) if raw_active else "",
+            base_active_path=str(raw_base_active) if raw_base_active else "",
+            children=children,
+            icon=str(raw_icon) if raw_icon else "",
+            is_component=bool(raw_is_component)
+            if raw_is_component is not None
+            else None,
+            is_document=bool(raw_is_document) if raw_is_document is not None else None,
+            is_variant=bool(raw_is_variant) if raw_is_variant is not None else None,
+            has_children=bool(raw_has_children)
+            if raw_has_children is not None
+            else None,
+            has_index_doc=bool(raw_has_index_doc),
+            child_count=child_count,
+        )
 
 
 FOLDER_ORDER_MAP: dict[str, int] = {
@@ -109,7 +212,9 @@ def to_display_label(
                 if "verbose_name" in type(cfg).__dict__:
                     return str(cfg.verbose_name)
 
-    if name in FOLDER_LABEL_OVERRIDES:
+    if (
+        app_label is None or app_label == BUILTIN_APP_LABEL
+    ) and name in FOLDER_LABEL_OVERRIDES:
         return FOLDER_LABEL_OVERRIDES[name]
 
     return name.replace("_", " ").replace("-", " ").capitalize()
@@ -141,6 +246,7 @@ class _AppTreeBuilder:
     ) -> NavNode:
         """Return the node at *path_parts*, creating intermediate folders as needed."""
         current = self.root
+        is_builtin = self.root.slug == BUILTIN_APP_LABEL
         for depth in range(len(path_parts)):
             path_key = "/".join(path_parts[: depth + 1])
             if path_key not in self._nodes_by_path:
@@ -153,7 +259,11 @@ class _AppTreeBuilder:
                         path=".".join(path_parts[: depth + 1]),
                     )
                 )
-                order = FOLDER_ORDER_MAP.get(path_parts[depth], 0)
+                order = (
+                    FOLDER_ORDER_MAP.get(path_parts[depth], 0)
+                    if is_builtin
+                    else 0
+                )
                 node = NavNode(
                     label=label,
                     slug=path_parts[depth],
@@ -247,9 +357,10 @@ class _AppTreeBuilder:
             parent.index_doc_path = md_path
         else:
             stem = md_path.stem
-            order = DOC_ORDER_MAP.get(stem, 0)
+            is_builtin = self.root.slug == BUILTIN_APP_LABEL
+            order = DOC_ORDER_MAP.get(stem, 0) if is_builtin else 0
             node = NavNode(
-                label=to_display_label(stem),
+                label=to_display_label(stem, app_label=self.root.slug),
                 slug=stem,
                 node_type=NodeType.DOCUMENT,
                 doc_path=md_path,

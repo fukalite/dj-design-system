@@ -134,6 +134,14 @@
       &[data-depth='4'] {
         padding-inline-start: calc(var(--_nav-tree-padding-inline) + (var(--_nav-tree-indent-step) * 3));
       }
+
+      &[data-depth='5'] {
+        padding-inline-start: calc(var(--_nav-tree-padding-inline) + (var(--_nav-tree-indent-step) * 4));
+      }
+
+      &[data-depth='6'] {
+        padding-inline-start: calc(var(--_nav-tree-padding-inline) + (var(--_nav-tree-indent-step) * 5));
+      }
     }
 
     & [data-nav-group-label] {

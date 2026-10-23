@@ -1,16 +1,12 @@
-"""Template tags and filters for the gallery UI."""
+"""Template tags for the gallery UI."""
 
 from __future__ import annotations
 
 import html
 
 from django import template
-from django.utils.html import json_script
 
-from dj_design_system.data import NavNode
-from dj_design_system.gallery import Variant
 from dj_design_system.services import media as media_service
-from dj_design_system.services import navigation as navigation_service
 from dj_design_system.services.canvas_renderer import build_canvas_srcdoc
 from dj_design_system.services.control_params import (
     SANDBOX_SUBMISSION_PARAM,
@@ -22,9 +18,6 @@ from dj_design_system.types import Theme
 
 
 register = template.Library()
-
-BASE_INDENT_PX = 0
-INDENT_PER_LEVEL_PX = 16
 
 
 @register.simple_tag
@@ -110,56 +103,6 @@ def builtin_component_scripts(
     return media_service.build_script_tags(media.js, nonce=nonce, is_module=True)
 
 
-@register.simple_tag(takes_context=True)
-def gallery_search_index_script(
-    context: template.Context | dict | None = None,
-) -> str:
-    """Output a ``<script id="gallery-search-index" type="application/json">`` tag."""
-    search_index = context.get("search_index", []) if context else []
-    return json_script(search_index, "gallery-search-index")
-
-
-@register.filter
-def add_indent(depth: int) -> int:
-    """Convert a tree depth to a left-padding value in pixels."""
-    try:
-        depth = int(depth)
-    except (TypeError, ValueError):
-        depth = 0
-    return BASE_INDENT_PX + (depth * INDENT_PER_LEVEL_PX)
-
-
-@register.simple_tag
-def nav_link_is_active(
-    node: NavNode, active_path: str, active_variant: Variant | str | None
-) -> bool:
-    """Return whether a leaf nav link is the current page.
-
-    ``active_variant`` is either a ``Variant`` (component pages) or a plain
-    slug string (raw ``?variant=`` query value); both are accepted.
-    """
-    if not node.is_variant:
-        return active_path == node.active_path and not active_variant
-    if active_path != node.base_active_path:
-        return False
-    active_slug = getattr(active_variant, "name", active_variant)
-    return active_slug == node.slug
-
-
-@register.simple_tag
-def nav_folder_is_open(node: NavNode, active_path: str) -> bool:
-    """Return whether a folder nav node is expanded on initial render.
-
-    Args:
-        node: The folder or expandable navigation node to check.
-        active_path: The active gallery route path for the current request.
-
-    Returns:
-        True when the current page is the folder itself or one of its descendants.
-    """
-    return navigation_service.is_nav_folder_open(node=node, active_path=active_path)
-
-
 class CanvasNode(template.Node):
     """Render children inside an ``<iframe srcdoc="...">``."""
 
@@ -191,6 +134,8 @@ class CanvasNode(template.Node):
         theme_dict = self._resolve_theme(context)
         component_info = context.get("component_info")
         app_label = component_info.app_label if component_info else None
+        request = context.get("request")
+        nonce = getattr(request, "csp_nonce", None) if request else None
 
         iframe_doc = build_canvas_srcdoc(
             rendered_html=rendered_component,
@@ -200,6 +145,7 @@ class CanvasNode(template.Node):
             app_label=app_label,
             bg_class=bg_class,
             mode_class=mode_class,
+            csp_nonce=nonce,
         )
 
         escaped_doc = html.escape(iframe_doc)
@@ -215,3 +161,4 @@ def do_canvas(parser: template.Parser, token: template.Token) -> CanvasNode:
     nodelist = parser.parse(("endcanvas",))
     parser.delete_first_token()
     return CanvasNode(nodelist)
+

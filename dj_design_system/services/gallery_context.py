@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from dataclasses import dataclass
 from typing import Any
 
 from django.urls import reverse
@@ -14,8 +15,7 @@ from dj_design_system.data import (
     NavNode,
     ParamRowData,
     ParamSpecData,
-    ParamTableRowData,
-    SlotTableRowData,
+    format_param_type_name,
 )
 from dj_design_system.exceptions import VariantNotFoundError
 from dj_design_system.forms import build_component_form
@@ -36,6 +36,156 @@ from dj_design_system.settings import (
 )
 from dj_design_system.slots import SLOT_PARAM_PREFIX
 from dj_design_system.types import Theme
+
+
+def _get_field(raw: Any, key: str, default: Any = None) -> Any:
+    """Read *key* from a mapping or attribute from an object."""
+    if isinstance(raw, dict):
+        return raw.get(key, default)
+    return getattr(raw, key, default)
+
+
+@dataclass(frozen=True)
+class ParamTableRowData:
+    """Normalized parameter metadata row for ``ParamsTable``."""
+
+    name: str
+    type_name: str
+    required: bool
+    required_label: str
+    required_variant: str
+    has_default: bool
+    default_display: str
+    choices: list[str]
+    has_choices: bool
+    description: str
+
+    @classmethod
+    def from_raw(
+        cls,
+        raw_item: Any,
+        *,
+        empty_placeholder: str = "—",
+        fallback_type_name: str = "any",
+    ) -> ParamTableRowData:
+        """Normalise a ``(name, spec)`` tuple, ``ParamRowData``, dict, or object."""
+        if isinstance(raw_item, (tuple, list)) and len(raw_item) == 2:
+            raw_name: Any = raw_item[0]
+            spec: Any = raw_item[1]
+        else:
+            raw_name = _get_field(raw_item, "name", "")
+            nested_spec = _get_field(raw_item, "spec")
+            spec = nested_spec if nested_spec is not None else raw_item
+
+        raw_type_name = _get_field(spec, "type_name")
+        raw_type = _get_field(spec, "type")
+        raw_required = _get_field(spec, "required", False)
+        raw_default = _get_field(spec, "default")
+        raw_choices = _get_field(spec, "choices")
+        raw_description = _get_field(spec, "description")
+
+        type_name = (
+            str(raw_type_name)
+            if raw_type_name
+            else format_param_type_name(raw_type, fallback=fallback_type_name)
+        )
+        required = bool(raw_required)
+        has_default = raw_default is not None
+        choices = (
+            [str(choice) for choice in raw_choices] if raw_choices is not None else []
+        )
+        return cls(
+            name=str(raw_name) if raw_name is not None else "",
+            type_name=type_name,
+            required=required,
+            required_label="Required" if required else "Optional",
+            required_variant="error" if required else "neutral",
+            has_default=has_default,
+            default_display=str(raw_default) if has_default else empty_placeholder,
+            choices=choices,
+            has_choices=bool(choices),
+            description=str(raw_description) if raw_description else empty_placeholder,
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return a dictionary representation for template contexts."""
+        return {
+            "name": self.name,
+            "type_name": self.type_name,
+            "required": self.required,
+            "required_label": self.required_label,
+            "required_variant": self.required_variant,
+            "has_default": self.has_default,
+            "default_display": self.default_display,
+            "choices": self.choices,
+            "has_choices": self.has_choices,
+            "description": self.description,
+        }
+
+    def __getitem__(self, key: str) -> Any:
+        return self.to_dict()[key]
+
+
+@dataclass(frozen=True)
+class SlotTableRowData:
+    """Normalized slot metadata row for ``ParamsTable``."""
+
+    name: str
+    required: bool
+    required_label: str
+    required_variant: str
+    has_default: bool
+    default_display: str
+    description: str
+
+    @classmethod
+    def from_raw(
+        cls,
+        raw_slot: Any,
+        *,
+        empty_placeholder: str = "—",
+    ) -> SlotTableRowData:
+        """Normalise a ``(name, slot)`` tuple, dict, or slot object."""
+        if isinstance(raw_slot, (tuple, list)) and len(raw_slot) == 2:
+            raw_slot_name: Any = raw_slot[0]
+            slot_spec: Any = raw_slot[1]
+        else:
+            raw_slot_name = _get_field(raw_slot, "name", "")
+            nested_slot = _get_field(raw_slot, "slot")
+            if nested_slot is None:
+                nested_slot = _get_field(raw_slot, "spec")
+            slot_spec = nested_slot if nested_slot is not None else raw_slot
+
+        slot_required = bool(_get_field(slot_spec, "required", False))
+        slot_default_raw = _get_field(slot_spec, "default")
+        slot_description_raw = _get_field(slot_spec, "description")
+        has_default = slot_default_raw is not None and slot_default_raw != ""
+        return cls(
+            name=str(raw_slot_name) if raw_slot_name is not None else "",
+            required=slot_required,
+            required_label="Required" if slot_required else "Optional",
+            required_variant="error" if slot_required else "neutral",
+            has_default=has_default,
+            default_display=str(slot_default_raw) if has_default else empty_placeholder,
+            description=(
+                str(slot_description_raw) if slot_description_raw else empty_placeholder
+            ),
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return a dictionary representation for template contexts."""
+        return {
+            "name": self.name,
+            "required": self.required,
+            "required_label": self.required_label,
+            "required_variant": self.required_variant,
+            "has_default": self.has_default,
+            "default_display": self.default_display,
+            "description": self.description,
+        }
+
+    def __getitem__(self, key: str) -> Any:
+        return self.to_dict()[key]
 
 
 def _extract_query_params(
@@ -539,13 +689,16 @@ def build_component_page_context(
     context["canvas_backgrounds"] = backgrounds
     context["active_bg_value"] = active_bg_value
 
-    try:
-        raw_rendered_html = canvas_service.render_component(
-            spec=sandbox_spec,
-            registry=registry_service.component_registry,
-        ).strip()
-    except Exception as exc:
-        raw_rendered_html = f"<!-- Error rendering component: {exc} -->"
+    if form is None or not form.is_bound or form.is_valid():
+        try:
+            raw_rendered_html = canvas_service.render_component(
+                spec=sandbox_spec,
+                registry=registry_service.component_registry,
+            ).strip()
+        except Exception:
+            raw_rendered_html = ""
+    else:
+        raw_rendered_html = ""
 
     if current_signature:
         source_html = current_signature.minimal

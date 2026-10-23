@@ -112,7 +112,23 @@
       --_split-pane-primary-flex: 1 1 100%;
       --_split-pane-secondary-display: none;
 
-      &[data-active-pane='secondary'] {
+      &[data-active-pane='secondary'],
+      &[data-active-pane='sandbox'] {
+        --_split-pane-primary-display: none;
+        --_split-pane-secondary-display: flex;
+        --_split-pane-secondary-flex: 1 1 100%;
+      }
+    }
+
+    @media (max-width: 99.9375rem) {
+      &[data-active-pane] {
+        --_split-pane-resizer-display: none;
+        --_split-pane-primary-flex: 1 1 100%;
+        --_split-pane-secondary-display: none;
+      }
+
+      &[data-active-pane='secondary'],
+      &[data-active-pane='sandbox'] {
         --_split-pane-primary-display: none;
         --_split-pane-secondary-display: flex;
         --_split-pane-secondary-flex: 1 1 100%;

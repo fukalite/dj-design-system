@@ -29,5 +29,14 @@
     &[data-size='lg'] {
       --_icon-size: var(--_icon-size-lg);
     }
+
+    & [data-icon-glyph] {
+      display: none;
+    }
+
+    &[data-icon='sun'] [data-icon-glyph='sun'],
+    &[data-icon='moon'] [data-icon-glyph='moon'] {
+      display: inline;
+    }
   }
 }

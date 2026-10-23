@@ -74,3 +74,27 @@ class Theme:
     def supports_dark_mode(self) -> bool:
         """Return True if this theme explicitly configures dark mode support."""
         return self.dark_mode is not None
+
+    @property
+    def has_dark_mode_assets(self) -> bool:
+        """Return True if this theme's dark mode loads external CSS or JS assets."""
+        return bool(
+            self.dark_mode
+            and (
+                self.dark_mode.css
+                or self.dark_mode.js
+                or self.dark_mode.css_bundles
+                or self.dark_mode.js_bundles
+            )
+        )
+
+    @property
+    def has_external_assets(self) -> bool:
+        """Return True if this theme loads external CSS or JS assets."""
+        return bool(
+            self.css
+            or self.js
+            or self.css_bundles
+            or self.js_bundles
+            or self.has_dark_mode_assets
+        )

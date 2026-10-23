@@ -704,21 +704,19 @@ Layout and presentation markup are structured into modular Django templates unde
 - **`panes/folder.html`**: Navigable card grid rendered when browsing folder nodes without an `index.md`.
 - **`panes/index.html`**: Landing page welcome message and static snapshot notices.
 
-#### The `<dds-gallery-shell>` Custom Element
+#### The `<dds-gallery-shell>` Custom Element & Page Mediators
 
-While structural markup lives in templates, client-side coordination is handled by the `<dds-gallery-shell>` custom element (located in `dj_design_system/static/dj_design_system/gallery-shell.ts`). The custom element encapsulates:
-1. **Responsive Drawer State:** Toggling `data-drawer-state="open|closed"` on mobile viewports.
-2. **Backdrop & Keyboard Traps:** Managing focus and dismissing the drawer on backdrop clicks or Escape key presses.
-3. **URL Hash Synchronisation:** Switching between Documentation and Sandbox tabs based on URL `#pane-*` fragments.
-4. **Cross-Iframe Theme Event Relay:** Forwarding `dds:theme-change` CustomEvents from the outer gallery chrome into canvas iframes.
-5. **Gallery UI Theme Management:** Switching the gallery chrome itself between Light, Dark, and System modes (`dds_gallery_theme` cookie / `localStorage` / `_dds_gallery_theme` query param) and toggling `.gallery-theme-dark` / `.gallery-theme-light` classes.
-6. **Consumer Color Scheme Synchronisation:** Toggling previewed components between light and dark modes (`dds_color_scheme` cookie / `localStorage` / `_dds_color_scheme` query param), updating preview iframe URLs, synchronising the toggle button state (moon/sun icon and disabled state if unsupported), and dispatching `dds:consumer-color-scheme-change`.
+While structural markup lives in templates, client-side coordination is handled by the `<dds-gallery-shell>` custom element (`dj_design_system/static/dj_design_system/gallery-shell.ts`) and three dedicated page mediators:
+1. **Shell Drawer & Keyboard Shortcuts (`gallery-shell.ts`):** Toggling `data-drawer-state="open|closed"` on mobile viewports, managing backdrop/Escape dismissal, and routing the global `/` search shortcut to `DdsSearchBox.focusInput()`.
+2. **Theme Mediation (`theme-manager.ts`):** Switching the gallery chrome between Light and Dark modes (`dds_gallery_theme`), switching Gallery UI themes (`dds_gallery_ui_theme`), and synchronising consumer component themes (`dds_theme`) and colour schemes (`dds_color_scheme`) across URL parameters, hidden inputs, and preview iframes.
+3. **Pane Mediation (`pane-manager.ts`):** Synchronising URL `#pane-*` fragments, persisted split ratios (`dds_split_ratio`), and active tab selections (`dds_active_tabs`).
+4. **Sandbox Mediation (`sandbox-manager.ts`):** Mediating `<dds-sandbox-toolbar>`, `<dds-canvas-widget>`, and `<dds-sandbox-params>` events, persisting toolbar stage state to `sessionStorage` (`dds_toolbar_state`), and forwarding stage toggles (`background`, `zoom`, `outline`, `measure`, `rtl`) across the iframe boundary via `window.postMessage` (`canvas-resize.ts`).
 
 ### Tier 3: Built-in `dds` Primitives & Component Shadowing
 
-The gallery UI delegates interactive widgets to built-in components:
-- **`elements/`** (`badge`, `breadcrumb`, `button`, `code_block`, `form_field`, `icon`, `notice`, `popout`, `table`, `tabs`, `theme_select`) — reusable UI primitives registered as `{% dds__<name> %}`.
-- **`domain/`** (`canvas_widget`, `nav_tree`, `sandbox_params`, `sandbox_toolbar`, `search_box`, `split_pane`) — interactive domain widgets registered as `{% dds__<name> %}`.
+The gallery UI delegates interactive widgets to built-in components under `dj_design_system/components/gallery/`:
+- **`elements/`** (`badge`, `breadcrumb`, `button`, `code_block`, `form_field`, `icon`, `notice`, `popout`, `table`, `tabs`, `tooltip`) — atomic UI primitives registered as `{% dds__<name> %}`.
+- **`composites/`** (`canvas_widget`, `nav_tree`, `sandbox_params`, `sandbox_toolbar`, `search_box`, `split_pane`, `theme_select`) — multi-part gallery widgets registered as `{% dds__<name> %}`.
 
 To shadow any built-in component with your own implementation, map a directory in `COMPONENT_DIRECTORIES`:
 

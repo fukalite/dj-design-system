@@ -272,39 +272,6 @@ class TestTooltipStylesheet:
             assert expected_family in mapped_values
 
 
-class TestTooltipCustomElementTypeScript:
-    """Verify Light DOM <dds-tooltip> TypeScript contract in tooltip.ts."""
-
-    def test_ts_implements_custom_element_and_accessibility_contract(self) -> None:
-        """Verify tooltip.ts defines DDSTooltipElement and handles Escape and ARIA linkage."""
-        assert TOOLTIP_TS_PATH.is_file()
-        ts_text = _read_text(path=TOOLTIP_TS_PATH)
-        assert "import type { DDSCustomElement } from '../../types.js';" in ts_text
-        assert (
-            "export class DDSTooltipElement" in ts_text
-            and "extends HTMLElement" in ts_text
-            and "implements DDSCustomElement" in ts_text
-        )
-        assert "AbortController" in ts_text
-        assert "connectedCallback(): void" in ts_text
-        assert "disconnectedCallback(): void" in ts_text
-        assert "aria-describedby" in ts_text
-        assert "'Escape'" in ts_text
-        assert "'pointerenter'" in ts_text
-        assert "'pointerleave'" in ts_text
-        assert "'focusin'" in ts_text
-        assert "'focusout'" in ts_text
-        assert "if (!customElements.get('dds-tooltip'))" in ts_text
-        assert "customElements.define('dds-tooltip', DDSTooltipElement);" in ts_text
-        assert "attachShadow" not in ts_text
-        assert "document.querySelector" not in ts_text
-        assert '"' not in ts_text
-        assert "\t" not in ts_text
-        for line in ts_text.splitlines():
-            assert len(line) <= 80
-            assert line == line.rstrip()
-
-
 class TestTooltipGalleryAndDocs:
     """Verify co-located gallery.py and index.md for dds__tooltip."""
 

@@ -1,12 +1,13 @@
 /**
  * @fileoverview Light DOM `<dds-sandbox-toolbar>` custom element for managing
- * sandbox popout controls, inspection toggles, and `sessionStorage` state.
+ * sandbox popout controls, inspection toggles, and semantic `dds:sandbox-*`
+ * event dispatching without global storage or navigation side-effects.
  */
 
 import type { DDSCustomElement } from '../../types.js';
 
-/** Persisted state for the interactive sandbox toolbar. */
-interface SandboxToolbarState {
+/** State snapshot for the interactive sandbox toolbar. */
+export interface SandboxToolbarState {
   background?: string;
   viewport?: string;
   zoom?: string;
@@ -15,12 +16,15 @@ interface SandboxToolbarState {
   rtl?: boolean;
 }
 
-const TOOLBAR_STATE_KEY = 'dds_toolbar_state';
+/** Child `<dds-popout>` element interface exposing `selectValue`. */
+interface PopoutSelectableElement extends HTMLElement {
+  selectValue?(value: string): void;
+}
 
 /**
  * Light DOM custom element enhancing `<dds-sandbox-toolbar>` with popout
- * selection handling, inspection toggle buttons, `sessionStorage` state
- * persistence, and semantic `dds:sandbox-*` event dispatching.
+ * selection handling, inspection toggle buttons, programmatic `applyState`,
+ * and semantic `dds:sandbox-*` event dispatching.
  */
 export class DDSSandboxToolbarElement
   extends HTMLElement
@@ -52,7 +56,9 @@ export class DDSSandboxToolbarElement
       { signal },
     );
 
-    this.restoreToolbarState();
+    this.dispatchEvent(
+      new CustomEvent('dds:sandbox-toolbar-ready', { bubbles: true }),
+    );
   }
 
   /**
@@ -61,6 +67,26 @@ export class DDSSandboxToolbarElement
   disconnectedCallback(): void {
     this.abortController?.abort();
     this.abortController = null;
+  }
+
+  /**
+   * Applies a toolbar state snapshot onto child popouts and toggle buttons.
+   *
+   * @param {!SandboxToolbarState} state Toolbar state to apply.
+   */
+  applyState(state: SandboxToolbarState): void {
+    if (state.background) {
+      this.syncPopoutSelection('background', state.background);
+    }
+    if (state.viewport) {
+      this.syncPopoutSelection('viewport', state.viewport);
+    }
+    if (state.zoom) {
+      this.syncPopoutSelection('zoom', state.zoom);
+    }
+    this.syncToggleActionButton('toggle-outline', Boolean(state.outline));
+    this.syncToggleActionButton('toggle-measure', Boolean(state.measure));
+    this.syncToggleActionButton('toggle-rtl', Boolean(state.rtl));
   }
 
   /**
@@ -77,11 +103,8 @@ export class DDSSandboxToolbarElement
     const controlType = controlHost.dataset.sandboxControl ?? '';
     const customEvent = event as CustomEvent<{ value?: string }>;
     const value = customEvent.detail?.value ?? '';
-    const state = this.readToolbarState();
 
     if (controlType === 'background' && value) {
-      state.background = value;
-      this.writeToolbarState(state);
       this.syncPopoutSelection('background', value);
       this.dispatchEvent(
         new CustomEvent('dds:sandbox-bg', {
@@ -90,8 +113,6 @@ export class DDSSandboxToolbarElement
         }),
       );
     } else if (controlType === 'viewport' && value) {
-      state.viewport = value;
-      this.writeToolbarState(state);
       this.syncPopoutSelection('viewport', value);
       this.dispatchEvent(
         new CustomEvent('dds:sandbox-viewport', {
@@ -100,8 +121,6 @@ export class DDSSandboxToolbarElement
         }),
       );
     } else if (controlType === 'zoom' && value) {
-      state.zoom = value;
-      this.writeToolbarState(state);
       this.syncPopoutSelection('zoom', value);
       this.dispatchEvent(
         new CustomEvent('dds:sandbox-zoom', {
@@ -110,30 +129,30 @@ export class DDSSandboxToolbarElement
         }),
       );
     } else if (controlType === 'variant') {
-      const nextUrl = new URL(window.location.pathname, window.location.origin);
-      const currentParams = new URLSearchParams(window.location.search);
-      const theme =
-        currentParams.get('_dds_theme') ?? currentParams.get('theme');
-      if (theme) {
-        nextUrl.searchParams.set('_dds_theme', theme);
-      }
-      if (value) {
-        nextUrl.searchParams.set('variant', value);
-      }
-      const hash =
-        window.location.hash === '#pane-sandbox' ? '#pane-sandbox' : '';
-      window.location.href = `${nextUrl.pathname}${nextUrl.search}${hash}`;
+      this.dispatchEvent(
+        new CustomEvent('dds:sandbox-variant', {
+          bubbles: true,
+          detail: { variant: value },
+        }),
+      );
     }
   }
 
   /**
-   * Handles clicks on `[data-action]` buttons inside this toolbar.
+   * Handles clicks on `[data-action]` buttons and variant option links.
    *
    * @param {!MouseEvent} event Click event inside the toolbar.
    */
   private handleToolbarClick(event: MouseEvent): void {
     const target = event.target as HTMLElement | null;
     if (!target) {
+      return;
+    }
+    const variantLink = target.closest<HTMLElement>(
+      '[data-sandbox-control=variant] a[data-popout-option]',
+    );
+    if (variantLink && this.contains(variantLink)) {
+      event.preventDefault();
       return;
     }
     const actionButton = target.closest<HTMLElement>('[data-action]');
@@ -159,75 +178,40 @@ export class DDSSandboxToolbarElement
     const nextPressed = !isPressed;
     actionButton.setAttribute('aria-pressed', nextPressed ? 'true' : 'false');
 
-    const state = this.readToolbarState();
-    if (action === 'toggle-outline') {
-      state.outline = nextPressed;
-    } else if (action === 'toggle-measure') {
-      state.measure = nextPressed;
-    } else if (action === 'toggle-rtl') {
-      state.rtl = nextPressed;
-    }
-    this.writeToolbarState(state);
+    const outline = this.isTogglePressed('toggle-outline');
+    const measure = this.isTogglePressed('toggle-measure');
+    const rtl = this.isTogglePressed('toggle-rtl');
+
     this.dispatchEvent(
       new CustomEvent('dds:sandbox-toggle', {
         bubbles: true,
         detail: {
           action,
           active: nextPressed,
-          outline: Boolean(state.outline),
-          measure: Boolean(state.measure),
-          rtl: Boolean(state.rtl),
-          state,
+          outline,
+          measure,
+          rtl,
         },
       }),
     );
   }
 
   /**
-   * Restores persisted `sessionStorage` state onto this toolbar's controls.
-   */
-  private restoreToolbarState(): void {
-    const state = this.readToolbarState();
-    if (state.background) {
-      this.syncPopoutSelection('background', state.background);
-    }
-    if (state.viewport) {
-      this.syncPopoutSelection('viewport', state.viewport);
-    }
-    if (state.zoom) {
-      this.syncPopoutSelection('zoom', state.zoom);
-    }
-    this.syncToggleActionButton('toggle-outline', Boolean(state.outline));
-    this.syncToggleActionButton('toggle-measure', Boolean(state.measure));
-    this.syncToggleActionButton('toggle-rtl', Boolean(state.rtl));
-  }
-
-  /**
-   * Synchronises the selected option state inside a toolbar popout menu.
+   * Delegates selection synchronisation to a child `<dds-popout>` element.
    *
    * @param {string} controlName Toolbar control key.
    * @param {string} value Active option value.
    */
   private syncPopoutSelection(controlName: string, value: string): void {
-    const host = this.querySelector<HTMLElement>(
-      `[data-sandbox-control='${controlName}']`,
+    const popout = this.querySelector<PopoutSelectableElement>(
+      `[data-sandbox-control='${controlName}'] dds-popout`,
     );
-    if (!host) {
+    if (!popout) {
       return;
     }
-    const triggerLabel = host.querySelector<HTMLElement>(
-      '[data-popout-trigger] > span',
-    );
-    const items = host.querySelectorAll<HTMLElement>('[data-value]');
-    for (const item of items) {
-      const isSelected = item.dataset.value === value;
-      item.setAttribute('aria-checked', isSelected ? 'true' : 'false');
-      if (isSelected && triggerLabel) {
-        const optionLabel = item.textContent?.trim();
-        if (optionLabel) {
-          triggerLabel.textContent = optionLabel;
-        }
-      }
+    popout.dataset.selectedValue = value;
+    if (typeof popout.selectValue === 'function') {
+      popout.selectValue(value);
     }
   }
 
@@ -247,34 +231,16 @@ export class DDSSandboxToolbarElement
   }
 
   /**
-   * Reads persisted sandbox toolbar state from `sessionStorage`.
+   * Reads `aria-pressed` state from a toggle button inside this toolbar.
    *
-   * @return {!SandboxToolbarState} Parsed state object.
+   * @param {string} action Button `data-action` identifier.
+   * @return {boolean} True when `aria-pressed` is `'true'`.
    */
-  private readToolbarState(): SandboxToolbarState {
-    try {
-      const raw = window.sessionStorage.getItem(TOOLBAR_STATE_KEY);
-      if (!raw) {
-        return {};
-      }
-      const parsed = JSON.parse(raw) as SandboxToolbarState;
-      return parsed && typeof parsed === 'object' ? parsed : {};
-    } catch {
-      return {};
-    }
-  }
-
-  /**
-   * Writes sandbox toolbar state to `sessionStorage`.
-   *
-   * @param {!SandboxToolbarState} state Toolbar state to persist.
-   */
-  private writeToolbarState(state: SandboxToolbarState): void {
-    try {
-      window.sessionStorage.setItem(TOOLBAR_STATE_KEY, JSON.stringify(state));
-    } catch {
-      // Ignore storage quota / security errors.
-    }
+  private isTogglePressed(action: string): boolean {
+    const button = this.querySelector<HTMLElement>(
+      `[data-action='${action}']`,
+    );
+    return button?.getAttribute('aria-pressed') === 'true';
   }
 }
 

@@ -5,6 +5,7 @@ from dj_design_system.components.gallery.composites.sandbox_toolbar import (
 )
 
 
+SandboxControlOption = sandbox_toolbar.SandboxControlOption
 SandboxToolbar = sandbox_toolbar.SandboxToolbar
 
-__all__ = ["SandboxToolbar"]
+__all__ = ["SandboxControlOption", "SandboxToolbar"]

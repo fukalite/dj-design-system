@@ -142,6 +142,13 @@ class TestBuildRecipesAndSharedTypes:
         body = _get_recipe_body(name="build-ts")
         assert "tsc -p tsconfig.json" in body
 
+    def test_justfile_defines_test_ts_and_hooks_into_test(self) -> None:
+        """Verify test-ts recipe runs Vitest and is invoked by just test."""
+        test_ts_body = _get_recipe_body(name="test-ts")
+        assert "npx vitest run" in test_ts_body
+        test_body = _get_recipe_body(name="test")
+        assert "test-ts" in test_body
+
     def test_justfile_hooks_build_ts_into_dependent_recipes(self) -> None:
         """Verify e2e, visual-run, _visual-docker, build, and demo run build-ts."""
         for recipe_name in ("e2e", "visual-run", "_visual-docker", "build", "demo"):
