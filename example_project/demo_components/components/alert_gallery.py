@@ -1,11 +1,13 @@
-from dj_design_system.gallery import GalleryConfig, Variant
+"""Gallery configuration and variants for the AlertComponent."""
+
+from dj_design_system import gallery
 
 
-config = GalleryConfig(
+config = gallery.GalleryConfig(
     theme="dark",
     order=3,
     variants=[
-        Variant(
+        gallery.Variant(
             name="basic",
             label="Information Notice",
             kwargs={
@@ -13,23 +15,35 @@ config = GalleryConfig(
                 "content": "Information: Scheduled system maintenance on Sunday.",
             },
         ),
-        Variant(
+        gallery.Variant(
             name="critical",
             label="Security Outage Alert",
-            description="High-severity alert indicating immediate operational danger or data failure.",
+            description=(
+                "High-severity alert indicating immediate operational danger "
+                "or data failure."
+            ),
             kwargs={
                 "level": "error",
-                "content": "Authentication cluster connection lost. Attempting auto-reconnect.",
+                "content": (
+                    "Authentication cluster connection lost. "
+                    "Attempting auto-reconnect."
+                ),
             },
             show_in_nav=True,
         ),
-        Variant(
+        gallery.Variant(
             name="dismissible",
             label="Dismissible Notification Shell",
-            description="Demonstrates wrapping a block component with container headers and close controls in Smart Hybrid mode.",
+            description=(
+                "Demonstrates wrapping a block component with container headers "
+                "and close controls in Smart Hybrid mode."
+            ),
             kwargs={
                 "level": "warning",
-                "content": "Your payment method expires in 5 days. Please update billing details.",
+                "content": (
+                    "Your payment method expires in 5 days. "
+                    "Please update billing details."
+                ),
             },
             canvas_template="""
 <div style="max-width: 500px; margin: 1.5rem auto; border: 1px solid #475569; border-radius: 8px; overflow: hidden; background: #0f172a; font-family: sans-serif;">

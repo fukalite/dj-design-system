@@ -29,6 +29,16 @@ Whether the gallery UI is enabled. If `False`, the gallery views will return 404
 **Default:** `True`  
 If `True`, the gallery is accessible to anyone. If `False`, only logged-in staff users (`is_staff=True`) can view it.
 
+### `GALLERY_SHOW_DDS_COMPONENTS`
+**Type:** `bool`  
+**Default:** `False`  
+When `False` (the default), built-in `dj_design_system` components (`dds__*`) are excluded from the gallery navigation tree, search index, and component counts so consumer galleries display only project apps. Set to `True` to inspect the built-in `dds` component library (`elements` and `domain` collections) in the gallery.
+
+### `GALLERY_EXCLUDE_APPS`
+**Type:** `list[str]`  
+**Default:** `[]`  
+A list of Django `app_label` strings to exclude from gallery navigation, search, and folder listings. Useful alongside `GALLERY_SHOW_DDS_COMPONENTS = True` when isolating specific apps in the gallery (see [`example_project/settings_dds_gallery.py`](../../example_project/settings_dds_gallery.py)).
+
 ### `GALLERY_NAV_ORDER`
 **Type:** `list[NodeType] | str`  
 **Default:** `[NodeType.FOLDER, NodeType.COMPONENT, NodeType.DOCUMENT]`  

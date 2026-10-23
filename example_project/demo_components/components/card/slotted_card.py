@@ -1,11 +1,11 @@
-from django.utils.html import format_html
+"""Slotted card component for example_project.demo_components."""
 
-from dj_design_system.components import BlockComponent
-from dj_design_system.parameters import StrParam
-from dj_design_system.slots import Slot
+from django.utils import html
+
+from dj_design_system import components, parameters, slots
 
 
-class SlottedCardComponent(BlockComponent):
+class SlottedCardComponent(components.BlockComponent):
     """A card with named slots for header, body, and footer areas.
 
     Demonstrates the named slots feature — a ``BlockComponent`` with
@@ -38,8 +38,10 @@ class SlottedCardComponent(BlockComponent):
         {% endslotted_card %}
     """
 
-    title = StrParam("Optional card title displayed above the body.", required=False)
-    variant = StrParam(
+    title = parameters.StrParam(
+        "Optional card title displayed above the body.", required=False
+    )
+    variant = parameters.StrParam(
         "Visual variant of the card.",
         default="default",
         choices=["default", "elevated", "outlined"],
@@ -48,42 +50,45 @@ class SlottedCardComponent(BlockComponent):
 
     class Meta:
         slots = {
-            "body": Slot(required=True, description="Main card content."),
-            "header": Slot(
-                required=False, description="Optional header area above the title."
+            "body": slots.Slot(required=True, description="Main card content."),
+            "header": slots.Slot(
+                required=False,
+                description="Optional header area above the title.",
             ),
-            "footer": Slot(
-                required=False, description="Optional footer area below the body."
+            "footer": slots.Slot(
+                required=False,
+                description="Optional footer area below the body.",
             ),
         }
         positional_args = ["title"]
 
     def render(self) -> str:
-        # format_html escapes param values (e.g. title) and passes through the
-        # slots, which are already safe. Returning a plain str instead would
-        # render as escaped text in the gallery canvas.
+        """Render the slotted card HTML with escaped parameters and safe slots."""
         header = (
-            format_html(
-                "<div class='slotted-card__header'>{}</div>", self.slots["header"]
+            html.format_html(
+                "<div class='slotted-card__header'>{}</div>",
+                self.slots["header"],
             )
             if self.slots.get("header")
             else ""
         )
         title = (
-            format_html("<h3 class='slotted-card__title'>{}</h3>", self.title)
+            html.format_html("<h3 class='slotted-card__title'>{}</h3>", self.title)
             if self.title
             else ""
         )
         footer = (
-            format_html(
-                "<div class='slotted-card__footer'>{}</div>", self.slots["footer"]
+            html.format_html(
+                "<div class='slotted-card__footer'>{}</div>",
+                self.slots["footer"],
             )
             if self.slots.get("footer")
             else ""
         )
 
-        return format_html(
-            "<div class='slotted-card {}'>{}{}<div class='slotted-card__body'>{}</div>{}</div>",
+        return html.format_html(
+            "<div class='slotted-card {}'>{}{}"
+            "<div class='slotted-card__body'>{}</div>{}</div>",
             self.get_classes_string(),
             header,
             title,

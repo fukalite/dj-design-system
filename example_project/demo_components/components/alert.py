@@ -1,12 +1,13 @@
-from dj_design_system.components import BlockComponent
-from dj_design_system.parameters import StrParam
+"""Alert banner component for example_project.demo_components."""
+
+from dj_design_system import components, parameters
 
 
-class AlertComponent(BlockComponent):
+class AlertComponent(components.BlockComponent):
     """A dismissable alert banner that wraps arbitrary content.
 
     Demonstrates a ``BlockComponent`` with a ``StrParam(css_class=True)`` — the
-    level is automatically injected into the root element's class list.omatically.
+    level is automatically injected into the root element's class list.
 
     Note it's specifically only available in the "dark" theme.
 
@@ -20,7 +21,7 @@ class AlertComponent(BlockComponent):
     template_format_str = (
         "<div class='alert alert-{level} {classes}' role='alert'>{content}</div>"
     )
-    level = StrParam(
+    level = parameters.StrParam(
         "Alert level modifier",
         default="info",
         choices=["info", "success", "warning", "error"],

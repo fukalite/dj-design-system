@@ -1,8 +1,9 @@
-from dj_design_system.components import TagComponent
-from dj_design_system.parameters import StrParam
+"""Badge component for example_project.demo_components."""
+
+from dj_design_system import components, parameters
 
 
-class BadgeComponent(TagComponent):
+class BadgeComponent(components.TagComponent):
     """A small badge label, useful for status indicators or counts.
 
     The simplest structural pattern: a single file with an inline template.
@@ -15,7 +16,7 @@ class BadgeComponent(TagComponent):
     """
 
     template_format_str = "<span class='badge {classes}'>{text}</span>"
-    text = StrParam("The badge text.")
+    text = parameters.StrParam("The badge text.")
 
     class Meta:
         positional_args = ["text"]

@@ -1,12 +1,14 @@
-from django.utils.safestring import mark_safe
+"""Gallery configuration and variants for SlottedCardComponent."""
 
-from dj_design_system.gallery import GalleryConfig, Variant
+from django.utils import safestring
+
+from dj_design_system import gallery
 
 
-config = GalleryConfig(
+config = gallery.GalleryConfig(
     order=4,
     variants=[
-        Variant(
+        gallery.Variant(
             name="basic",
             label="Simple Card",
             kwargs={
@@ -14,29 +16,51 @@ config = GalleryConfig(
                 "slot__body": "This is a basic card body with clean layout.",
             },
         ),
-        Variant(
+        gallery.Variant(
             name="product",
             label="Product Pricing Card",
-            description="Multi-slot showcase card with an illustrated header banner, detailed body copy, and CTA button in the footer slot.",
+            description=(
+                "Multi-slot showcase card with an illustrated header banner, "
+                "detailed body copy, and CTA button in the footer slot."
+            ),
             kwargs={
                 "title": "Professional Plan",
                 "variant": "elevated",
-                "slot__header": mark_safe(
-                    "<div style='height: 100px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); display:flex; align-items:center; justify-content:center; color:white; font-size:18px; font-weight:700;'>$29 / mo</div>"
+                "slot__header": safestring.mark_safe(
+                    s=(
+                        "<div style='height: 100px; background: "
+                        "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); "
+                        "display:flex; align-items:center; "
+                        "justify-content:center; color:white; "
+                        "font-size:18px; font-weight:700;'>$29 / mo</div>"
+                    )
                 ),
-                "slot__body": mark_safe(
-                    "<p style='margin:0; color:#475569;'>Includes all enterprise components, full variant previews, and visual regression testing.</p>"
+                "slot__body": safestring.mark_safe(
+                    s=(
+                        "<p style='margin:0; color:#475569;'>Includes all "
+                        "enterprise components, full variant previews, and "
+                        "visual regression testing.</p>"
+                    )
                 ),
-                "slot__footer": mark_safe(
-                    "<button type='button' style='width: 100%; padding: 8px; background: #4f46e5; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;'>Subscribe Now</button>"
+                "slot__footer": safestring.mark_safe(
+                    s=(
+                        "<button type='button' style='width: 100%; padding: 8px; "
+                        "background: #4f46e5; color: white; border: none; "
+                        "border-radius: 4px; font-weight: 600; cursor: pointer;'>"
+                        "Subscribe Now</button>"
+                    )
                 ),
             },
             show_in_nav=True,
         ),
-        Variant(
+        gallery.Variant(
             name="grid_preview",
             label="Dashboard Grid Showcase",
-            description="Demonstrates raw template mode (no {{ component }} wrapper) where design_components tags are laid out directly in a multi-column CSS grid.",
+            description=(
+                "Demonstrates raw template mode (no {{ component }} wrapper) "
+                "where design_components tags are laid out directly in a "
+                "multi-column CSS grid."
+            ),
             kwargs={
                 "title": "Metric 1",
             },

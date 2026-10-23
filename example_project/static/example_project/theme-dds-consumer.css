@@ -1,0 +1,24 @@
+/* Consumer Tier 2 (--dds-*) token theme overrides for dj-design-system.
+ * Uses only public Tier 2 tokens and never references internal Tier 1 primitive tokens.
+ */
+:root {
+  --dds-color-accent: #0f766e;
+  --dds-color-accent-hover: #115e59;
+  --dds-control-accent-color: var(--dds-color-accent);
+  --dds-control-border-radius: var(--dds-radius-md);
+  --dds-font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --dds-font-ui: var(--dds-font-sans);
+  --dds-radius-md: 0.5rem;
+  --dds-state-focus-border-color: var(--dds-color-accent);
+  --dds-state-focus-outline-color: var(--dds-color-accent);
+  --dds-state-selected-border-color: var(--dds-color-accent);
+}
+
+.gallery-theme-dark {
+  --dds-color-accent: #2dd4bf;
+  --dds-color-accent-hover: #5eead4;
+  --dds-control-accent-color: var(--dds-color-accent);
+  --dds-state-focus-border-color: var(--dds-color-accent);
+  --dds-state-focus-outline-color: var(--dds-color-accent);
+  --dds-state-selected-border-color: var(--dds-color-accent);
+}

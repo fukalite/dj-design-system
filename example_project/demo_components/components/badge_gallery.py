@@ -1,11 +1,15 @@
-from dj_design_system.gallery import GalleryConfig, Variant
+"""Gallery configuration and variants for the BadgeComponent."""
+
+from dj_design_system import gallery
 
 
-config = GalleryConfig(
+config = gallery.GalleryConfig(
     order=2,
     variants=[
-        Variant(name="basic", label="Default Badge", kwargs={"text": "New"}),
-        Variant(
+        gallery.Variant(
+            name="basic", label="Default Badge", kwargs={"text": "New"}
+        ),
+        gallery.Variant(
             name="maximal",
             kwargs={
                 "text": "Unread Messages",
@@ -13,17 +17,22 @@ config = GalleryConfig(
                 "classes": "font-bold",
             },
         ),
-        Variant(
+        gallery.Variant(
             name="status",
             label="System Status Indicator",
-            description="Status pill used in admin dashboards to indicate service health.",
+            description=(
+                "Status pill used in admin dashboards to indicate service health."
+            ),
             kwargs={"text": "Service Operational", "classes": "badge-status"},
             show_in_nav=True,
         ),
-        Variant(
+        gallery.Variant(
             name="counter",
             label="Dynamic Unread Counter",
-            description="Demonstrates dynamic callable evaluation at render time instead of import time.",
+            description=(
+                "Demonstrates dynamic callable evaluation at render time "
+                "instead of import time."
+            ),
             kwargs={"text": lambda: "Pending Tasks (42)"},
             show_in_nav=True,
         ),

@@ -174,5 +174,9 @@ Execute the `/code-review` audit on all files created or modified in the current
   - Stripped all legacy BEM rules and `--gallery-*` variables from `gallery.css` and `gallery-highlight.css`.
   - Updated `gallery_shell.css`, `sidebar.css`, and `nav_tree.css` so `<dds-gallery-shell>` is constrained to `100vh` with internal vertical scrolling on `nav.dds-nav-tree-nav` and `main.dds-gallery-shell-main`.
   - Fixed leaf `index.md` folder icon precedence in `NavTree.get_context()` (`nav_tree.py`) so leaf folders with `has_index_doc=True` and `has_children=False` resolve to `doc`.
+- **Track 7 Phase 1 & Phase 2 (`gallery_rebuild_07_example_docs_20261007`) — Example Project & Documentation:**
+  - Refactored all 17 component and gallery modules in `example_project/demo_components/components/` and `example_project/demo_single/components.py` to strictly adhere to `conductor/code_styleguides/example-project.md` and `python.md` (module-only imports, docstrings, type annotations, immutable tuples, `<= 88` char lines, zero `--_dds-*` private token leaks).
+  - Added `example_project/settings_dds_gallery.py` (`GALLERY_SHOW_DDS_COMPONENTS = True`, `GALLERY_EXCLUDE_APPS = [...]`) and `example_project/static/example_project/theme-dds-consumer.css` (Tier 2 `--dds-*` token theming showcase).
+  - Updated `docs/gallery.md`, `docs/themes.md`, and `docs/api/settings.md` covering `GALLERY_SHOW_DDS_COMPONENTS`, `GALLERY_EXCLUDE_APPS`, Tier 2 `--dds-*` token theming, Every Layout `<l-*>` composition primitives, and consumer `dds__*` component shadowing.
 ```
 

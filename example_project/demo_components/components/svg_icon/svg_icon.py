@@ -1,16 +1,18 @@
-from pathlib import Path
+"""Inline SVG icon component for example_project.demo_components."""
 
-from django.utils.safestring import mark_safe
+import pathlib
+import typing
 
-from dj_design_system.components import TagComponent
-from dj_design_system.parameters import StrParam
+from django.utils import safestring
 
-
-ICONS_DIR = Path(__file__).parent / "icons"
-ICON_NAMES = sorted(p.stem for p in ICONS_DIR.glob("*.svg"))
+from dj_design_system import components, parameters
 
 
-class SvgIconComponent(TagComponent):
+ICONS_DIR = pathlib.Path(__file__).parent / "icons"
+ICON_NAMES = tuple(sorted(p.stem for p in ICONS_DIR.glob("*.svg")))
+
+
+class SvgIconComponent(components.TagComponent):
     """An inline SVG icon loaded from ``icons/<name>.svg``.
 
     Mirrors a real-world pattern where a project has many icons and a single
@@ -26,14 +28,15 @@ class SvgIconComponent(TagComponent):
         "<span class='svg-icon svg-icon-{name} {classes}' aria-hidden='true'>"
         "{svg}</span>"
     )
-    name = StrParam("The icon identifier.", choices=ICON_NAMES)
+    name = parameters.StrParam("The icon identifier.", choices=list(ICON_NAMES))
 
     class Meta:
         positional_args = ["name"]
 
-    def get_context(self):
+    def get_context(self) -> dict[str, typing.Any]:
+        """Read and mark safe the inline SVG markup for ``self.name``."""
         ctx = super().get_context()
-        ctx["svg"] = mark_safe(
-            (ICONS_DIR / f"{self.name}.svg").read_text(encoding="utf-8")
+        ctx["svg"] = safestring.mark_safe(
+            s=(ICONS_DIR / f"{self.name}.svg").read_text(encoding="utf-8")
         )
         return ctx
