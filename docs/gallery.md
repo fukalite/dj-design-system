@@ -739,7 +739,7 @@ DJ_DESIGN_SYSTEM = {
 
 By default, built-in `dj_design_system` components are excluded from consumer galleries, so the gallery sidebar and search index display only your project's own Django apps.
 
-To browse and inspect the built-in `dj_design_system` component library inside the gallery in isolation, use `GALLERY_INCLUDE_APPS` (see [`example_project/settings_dds_gallery.py`](../example_project/settings_dds_gallery.py)):
+To browse and inspect the built-in `dj_design_system` component library inside the gallery in isolation, use `GALLERY_INCLUDE_APPS` (see [`example_project/settings_dds_gallery.py`](https://github.com/fukalite/dj-design-system/blob/main/example_project/settings_dds_gallery.py)):
 
 ```python
 DJ_DESIGN_SYSTEM = {

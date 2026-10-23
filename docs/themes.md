@@ -293,7 +293,7 @@ The built-in `dds` gallery UI uses a **CUBE CSS** `@layer` cascade (`@layer rese
 
 ### Customising Tier 2 `--dds-*` Tokens
 
-To re-theme the gallery chrome or reuse `dds__*` components with your brand palette, override the public Tier 2 `--dds-*` tokens on `:root` and `.gallery-theme-dark` (see [`example_project/static/example_project/theme-dds-consumer.css`](../example_project/static/example_project/theme-dds-consumer.css)):
+To re-theme the gallery chrome or reuse `dds__*` components with your brand palette, override the public Tier 2 `--dds-*` tokens on `:root` and `.gallery-theme-dark` (see [`example_project/static/example_project/theme-dds-consumer.css`](https://github.com/fukalite/dj-design-system/blob/main/example_project/static/example_project/theme-dds-consumer.css)):
 
 ```css
 :root {
