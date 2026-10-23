@@ -35,12 +35,24 @@ test:
 test-one pattern:
     uv run --no-sync pytest tests/ -k "{{pattern}}" -m "not e2e"
 
+# Compile built-in component TypeScript (.ts) files to sibling ES2022 (.js) modules
+build-ts:
+    #!/usr/bin/env sh
+    set -e
+    if command -v tsc >/dev/null 2>&1; then
+        tsc -p tsconfig.json
+    else
+        npx --yes --package=typescript tsc -p tsconfig.json
+    fi
+
 # Run end-to-end Playwright tests (the visual suite runs separately via `just visual`)
 e2e:
+    @just build-ts
     uv run --no-sync pytest tests/e2e/ -m "e2e and not visual"
 
 # Run the gallery visual regression suite directly (used by CI inside the pinned container)
 visual-run *args:
+    @just build-ts
     uv run --no-sync {{visual_pytest}} {{args}}
 
 # Compare gallery screenshots to the baselines in the pinned Playwright container (requires Docker)
@@ -54,6 +66,7 @@ update-visual-baselines:
 # Run the visual suite inside mcr.microsoft.com/playwright/python on linux/amd64,
 # matching GitHub's runners, with a throwaway venv so the host .venv is untouched.
 _visual-docker update *args:
+    @just build-ts
     docker run --rm --init --ipc=host --platform linux/amd64 \
         -v "{{justfile_directory()}}":/work -w /work \
         -v dds-visual-uv-cache:/root/.cache/uv \
@@ -112,11 +125,13 @@ install-playwright:
 
 # Build the distribution packages
 build:
+    @just build-ts
     uv build
 
 # Start the example project gallery and open it in the browser
 demo:
     #!/usr/bin/env sh
+    just build-ts
     uv run --no-sync python example_project/manage.py migrate --run-syncdb
     uv run --no-sync python example_project/manage.py runserver 8000 &
     SERVER_PID=$!

@@ -1,9 +1,9 @@
 {
   "id": "gallery_rebuild_02_tokens_layout_ts_20261007",
   "type": "feature",
-  "status": "new",
+  "status": "completed",
   "created_at": "2026-10-07T23:50:00Z",
-  "updated_at": "2026-10-07T23:50:00Z",
+  "updated_at": "2026-10-08T01:01:00Z",
   "initiative": "gallery_rebuild",
   "phase": 2,
   "depends_on": [
