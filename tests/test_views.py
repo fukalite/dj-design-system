@@ -308,6 +308,166 @@ class TestGalleryComponentView:
         assert 'data-action="toggle-consumer-color-scheme"' in content
         assert 'data-variant="default"' in content
 
+    def test_default_gallery_ui_theme_is_desert(self, client):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response.context["gallery_ui_theme"] == "desert"
+        content = response.content.decode("utf-8")
+        assert 'data-gallery-ui-theme="desert"' in content
+        assert "gallery-ui-theme-classic" not in content
+        assert "data-ui-theme-select" in content
+
+    def test_gallery_ui_theme_classic_via_cookie(self, client):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        client.cookies["dds_gallery_ui_theme"] = "classic"
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response.context["gallery_ui_theme"] == "classic"
+        content = response.content.decode("utf-8")
+        assert 'class="gallery-ui-theme-classic"' in content
+        assert 'data-gallery-ui-theme="classic"' in content
+        assert "Classic theme does not support dark mode" in content
+        assert response.context["gallery_theme"] == ""
+
+    def test_gallery_ui_theme_classic_suppresses_dark_mode_cookie(self, client):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        client.cookies["dds_gallery_ui_theme"] = "classic"
+        client.cookies["dds_gallery_theme"] = "dark"
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response.context["gallery_ui_theme"] == "classic"
+        assert response.context["gallery_theme"] == ""
+        content = response.content.decode("utf-8")
+        assert "gallery-theme-dark" not in content
+
+    def test_gallery_ui_theme_via_query_param(self, client):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        response = client.get(f"{url}?_dds_gallery_ui_theme=classic")
+        assert response.status_code == 200
+        assert response.context["gallery_ui_theme"] == "classic"
+        content = response.content.decode("utf-8")
+        assert 'class="gallery-ui-theme-classic"' in content
+        assert 'data-gallery-ui-theme="classic"' in content
+
+    def test_custom_gallery_ui_theme_without_dark_mode(self, client, settings):
+        settings.DJ_DESIGN_SYSTEM = {
+            "GALLERY_UI_THEMES": {
+                "minimal": {
+                    "label": "Minimal Theme",
+                },
+            },
+            "GALLERY_DEFAULT_UI_THEME": "minimal",
+        }
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response.context["gallery_ui_theme"] == "minimal"
+        assert response.context["gallery_ui_theme_supports_dark_mode"] is False
+        content = response.content.decode("utf-8")
+        assert 'class="gallery-ui-theme-minimal"' in content
+        assert 'data-gallery-ui-theme="minimal"' in content
+        assert 'data-gallery-ui-supports-dark-mode="false"' in content
+        assert "Minimal Theme theme does not support dark mode" in content
+
+    def test_custom_gallery_ui_theme_with_dark_mode_and_assets(self, client, settings):
+        settings.DJ_DESIGN_SYSTEM = {
+            "GALLERY_UI_THEMES": {
+                "cyber": {
+                    "label": "Cyberpunk",
+                    "css": ["css/cyber.css"],
+                    "js": ["js/cyber.js"],
+                    "dark_mode": {
+                        "css": ["css/cyber-dark.css"],
+                        "js": ["js/cyber-dark.js"],
+                    },
+                },
+            },
+            "GALLERY_DEFAULT_UI_THEME": "cyber",
+        }
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        # In light mode
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response.context["gallery_ui_theme"] == "cyber"
+        assert response.context["gallery_ui_theme_supports_dark_mode"] is True
+        content = response.content.decode("utf-8")
+        assert 'href="/static/css/cyber.css"' in content
+        assert 'src="/static/js/cyber.js"' in content
+        assert 'cyber-dark.css' not in content
+
+        # In dark mode
+        client.cookies["dds_gallery_theme"] = "dark"
+        response_dark = client.get(url)
+        assert response_dark.status_code == 200
+        content_dark = response_dark.content.decode("utf-8")
+        assert 'href="/static/css/cyber.css"' in content_dark
+        assert 'href="/static/css/cyber-dark.css"' in content_dark
+        assert 'src="/static/js/cyber.js"' in content_dark
+        assert 'src="/static/js/cyber-dark.js"' in content_dark
+
+    def test_dark_mode_toggle_enabled_on_markdown_document_when_theme_supports_dark_mode(
+        self, client, settings
+    ):
+        settings.DJ_DESIGN_SYSTEM = {
+            "GALLERY_THEMES": {
+                "custom": {
+                    "label": "Custom Theme",
+                    "dark_mode": {},
+                }
+            },
+            "GALLERY_DEFAULT_THEME": "custom",
+        }
+        url = "/dds/demo_nav/design_guidelines/"
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response.context["active_theme_supports_dark_mode"] is True
+        content = response.content.decode("utf-8")
+        assert 'data-supports-dark-mode="true"' in content
+        assert 'data-action="toggle-consumer-color-scheme"' in content
+        assert 'data-action="toggle-consumer-color-scheme" disabled' not in content
+
+    def test_dark_mode_toggle_falls_back_to_default_theme_on_markdown_document(
+        self, client, settings
+    ):
+        settings.DJ_DESIGN_SYSTEM = {
+            "GALLERY_THEMES": {
+                "custom": {
+                    "label": "Custom Theme",
+                    "dark_mode": {},
+                }
+            },
+            "GALLERY_DEFAULT_THEME": "custom",
+        }
+        client.cookies["dds_theme"] = "nonexistent_stale_theme"
+        url = "/dds/demo_nav/design_guidelines/"
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response.context["active_theme_supports_dark_mode"] is True
+        content = response.content.decode("utf-8")
+        assert 'data-supports-dark-mode="true"' in content
+        assert 'data-action="toggle-consumer-color-scheme"' in content
+        assert 'data-action="toggle-consumer-color-scheme" disabled' not in content
+
+
     def test_component_renders_section_headings_and_dividers(self, client):
         url = reverse(
             "gallery-node",

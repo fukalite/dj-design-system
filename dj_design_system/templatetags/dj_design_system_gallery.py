@@ -42,6 +42,64 @@ def gallery_extra_stylesheets() -> str:
 
 
 @register.simple_tag(takes_context=True)
+def gallery_ui_theme_stylesheets(
+    context: template.Context | dict | None = None,
+) -> str:
+    """Output ``<link>`` tags for active gallery UI theme stylesheets."""
+    if not context:
+        return ""
+    active_ui_theme = context.get("active_ui_theme")
+    if not active_ui_theme or not isinstance(active_ui_theme, Theme):
+        return ""
+    css_paths = list(active_ui_theme.css)
+    bundles = list(active_ui_theme.css_bundles)
+    gallery_theme = context.get("gallery_theme")
+    if (
+        gallery_theme == "dark"
+        and active_ui_theme.supports_dark_mode
+        and active_ui_theme.dark_mode
+    ):
+        css_paths.extend(active_ui_theme.dark_mode.css)
+        bundles.extend(active_ui_theme.dark_mode.css_bundles)
+
+    bundle_urls = media_service.get_bundle_urls(bundles, "css")
+    all_css = bundle_urls + css_paths
+    return media_service.build_link_tags(css_paths=all_css)
+
+
+@register.simple_tag(takes_context=True)
+def gallery_ui_theme_scripts(
+    context: template.Context | dict | None = None,
+) -> str:
+    """Output ``<script>`` tags for active gallery UI theme scripts."""
+    if not context:
+        return ""
+    active_ui_theme = context.get("active_ui_theme")
+    if not active_ui_theme or not isinstance(active_ui_theme, Theme):
+        return ""
+    js_paths = list(active_ui_theme.js)
+    bundles = list(active_ui_theme.js_bundles)
+    gallery_theme = context.get("gallery_theme")
+    if (
+        gallery_theme == "dark"
+        and active_ui_theme.supports_dark_mode
+        and active_ui_theme.dark_mode
+    ):
+        js_paths.extend(active_ui_theme.dark_mode.js)
+        bundles.extend(active_ui_theme.dark_mode.js_bundles)
+
+    bundle_urls = media_service.get_bundle_urls(bundles, "js")
+    all_js = bundle_urls + js_paths
+    request = (
+        context.get("request")
+        if isinstance(context, dict) or hasattr(context, "get")
+        else None
+    )
+    nonce = getattr(request, "csp_nonce", None) if request else None
+    return media_service.build_script_tags(all_js, nonce=nonce)
+
+
+@register.simple_tag(takes_context=True)
 def builtin_component_scripts(
     context: template.Context | dict | None = None,
 ) -> str:
