@@ -1,0 +1,90 @@
+@layer blocks {
+  .dds-toolbar {
+    --_toolbar-bg-blur: var(--dds-surface-topbar-bg-blur);
+    --_toolbar-bg-color: var(--dds-surface-topbar-bg-color);
+    --_toolbar-border-color: var(--dds-surface-topbar-border-color);
+    --_toolbar-border-style: var(--dds-surface-topbar-border-style);
+    --_toolbar-border-width: var(--dds-surface-topbar-border-width);
+    --_toolbar-brand-color: var(--dds-text-prominent-color);
+    --_toolbar-brand-focus-outline-color: var(--dds-state-focus-outline-color);
+    --_toolbar-brand-focus-outline-offset: var(--dds-state-focus-outline-offset);
+    --_toolbar-brand-focus-outline-style: var(--dds-state-focus-outline-style);
+    --_toolbar-brand-focus-outline-width: var(--dds-state-focus-outline-width);
+    --_toolbar-brand-font: var(--dds-text-control-font);
+    --_toolbar-brand-font-size: var(--dds-text-body-size);
+    --_toolbar-brand-font-weight: var(--dds-text-subheading-weight);
+    --_toolbar-brand-hover-color: var(--dds-state-hover-text-color);
+    --_toolbar-brand-letter-spacing: var(--dds-text-subheading-letter-spacing);
+    --_toolbar-brand-line-height: var(--dds-text-control-line-height);
+    --_toolbar-gap: var(--dds-space-gap-default);
+    --_toolbar-group-gap: var(--dds-space-gap-tight);
+    --_toolbar-padding-block: var(--dds-space-sm);
+    --_toolbar-padding-inline: var(--dds-space-inset-default);
+    --_toolbar-shadow-color: var(--dds-surface-topbar-shadow-color);
+    --_toolbar-shadow-shape: var(--dds-surface-topbar-shadow-shape);
+    --_toolbar-text-color: var(--dds-text-default-color);
+    --_toolbar-transition-duration: var(--dds-state-entry-duration);
+    --_toolbar-transition-easing: var(--dds-state-entry-easing);
+    --_toolbar-z-index: var(--dds-surface-topbar-z-index);
+    backdrop-filter: blur(var(--_toolbar-bg-blur));
+    background-color: var(--_toolbar-bg-color);
+    border-block-end-color: var(--_toolbar-border-color);
+    border-block-end-style: var(--_toolbar-border-style);
+    border-block-end-width: var(--_toolbar-border-width);
+    box-shadow: var(--_toolbar-shadow-shape) var(--_toolbar-shadow-color);
+    box-sizing: border-box;
+    color: var(--_toolbar-text-color);
+    display: block;
+    margin: 0;
+    padding-block: var(--_toolbar-padding-block);
+    padding-inline: var(--_toolbar-padding-inline);
+    position: relative;
+    z-index: var(--_toolbar-z-index);
+  }
+
+  .dds-toolbar [data-toolbar-inner] {
+    align-items: center;
+    gap: var(--_toolbar-gap);
+    justify-content: space-between;
+    margin: 0;
+  }
+
+  .dds-toolbar [data-toolbar-leading],
+  .dds-toolbar [data-toolbar-actions] {
+    align-items: center;
+    gap: var(--_toolbar-group-gap);
+    margin: 0;
+  }
+
+  .dds-toolbar [data-toolbar-brand] {
+    color: var(--_toolbar-brand-color);
+    font-family: var(--_toolbar-brand-font);
+    font-size: var(--_toolbar-brand-font-size);
+    font-weight: var(--_toolbar-brand-font-weight);
+    letter-spacing: var(--_toolbar-brand-letter-spacing);
+    line-height: var(--_toolbar-brand-line-height);
+    margin: 0;
+    text-decoration: none;
+    transition-duration: var(--_toolbar-transition-duration);
+    transition-property: color;
+    transition-timing-function: var(--_toolbar-transition-easing);
+  }
+
+  .dds-toolbar [data-toolbar-brand]:hover {
+    color: var(--_toolbar-brand-hover-color);
+  }
+
+  .dds-toolbar [data-toolbar-brand]:focus-visible {
+    outline-color: var(--_toolbar-brand-focus-outline-color);
+    outline-offset: var(--_toolbar-brand-focus-outline-offset);
+    outline-style: var(--_toolbar-brand-focus-outline-style);
+    outline-width: var(--_toolbar-brand-focus-outline-width);
+  }
+
+  .dds-toolbar [data-toolbar-breadcrumb] {
+    align-items: center;
+    display: inline-flex;
+    margin: 0;
+    min-inline-size: 0;
+  }
+}

@@ -1,0 +1,25 @@
+{% load design_components %}
+<section class="dds-variant-view" data-surface="docs">
+  <l-stack>
+    <l-cluster data-variant-header>
+      {% dds__badge label=badge_label variant="info" %}
+      <h2 data-variant-title>{{ variant_label }}</h2>
+    </l-cluster>
+    {% if has_description %}
+      <div data-variant-description>{{ description_safe }}</div>
+    {% endif %}
+    {% if has_preview %}
+      <div data-variant-preview data-surface="stage">
+        <iframe src="{{ preview_url }}" name="variant" data-canvas-id="variant" title="{{ iframe_title }}"></iframe>
+        {% if has_sandbox_link %}
+          <div data-variant-sandbox-link>
+            {% dds__button label="Open in sandbox" icon="external-link" icon_only=True variant="ghost" size="sm" href=sandbox_href %}
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
+    {% if has_code %}
+      {% dds__code_block code=code language="django" %}
+    {% endif %}
+  </l-stack>
+</section>

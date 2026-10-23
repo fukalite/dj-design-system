@@ -1,0 +1,26 @@
+{% load design_components %}
+<aside class="dds-sidebar" data-surface="sidebar" aria-label="{{ aria_label }}">
+  <div data-sidebar-header>
+    {% if has_header_slot %}
+      {{ slots.header }}
+    {% else %}
+      <a href="{{ brand_url }}" data-sidebar-brand>{{ brand_name }}</a>
+    {% endif %}
+  </div>
+  {% if show_search %}
+    <div data-sidebar-search>
+      {% dds__search_box search_index=search_index %}
+    </div>
+  {% endif %}
+  <div data-sidebar-body>
+    {% dds__nav_tree nodes=nodes active_path=active_path active_variant=active_variant %}
+    {% if has_content %}
+      {{ content }}
+    {% endif %}
+  </div>
+  {% if has_footer_slot %}
+    <div data-sidebar-footer>
+      {{ slots.footer }}
+    </div>
+  {% endif %}
+</aside>

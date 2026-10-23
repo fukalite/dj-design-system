@@ -1,0 +1,175 @@
+@layer blocks {
+  dds-nav-tree,
+  .dds-nav-tree {
+    --_nav-tree-active-bg-color: var(--dds-state-selected-bg-color);
+    --_nav-tree-active-border-color: var(--dds-state-selected-border-color);
+    --_nav-tree-active-text-color: var(--dds-state-selected-text-color);
+    --_nav-tree-border-radius: var(--dds-control-border-radius);
+    --_nav-tree-focus-outline-color: var(--dds-state-focus-outline-color);
+    --_nav-tree-focus-outline-offset: var(--dds-state-focus-outline-offset);
+    --_nav-tree-focus-outline-style: var(--dds-state-focus-outline-style);
+    --_nav-tree-focus-outline-width: var(--dds-state-focus-outline-width);
+    --_nav-tree-font: var(--dds-text-control-font);
+    --_nav-tree-font-size: var(--dds-text-control-size);
+    --_nav-tree-font-weight: var(--dds-text-control-weight);
+    --_nav-tree-gap: var(--dds-space-3xs);
+    --_nav-tree-group-font: var(--dds-text-overline-font);
+    --_nav-tree-group-font-size: var(--dds-text-overline-size);
+    --_nav-tree-group-font-weight: var(--dds-text-overline-weight);
+    --_nav-tree-group-gap: var(--dds-space-md);
+    --_nav-tree-group-letter-spacing: var(--dds-text-overline-letter-spacing);
+    --_nav-tree-group-line-height: var(--dds-text-overline-line-height);
+    --_nav-tree-group-text-color: var(--dds-text-muted-color);
+    --_nav-tree-hover-bg-color: var(--dds-state-hover-bg-color);
+    --_nav-tree-hover-text-color: var(--dds-state-hover-text-color);
+    --_nav-tree-indent-step: var(--dds-space-md);
+    --_nav-tree-item-gap: var(--dds-space-xs);
+    --_nav-tree-letter-spacing: var(--dds-text-control-letter-spacing);
+    --_nav-tree-line-height: var(--dds-text-control-line-height);
+    --_nav-tree-padding-block: var(--dds-space-2xs);
+    --_nav-tree-padding-inline: var(--dds-space-sm);
+    --_nav-tree-press-bg-color: var(--dds-state-active-bg-color);
+    --_nav-tree-text-color: var(--dds-state-interactive-text-color);
+    --_nav-tree-toggle-padding: var(--dds-space-2xs);
+    --_nav-tree-transition-duration: var(--dds-state-entry-duration);
+    --_nav-tree-transition-easing: var(--dds-state-entry-easing);
+    --_nav-tree-variant-text-color: var(--dds-text-muted-color);
+    color: var(--_nav-tree-text-color);
+    display: block;
+    font-family: var(--_nav-tree-font);
+    font-size: var(--_nav-tree-font-size);
+    font-weight: var(--_nav-tree-font-weight);
+    letter-spacing: var(--_nav-tree-letter-spacing);
+    line-height: var(--_nav-tree-line-height);
+    margin: 0;
+  }
+
+  .dds-nav-tree-nav {
+    display: flex;
+    flex-direction: column;
+    gap: var(--_nav-tree-gap);
+    margin: 0;
+  }
+
+  dds-nav-tree [data-nav-group] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--_nav-tree-gap);
+    margin: 0;
+  }
+
+  dds-nav-tree [data-nav-group] + [data-nav-group] {
+    margin-block-start: var(--_nav-tree-group-gap);
+  }
+
+  dds-nav-tree [data-nav-folder],
+  dds-nav-tree [data-nav-children] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--_nav-tree-gap);
+    margin: 0;
+  }
+
+  dds-nav-tree [data-nav-children][hidden] {
+    display: none;
+  }
+
+  dds-nav-tree [data-nav-row] {
+    align-items: center;
+    display: flex;
+    gap: var(--_nav-tree-gap);
+    margin: 0;
+  }
+
+  dds-nav-tree [data-nav-link] {
+    align-items: center;
+    border-radius: var(--_nav-tree-border-radius);
+    color: var(--_nav-tree-text-color);
+    display: flex;
+    flex: 1;
+    gap: var(--_nav-tree-item-gap);
+    min-inline-size: 0;
+    padding-block: var(--_nav-tree-padding-block);
+    padding-inline: var(--_nav-tree-padding-inline);
+    text-decoration: none;
+    transition-duration: var(--_nav-tree-transition-duration);
+    transition-property: background-color, color;
+    transition-timing-function: var(--_nav-tree-transition-easing);
+  }
+
+  dds-nav-tree [data-nav-group-label] {
+    color: var(--_nav-tree-group-text-color);
+    font-family: var(--_nav-tree-group-font);
+    font-size: var(--_nav-tree-group-font-size);
+    font-weight: var(--_nav-tree-group-font-weight);
+    letter-spacing: var(--_nav-tree-group-letter-spacing);
+    line-height: var(--_nav-tree-group-line-height);
+    text-transform: uppercase;
+  }
+
+  dds-nav-tree [data-nav-link][data-variant-link='true'] {
+    color: var(--_nav-tree-variant-text-color);
+  }
+
+  dds-nav-tree [data-nav-link][data-depth='1'] {
+    padding-inline-start: calc(var(--_nav-tree-padding-inline) + var(--_nav-tree-indent-step));
+  }
+
+  dds-nav-tree [data-nav-link][data-depth='2'] {
+    padding-inline-start: calc(var(--_nav-tree-padding-inline) + (var(--_nav-tree-indent-step) * 2));
+  }
+
+  dds-nav-tree [data-nav-link][data-depth='3'] {
+    padding-inline-start: calc(var(--_nav-tree-padding-inline) + (var(--_nav-tree-indent-step) * 3));
+  }
+
+  dds-nav-tree [data-nav-link]:hover {
+    background-color: var(--_nav-tree-hover-bg-color);
+    color: var(--_nav-tree-hover-text-color);
+  }
+
+  dds-nav-tree [data-nav-link]:active {
+    background-color: var(--_nav-tree-press-bg-color);
+  }
+
+  dds-nav-tree [data-nav-link][aria-current='page'],
+  dds-nav-tree [data-nav-link][data-active='true'] {
+    background-color: var(--_nav-tree-active-bg-color);
+    color: var(--_nav-tree-active-text-color);
+  }
+
+  dds-nav-tree [data-nav-link]:focus-visible,
+  dds-nav-tree [data-nav-toggle]:focus-visible {
+    outline-color: var(--_nav-tree-focus-outline-color);
+    outline-offset: var(--_nav-tree-focus-outline-offset);
+    outline-style: var(--_nav-tree-focus-outline-style);
+    outline-width: var(--_nav-tree-focus-outline-width);
+  }
+
+  dds-nav-tree [data-nav-toggle] {
+    align-items: center;
+    appearance: none;
+    background-color: transparent;
+    border-radius: var(--_nav-tree-border-radius);
+    border-width: 0;
+    color: var(--_nav-tree-group-text-color);
+    cursor: pointer;
+    display: inline-flex;
+    flex-shrink: 0;
+    justify-content: center;
+    margin: 0;
+    padding: var(--_nav-tree-toggle-padding);
+    transition-duration: var(--_nav-tree-transition-duration);
+    transition-property: background-color, color, transform;
+    transition-timing-function: var(--_nav-tree-transition-easing);
+  }
+
+  dds-nav-tree [data-nav-toggle]:hover {
+    background-color: var(--_nav-tree-hover-bg-color);
+    color: var(--_nav-tree-hover-text-color);
+  }
+
+  dds-nav-tree [data-nav-folder][data-state='open'] > [data-nav-row] [data-nav-toggle] {
+    transform: rotate(90deg);
+  }
+}

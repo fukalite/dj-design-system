@@ -1,0 +1,141 @@
+{% load design_components %}
+<dds-nav-tree class="dds-nav-tree">
+  <nav class="dds-nav-tree-nav" aria-label="{{ aria_label }}">
+    {% if has_nodes %}
+      {% for item in normalized_nodes %}
+        {% if item.node_kind == "app" %}
+          <div data-nav-group>
+            <a href="{{ item.url }}" data-nav-group-label data-nav-link data-depth="{{ item.depth }}"{% if item.is_active %} aria-current="page" data-active="true"{% endif %}>
+              <span>{{ item.label }}</span>
+            </a>
+            {% for child in item.children %}
+              {% if child.node_kind == "app" %}
+                <div data-nav-group>
+                  <a href="{{ child.url }}" data-nav-group-label data-nav-link data-depth="{{ child.depth }}"{% if child.is_active %} aria-current="page" data-active="true"{% endif %}>
+                    <span>{{ child.label }}</span>
+                  </a>
+                </div>
+              {% elif child.node_kind == "folder" %}
+                <div data-nav-folder data-state="{{ child.folder_state }}" data-folder-id="{{ child.folder_id }}">
+                  <div data-nav-row>
+                    <a href="{{ child.url }}" data-nav-link data-depth="{{ child.depth }}"{% if child.is_active %} aria-current="page" data-active="true"{% endif %}>
+                      {% dds__icon name=child.resolved_icon size="sm" %}
+                      <span>{{ child.label }}</span>
+                    </a>
+                    <button type="button" data-nav-toggle aria-expanded="{{ child.aria_expanded }}" aria-controls="{{ child.children_dom_id }}" aria-label="Toggle {{ child.label }}">
+                      {% dds__icon name="chevron-right" size="xs" %}
+                    </button>
+                  </div>
+                  <div id="{{ child.children_dom_id }}" data-nav-children{% if not child.is_open %} hidden{% endif %}>
+                    {% for subchild in child.children %}
+                      {% if subchild.node_kind == "folder" %}
+                        <div data-nav-folder data-state="{{ subchild.folder_state }}" data-folder-id="{{ subchild.folder_id }}">
+                          <div data-nav-row>
+                            <a href="{{ subchild.url }}" data-nav-link data-depth="{{ subchild.depth }}"{% if subchild.is_active %} aria-current="page" data-active="true"{% endif %}>
+                              {% dds__icon name=subchild.resolved_icon size="sm" %}
+                              <span>{{ subchild.label }}</span>
+                            </a>
+                            <button type="button" data-nav-toggle aria-expanded="{{ subchild.aria_expanded }}" aria-controls="{{ subchild.children_dom_id }}" aria-label="Toggle {{ subchild.label }}">
+                              {% dds__icon name="chevron-right" size="xs" %}
+                            </button>
+                          </div>
+                          <div id="{{ subchild.children_dom_id }}" data-nav-children{% if not subchild.is_open %} hidden{% endif %}>
+                            {% for leaf in subchild.children %}
+                              <a href="{{ leaf.url }}" data-nav-link data-depth="{{ leaf.depth }}"{% if leaf.is_variant %} data-variant-link="true"{% endif %}{% if leaf.is_active %} aria-current="page" data-active="true"{% endif %}>
+                                {% dds__icon name=leaf.resolved_icon size="sm" %}
+                                <span>{{ leaf.label }}</span>
+                              </a>
+                            {% endfor %}
+                          </div>
+                        </div>
+                      {% else %}
+                        <a href="{{ subchild.url }}" data-nav-link data-depth="{{ subchild.depth }}"{% if subchild.is_variant %} data-variant-link="true"{% endif %}{% if subchild.is_active %} aria-current="page" data-active="true"{% endif %}>
+                          {% dds__icon name=subchild.resolved_icon size="sm" %}
+                          <span>{{ subchild.label }}</span>
+                        </a>
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+                </div>
+              {% else %}
+                <a href="{{ child.url }}" data-nav-link data-depth="{{ child.depth }}"{% if child.is_variant %} data-variant-link="true"{% endif %}{% if child.is_active %} aria-current="page" data-active="true"{% endif %}>
+                  {% dds__icon name=child.resolved_icon size="sm" %}
+                  <span>{{ child.label }}</span>
+                </a>
+              {% endif %}
+            {% endfor %}
+          </div>
+        {% elif item.node_kind == "folder" %}
+          <div data-nav-folder data-state="{{ item.folder_state }}" data-folder-id="{{ item.folder_id }}">
+            <div data-nav-row>
+              <a href="{{ item.url }}" data-nav-link data-depth="{{ item.depth }}"{% if item.is_active %} aria-current="page" data-active="true"{% endif %}>
+                {% dds__icon name=item.resolved_icon size="sm" %}
+                <span>{{ item.label }}</span>
+              </a>
+              <button type="button" data-nav-toggle aria-expanded="{{ item.aria_expanded }}" aria-controls="{{ item.children_dom_id }}" aria-label="Toggle {{ item.label }}">
+                {% dds__icon name="chevron-right" size="xs" %}
+              </button>
+            </div>
+            <div id="{{ item.children_dom_id }}" data-nav-children{% if not item.is_open %} hidden{% endif %}>
+              {% for child in item.children %}
+                {% if child.node_kind == "folder" %}
+                  <div data-nav-folder data-state="{{ child.folder_state }}" data-folder-id="{{ child.folder_id }}">
+                    <div data-nav-row>
+                      <a href="{{ child.url }}" data-nav-link data-depth="{{ child.depth }}"{% if child.is_active %} aria-current="page" data-active="true"{% endif %}>
+                        {% dds__icon name=child.resolved_icon size="sm" %}
+                        <span>{{ child.label }}</span>
+                      </a>
+                      <button type="button" data-nav-toggle aria-expanded="{{ child.aria_expanded }}" aria-controls="{{ child.children_dom_id }}" aria-label="Toggle {{ child.label }}">
+                        {% dds__icon name="chevron-right" size="xs" %}
+                      </button>
+                    </div>
+                    <div id="{{ child.children_dom_id }}" data-nav-children{% if not child.is_open %} hidden{% endif %}>
+                      {% for subchild in child.children %}
+                        {% if subchild.node_kind == "folder" %}
+                          <div data-nav-folder data-state="{{ subchild.folder_state }}" data-folder-id="{{ subchild.folder_id }}">
+                            <div data-nav-row>
+                              <a href="{{ subchild.url }}" data-nav-link data-depth="{{ subchild.depth }}"{% if subchild.is_active %} aria-current="page" data-active="true"{% endif %}>
+                                {% dds__icon name=subchild.resolved_icon size="sm" %}
+                                <span>{{ subchild.label }}</span>
+                              </a>
+                              <button type="button" data-nav-toggle aria-expanded="{{ subchild.aria_expanded }}" aria-controls="{{ subchild.children_dom_id }}" aria-label="Toggle {{ subchild.label }}">
+                                {% dds__icon name="chevron-right" size="xs" %}
+                              </button>
+                            </div>
+                            <div id="{{ subchild.children_dom_id }}" data-nav-children{% if not subchild.is_open %} hidden{% endif %}>
+                              {% for leaf in subchild.children %}
+                                <a href="{{ leaf.url }}" data-nav-link data-depth="{{ leaf.depth }}"{% if leaf.is_variant %} data-variant-link="true"{% endif %}{% if leaf.is_active %} aria-current="page" data-active="true"{% endif %}>
+                                  {% dds__icon name=leaf.resolved_icon size="sm" %}
+                                  <span>{{ leaf.label }}</span>
+                                </a>
+                              {% endfor %}
+                            </div>
+                          </div>
+                        {% else %}
+                          <a href="{{ subchild.url }}" data-nav-link data-depth="{{ subchild.depth }}"{% if subchild.is_variant %} data-variant-link="true"{% endif %}{% if subchild.is_active %} aria-current="page" data-active="true"{% endif %}>
+                            {% dds__icon name=subchild.resolved_icon size="sm" %}
+                            <span>{{ subchild.label }}</span>
+                          </a>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                  </div>
+                {% else %}
+                  <a href="{{ child.url }}" data-nav-link data-depth="{{ child.depth }}"{% if child.is_variant %} data-variant-link="true"{% endif %}{% if child.is_active %} aria-current="page" data-active="true"{% endif %}>
+                    {% dds__icon name=child.resolved_icon size="sm" %}
+                    <span>{{ child.label }}</span>
+                  </a>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        {% else %}
+          <a href="{{ item.url }}" data-nav-link data-depth="{{ item.depth }}"{% if item.is_variant %} data-variant-link="true"{% endif %}{% if item.is_active %} aria-current="page" data-active="true"{% endif %}>
+            {% dds__icon name=item.resolved_icon size="sm" %}
+            <span>{{ item.label }}</span>
+          </a>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  </nav>
+</dds-nav-tree>

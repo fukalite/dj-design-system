@@ -1,0 +1,129 @@
+@layer blocks {
+  .dds-sidebar {
+    --_sidebar-bg-blur: var(--dds-surface-sidebar-bg-blur);
+    --_sidebar-bg-color: var(--dds-surface-sidebar-bg-color);
+    --_sidebar-border-color: var(--dds-surface-sidebar-border-color);
+    --_sidebar-border-radius: var(--dds-control-border-radius);
+    --_sidebar-border-style: var(--dds-surface-sidebar-border-style);
+    --_sidebar-border-width: var(--dds-surface-sidebar-border-width);
+    --_sidebar-brand-color: var(--dds-text-prominent-color);
+    --_sidebar-brand-font: var(--dds-text-subheading-font);
+    --_sidebar-brand-font-size: var(--dds-text-subheading-size);
+    --_sidebar-brand-font-weight: var(--dds-text-subheading-weight);
+    --_sidebar-brand-letter-spacing: var(--dds-text-subheading-letter-spacing);
+    --_sidebar-brand-line-height: var(--dds-text-subheading-line-height);
+    --_sidebar-focus-outline-color: var(--dds-state-focus-outline-color);
+    --_sidebar-focus-outline-offset: var(--dds-state-focus-outline-offset);
+    --_sidebar-focus-outline-style: var(--dds-state-focus-outline-style);
+    --_sidebar-focus-outline-width: var(--dds-state-focus-outline-width);
+    --_sidebar-font: var(--dds-text-body-font);
+    --_sidebar-font-size: var(--dds-text-body-size);
+    --_sidebar-font-weight: var(--dds-text-body-weight);
+    --_sidebar-gap: var(--dds-space-gap-default);
+    --_sidebar-hover-bg-color: var(--dds-state-hover-bg-color);
+    --_sidebar-hover-text-color: var(--dds-state-hover-text-color);
+    --_sidebar-letter-spacing: var(--dds-text-body-letter-spacing);
+    --_sidebar-line-height: var(--dds-text-body-line-height);
+    --_sidebar-muted-color: var(--dds-text-muted-color);
+    --_sidebar-padding-block: var(--dds-space-md);
+    --_sidebar-padding-inline: var(--dds-space-lg);
+    --_sidebar-shadow-color: var(--dds-surface-sidebar-shadow-color);
+    --_sidebar-shadow-shape: var(--dds-surface-sidebar-shadow-shape);
+    --_sidebar-text-color: var(--dds-text-default-color);
+    --_sidebar-transition-duration: var(--dds-state-entry-duration);
+    --_sidebar-transition-easing: var(--dds-state-entry-easing);
+    --_sidebar-width: var(--dds-layout-sidebar-width);
+    --_sidebar-z-index: var(--dds-surface-sidebar-z-index);
+    backdrop-filter: blur(var(--_sidebar-bg-blur));
+    background-color: var(--_sidebar-bg-color);
+    block-size: 100%;
+    border-inline-end-color: var(--_sidebar-border-color);
+    border-inline-end-style: var(--_sidebar-border-style);
+    border-inline-end-width: var(--_sidebar-border-width);
+    box-shadow: var(--_sidebar-shadow-shape) var(--_sidebar-shadow-color);
+    box-sizing: border-box;
+    color: var(--_sidebar-text-color);
+    display: flex;
+    flex-direction: column;
+    font-family: var(--_sidebar-font);
+    font-size: var(--_sidebar-font-size);
+    font-weight: var(--_sidebar-font-weight);
+    inline-size: var(--_sidebar-width);
+    letter-spacing: var(--_sidebar-letter-spacing);
+    line-height: var(--_sidebar-line-height);
+    margin: 0;
+    z-index: var(--_sidebar-z-index);
+  }
+
+  .dds-sidebar [data-sidebar-header] {
+    align-items: center;
+    border-block-end-color: var(--_sidebar-border-color);
+    border-block-end-style: var(--_sidebar-border-style);
+    border-block-end-width: var(--_sidebar-border-width);
+    display: flex;
+    flex-shrink: 0;
+    justify-content: space-between;
+    margin: 0;
+    padding-block: var(--_sidebar-padding-block);
+    padding-inline: var(--_sidebar-padding-inline);
+  }
+
+  .dds-sidebar [data-sidebar-brand] {
+    border-radius: var(--_sidebar-border-radius);
+    color: var(--_sidebar-brand-color);
+    font-family: var(--_sidebar-brand-font);
+    font-size: var(--_sidebar-brand-font-size);
+    font-weight: var(--_sidebar-brand-font-weight);
+    letter-spacing: var(--_sidebar-brand-letter-spacing);
+    line-height: var(--_sidebar-brand-line-height);
+    margin: 0;
+    text-decoration: none;
+    transition-duration: var(--_sidebar-transition-duration);
+    transition-property: background-color, color;
+    transition-timing-function: var(--_sidebar-transition-easing);
+  }
+
+  .dds-sidebar [data-sidebar-brand]:hover {
+    color: var(--_sidebar-hover-text-color);
+  }
+
+  .dds-sidebar [data-sidebar-brand]:focus-visible {
+    outline-color: var(--_sidebar-focus-outline-color);
+    outline-offset: var(--_sidebar-focus-outline-offset);
+    outline-style: var(--_sidebar-focus-outline-style);
+    outline-width: var(--_sidebar-focus-outline-width);
+  }
+
+  .dds-sidebar [data-sidebar-search] {
+    border-block-end-color: var(--_sidebar-border-color);
+    border-block-end-style: var(--_sidebar-border-style);
+    border-block-end-width: var(--_sidebar-border-width);
+    flex-shrink: 0;
+    margin: 0;
+    padding-block: var(--_sidebar-padding-block);
+    padding-inline: var(--_sidebar-padding-inline);
+  }
+
+  .dds-sidebar [data-sidebar-body] {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: var(--_sidebar-gap);
+    margin: 0;
+    min-block-size: 0;
+    overflow-y: auto;
+    padding-block: var(--_sidebar-padding-block);
+    padding-inline: var(--_sidebar-padding-inline);
+  }
+
+  .dds-sidebar [data-sidebar-footer] {
+    border-block-start-color: var(--_sidebar-border-color);
+    border-block-start-style: var(--_sidebar-border-style);
+    border-block-start-width: var(--_sidebar-border-width);
+    color: var(--_sidebar-muted-color);
+    flex-shrink: 0;
+    margin: 0;
+    padding-block: var(--_sidebar-padding-block);
+    padding-inline: var(--_sidebar-padding-inline);
+  }
+}

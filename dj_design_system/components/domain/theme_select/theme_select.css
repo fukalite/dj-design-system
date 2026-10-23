@@ -1,0 +1,103 @@
+@layer blocks {
+  dds-theme-select,
+  .dds-theme-select {
+    --_theme-select-accent-color: var(--dds-control-accent-color);
+    --_theme-select-bg-color: var(--dds-control-bg-color);
+    --_theme-select-border-color: var(--dds-control-border-color);
+    --_theme-select-border-radius: var(--dds-control-border-radius);
+    --_theme-select-border-style: var(--dds-control-border-style);
+    --_theme-select-border-width: var(--dds-control-border-width);
+    --_theme-select-disabled-bg-color: var(--dds-state-disabled-bg-color);
+    --_theme-select-disabled-border-color: var(--dds-state-disabled-border-color);
+    --_theme-select-disabled-opacity: var(--dds-state-disabled-opacity);
+    --_theme-select-disabled-text-color: var(--dds-state-disabled-text-color);
+    --_theme-select-focus-border-color: var(--dds-state-focus-border-color);
+    --_theme-select-focus-outline-color: var(--dds-state-focus-outline-color);
+    --_theme-select-focus-outline-offset: var(--dds-state-focus-outline-offset);
+    --_theme-select-focus-outline-style: var(--dds-state-focus-outline-style);
+    --_theme-select-focus-outline-width: var(--dds-state-focus-outline-width);
+    --_theme-select-font: var(--dds-text-control-font);
+    --_theme-select-font-size: var(--dds-text-control-size);
+    --_theme-select-font-weight: var(--dds-text-control-weight);
+    --_theme-select-gap: var(--dds-space-gap-tight);
+    --_theme-select-hover-bg-color: var(--dds-state-hover-bg-color);
+    --_theme-select-hover-border-color: var(--dds-state-hover-border-color);
+    --_theme-select-hover-text-color: var(--dds-state-hover-text-color);
+    --_theme-select-icon-color: var(--dds-text-muted-color);
+    --_theme-select-letter-spacing: var(--dds-text-control-letter-spacing);
+    --_theme-select-line-height: var(--dds-text-control-line-height);
+    --_theme-select-padding-block: var(--dds-space-xs);
+    --_theme-select-padding-inline: var(--dds-space-sm);
+    --_theme-select-shadow-color: var(--dds-control-shadow-color);
+    --_theme-select-shadow-shape: var(--dds-control-shadow-shape);
+    --_theme-select-text-color: var(--dds-text-default-color);
+    --_theme-select-transition-duration: var(--dds-state-entry-duration);
+    --_theme-select-transition-easing: var(--dds-state-entry-easing);
+    align-items: center;
+    display: inline-flex;
+    margin: 0;
+  }
+
+  dds-theme-select [data-theme-control],
+  .dds-theme-select [data-theme-control] {
+    align-items: center;
+    background-color: var(--_theme-select-bg-color);
+    border-color: var(--_theme-select-border-color);
+    border-radius: var(--_theme-select-border-radius);
+    border-style: var(--_theme-select-border-style);
+    border-width: var(--_theme-select-border-width);
+    box-shadow: var(--_theme-select-shadow-shape) var(--_theme-select-shadow-color);
+    box-sizing: border-box;
+    color: var(--_theme-select-text-color);
+    display: inline-flex;
+    gap: var(--_theme-select-gap);
+    margin: 0;
+    padding-block: var(--_theme-select-padding-block);
+    padding-inline: var(--_theme-select-padding-inline);
+    transition-duration: var(--_theme-select-transition-duration);
+    transition-property: background-color, border-color, box-shadow, color;
+    transition-timing-function: var(--_theme-select-transition-easing);
+  }
+
+  dds-theme-select [data-theme-control]:hover,
+  .dds-theme-select [data-theme-control]:hover {
+    background-color: var(--_theme-select-hover-bg-color);
+    border-color: var(--_theme-select-hover-border-color);
+    color: var(--_theme-select-hover-text-color);
+  }
+
+  dds-theme-select [data-theme-control]:focus-within,
+  .dds-theme-select [data-theme-control]:focus-within {
+    border-color: var(--_theme-select-focus-border-color);
+    outline-color: var(--_theme-select-focus-outline-color);
+    outline-offset: var(--_theme-select-focus-outline-offset);
+    outline-style: var(--_theme-select-focus-outline-style);
+    outline-width: var(--_theme-select-focus-outline-width);
+  }
+
+  dds-theme-select [data-theme-select],
+  .dds-theme-select [data-theme-select] {
+    accent-color: var(--_theme-select-accent-color);
+    background-color: transparent;
+    border: 0;
+    color: inherit;
+    cursor: pointer;
+    font-family: var(--_theme-select-font);
+    font-size: var(--_theme-select-font-size);
+    font-weight: var(--_theme-select-font-weight);
+    letter-spacing: var(--_theme-select-letter-spacing);
+    line-height: var(--_theme-select-line-height);
+    margin: 0;
+    outline: none;
+    padding: 0;
+  }
+
+  dds-theme-select [data-theme-select]:disabled,
+  .dds-theme-select [data-theme-select]:disabled {
+    background-color: var(--_theme-select-disabled-bg-color);
+    border-color: var(--_theme-select-disabled-border-color);
+    color: var(--_theme-select-disabled-text-color);
+    cursor: not-allowed;
+    opacity: var(--_theme-select-disabled-opacity);
+  }
+}

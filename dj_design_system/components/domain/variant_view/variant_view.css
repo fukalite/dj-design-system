@@ -1,0 +1,94 @@
+@layer blocks {
+  .dds-variant-view {
+    --_variant-view-bg-color: var(--dds-surface-bg-color);
+    --_variant-view-description-color: var(--dds-text-default-color);
+    --_variant-view-description-font: var(--dds-text-prose-font);
+    --_variant-view-description-letter-spacing: var(--dds-text-prose-letter-spacing);
+    --_variant-view-description-line-height: var(--dds-text-prose-line-height);
+    --_variant-view-description-measure: var(--dds-layout-prose-measure);
+    --_variant-view-description-size: var(--dds-text-prose-size);
+    --_variant-view-description-weight: var(--dds-text-prose-weight);
+    --_variant-view-font: var(--dds-text-body-font);
+    --_variant-view-font-size: var(--dds-text-body-size);
+    --_variant-view-font-weight: var(--dds-text-body-weight);
+    --_variant-view-header-gap: var(--dds-space-sm);
+    --_variant-view-letter-spacing: var(--dds-text-body-letter-spacing);
+    --_variant-view-line-height: var(--dds-text-body-line-height);
+    --_variant-view-preview-bg-color: var(--dds-surface-stage-bg-color);
+    --_variant-view-preview-border-color: var(--dds-surface-stage-border-color);
+    --_variant-view-preview-border-radius: var(--dds-control-border-radius);
+    --_variant-view-preview-border-style: var(--dds-surface-stage-border-style);
+    --_variant-view-preview-border-width: var(--dds-surface-stage-border-width);
+    --_variant-view-preview-padding: var(--dds-space-inset-default);
+    --_variant-view-sandbox-offset: var(--dds-space-sm);
+    --_variant-view-stack-gap: var(--dds-space-gap-default);
+    --_variant-view-text-color: var(--dds-text-default-color);
+    --_variant-view-title-color: var(--dds-text-prominent-color);
+    --_variant-view-title-font: var(--dds-text-heading-font);
+    --_variant-view-title-letter-spacing: var(--dds-text-heading-letter-spacing);
+    --_variant-view-title-line-height: var(--dds-text-heading-line-height);
+    --_variant-view-title-size: var(--dds-text-heading-size);
+    --_variant-view-title-weight: var(--dds-text-heading-weight);
+    background-color: var(--_variant-view-bg-color);
+    color: var(--_variant-view-text-color);
+    display: block;
+    font-family: var(--_variant-view-font);
+    font-size: var(--_variant-view-font-size);
+    font-weight: var(--_variant-view-font-weight);
+    letter-spacing: var(--_variant-view-letter-spacing);
+    line-height: var(--_variant-view-line-height);
+    margin: 0;
+  }
+
+  .dds-variant-view > l-stack {
+    --space: var(--_variant-view-stack-gap);
+  }
+
+  .dds-variant-view [data-variant-header] {
+    --space: var(--_variant-view-header-gap);
+    align-items: center;
+  }
+
+  .dds-variant-view [data-variant-title] {
+    color: var(--_variant-view-title-color);
+    font-family: var(--_variant-view-title-font);
+    font-size: var(--_variant-view-title-size);
+    font-weight: var(--_variant-view-title-weight);
+    letter-spacing: var(--_variant-view-title-letter-spacing);
+    line-height: var(--_variant-view-title-line-height);
+    margin: 0;
+  }
+
+  .dds-variant-view [data-variant-description] {
+    color: var(--_variant-view-description-color);
+    font-family: var(--_variant-view-description-font);
+    font-size: var(--_variant-view-description-size);
+    font-weight: var(--_variant-view-description-weight);
+    letter-spacing: var(--_variant-view-description-letter-spacing);
+    line-height: var(--_variant-view-description-line-height);
+    max-inline-size: var(--_variant-view-description-measure);
+  }
+
+  .dds-variant-view [data-variant-preview] {
+    background-color: var(--_variant-view-preview-bg-color);
+    border-color: var(--_variant-view-preview-border-color);
+    border-radius: var(--_variant-view-preview-border-radius);
+    border-style: var(--_variant-view-preview-border-style);
+    border-width: var(--_variant-view-preview-border-width);
+    overflow: hidden;
+    padding: var(--_variant-view-preview-padding);
+    position: relative;
+  }
+
+  .dds-variant-view [data-variant-preview] > iframe {
+    border: 0;
+    display: block;
+    inline-size: 100%;
+  }
+
+  .dds-variant-view [data-variant-sandbox-link] {
+    inset-block-start: var(--_variant-view-sandbox-offset);
+    inset-inline-end: var(--_variant-view-sandbox-offset);
+    position: absolute;
+  }
+}

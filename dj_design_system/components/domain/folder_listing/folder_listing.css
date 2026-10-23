@@ -1,0 +1,135 @@
+@layer blocks {
+  .dds-folder-listing {
+    --_folder-listing-bg-color: var(--dds-surface-bg-color);
+    --_folder-listing-card-bg-color: var(--dds-control-bg-color);
+    --_folder-listing-card-border-color: var(--dds-control-border-color);
+    --_folder-listing-card-border-radius: var(--dds-control-border-radius);
+    --_folder-listing-card-border-style: var(--dds-control-border-style);
+    --_folder-listing-card-border-width: var(--dds-control-border-width);
+    --_folder-listing-card-gap: var(--dds-space-gap-tight);
+    --_folder-listing-card-padding-block: var(--dds-space-md);
+    --_folder-listing-card-padding-inline: var(--dds-space-lg);
+    --_folder-listing-card-shadow-color: var(--dds-control-shadow-color);
+    --_folder-listing-card-shadow-shape: var(--dds-control-shadow-shape);
+    --_folder-listing-cluster-gap: var(--dds-space-sm);
+    --_folder-listing-empty-color: var(--dds-text-muted-color);
+    --_folder-listing-focus-outline-color: var(--dds-state-focus-outline-color);
+    --_folder-listing-focus-outline-offset: var(--dds-state-focus-outline-offset);
+    --_folder-listing-focus-outline-style: var(--dds-state-focus-outline-style);
+    --_folder-listing-focus-outline-width: var(--dds-state-focus-outline-width);
+    --_folder-listing-font: var(--dds-text-body-font);
+    --_folder-listing-font-size: var(--dds-text-body-size);
+    --_folder-listing-font-weight: var(--dds-text-body-weight);
+    --_folder-listing-grid-gap: var(--dds-space-gap-default);
+    --_folder-listing-hover-bg-color: var(--dds-state-hover-bg-color);
+    --_folder-listing-hover-border-color: var(--dds-state-hover-border-color);
+    --_folder-listing-hover-text-color: var(--dds-state-hover-text-color);
+    --_folder-listing-label-color: var(--dds-text-prominent-color);
+    --_folder-listing-label-weight: var(--dds-text-control-weight);
+    --_folder-listing-letter-spacing: var(--dds-text-body-letter-spacing);
+    --_folder-listing-line-height: var(--dds-text-body-line-height);
+    --_folder-listing-meta-color: var(--dds-text-muted-color);
+    --_folder-listing-meta-font-size: var(--dds-text-caption-size);
+    --_folder-listing-meta-line-height: var(--dds-text-caption-line-height);
+    --_folder-listing-stack-gap: var(--dds-space-gap-default);
+    --_folder-listing-text-color: var(--dds-text-default-color);
+    --_folder-listing-title-color: var(--dds-text-prominent-color);
+    --_folder-listing-title-font: var(--dds-text-title-font);
+    --_folder-listing-title-letter-spacing: var(--dds-text-title-letter-spacing);
+    --_folder-listing-title-line-height: var(--dds-text-title-line-height);
+    --_folder-listing-title-size: var(--dds-text-title-size);
+    --_folder-listing-title-weight: var(--dds-text-title-weight);
+    --_folder-listing-transition-duration: var(--dds-state-entry-duration);
+    --_folder-listing-transition-easing: var(--dds-state-entry-easing);
+    background-color: var(--_folder-listing-bg-color);
+    color: var(--_folder-listing-text-color);
+    display: block;
+    font-family: var(--_folder-listing-font);
+    font-size: var(--_folder-listing-font-size);
+    font-weight: var(--_folder-listing-font-weight);
+    letter-spacing: var(--_folder-listing-letter-spacing);
+    line-height: var(--_folder-listing-line-height);
+    margin: 0;
+  }
+
+  .dds-folder-listing > l-stack {
+    --space: var(--_folder-listing-stack-gap);
+  }
+
+  .dds-folder-listing [data-folder-title] {
+    color: var(--_folder-listing-title-color);
+    font-family: var(--_folder-listing-title-font);
+    font-size: var(--_folder-listing-title-size);
+    font-weight: var(--_folder-listing-title-weight);
+    letter-spacing: var(--_folder-listing-title-letter-spacing);
+    line-height: var(--_folder-listing-title-line-height);
+    margin: 0;
+  }
+
+  .dds-folder-listing [data-folder-grid] {
+    --space: var(--_folder-listing-grid-gap);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .dds-folder-listing [data-folder-grid] > li {
+    margin: 0;
+  }
+
+  .dds-folder-listing [data-folder-card] {
+    background-color: var(--_folder-listing-card-bg-color);
+    border-color: var(--_folder-listing-card-border-color);
+    border-radius: var(--_folder-listing-card-border-radius);
+    border-style: var(--_folder-listing-card-border-style);
+    border-width: var(--_folder-listing-card-border-width);
+    box-shadow: var(--_folder-listing-card-shadow-shape) var(--_folder-listing-card-shadow-color);
+    color: var(--_folder-listing-text-color);
+    display: flex;
+    flex-direction: column;
+    gap: var(--_folder-listing-card-gap);
+    height: 100%;
+    padding-block: var(--_folder-listing-card-padding-block);
+    padding-inline: var(--_folder-listing-card-padding-inline);
+    text-decoration: none;
+    transition-duration: var(--_folder-listing-transition-duration);
+    transition-property: background-color, border-color, color;
+    transition-timing-function: var(--_folder-listing-transition-easing);
+  }
+
+  .dds-folder-listing [data-folder-card]:hover {
+    background-color: var(--_folder-listing-hover-bg-color);
+    border-color: var(--_folder-listing-hover-border-color);
+    color: var(--_folder-listing-hover-text-color);
+  }
+
+  .dds-folder-listing [data-folder-card]:focus-visible {
+    outline-color: var(--_folder-listing-focus-outline-color);
+    outline-offset: var(--_folder-listing-focus-outline-offset);
+    outline-style: var(--_folder-listing-focus-outline-style);
+    outline-width: var(--_folder-listing-focus-outline-width);
+  }
+
+  .dds-folder-listing [data-folder-card] > l-cluster {
+    --space: var(--_folder-listing-cluster-gap);
+    align-items: center;
+  }
+
+  .dds-folder-listing [data-folder-label] {
+    color: var(--_folder-listing-label-color);
+    flex: 1;
+    font-weight: var(--_folder-listing-label-weight);
+    min-inline-size: 0;
+  }
+
+  .dds-folder-listing [data-folder-meta] {
+    color: var(--_folder-listing-meta-color);
+    font-size: var(--_folder-listing-meta-font-size);
+    line-height: var(--_folder-listing-meta-line-height);
+  }
+
+  .dds-folder-listing [data-folder-empty] {
+    color: var(--_folder-listing-empty-color);
+    margin: 0;
+  }
+}

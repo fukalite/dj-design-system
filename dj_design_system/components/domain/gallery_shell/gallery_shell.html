@@ -1,0 +1,23 @@
+{% load design_components %}
+<dds-gallery-shell class="dds-gallery-shell" data-drawer-state="closed" data-theme="{{ resolved_theme }}">
+  <div data-shell-topbar>
+    {% if has_topbar_slot %}
+      {{ slots.topbar }}
+    {% else %}
+      {% dds__toolbar brand_name=brand_name brand_url=brand_url breadcrumbs=breadcrumbs themes=themes active_theme=resolved_theme search_index=search_index %}
+        {% slot "actions" %}{{ toolbar_actions_content }}{% endslot %}
+      {% enddds__toolbar %}
+    {% endif %}
+  </div>
+  <div class="l-sidebar" data-shell-body>
+    <div class="dds-gallery-shell-backdrop" data-surface="overlay" data-shell-backdrop hidden aria-hidden="true"></div>
+    <div data-shell-sidebar id="dds-gallery-drawer">
+      {% if has_sidebar_slot %}
+        {{ slots.sidebar }}
+      {% else %}
+        {% dds__sidebar brand_name=brand_name brand_url=brand_url nodes=nodes active_path=active_path active_variant=active_variant %}{% enddds__sidebar %}
+      {% endif %}
+    </div>
+    <main class="dds-gallery-shell-main" data-surface="docs" data-shell-main id="gallery-main-content">{{ main_content }}</main>
+  </div>
+</dds-gallery-shell>

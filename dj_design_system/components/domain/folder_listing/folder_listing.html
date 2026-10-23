@@ -1,0 +1,31 @@
+{% load design_components %}
+<section class="dds-folder-listing" data-surface="docs">
+  <l-stack>
+    {% if has_title %}
+      <h1 data-folder-title>{{ title }}</h1>
+    {% endif %}
+    {% if has_items %}
+      <ul class="l-grid" data-folder-grid>
+        {% for item in normalized_items %}
+          <li>
+            <a href="{{ item.url }}" data-folder-card data-node-kind="{{ item.node_kind }}">
+              <l-cluster>
+                {% dds__icon name=item.icon size="md" %}
+                <span data-folder-label>{{ item.label }}</span>
+                {% dds__badge label=item.badge_label variant=item.badge_variant %}
+              </l-cluster>
+              {% if item.has_child_count %}
+                <span data-folder-meta>{{ item.child_count_label }}</span>
+              {% endif %}
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p data-folder-empty>{{ empty_message }}</p>
+    {% endif %}
+    {% if show_debug_hint %}
+      {% dds__notice variant="info" title="Customise this folder page" %}Add an <code>index.md</code> file to this folder to replace this default page with custom documentation.{% enddds__notice %}
+    {% endif %}
+  </l-stack>
+</section>

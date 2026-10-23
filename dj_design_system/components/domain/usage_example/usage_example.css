@@ -1,0 +1,57 @@
+@layer blocks {
+  .dds-usage-example {
+    --_usage-example-preview-bg-color: var(--dds-surface-stage-bg-color);
+    --_usage-example-preview-border-color: var(--dds-surface-stage-border-color);
+    --_usage-example-preview-border-radius: var(--dds-control-border-radius);
+    --_usage-example-preview-border-style: var(--dds-surface-stage-border-style);
+    --_usage-example-preview-border-width: var(--dds-surface-stage-border-width);
+    --_usage-example-preview-padding: var(--dds-space-inset-default);
+    --_usage-example-sandbox-offset: var(--dds-space-sm);
+    --_usage-example-stack-gap: var(--dds-space-gap-default);
+    --_usage-example-title-color: var(--dds-text-prominent-color);
+    --_usage-example-title-font: var(--dds-text-subheading-font);
+    --_usage-example-title-letter-spacing: var(--dds-text-subheading-letter-spacing);
+    --_usage-example-title-line-height: var(--dds-text-subheading-line-height);
+    --_usage-example-title-size: var(--dds-text-subheading-size);
+    --_usage-example-title-weight: var(--dds-text-subheading-weight);
+    display: block;
+    margin: 0;
+  }
+
+  .dds-usage-example > l-stack {
+    --space: var(--_usage-example-stack-gap);
+  }
+
+  .dds-usage-example [data-usage-title] {
+    color: var(--_usage-example-title-color);
+    font-family: var(--_usage-example-title-font);
+    font-size: var(--_usage-example-title-size);
+    font-weight: var(--_usage-example-title-weight);
+    letter-spacing: var(--_usage-example-title-letter-spacing);
+    line-height: var(--_usage-example-title-line-height);
+    margin: 0;
+  }
+
+  .dds-usage-example [data-usage-preview] {
+    background-color: var(--_usage-example-preview-bg-color);
+    border-color: var(--_usage-example-preview-border-color);
+    border-radius: var(--_usage-example-preview-border-radius);
+    border-style: var(--_usage-example-preview-border-style);
+    border-width: var(--_usage-example-preview-border-width);
+    overflow: hidden;
+    padding: var(--_usage-example-preview-padding);
+    position: relative;
+  }
+
+  .dds-usage-example [data-usage-preview] > iframe {
+    border: 0;
+    display: block;
+    inline-size: 100%;
+  }
+
+  .dds-usage-example [data-usage-sandbox-link] {
+    inset-block-start: var(--_usage-example-sandbox-offset);
+    inset-inline-end: var(--_usage-example-sandbox-offset);
+    position: absolute;
+  }
+}
