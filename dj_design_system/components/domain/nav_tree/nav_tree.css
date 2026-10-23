@@ -46,9 +46,12 @@
 
   .dds-nav-tree-nav {
     display: flex;
+    flex: 1 1 0;
     flex-direction: column;
     gap: var(--_nav-tree-gap);
     margin: 0;
+    min-block-size: 0;
+    overflow-y: auto;
   }
 
   dds-nav-tree [data-nav-group] {

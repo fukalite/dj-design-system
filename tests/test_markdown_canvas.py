@@ -42,9 +42,9 @@ class TestCanvasPreprocessor:
     def test_simple_canvas_block(self):
         text = '```canvas\n{% button "Click" %}\n```'
         result = self._process(text)
-        assert "gallery-md-canvas" in result
-        assert "gallery-md-canvas__iframe" in result
-        assert "gallery-md-canvas__code" in result
+        assert "dds-canvas-widget" in result
+        assert "data-canvas-iframe" in result
+        assert 'data-canvas-panel="code"' in result
         assert "srcdoc=" in result
 
     def test_component_media_external_urls_preserved(self):
@@ -83,7 +83,7 @@ class TestCanvasPreprocessor:
         text = '```canvas\n{% alert "warning" %}Danger!{% endalert %}\n```'
         result = self._process(text)
         assert "srcdoc=" in result
-        assert "gallery-md-canvas" in result
+        assert "dds-canvas-widget" in result
 
     def test_basic_mode_appended(self):
         text = '```canvas\n{% button "Click" %}\n```'
@@ -97,15 +97,14 @@ class TestCanvasPreprocessor:
             '```canvas\n{% button "Two" %}\n```'
         )
         result = self._process(text)
-        assert result.count("gallery-md-canvas") >= 2
+        assert result.count("<dds-canvas-widget") >= 2
 
     def test_toggle_radios_present(self):
         text = '```canvas\n{% button "Click" %}\n```'
         result = self._process(text)
-        assert "mc-toggle-" in result
-        assert 'gallery-md-canvas__input--html"' in result
-        assert 'gallery-md-canvas__input--preview"' in result
-        assert 'gallery-md-canvas__input--code"' in result
+        assert 'data-canvas-mode="preview"' in result
+        assert 'data-canvas-mode="code"' in result
+        assert 'data-canvas-mode="html"' in result
 
     def test_invalid_syntax_shows_error(self):
         text = "```canvas\n{% invalid_tag %}\n```"
@@ -130,19 +129,21 @@ class TestCanvasPreprocessor:
         text = "```python\ndef hello():\n    pass\n```"
         result = self._process(text)
         # Should be untouched by the canvas preprocessor
-        assert "gallery-md-canvas" not in result
+        assert "dds-canvas-widget" not in result
         assert "def hello():" in result
 
     def test_highlighted_code_in_widget(self):
         text = '```canvas\n{% button "Click" %}\n```'
         result = self._process(text)
-        assert "gallery-highlight" in result
+        assert "<dds-code-block" in result
+        assert "button" in result
+        assert "Click" in result
 
     def test_unique_ids_per_block(self):
         text = '```canvas\n{% button "A" %}\n```\n\n```canvas\n{% button "B" %}\n```'
         result = self._process(text)
-        assert "mc-toggle-1" in result
-        assert "mc-toggle-2" in result
+        assert 'data-canvas-id="1"' in result
+        assert 'data-canvas-id="2"' in result
 
 
 # ---------------------------------------------------------------------------
@@ -169,13 +170,13 @@ class TestCanvasExtension:
     def test_canvas_block_rendered_in_full_pipeline(self):
         text = '```canvas\n{% button "Click" %}\n```'
         html = self._render(text)
-        assert "gallery-md-canvas" in html
+        assert "dds-canvas-widget" in html
 
     def test_regular_fenced_code_still_works(self):
         text = "```python\nprint('hello')\n```"
         html = self._render(text)
         assert "<code" in html
-        assert "gallery-md-canvas" not in html
+        assert "dds-canvas-widget" not in html
 
     def test_mixed_content(self):
         text = (
@@ -185,7 +186,7 @@ class TestCanvasExtension:
             "```python\nx = 1\n```"
         )
         html = self._render(text)
-        assert "gallery-md-canvas" in html
+        assert "dds-canvas-widget" in html
         assert "<h1" in html
         assert "x = 1" in html
 
@@ -195,7 +196,7 @@ class TestCanvasExtension:
             '```canvas\n{% icon "arrow-left" %}\n```'
         )
         html = self._render(text)
-        assert html.count("gallery-md-canvas") >= 2
+        assert html.count("<dds-canvas-widget") >= 2
         assert "```canvas" not in html
         assert "```html+django" not in html
 
@@ -206,9 +207,9 @@ class TestCanvasExtension:
             f'```canvas\n{{% button "B{i}" %}}\n```' for i in range(1, count + 1)
         )
         html = self._render(text)
-        assert html.count('<div class="gallery-md-canvas ">') == count
+        assert html.count('<dds-canvas-widget class="dds-canvas-widget"') == count
         for i in range(1, count + 1):
-            assert html.count(f'name="mc-toggle-{i}"') == 3
+            assert html.count(f'data-canvas-id="{i}"') == 2
         assert "CANVAS_STASH" not in html
 
 

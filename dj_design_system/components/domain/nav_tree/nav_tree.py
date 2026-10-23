@@ -229,12 +229,13 @@ class NavTree(components.TagComponent):
             icon_str = str(raw_icon) if raw_icon else ""
             if icon_str in icon_element.ICON_NAMES:
                 resolved_icon = icon_str
+            elif is_document or (has_index_doc and not has_children):
+                resolved_icon = ICON_DOC
             elif has_children or node_type == NODE_TYPE_FOLDER:
+                # Expandable nodes (folders and components with variants) use ICON_FOLDER.
                 resolved_icon = ICON_FOLDER
             elif is_component:
                 resolved_icon = ICON_COMPONENT
-            elif is_document or has_index_doc:
-                resolved_icon = ICON_DOC
             elif is_variant:
                 resolved_icon = ICON_CODE
             else:

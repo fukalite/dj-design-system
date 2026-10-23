@@ -475,7 +475,7 @@ class TestGalleryComponentFormIntegration:
 
         response = client.get(component.url)
         assert response.status_code == 200
-        assert b"gallery-params-form" in response.content
+        assert b"dds-params-form" in response.content
         assert b"hx-get" in response.content
 
     def test_htmx_partial_returns_fragment(self, client):
@@ -488,7 +488,7 @@ class TestGalleryComponentFormIntegration:
         response = client.get(component.url, HTTP_HX_REQUEST="true")
         assert response.status_code == 200
         # Fragment should contain the canvas and form but NOT the full page shell.
-        assert b"gallery-sandbox__canvas" in response.content
+        assert b"dds-canvas-widget" in response.content
         assert b"<html" not in response.content
 
     def test_block_content_updates_current_usage(self, client):
@@ -538,7 +538,7 @@ class TestParamsTable:
         response = client.get(reverse("gallery") + "demo_components/badge/")
 
         assert response.status_code == 200
-        assert b"<code>items</code>" in response.content
+        assert b"<code data-param-name>items</code>" in response.content
 
 
 class TestSmokeAllPages:
@@ -564,7 +564,7 @@ class TestSmokeAllPages:
     def test_index_page_renders(self, client):
         response = client.get(reverse("gallery"))
         assert response.status_code == 200
-        assert b"gallery-nav" in response.content
+        assert b"dds-nav-tree" in response.content
 
     def test_breadcrumbs_present_on_component_page(self, client):
         """Component pages should have breadcrumb links."""
@@ -580,7 +580,7 @@ class TestSmokeAllPages:
 
         response = client.get(component.url)
         assert response.status_code == 200
-        assert b"gallery-breadcrumb__sep" in response.content
+        assert b"dds-breadcrumb" in response.content
         assert b"Gallery" in response.content
 
     def test_nav_tree_rendered_in_sidebar(self, client):
@@ -608,7 +608,7 @@ class TestSmokeAllPages:
 
         response = client.get(component.url)
         assert response.status_code == 200
-        assert b"gallery-nav__link--active" in response.content
+        assert b'data-active="true"' in response.content
 
 
 # ---------------------------------------------------------------------------
@@ -628,32 +628,32 @@ class TestToolbarButtons:
         pytest.skip("No components registered")
 
     def test_outline_toggle(self, component_response):
-        assert b"gallery-sandbox-toolbar__outline-toggle" in component_response.content
+        assert b'data-action="toggle-outline"' in component_response.content
 
     def test_measure_toggle(self, component_response):
-        assert b"gallery-sandbox-toolbar__measure-toggle" in component_response.content
+        assert b'data-action="toggle-measure"' in component_response.content
 
     def test_rtl_toggle(self, component_response):
-        assert b"gallery-sandbox-toolbar__rtl-toggle" in component_response.content
+        assert b'data-action="toggle-rtl"' in component_response.content
 
     def test_viewport_toggle(self, component_response):
-        assert b"gallery-sandbox-toolbar__viewport-toggle" in component_response.content
+        assert b'data-sandbox-control="viewport"' in component_response.content
 
     def test_zoom_toggle(self, component_response):
-        assert b"gallery-sandbox-toolbar__zoom-toggle" in component_response.content
+        assert b'data-sandbox-control="zoom"' in component_response.content
 
     def test_bg_toggle(self, component_response):
-        assert b"gallery-sandbox-toolbar__bg-toggle" in component_response.content
+        assert b'data-sandbox-control="background"' in component_response.content
 
     def test_measure_script_data_attribute(self, component_response):
-        assert b"data-measure-script" in component_response.content
+        assert b'data-action="toggle-measure"' in component_response.content
 
     def test_viewport_presets(self, component_response):
         content = component_response.content
-        assert b'data-viewport="320"' in content
-        assert b'data-viewport="1920"' in content
-        assert b'data-viewport="2560"' in content
-        assert b'data-viewport="responsive"' in content
+        assert b'data-value="320"' in content
+        assert b'data-value="1920"' in content
+        assert b'data-value="2560"' in content
+        assert b'data-value="responsive"' in content
 
 
 # ---------------------------------------------------------------------------

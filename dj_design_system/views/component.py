@@ -364,6 +364,7 @@ def _render_component(request, context, node, app_label, path_parts):
     context["active_variant"] = active_variant
     context["gallery_variants"] = config.variants
     context["component_base_url"] = node.url
+    context["sandbox_reset_url"] = f"{node.url}#pane-sandbox"
 
     param_rows = _build_param_rows(form, params, component_class)
     current_signature = _generate_signature_usage(
@@ -404,6 +405,15 @@ def _render_component(request, context, node, app_label, path_parts):
     context["current_signature"] = current_signature
     context["current_signature_long"] = current_signature_long
     context["params"] = list(params.items())
+    context["declared_slots"] = (
+        list(component_class.get_slots().items())
+        if issubclass(component_class, BlockComponent) and component_class.has_slots()
+        else []
+    )
+    context["component_tabs"] = [
+        {"id": "docs", "label": "Documentation"},
+        {"id": "sandbox", "label": "Sandbox"},
+    ]
     context["param_rows"] = param_rows
     context["form"] = form
     context["canvas_iframe_url"] = canvas_iframe_url
@@ -438,6 +448,11 @@ def _render_component(request, context, node, app_label, path_parts):
     # Note: the global available_themes from base context shouldn't be overwritten.
     context["active_theme"] = active_theme
     context["sandbox_active_theme"] = active_theme
+    context["theme_body_class"] = (
+        "gallery-theme-dark"
+        if "dark" in str(active_theme).lower()
+        else "gallery-theme-light"
+    )
     component_label = to_display_label(info.name, component=info)
     crumbs = build_breadcrumbs(
         app_label,

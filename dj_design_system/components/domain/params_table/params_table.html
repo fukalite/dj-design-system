@@ -18,7 +18,7 @@
         {% endslot %}
         {% slot "body" %}
           {% for row in normalized_params %}
-            <tr>
+            <tr id="param-{{ row.name }}">
               <td>
                 <code data-param-name>{{ row.name }}</code>
               </td>
@@ -69,7 +69,7 @@
         {% endslot %}
         {% slot "body" %}
           {% for slot_row in normalized_slots %}
-            <tr>
+            <tr id="param-slot__{{ slot_row.name }}">
               <td>
                 <code data-param-name data-slot-name>{{ slot_row.name }}</code>
               </td>

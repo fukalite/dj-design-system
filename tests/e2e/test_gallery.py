@@ -67,16 +67,14 @@ class TestComponentDetailPage:
         assert iframe.count() >= 1
 
     def test_sandbox_pane_has_tabs(self, page, live_server):
-        """The sandbox pane should have the canvas widget tabs."""
+        """The sandbox pane should have the canvas widget mode controls."""
         page.goto(f"{live_server.url}/dds/demo_components/rich_button/#pane-sandbox")
-        # Ensure the tabs are visible
-        assert page.locator("label[title='Preview']").count() >= 1
-        assert page.locator("label[title='Template Source']").count() >= 1
-        assert page.locator("label[title='Output HTML']").count() >= 1
+        assert page.locator("[data-canvas-mode='preview']").count() >= 1
+        assert page.locator("[data-canvas-mode='code']").count() >= 1
+        assert page.locator("[data-canvas-mode='html']").count() >= 1
 
-        # Check that we can switch tabs
-        page.locator("label[title='Template Source']").first.click()
-        assert page.locator(".gallery-md-canvas__code").first.is_visible()
+        page.locator("[data-canvas-mode='code']").first.click()
+        assert page.locator("[data-canvas-panel='code']").first.is_visible()
 
     def test_block_component_page_loads(self, page, live_server):
         """AlertComponent (a BlockComponent) has its own gallery page."""
@@ -181,14 +179,14 @@ class TestAppNavigation:
     def test_folder_link_navigates_and_expands(self, page, gallery_url, live_server):
         """Clicking a component-with-variants label opens its page, expanded."""
         page.goto(gallery_url)
-        folder = page.locator(".gallery-nav__folder").filter(
+        folder = page.locator("[data-nav-folder]").filter(
             has=page.get_by_role("link", name="Button", exact=True)
         )
         folder.get_by_role("link", name="Button", exact=True).click()
         page.wait_for_load_state("networkidle")
         assert page.url.rstrip("/").endswith("demo_components/button")
         assert folder.get_by_role("button").get_attribute("aria-expanded") == "true"
-        assert folder.locator(".gallery-nav__link--variant").first.is_visible()
+        assert folder.locator("[data-variant-link='true']").first.is_visible()
 
     def test_folder_toggle_expands_without_navigating(
         self, page, gallery_url, live_server
@@ -197,8 +195,8 @@ class TestAppNavigation:
         page.goto(gallery_url)
         toggle = page.get_by_role("button", name="Toggle Button", exact=True)
         variants = page.locator(
-            ".gallery-nav__folder:has(> div > button[aria-label='Toggle Button'])"
-            " .gallery-nav__link--variant"
+            "[data-nav-folder]:has(> [data-nav-row] > button[aria-label='Toggle Button'])"
+            " [data-variant-link='true']"
         ).first
         assert toggle.get_attribute("aria-expanded") == "false"
         assert not variants.is_visible()
@@ -269,21 +267,27 @@ class TestToolbarStatePersistence:
 
     def test_zoom_persists_across_variant_selection(self, page, live_server):
         page.goto(f"{live_server.url}/dds/demo_components/badge/#pane-sandbox")
-        zoom_value = page.locator(".gallery-sandbox-toolbar__zoom-value")
+        zoom_trigger = page.locator(
+            "[data-sandbox-control='zoom'] [data-popout-trigger]"
+        )
+        zoom_value = zoom_trigger.locator("span").first
         assert zoom_value.inner_text() == "100%"
 
-        page.locator(".gallery-sandbox-toolbar__zoom-toggle").click()
-        page.locator('[data-zoom="150"]').click()
+        zoom_trigger.click()
+        page.locator("[data-sandbox-control='zoom'] [data-value='150']").click()
         assert zoom_value.inner_text() == "150%"
 
-        # Choosing a preset submits the form and reloads the page.
+        # Choosing a preset navigates to the variant URL and preserves toolbar state.
+        page.locator("[data-sandbox-control='variant'] [data-popout-trigger]").click()
         with page.expect_navigation():
-            page.select_option("[data-gallery-variant-select]", "status")
+            page.locator(
+                "[data-sandbox-control='variant'] [data-value='status']"
+            ).click()
         assert "variant=status" in page.url
 
         assert zoom_value.inner_text() == "150%"
         active = page.locator(
-            '[data-zoom="150"].gallery-sandbox-toolbar__popout-option--active'
+            "[data-sandbox-control='zoom'] [data-value='150'][aria-checked='true']"
         )
         assert active.count() == 1
 

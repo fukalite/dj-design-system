@@ -58,7 +58,7 @@
 - [x] **Track: Gallery Rebuild 5 — Built-in `domain` Collection: Sandbox, Controls & Canvas**
   *Link: [tracks/gallery_rebuild_05_domain_sandbox_canvas_20261007/index.md](tracks/gallery_rebuild_05_domain_sandbox_canvas_20261007/index.md)*
 
-- [ ] **Track: Gallery Rebuild 6 — Gallery Page Composition, Legacy Asset Removal & Visual Baselines**
+- [x] **Track: Gallery Rebuild 6 — Gallery Page Composition, Legacy Asset Removal & Visual Baselines**
   *Link: [tracks/gallery_rebuild_06_pages_20261007/index.md](tracks/gallery_rebuild_06_pages_20261007/index.md)*
 
 - [ ] **Track: Gallery Rebuild 7 — `example_project/` Rework & Consumer Shadowing Showcase**

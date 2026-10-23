@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from django.test import override_settings
 
+from dj_design_system.components.domain.nav_tree.nav_tree import NavTree
 from dj_design_system.data import ComponentInfo, NavNode
 from dj_design_system.services.navigation import (
     NodeType,
@@ -989,8 +990,6 @@ def test_is_nav_folder_open_matches_only_self_or_descendants() -> None:
 
 
 def test_leaf_index_doc_folder_renders_doc_icon(tmp_path) -> None:
-    from django.template.loader import render_to_string
-
     index_md = tmp_path / "index.md"
     index_md.write_text("# Quote One-Up", encoding="utf-8")
     node = NavNode(
@@ -1002,9 +1001,25 @@ def test_leaf_index_doc_folder_renders_doc_icon(tmp_path) -> None:
         active_path="demo_nav/elements/quote_oneup",
         base_active_path="demo_nav/elements/quote_oneup",
     )
-    html = render_to_string(
-        "dj_design_system/gallery/navtree.html",
-        context={"node": node, "depth": 2, "active_path": "", "active_variant": ""},
+    parent = NavNode(
+        label="Elements",
+        slug="elements",
+        node_type=NodeType.FOLDER,
+        url="/gallery/demo_nav/elements/",
+        active_path="demo_nav/elements",
+        base_active_path="demo_nav/elements",
+        children=[node],
     )
-    assert "gallery-nav__icon--doc" in html
+    app_node = NavNode(
+        label="Demo Nav",
+        slug="demo_nav",
+        node_type=NodeType.APP,
+        url="/gallery/demo_nav/",
+        active_path="demo_nav",
+        base_active_path="demo_nav",
+        children=[parent],
+    )
+    html = NavTree(nodes=[app_node], active_path="", active_variant="").render()
+    assert 'data-icon="doc"' in html
     assert 'data-depth="2"' in html
+

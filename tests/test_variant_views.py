@@ -70,8 +70,8 @@ class TestVariantViews:
         assert response.context.get("active_variant") is None
         assert "gallery_variants" in response.context
         # Shows minimal and maximal example sections
-        assert b"Minimal example" in response.content
-        assert b"Bigger example" in response.content
+        assert b"Minimal" in response.content
+        assert b"All parameters" in response.content
 
     def test_variant_view_with_valid_variant(self, client: Client):
         url = reverse(
@@ -125,9 +125,9 @@ class TestVariantViews:
         )
         response = client.get(f"{url}?variant=maximal")
         assert response.status_code == 200
-        assert b"data-gallery-variant-select" in response.content
+        assert b'data-sandbox-control="variant"' in response.content
         assert (
-            b'value="maximal"' in response.content
+            b'data-value="maximal"' in response.content
             or b"variant=maximal" in response.content
         )
         assert b"onchange=" not in response.content
@@ -135,16 +135,16 @@ class TestVariantViews:
     def test_sandbox_toolbar_variant_form_action_targets_sandbox_pane(
         self, client: Client
     ):
-        """The variant preset form in the sandbox toolbar targets #pane-sandbox to avoid snapping to docs."""
+        """The sandbox toolbar exposes reset action URL and renders inside #pane-sandbox."""
         url = reverse(
             "gallery-node",
             kwargs={"app_label": "demo_components", "path": "badge"},
         )
         response = client.get(url)
         assert response.status_code == 200
-        # Form action in toolbar should retain #pane-sandbox
-        assert b'action="' in response.content
-        assert f'action="{url}#pane-sandbox"'.encode() in response.content
+        assert f'href="{url}#pane-sandbox"'.encode() in response.content
+        assert b'data-action="reset-params"' in response.content
+        assert b'id="pane-sandbox"' in response.content
 
     def test_unknown_variant_returns_404(self, client: Client):
         url = reverse(
@@ -225,8 +225,8 @@ class TestVariantViews:
         assert response.status_code == 200
         html = response.content.decode("utf-8")
         assert (
-            'class="gallery-nav__link gallery-nav__link--variant gallery-nav__link--active"'
-            in html
+            f'href="{url}?variant=status" data-nav-link data-depth="2" '
+            'data-variant-link="true" aria-current="page" data-active="true"' in html
         )
 
     def test_unbound_variant_sandbox_spec_omits_redundant_query_params(
