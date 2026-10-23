@@ -37,6 +37,25 @@ class FlattenStrategy(str, enum.Enum):
     LEAF = "leaf"
 
 
+class ColorScheme(str, enum.Enum):
+    """W3C color scheme values."""
+
+    LIGHT = "light"
+    DARK = "dark"
+
+
+@dataclass(frozen=True)
+class DarkModeConfig:
+    """Explicit configuration for how a theme activates dark mode."""
+
+    html_attrs: dict[str, Any] = field(default_factory=dict)
+    css: list[str] = field(default_factory=list)
+    js: list[str] = field(default_factory=list)
+    css_bundles: list[tuple[str, ...]] = field(default_factory=list)
+    js_bundles: list[tuple[str, ...]] = field(default_factory=list)
+    canvas_background: str | dict | None = None
+
+
 @dataclass
 class Theme:
     """A typed configuration for a theme in the design system."""
@@ -49,3 +68,9 @@ class Theme:
     css_bundles: list[tuple[str, ...]] = field(default_factory=list)
     js_bundles: list[tuple[str, ...]] = field(default_factory=list)
     canvas_background: str | dict | None = None
+    dark_mode: DarkModeConfig | None = None
+
+    @property
+    def supports_dark_mode(self) -> bool:
+        """Return True if this theme explicitly configures dark mode support."""
+        return self.dark_mode is not None

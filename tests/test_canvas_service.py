@@ -14,12 +14,14 @@ from dj_design_system.parameters.base import DictParam, JSONParam, ListParam
 from dj_design_system.services import canvas as canvas_service
 from dj_design_system.services.canvas import (
     build_canvas_url,
+    canvas_bg_class,
     coerce_single,
     get_component_media,
     render_component,
+    resolve_canvas_iframe_color_scheme,
     resolve_from_get_params,
 )
-from dj_design_system.types import Theme
+from dj_design_system.types import ColorScheme, DarkModeConfig, Theme
 
 
 # ---------------------------------------------------------------------------
@@ -512,3 +514,74 @@ class TestBuildCanvasAssetTags:
         )
         assert 'type="module"' not in str(js_tags)
         assert "custom.js" in str(js_tags)
+
+
+class TestCanvasServiceColorScheme:
+    """Test ColorScheme resolution and background classes in canvas_service."""
+
+    def test_build_canvas_url_with_color_scheme(self):
+        spec = CanvasSpec(component_name="button")
+        url = build_canvas_url(spec, "/canvas/", color_scheme=ColorScheme.DARK)
+        assert "_dds_color_scheme=dark" in url
+
+    def test_resolve_canvas_iframe_color_scheme_unsupported(self):
+        theme = Theme(value="basic", label="Basic")
+        res = resolve_canvas_iframe_color_scheme(
+            query_params={"_dds_color_scheme": "dark"},
+            cookies={},
+            theme=theme,
+        )
+        assert res == ColorScheme.LIGHT
+
+    def test_resolve_canvas_iframe_color_scheme_query_param(self):
+        theme = Theme(
+            value="dds",
+            label="DDS",
+            dark_mode=DarkModeConfig(),
+        )
+        res = resolve_canvas_iframe_color_scheme(
+            query_params={"_dds_color_scheme": "dark"},
+            cookies={},
+            theme=theme,
+        )
+        assert res == ColorScheme.DARK
+
+    def test_resolve_canvas_iframe_color_scheme_cookie(self):
+        theme = Theme(
+            value="dds",
+            label="DDS",
+            dark_mode=DarkModeConfig(),
+        )
+        res = resolve_canvas_iframe_color_scheme(
+            query_params={},
+            cookies={"dds_color_scheme": "dark"},
+            theme=theme,
+        )
+        assert res == ColorScheme.DARK
+
+    def test_canvas_bg_class_light_vs_dark(self):
+        theme = Theme(
+            value="dds",
+            label="DDS",
+            canvas_background="white",
+            dark_mode=DarkModeConfig(canvas_background="dark-grey"),
+        )
+        bg_light = canvas_bg_class({}, theme_dict=theme, color_scheme=ColorScheme.LIGHT)
+        assert bg_light == "canvas-bg-white"
+
+        bg_dark = canvas_bg_class({}, theme_dict=theme, color_scheme=ColorScheme.DARK)
+        assert bg_dark == "canvas-bg-dark-grey"
+
+    def test_canvas_bg_class_explicit_param_overrides_dark_mode(self):
+        theme = Theme(
+            value="dds",
+            label="DDS",
+            canvas_background="white",
+            dark_mode=DarkModeConfig(canvas_background="dark-grey"),
+        )
+        bg = canvas_bg_class(
+            {"_dds_bg": "black"},
+            theme_dict=theme,
+            color_scheme=ColorScheme.DARK,
+        )
+        assert bg == "canvas-bg-black"

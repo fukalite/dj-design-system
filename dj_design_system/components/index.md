@@ -1,0 +1,63 @@
+# DJ Design System
+
+> The UI system powering the gallery
+
+`dj-design-system` dogfoods its own architectural principles: the entire component gallery interface—from its header chrome and navigation tree to interactive split-pane workbenches—is built using the tokens, layout primitives, elements, and composite components defined within this package.
+
+- **Foundations**: 3-tier CSS custom property tokens, fluid typography, modular spacing, and Every Layout primitives.
+- **Chrome & Surfaces**: Modular area templates enforcing surface contexts (`data-surface="topbar"`, `data-surface="sidebar"`, `data-surface="docs"`).
+- **Component Architecture**: 100% co-located Django component packages, Light DOM Web Components, and CUBE CSS encapsulation.
+
+```canvas
+<div style="border: 2px dashed var(--dds-control-accent-color); background: var(--dds-state-hover-bg-color); border-radius: var(--dds-radius-md); padding: var(--dds-space-md);">
+  <div style="font-family: var(--dds-text-code-font); font-size: 11px; font-weight: 700; color: var(--dds-control-accent-color); text-transform: uppercase; margin-bottom: 8px;">
+    Gallery System Architecture
+  </div>
+
+  <l-grid style="--min: 220px; --space: 12px;">
+    <!-- 1. Foundations -->
+    <div style="background: var(--dds-surface-bg-color); border: 1px solid var(--dds-control-border-color); border-radius: var(--dds-control-border-radius); padding: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+      <div style="font-size: 12px; font-weight: 700; color: var(--dds-text-prominent-color); margin-bottom: 4px;">1. Foundations (about/)</div>
+      <div style="font-size: 11px; color: var(--dds-text-muted-color); margin-bottom: 8px;">Global design tokens &amp; structural layout primitives.</div>
+      <l-stack style="--space: 4px;">
+        <span style="background: var(--dds-control-bg-color); color: var(--dds-text-default-color); border: 1px solid var(--dds-control-border-color); padding: 3px 6px; border-radius: var(--dds-control-border-radius); font-size: 10px; font-weight: 600;">Semantic Tokens (3-Tier Cascade)</span>
+        <span style="background: var(--dds-control-bg-color); color: var(--dds-text-default-color); border: 1px solid var(--dds-control-border-color); padding: 3px 6px; border-radius: var(--dds-control-border-radius); font-size: 10px; font-weight: 600;">Typography &amp; Fluid Spacing</span>
+        <span style="background: var(--dds-control-bg-color); color: var(--dds-text-default-color); border: 1px solid var(--dds-control-border-color); padding: 3px 6px; border-radius: var(--dds-control-border-radius); font-size: 10px; font-weight: 600;">Every Layout Web Components</span>
+      </l-stack>
+    </div>
+
+    <!-- 2. Interface Areas -->
+    <div style="background: var(--dds-surface-bg-color); border: 1px solid var(--dds-control-border-color); border-radius: var(--dds-control-border-radius); padding: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+      <div style="font-size: 12px; font-weight: 700; color: var(--dds-text-prominent-color); margin-bottom: 4px;">2. Areas (areas/)</div>
+      <div style="font-size: 11px; color: var(--dds-text-muted-color); margin-bottom: 8px;">Persistent chrome &amp; split-pane workspace viewports.</div>
+      <l-stack style="--space: 4px;">
+        <span style="background: var(--dds-status-info-bg-color); color: var(--dds-status-info-text-color); border: 1px solid var(--dds-status-info-border-color); padding: 3px 6px; border-radius: var(--dds-control-border-radius); font-size: 10px; font-weight: 600;">Topbar, Sidebar, &amp; Tabs Areas</span>
+        <span style="background: var(--dds-status-info-bg-color); color: var(--dds-status-info-text-color); border: 1px solid var(--dds-status-info-border-color); padding: 3px 6px; border-radius: var(--dds-control-border-radius); font-size: 10px; font-weight: 600;">Documentation Reference Pane</span>
+        <span style="background: var(--dds-status-info-bg-color); color: var(--dds-status-info-text-color); border: 1px solid var(--dds-status-info-border-color); padding: 3px 6px; border-radius: var(--dds-control-border-radius); font-size: 10px; font-weight: 600;">Interactive Sandbox Workbench</span>
+      </l-stack>
+    </div>
+
+    <!-- 3. Element Primitives -->
+    <div style="background: var(--dds-surface-bg-color); border: 1px solid var(--dds-control-border-color); border-radius: var(--dds-control-border-radius); padding: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+      <div style="font-size: 12px; font-weight: 700; color: var(--dds-text-prominent-color); margin-bottom: 4px;">3. Elements (elements/)</div>
+      <div style="font-size: 11px; color: var(--dds-text-muted-color); margin-bottom: 8px;">Atomic, single-responsibility UI primitives.</div>
+      <l-stack style="--space: 4px;">
+        <span style="background: var(--dds-status-success-bg-color); color: var(--dds-status-success-text-color); border: 1px solid var(--dds-status-success-border-color); padding: 3px 6px; border-radius: var(--dds-control-border-radius); font-size: 10px; font-weight: 600;">Buttons, Badges, &amp; Icons</span>
+        <span style="background: var(--dds-status-success-bg-color); color: var(--dds-status-success-text-color); border: 1px solid var(--dds-status-success-border-color); padding: 3px 6px; border-radius: var(--dds-control-border-radius); font-size: 10px; font-weight: 600;">Notices, Tables, &amp; Code Blocks</span>
+        <span style="background: var(--dds-status-success-bg-color); color: var(--dds-status-success-text-color); border: 1px solid var(--dds-status-success-border-color); padding: 3px 6px; border-radius: var(--dds-control-border-radius); font-size: 10px; font-weight: 600;">Popouts, Tabs, &amp; Split Panes</span>
+      </l-stack>
+    </div>
+
+    <!-- 4. Composite Widgets -->
+    <div style="background: var(--dds-surface-bg-color); border: 1px solid var(--dds-control-border-color); border-radius: var(--dds-control-border-radius); padding: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+      <div style="font-size: 12px; font-weight: 700; color: var(--dds-text-prominent-color); margin-bottom: 4px;">4. Composites (composites/)</div>
+      <div style="font-size: 11px; color: var(--dds-text-muted-color); margin-bottom: 8px;">Domain components assembling multiple primitives.</div>
+      <l-stack style="--space: 4px;">
+        <span style="background: var(--dds-control-bg-color); color: var(--dds-control-accent-color); border: 1px solid var(--dds-control-border-color); padding: 3px 6px; border-radius: var(--dds-control-border-radius); font-size: 10px; font-weight: 600;">State-Preserving Navigation Tree</span>
+        <span style="background: var(--dds-control-bg-color); color: var(--dds-control-accent-color); border: 1px solid var(--dds-control-border-color); padding: 3px 6px; border-radius: var(--dds-control-border-radius); font-size: 10px; font-weight: 600;">Fuzzy Search Combobox &amp; Theme Select</span>
+        <span style="background: var(--dds-control-bg-color); color: var(--dds-control-accent-color); border: 1px solid var(--dds-control-border-color); padding: 3px 6px; border-radius: var(--dds-control-border-radius); font-size: 10px; font-weight: 600;">Isolated Canvas Widget &amp; HTMX Drawer</span>
+      </l-stack>
+    </div>
+  </l-grid>
+</div>
+```

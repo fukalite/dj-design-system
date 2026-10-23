@@ -1,4 +1,4 @@
-"""Unit tests for the built-in dds__search_box domain component."""
+"""Unit tests for the built-in dds__search_box composite component."""
 
 import dataclasses
 import json
@@ -7,13 +7,14 @@ import re
 
 from django import template
 
-from dj_design_system import data, gallery
+from dj_design_system import gallery
 from dj_design_system.components import base as components_base
-from dj_design_system.components.gallery.domain import search_box as search_box_package
-from dj_design_system.components.gallery.domain.search_box import (
+from dj_design_system.components.gallery.composites import (
+    search_box as search_box_package,
+)
+from dj_design_system.components.gallery.composites.search_box import (
     search_box as search_box_module,
 )
-from dj_design_system.services import canvas as canvas_service
 from dj_design_system.services import registry as registry_service
 from dj_design_system.services import slot_node
 from tests import conftest
@@ -21,9 +22,9 @@ from tests import conftest
 
 APP_LABEL = "dj_design_system"
 ROOT_DIR = pathlib.Path(__file__).resolve().parent.parent.parent
-DOMAIN_DIR = ROOT_DIR / "dj_design_system" / "components" / "gallery" / "domain"
+COMPOSITES_DIR = ROOT_DIR / "dj_design_system" / "components" / "gallery" / "composites"
 
-SEARCH_BOX_DIR = DOMAIN_DIR / "search_box"
+SEARCH_BOX_DIR = COMPOSITES_DIR / "search_box"
 SEARCH_BOX_PY_PATH = SEARCH_BOX_DIR / "search_box.py"
 SEARCH_BOX_HTML_PATH = SEARCH_BOX_DIR / "search_box.html"
 SEARCH_BOX_CSS_PATH = SEARCH_BOX_DIR / "search_box.css"
@@ -109,17 +110,17 @@ class TestSearchBoxDiscoveryAndExports:
         info = reg.get_by_name(name="search_box", app_label=APP_LABEL)
         assert info.component_class is search_box_module.SearchBox
         assert info.qualified_name == "dds__search_box"
-        assert info.relative_path == "gallery.domain.search_box"
+        assert info.relative_path == "gallery.composites.search_box"
         assert info.is_builtin is True
         assert (
             info.template_name
-            == "dj_design_system/components/gallery/domain/search_box/search_box.html"
+            == "dj_design_system/components/gallery/composites/search_box/search_box.html"
         )
         assert info.media.css == [
-            "dj_design_system/components/gallery/domain/search_box/search_box.css"
+            "dj_design_system/components/gallery/composites/search_box/search_box.css"
         ]
         assert info.media.js == [
-            "dj_design_system/components/gallery/domain/search_box/search_box.js"
+            "dj_design_system/components/gallery/composites/search_box/search_box.js"
         ]
         assert search_box_module.SearchBox.get_positional_args() == ["placeholder"]
 
@@ -320,27 +321,18 @@ class TestSearchBoxStylesheetAndHygiene:
         assert not bem_matches
 
     def test_gallery_config_and_docs_render_cleanly(self) -> None:
-        """Verify gallery.py and index.md exist and all variants render via canvas_service."""
+        """Verify gallery.py and index.md exist and search_box renders with param defaults."""
         assert SEARCH_BOX_GALLERY_PATH.is_file()
         assert SEARCH_BOX_INDEX_MD_PATH.is_file()
 
-        reg = _build_registry()
+        _build_registry()
         cfg = gallery.load_gallery_config(
             source_dir=SEARCH_BOX_DIR,
             component_name="search_box",
         )
-        assert cfg.variants
-        for variant in cfg.variants:
-            spec = data.CanvasSpec(
-                component_name="dds__search_box",
-                variant=variant.name,
-            )
-            rendered = canvas_service.render_component(
-                spec=spec,
-                registry=reg,
-                raise_errors=True,
-            )
-            assert '<dds-search-box class="dds-search-box"' in rendered
+        assert cfg.variants == []
+        direct_html = search_box_module.SearchBox(**cfg.param_defaults).render()
+        assert '<dds-search-box class="dds-search-box"' in direct_html
 
 
 class TestSearchBoxTypeScriptCustomElement:

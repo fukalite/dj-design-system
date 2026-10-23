@@ -1,6 +1,12 @@
 {% load static design_components dj_design_system_gallery %}
 <!DOCTYPE html>
-<html lang="en">
+{% if gallery_theme == "dark" %}
+    <html lang="en" class="gallery-theme-dark">
+{% elif gallery_theme == "light" %}
+    <html lang="en" class="gallery-theme-light">
+{% else %}
+    <html lang="en">
+{% endif %}
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,7 +20,7 @@
         {% block extra_css %}{% endblock %}
     </head>
     <body>
-        <dds-gallery-shell class="dds-gallery-shell" data-drawer-state="closed" data-theme="{% if global_active_theme %}{{ global_active_theme }}{% elif active_theme %}{{ active_theme }}{% else %}light{% endif %}">
+        <dds-gallery-shell class="dds-gallery-shell{% if gallery_theme == 'dark' %} gallery-theme-dark{% elif gallery_theme == 'light' %} gallery-theme-light{% endif %}" data-drawer-state="closed" data-gallery-theme="{% if gallery_theme %}{{ gallery_theme }}{% else %}system{% endif %}" data-theme="{% if global_active_theme %}{{ global_active_theme }}{% elif active_theme %}{{ active_theme }}{% else %}light{% endif %}">
         <div data-shell-topbar>
             {% block topbar %}
                 {% include "dj_design_system/gallery/areas/topbar.html" %}

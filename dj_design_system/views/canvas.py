@@ -60,6 +60,11 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
         info=info,
         spec=spec,
     )
+    color_scheme = canvas_service.resolve_canvas_iframe_color_scheme(
+        query_params=request.GET,
+        cookies=request.COOKIES,
+        theme=theme_dict,
+    )
 
     media = get_component_media(spec, component_registry)
     rendered_html = render_component(spec, component_registry)
@@ -87,13 +92,19 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
             app_label=app_label,
             media=media,
             registry=component_registry,
+            color_scheme=color_scheme,
         )
     )
     context["html_attrs"], context["body_attrs"] = (
-        canvas_renderer_service.build_html_attrs(theme_dict, app_label)
+        canvas_renderer_service.build_html_attrs(
+            theme_dict, app_label, color_scheme=color_scheme
+        )
     )
     context["canvas_bg_class"] = canvas_service.canvas_bg_class(
-        request.GET, theme_dict, component_class
+        request.GET,
+        theme_dict=theme_dict,
+        component_class=component_class,
+        color_scheme=color_scheme,
     )
     csp_nonce = getattr(request, "csp_nonce", None)
     context["canvas_bg_styles"] = canvas_renderer_service.build_canvas_bg_styles(

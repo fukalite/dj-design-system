@@ -44,7 +44,12 @@ SPLIT_PANE_TS_PATH = SPLIT_PANE_DIR / "split_pane.ts"
 SPLIT_PANE_GALLERY_PATH = SPLIT_PANE_DIR / "gallery.py"
 SPLIT_PANE_INDEX_MD_PATH = SPLIT_PANE_DIR / "index.md"
 TOKENS_CSS_PATH = (
-    ROOT_DIR / "dj_design_system" / "static" / "dj_design_system" / "tokens.css"
+    ROOT_DIR
+    / "dj_design_system"
+    / "static"
+    / "dj_design_system"
+    / "tokens"
+    / "semantic.css"
 )
 
 
@@ -354,6 +359,8 @@ class TestSplitPaneStylesheet:
         assert props.get("margin") == "0"
         assert props.get("display") == "flex"
         assert props.get("flex-direction") == "row"
+        assert props.get("inline-size") == "100%"
+        assert props.get("block-size") == "100%"
 
     def test_tier_3_tokens_map_exclusively_from_tier_2_tokens_in_tokens_css(
         self,
@@ -381,6 +388,17 @@ class TestSplitPaneStylesheet:
             assert match is not None
             assert match.group(1) in defined_tier_2_tokens
 
+    def test_resizer_hitarea_and_handle_pseudo_elements_configured(
+        self,
+    ) -> None:
+        """Verify split_pane.css defines expanded hitarea on ::before and visual handle on ::after."""
+        css_text = _read_text(path=SPLIT_PANE_CSS_PATH)
+        assert "&::before" in css_text
+        assert "&::after" in css_text
+        assert "--_split-pane-resizer-hit-size" in css_text
+        assert "--_split-pane-handle-size-main" in css_text
+        assert "--_split-pane-handle-size-cross" in css_text
+
 
 class TestSplitPaneGalleryAndDocs:
     """Verify co-located gallery.py and index.md for dds__split_pane."""
@@ -395,6 +413,8 @@ class TestSplitPaneGalleryAndDocs:
         )
         assert isinstance(cfg, gallery.GalleryConfig)
         assert cfg.group == "Elements"
+        assert cfg.canvas_template is not None
+        assert "{{ component }}" in cfg.canvas_template
         assert len(cfg.variants) == 2
         for variant in cfg.variants:
             spec = data.CanvasSpec(

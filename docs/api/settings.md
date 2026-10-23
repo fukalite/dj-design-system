@@ -121,14 +121,47 @@ Extra HTML attributes applied to the `<html>` and `<body>` tags of the canvas if
 **Default:** `{"default": {"label": "Default", "html_attrs": {}, "css": [], "js": [], "css_bundles": [], "js_bundles": []}}`  
 A dictionary of available themes. See the [Themes](../themes.md) documentation for more details. A theme's `css` and `js` lists accept [external URLs](#external-asset-urls).
 
-Themes can also include an optional `canvas_background` setting to specify a dedicated background colour for the preview iframe when that theme is active. This is highly recommended for dark themes. You can use a built-in slug or a custom dictionary.
+Each theme dictionary supports:
+
+- **`label`** (`str`): Display label rendered in the gallery toolbar's theme dropdown.
+- **`canvas_background`** (`str | dict | None`): Dedicated background colour for the preview iframe when this theme is active. Can be a built-in slug (`"white"`, `"light-grey"`, `"dark-grey"`, `"black"`, `"checkerboard"`) or a custom dictionary (e.g. `{"label": "Midnight", "color": "#1a1a2e"}`).
+- **`html_attrs`** (`dict`): HTML attributes injected into the `<html>` and `<body>` tags of the canvas iframe. Example: `{"html": {"class": "theme-light"}, "body": {"class": "brand-body"}}`.
+- **`css`** (`list[str]`): Static CSS file paths or external URLs loaded when the theme is active.
+- **`js`** (`list[str]`): Static JS file paths or external URLs loaded when the theme is active.
+- **`css_bundles`** (`list[tuple[str, ...]]`): Webpack CSS bundle specifications.
+- **`js_bundles`** (`list[tuple[str, ...]]`): Webpack JS bundle specifications.
+- **`dark_mode`** (`dict | None`): Explicit dark mode configuration for the theme. When defined, the theme's `supports_dark_mode` property evaluates to `True`, enabling the consumer color scheme toggle button in the gallery topbar. Accepts:
+  - `canvas_background` (`str | dict | None`): Background colour applied to the canvas when dark mode is active.
+  - `html_attrs` (`dict`): Attributes merged into the canvas `<html>` and `<body>` tags when dark mode is active, overriding matching base keys.
+  - `css` (`list[str]`): Additional stylesheets loaded when dark mode is active.
+  - `js` (`list[str]`): Additional scripts loaded when dark mode is active.
+  - `css_bundles` (`list[tuple[str, ...]]`): Additional Webpack CSS bundles loaded in dark mode.
+  - `js_bundles` (`list[tuple[str, ...]]`): Additional Webpack JS bundles loaded in dark mode.
+
+> [!NOTE]
+> If `dark_mode` is omitted, the topbar color scheme toggle button is automatically disabled with the tooltip `"Consumer theme does not support dark mode"`. Previews render strictly in light mode (`ColorScheme.LIGHT`), guarding against host operating system dark mode settings unintentionally affecting light-only components.
 
 Example:
 ```python
-"dark": {
-    "label": "Dark Theme",
-    "canvas_background": "dark-grey",  # Complements the default light-grey background
-    "html_attrs": {"html": {"data-theme": "dark"}},
+DJ_DESIGN_SYSTEM = {
+    "GALLERY_THEMES": {
+        "dds": {
+            "label": "Django Design System",
+            "canvas_background": "white",
+            "html_attrs": {"html": {"class": "gallery-theme-light"}},
+            "css": ["example_project/theme-dds-consumer.css"],
+            "dark_mode": {
+                "canvas_background": "dark-grey",
+                "html_attrs": {"html": {"class": "gallery-theme-dark"}},
+            },
+        },
+        "classic": {
+            "label": "Classic (Light Only)",
+            "canvas_background": "light-grey",
+            "css": ["css/classic.css"],
+        },
+    },
+    "GALLERY_DEFAULT_THEME": "dds",
 }
 ```
 

@@ -25,6 +25,10 @@ FENCED_CODE_BLOCK_PATTERN: re.Pattern[str] = re.compile(
 STASH_TOKEN_PATTERN: re.Pattern[str] = re.compile(
     r"<p><!--(DDS_CODE_STASH_\d+)--></p>|<!--(DDS_CODE_STASH_\d+)-->"
 )
+INLINE_CODE_SPAN_PATTERN: re.Pattern[str] = re.compile(
+    r"(?<!`)(?P<ticks>``|`)(?!`)(?P<code>(?:(?!\n\n).)+?)(?<!`)(?P=ticks)(?!`)",
+    re.DOTALL,
+)
 DJANGO_SYNTAX_PATTERN: re.Pattern[str] = re.compile(r"\{[%{]")
 PYTHON_SYNTAX_PATTERN: re.Pattern[str] = re.compile(
     r"^\s*(?:import |from |def |class |>>> )",
@@ -209,14 +213,28 @@ def transform_docstring_to_markdown(*, docstring: str) -> str:
         output_lines.append(line)
         line_index += 1
 
-    return "\n".join(output_lines).strip()
+    raw_markdown = "\n".join(output_lines).strip()
+    return normalize_multiline_inline_code(text=raw_markdown)
+
+
+def normalize_multiline_inline_code(*, text: str) -> str:
+    """Normalize multiline inline code spans to a single line per CommonMark."""
+
+    def repl(match: re.Match[str]) -> str:
+        code = match.group("code")
+        if "\n" not in code:
+            return match.group(0)
+        ticks = match.group("ticks")
+        collapsed = re.sub(r"\s+", " ", code).strip()
+        return f"{ticks}{collapsed}{ticks}"
+
+    return INLINE_CODE_SPAN_PATTERN.sub(repl, text)
 
 
 @functools.lru_cache(maxsize=1)
 def _get_code_block_template() -> Template:
     template_str = (
-        "{% load design_components %}"
-        "{% dds__code_block code=code language=language %}"
+        "{% load design_components %}{% dds__code_block code=code language=language %}"
     )
     return Template(template_str)
 

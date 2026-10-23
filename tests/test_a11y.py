@@ -5,7 +5,7 @@ import pytest
 from django.template.loader import render_to_string
 from django.test import RequestFactory
 
-from dj_design_system.components.gallery.domain.nav_tree.nav_tree import NavTree
+from dj_design_system.components.gallery.composites.nav_tree.nav_tree import NavTree
 from dj_design_system.data import NavNode
 from dj_design_system.types import NodeType
 from dj_design_system.views.gallery import get_base_context
@@ -191,7 +191,7 @@ class TestNavtreeAccessibility:
 
     def test_css_design_tokens_in_root_and_dark_theme(self):
         """tokens.css must define complete Tier 2 tokens in :root and .gallery-theme-dark."""
-        css_path = Path("dj_design_system/static/dj_design_system/tokens.css")
+        css_path = Path("dj_design_system/static/dj_design_system/tokens/semantic.css")
         content = css_path.read_text(encoding="utf-8")
 
         assert "--dds-status-error-text-color:" in content
@@ -241,7 +241,7 @@ class TestNavtreeAccessibility:
     def test_depth_indentation_uses_custom_properties(self):
         """Depth indentation should use CSS custom properties instead of hardcoded pixel values."""
         css_path = Path(
-            "dj_design_system/components/gallery/domain/nav_tree/nav_tree.css"
+            "dj_design_system/components/gallery/composites/nav_tree/nav_tree.css"
         )
         content = css_path.read_text(encoding="utf-8")
 

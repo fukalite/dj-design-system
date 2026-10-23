@@ -15,6 +15,19 @@ config = gallery.GalleryConfig(
             kwargs={"label": "Save changes"},
         ),
         gallery.Variant(
+            name="maximal",
+            label="Primary Button with Icons",
+            description="Primary action button showcasing variant, size, leading and trailing icons, and action hook.",
+            kwargs={
+                "label": "Save changes",
+                "variant": "primary",
+                "size": "lg",
+                "icon": "check",
+                "icon_trailing": "external-link",
+                "action": "save-form",
+            },
+        ),
+        gallery.Variant(
             name="link",
             label="Link Button",
             description="Anchor element styled as a button with external target and rel attributes.",

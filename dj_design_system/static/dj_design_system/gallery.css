@@ -1,7 +1,16 @@
 @layer reset, tokens, global, composition, blocks, utilities;
-@import 'tokens.css';
+@import 'tokens/literal.css';
+@import 'tokens/semantic.css';
 @import 'composition.css';
-@import 'gallery-layout.css';
+@import 'gallery-shell.css';
+@import 'areas/topbar.css';
+@import 'areas/sidebar.css';
+@import 'areas/tabs.css';
+@import 'panes/docs.css';
+@import 'panes/sandbox.css';
+@import 'panes/folder.css';
+@import 'panes/index.css';
+@import 'panes/prose.css';
 
 @layer reset {
   *,

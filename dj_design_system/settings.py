@@ -1,7 +1,7 @@
 from django.conf import settings
 
 from dj_design_system.services.media import coerce_path_list
-from dj_design_system.types import NodeType, Theme
+from dj_design_system.types import DarkModeConfig, NodeType, Theme
 
 
 # Built-in canvas backgrounds keyed by slug.  Each entry is a dict with
@@ -173,6 +173,20 @@ def get_themes() -> list[Theme]:
     themes = dds_settings.GALLERY_THEMES
     result = []
     for key, theme in themes.items():
+        raw_dark_mode = theme.get("dark_mode")
+        dark_mode_obj: DarkModeConfig | None = None
+        if isinstance(raw_dark_mode, dict):
+            dark_mode_obj = DarkModeConfig(
+                html_attrs=raw_dark_mode.get("html_attrs", {}),
+                css=coerce_path_list(raw_dark_mode.get("css", [])),
+                js=coerce_path_list(raw_dark_mode.get("js", [])),
+                css_bundles=raw_dark_mode.get("css_bundles", []),
+                js_bundles=raw_dark_mode.get("js_bundles", []),
+                canvas_background=raw_dark_mode.get("canvas_background"),
+            )
+        elif isinstance(raw_dark_mode, DarkModeConfig):
+            dark_mode_obj = raw_dark_mode
+
         theme_data = Theme(
             value=key,
             label=theme.get("label", key.capitalize()),
@@ -182,6 +196,7 @@ def get_themes() -> list[Theme]:
             css_bundles=theme.get("css_bundles", []),
             js_bundles=theme.get("js_bundles", []),
             canvas_background=theme.get("canvas_background"),
+            dark_mode=dark_mode_obj,
         )
         result.append(theme_data)
     return result

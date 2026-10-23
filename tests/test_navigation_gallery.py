@@ -4,7 +4,7 @@ Tests hidden filtering, icon propagation, order sorting, group sub-folders,
 and variant child nodes in the navigation tree.
 """
 
-from dj_design_system.components.gallery.domain.nav_tree.nav_tree import NavTree
+from dj_design_system.components.gallery.composites.nav_tree.nav_tree import NavTree
 from dj_design_system.data import ComponentInfo
 from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.services.navigation import (

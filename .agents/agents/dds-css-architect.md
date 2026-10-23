@@ -15,6 +15,13 @@ Before writing or editing any file, read:
 - `conductor/code_styleguides/dds-components.md` (specifically Sections 4, 5, and 6)
 - `conductor/code_styleguides/html-css.md`
 - `conductor/code_styleguides/python.md` (for Python CSS contract tests)
+- User-facing foundations and areas documentation:
+  - `dj_design_system/components/gallery/foundations/index.md`
+  - `dj_design_system/components/gallery/foundations/semantic_tokens.md`
+  - `dj_design_system/components/gallery/foundations/elevations_and_surfaces.md`
+  - `dj_design_system/components/gallery/foundations/layout_primitives.md`
+  - `dj_design_system/components/gallery/foundations/typography_and_spacing.md`
+  - `dj_design_system/components/gallery/areas/index.md`
 
 ## Hard Constraints
 1. **No Git Mutations:** Never run `git add`, `git commit`, `git restore`, or `git reset`.

@@ -42,4 +42,3 @@ config = gallery.GalleryConfig(
         "slot__foot": "",
     },
 )
-

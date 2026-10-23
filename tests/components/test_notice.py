@@ -332,7 +332,8 @@ class TestNoticeGalleryAndDocs:
             component_name=COMPONENT_NAME,
         )
         assert isinstance(cfg, GalleryConfig)
-        assert len(cfg.variants) == 0
+        assert len(cfg.variants) == 1
+        assert cfg.variants[0].name == "maximal"
         spec = data.CanvasSpec(
             component_name=QUALIFIED_NAME,
             variant="",
@@ -343,6 +344,18 @@ class TestNoticeGalleryAndDocs:
             raise_errors=True,
         )
         assert 'class="dds-notice"' in rendered
+
+        maximal_spec = data.CanvasSpec(
+            component_name=QUALIFIED_NAME,
+            variant="maximal",
+        )
+        rendered_maximal = canvas_service.render_component(
+            spec=maximal_spec,
+            registry=reg,
+            raise_errors=True,
+        )
+        assert 'class="dds-notice"' in rendered_maximal
+        assert 'data-variant="warning"' in rendered_maximal
 
     def test_index_md_exists_and_documents_component(self) -> None:
         """Verify index.md exists and documents Notice accessibility and role mappings."""

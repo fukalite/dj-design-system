@@ -17,11 +17,13 @@ All stylesheets are organised into explicit native cascade layers:
 ```
 
 - **`reset`**: Modern CSS baseline resets.
-- **`tokens`**: Design token definitions (`:root` Tier 1 private and Tier 2 semantic variables).
+- **`tokens`**: Design token definitions (`:root` Tier 1 private in `tokens/literal.css` and Tier 2 semantic variables in `tokens/semantic.css`).
 - **`global`**: Fundamental page and document defaults.
 - **`composition`**: Every Layout layout primitives (`<l-*>`, `.l-*`).
-- **`blocks`**: Component-scoped CSS modules (`<name>.css`).
+- **`blocks`**: Component-scoped CSS modules (`<name>.css`), areas, and panes.
 - **`utilities`**: Pure utility classes (used sparingly).
+
+Detailed architectural pillars, file organisation, and area/pane boundaries are documented in [Design System Foundations](../../dj_design_system/components/gallery/foundations/index.md) and [Areas & Panes](../../dj_design_system/components/gallery/areas/index.md).
 
 ---
 
@@ -119,7 +121,7 @@ Declarations within every CSS rule must be grouped by type and strictly ordered 
 
 ## 6. Three-Tier Design Token Hierarchy & Usage Boundaries
 
-Never hard-code magic numbers or raw colour codes in component stylesheets or layouts. All styling must strictly respect the three-tier token architecture:
+Never hard-code magic numbers or raw colour codes in component stylesheets or layouts. All styling must strictly respect the three-tier token architecture. Authoritative token listings, grammar, and live rendered specimens are documented in [Semantic Tokens & Naming Scheme](../../dj_design_system/components/gallery/foundations/semantic_tokens.md).
 
 ```
 Tier 1: Primitive Tokens (--_dds-*) [Private, :root only]
@@ -137,12 +139,12 @@ Tier 3: Component-Local Tokens (--_<component>-*) [Private, component root]
 
 ### Tier 1: Literal / Primitive Tokens (Private, `:root` only)
 - **Format:** `--_dds-<palette-or-scale>-<step>` (leading `_` denotes private to token definition).
-- **Where Defined:** Exclusively on `:root` inside `tokens.css`.
-- **Usage Boundary:** **NEVER referenced outside `tokens.css` `:root` and theme overrides (`.gallery-theme-dark`).** Components, layouts, utilities, and surfaces must never consume Tier 1 tokens directly.
+- **Where Defined:** Exclusively on `:root` inside `tokens/literal.css`.
+- **Usage Boundary:** **NEVER referenced outside `tokens/literal.css` `:root` and theme overrides (`.gallery-theme-dark`).** Components, layouts, utilities, and surfaces must never consume Tier 1 tokens directly.
 
 ### Tier 2: Semantic Tokens (Public Theming API)
 - **Format:** `--dds-<domain>-<role>-<property>` or `--dds-<domain>-<property>` (e.g. `--dds-surface-code-bg-color`, `--dds-text-body-font`, `--dds-space-md`, `--dds-control-border-width`).
-- **Where Defined:** On `:root` in `tokens.css`. Surface selectors (`[data-surface='...']`) alias `:root` Tier 2 tokens without touching Tier 1 literals.
+- **Where Defined:** On `:root` in `tokens/semantic.css`. Surface selectors (`[data-surface='...']`) alias `:root` Tier 2 tokens without touching Tier 1 literals.
 - **Usage Boundary:**
   - Layout stylesheets and Every Layout composition primitives (`<l-*>`) consume Tier 2 tokens directly.
   - Component stylesheets consume Tier 2 tokens **exclusively to map their Tier 3 tokens** at the component root.
@@ -158,8 +160,8 @@ Tier 3: Component-Local Tokens (--_<component>-*) [Private, component root]
 
 | Token Tier | Prefix / Format | Where Defined | Where Referenced | Usable in Component CSS Rules? |
 | :--- | :--- | :--- | :--- | :--- |
-| **Tier 1: Primitive** | `--_dds-*` | `:root` in `tokens.css` | `:root` semantic maps in `tokens.css` | ❌ **Forbidden** |
-| **Tier 2: Semantic** | `--dds-*` | `:root`, surfaces in `tokens.css` | Layouts, `<l-*>`, component root Tier 3 maps | ❌ **Only as Tier 3 source** |
+| **Tier 1: Primitive** | `--_dds-*` | `:root` in `tokens/literal.css` | `:root` semantic maps in `tokens/semantic.css` | ❌ **Forbidden** |
+| **Tier 2: Semantic** | `--dds-*` | `:root`, surfaces in `tokens/semantic.css` | Layouts, `<l-*>`, component root Tier 3 maps | ❌ **Only as Tier 3 source** |
 | **Tier 3: Component** | `--_<component>-*` | Component root in `<name>.css` | Component internal rules in `<name>.css` | ✅ **Exclusively required** |
 
 ---

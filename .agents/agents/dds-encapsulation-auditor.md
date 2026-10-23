@@ -24,6 +24,12 @@ You are an adversarial reviewer ("The Critical Friend"): you actively search for
    - `conductor/code_styleguides/python.md`
    - `conductor/code_styleguides/javascript.md`
    - `conductor/code_styleguides/layered-architecture.md`
+   - User-facing foundations and areas documentation:
+     - `dj_design_system/components/gallery/foundations/index.md`
+     - `dj_design_system/components/gallery/foundations/semantic_tokens.md`
+     - `dj_design_system/components/gallery/foundations/elevations_and_surfaces.md`
+     - `dj_design_system/components/gallery/foundations/layout_primitives.md`
+     - `dj_design_system/components/gallery/areas/index.md`
 
 ---
 

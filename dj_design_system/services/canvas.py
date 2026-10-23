@@ -52,7 +52,7 @@ from dj_design_system.settings import (
     get_theme,
 )
 from dj_design_system.slots import SLOT_PARAM_PREFIX
-from dj_design_system.types import CanvasMode, Theme
+from dj_design_system.types import CanvasMode, ColorScheme, Theme
 
 
 __all__ = [
@@ -66,6 +66,7 @@ __all__ = [
     "canvas_mode_class",
     "canvas_bg_class",
     "resolve_canvas_iframe_theme",
+    "resolve_canvas_iframe_color_scheme",
     "build_canvas_asset_tags",
     "VariantNotFoundError",
 ]
@@ -469,6 +470,7 @@ def build_canvas_url(
     registry: ComponentRegistry | None = None,
     mode: str | None = None,
     theme: str | None = None,
+    color_scheme: ColorScheme | str | None = None,
     **extra_query: Any,
 ) -> str:
     """Build a URL for the canvas iframe view from a ``CanvasSpec``."""
@@ -505,6 +507,13 @@ def build_canvas_url(
         query[control_param_key("mode")] = mode
     if theme:
         query[control_param_key("theme")] = theme
+    if color_scheme:
+        color_scheme_str = (
+            color_scheme.value
+            if isinstance(color_scheme, ColorScheme)
+            else str(color_scheme)
+        )
+        query[control_param_key("color_scheme")] = color_scheme_str
     for k, v in extra_query.items():
         if v is not None:
             query[k] = v
@@ -663,6 +672,7 @@ def canvas_bg_class(
     query_or_request: Any,
     theme_dict: Theme | None = None,
     component_class: type | None = None,
+    color_scheme: ColorScheme = ColorScheme.LIGHT,
 ) -> str:
     """Return the CSS class for the canvas background from query params, theme, or settings."""
     query_params = getattr(query_or_request, "GET", query_or_request)
@@ -676,6 +686,26 @@ def canvas_bg_class(
         if theme_dict and isinstance(theme_dict.canvas_background, dict):
             if bg_param == f"theme-{theme_dict.value}":
                 return f"canvas-bg-theme-{theme_dict.value}"
+        if (
+            theme_dict
+            and theme_dict.supports_dark_mode
+            and theme_dict.dark_mode
+            and isinstance(theme_dict.dark_mode.canvas_background, dict)
+        ):
+            if bg_param == f"theme-{theme_dict.value}-dark":
+                return f"canvas-bg-theme-{theme_dict.value}-dark"
+
+    if (
+        color_scheme == ColorScheme.DARK
+        and theme_dict
+        and theme_dict.supports_dark_mode
+        and theme_dict.dark_mode
+        and theme_dict.dark_mode.canvas_background
+    ):
+        if isinstance(theme_dict.dark_mode.canvas_background, str):
+            return f"canvas-bg-{theme_dict.dark_mode.canvas_background}"
+        if isinstance(theme_dict.dark_mode.canvas_background, dict):
+            return f"canvas-bg-theme-{theme_dict.value}-dark"
 
     if theme_dict and theme_dict.canvas_background:
         if isinstance(theme_dict.canvas_background, str):
@@ -685,6 +715,29 @@ def canvas_bg_class(
 
     default = get_default_background()
     return f"canvas-bg-{default['value']}"
+
+
+def resolve_canvas_iframe_color_scheme(
+    *,
+    query_params: Any,
+    cookies: Any,
+    theme: Theme,
+) -> ColorScheme:
+    """Resolve the active ``ColorScheme`` for a canvas iframe render."""
+    if not theme.supports_dark_mode:
+        return ColorScheme.LIGHT
+
+    val = get_control_param(
+        query_params,
+        "color_scheme",
+        bare_fallback=True,
+    )
+    if not val:
+        val = cookies.get("dds_color_scheme")
+
+    if val == ColorScheme.DARK.value:
+        return ColorScheme.DARK
+    return ColorScheme.LIGHT
 
 
 def resolve_canvas_iframe_theme(
@@ -735,12 +788,27 @@ def build_canvas_asset_tags(
     app_label: str,
     media: ComponentMedia,
     registry: ComponentRegistry = component_registry,
+    color_scheme: ColorScheme = ColorScheme.LIGHT,
 ) -> tuple[str, str]:
     """Build deduplicated ``(component_css, component_js)`` HTML tag strings for a canvas iframe."""
-    theme_css = theme_dict.css
-    theme_js = theme_dict.js
+    theme_css = list(theme_dict.css)
+    theme_js = list(theme_dict.js)
     theme_css_bundles = media_service.get_bundle_urls(theme_dict.css_bundles, "css")
     theme_js_bundles = media_service.get_bundle_urls(theme_dict.js_bundles, "js")
+
+    if (
+        color_scheme == ColorScheme.DARK
+        and theme_dict.supports_dark_mode
+        and theme_dict.dark_mode
+    ):
+        theme_css.extend(theme_dict.dark_mode.css)
+        theme_js.extend(theme_dict.dark_mode.js)
+        theme_css_bundles.extend(
+            media_service.get_bundle_urls(theme_dict.dark_mode.css_bundles, "css")
+        )
+        theme_js_bundles.extend(
+            media_service.get_bundle_urls(theme_dict.dark_mode.js_bundles, "js")
+        )
 
     app_css, app_js = get_app_static(app_label)
     app_css_bundles = media_service.get_bundle_urls(
