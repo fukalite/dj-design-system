@@ -112,4 +112,6 @@ class Breadcrumb(components.TagComponent):
         context["separator_icon"] = self.separator_icon or DEFAULT_SEPARATOR_ICON
         context["normalized_items"] = normalized_items
         context["has_items"] = bool(normalized_items)
+        context["has_collapsed_items"] = total > 2
+        context["collapsed_items"] = normalized_items[1:-1] if total > 2 else []
         return context

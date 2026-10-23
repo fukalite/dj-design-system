@@ -12,9 +12,9 @@
         {% component_stylesheets %}
         {% block extra_css %}{% endblock %}
     </head>
-    <body class="{{ theme_body_class }}">
+    <body>
         {% url 'gallery-index' as gallery_root_url %}
-        {% dds__gallery_shell brand_name=design_system_name brand_url=gallery_root_url nodes=nav_tree active_path=active_path active_variant=active_variant breadcrumbs=breadcrumbs themes=available_themes active_theme=active_theme search_index=search_index %}
+        {% dds__gallery_shell brand_name=design_system_name brand_url=gallery_root_url nodes=nav_tree active_path=active_path active_variant=active_variant breadcrumbs=breadcrumbs themes=available_themes active_theme=global_active_theme search_index=search_index %}
         {% slot "toolbar_actions" %}
         {% block toolbar_actions %}{% endblock %}
     {% endslot %}

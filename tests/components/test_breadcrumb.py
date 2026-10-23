@@ -263,7 +263,7 @@ class TestBreadcrumbRenderingAndTemplate:
         assert 'href="/components/breadcrumb/"' not in html
 
     def test_renders_separator_icon_between_items_only(self) -> None:
-        """Verify separator icon renders before non-first items at size xs."""
+        """Verify separator icon renders before non-first items and mobile ellipsis item at size xs."""
         trail = [
             {"label": "First", "url": "/first/"},
             {"label": "Second", "url": "/second/"},
@@ -273,8 +273,11 @@ class TestBreadcrumbRenderingAndTemplate:
             source='{% dds__breadcrumb items=trail separator_icon="chevron-right" %}',
             context={"trail": trail},
         )
-        assert html.count('data-icon="chevron-right"') == 2
-        assert html.count('data-size="xs"') == 2
+        assert html.count('data-icon="chevron-right"') == 3
+        assert html.count('data-size="xs"') == 3
+        assert "data-breadcrumb-ellipsis" in html
+        assert "data-breadcrumb-flyout" in html
+        assert "data-breadcrumb-collapsible" in html
 
     def test_renders_item_icons_and_static_ancestors(self) -> None:
         """Verify item icons render at size xs and URL-less ancestors render as <span>."""

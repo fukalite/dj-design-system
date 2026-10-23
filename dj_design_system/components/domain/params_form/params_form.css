@@ -15,6 +15,9 @@
     --_params-form-letter-spacing: var(--dds-text-body-letter-spacing);
     --_params-form-line-height: var(--dds-text-body-line-height);
     --_params-form-padding: var(--dds-space-inset-default);
+    --_params-form-row-border-width: var(--dds-control-border-width);
+    --_params-form-row-padding-block: var(--dds-space-sm);
+    --_params-form-row-padding-inline: var(--dds-space-inset-compact);
     --_params-form-text-color: var(--dds-text-default-color);
     background-color: var(--_params-form-bg-color);
     border-color: var(--_params-form-border-color);
@@ -30,7 +33,7 @@
     letter-spacing: var(--_params-form-letter-spacing);
     line-height: var(--_params-form-line-height);
     margin: 0;
-    padding: var(--_params-form-padding);
+    padding: 0;
   }
 
   dds-params-form [data-params-form],
@@ -40,7 +43,22 @@
 
   dds-params-form [data-params-fields],
   .dds-params-form [data-params-fields] {
-    --space: var(--_params-form-fields-gap);
+    --space: 0;
+  }
+
+  dds-params-form [data-params-fields] > *,
+  .dds-params-form [data-params-fields] > * {
+    border-block-end-color: var(--_params-form-border-color);
+    border-block-end-style: var(--_params-form-border-style);
+    border-block-end-width: var(--_params-form-row-border-width);
+    margin: 0;
+    padding-block: var(--_params-form-row-padding-block);
+    padding-inline: var(--_params-form-row-padding-inline);
+  }
+
+  dds-params-form [data-params-fields] > :last-child,
+  .dds-params-form [data-params-fields] > :last-child {
+    border-block-end-width: 0;
   }
 
   dds-params-form [data-params-empty],
@@ -48,5 +66,6 @@
     color: var(--_params-form-empty-color);
     margin: 0;
     padding-block: var(--_params-form-empty-padding-block);
+    padding-inline: var(--_params-form-row-padding-inline);
   }
 }

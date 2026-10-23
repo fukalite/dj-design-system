@@ -5,17 +5,13 @@
   .l-stack {
     display: flex;
     flex-direction: column;
+    gap: var(--space, var(--dds-space-gap-default));
     justify-content: flex-start;
   }
 
   l-stack > *,
   .l-stack > * {
     margin-block: 0;
-  }
-
-  l-stack > * + *,
-  .l-stack > * + * {
-    margin-block-start: var(--space, var(--dds-space-gap-default));
   }
 
   l-cluster,

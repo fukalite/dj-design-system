@@ -256,7 +256,7 @@ export class DDSGalleryShellElement
       splitPane.dataset.activePane = paneId;
     }
     const tabsHost = this.querySelector<HTMLElement>(
-      '[data-toolbar-actions] dds-tabs',
+      '[data-component-tabs] dds-tabs, [data-toolbar-actions] dds-tabs',
     );
     if (!tabsHost) {
       return;

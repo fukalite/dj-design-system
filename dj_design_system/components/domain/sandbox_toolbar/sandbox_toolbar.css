@@ -60,7 +60,7 @@
   .dds-sandbox-toolbar [data-sandbox-controls] {
     align-items: center;
     gap: var(--_sandbox-toolbar-gap);
-    justify-content: space-between;
+    justify-content: flex-start;
     margin: 0;
   }
 

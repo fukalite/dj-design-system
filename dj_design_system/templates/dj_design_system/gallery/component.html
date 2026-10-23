@@ -3,59 +3,70 @@
 
 {% block title %}{% if active_variant %}{{ active_variant.label }} — {% endif %}{{ component_info.name }} — {{ design_system_name }}{% endblock %}
 
-{% block toolbar_actions %}
-    {% dds__tabs tabs=component_tabs active_tab="docs" aria_label="Documentation and Sandbox view switcher" %}{% enddds__tabs %}
-{% endblock %}
-
 {% block content %}
-    {% dds__split_pane orientation="horizontal" initial_ratio=55 primary_surface="docs" secondary_surface="sandbox" primary_label="Documentation" secondary_label="Sandbox" %}
-    {% slot "primary" %}
-    <div id="pane-docs">
-        <div id="dds-panel-docs">
-            {% if active_variant %}
-                {% dds__variant_view variant_label=active_variant.label description_html=variant_description preview_url=variant_preview_url code=variant_signature.minimal %}
-            {% else %}
-                <l-stack data-docs-stack>
-                {% dds__prose title=component_info.name %}
+    <div data-component-tabs>
+        {% dds__tabs tabs=component_tabs active_tab="docs" aria_label="Documentation and Sandbox view switcher" %}{% enddds__tabs %}
+</div>
+{% dds__split_pane orientation="horizontal" initial_ratio=55 primary_surface="docs" secondary_surface="sandbox" primary_label="Documentation" secondary_label="Sandbox" %}
+{% slot "primary" %}
+<div id="pane-docs">
+    <div id="dds-panel-docs">
+        <l-stack data-docs-stack>
+        {% if active_variant %}
+            {% dds__variant_view variant_label=active_variant.label description_html=variant_description preview_url=variant_preview_url code=variant_signature.minimal %}
+        {% else %}
+            <section data-docs-section="description">
+                <l-stack>
+                <h2 data-docs-heading>Description</h2>
                 {% if component_description %}
-                    {{ component_description }}
-                {% else %}
-                    <p data-docs-empty>No description provided. Add a docstring to the component class.</p>
-                {% endif %}
-            {% enddds__prose %}
+                    {% dds__prose html=component_description %}{% enddds__prose %}
+        {% else %}
+            <p data-docs-empty>No description provided. Add a docstring to the component class.</p>
+        {% endif %}
+        </l-stack>
+    </section>
 
-            <section data-docs-section="usage">
-                <l-stack>
-                <h2>Usage</h2>
-                {% dds__usage_example title="Minimal example" code=tag_signature.minimal preview_url=minimal_preview_url canvas_id="minimal" show_sandbox_link=True %}
-                {% if tag_signature.maximal != tag_signature.minimal %}
-                    {% dds__usage_example title="All parameters" code=tag_signature.maximal preview_url=maximal_preview_url canvas_id="maximal" show_sandbox_link=True %}
-                {% endif %}
-                {% if component_info.qualified_name != component_info.name %}
-                    {% dds__usage_example title="Qualified name (disambiguated)" code=tag_signature_long.minimal canvas_id="qualified" show_sandbox_link=False %}
-                {% endif %}
-                </l-stack>
-            </section>
+    <hr data-docs-divider>
 
-            <section data-docs-section="parameters">
-                <l-stack>
-                <h2>Parameters</h2>
-                {% dds__params_table params=params slots_list=declared_slots title="" %}
-                </l-stack>
-            </section>
+    <section data-docs-section="usage">
+        <l-stack>
+        <h2 data-docs-heading>Usage</h2>
+        {% dds__usage_example title="Minimal example" code=tag_signature.minimal preview_url=minimal_preview_url canvas_id="minimal" show_sandbox_link=True %}
+        {% if tag_signature.maximal != tag_signature.minimal %}
+            {% dds__usage_example title="All parameters" code=tag_signature.maximal preview_url=maximal_preview_url canvas_id="maximal" show_sandbox_link=True %}
+        {% endif %}
+        {% if component_info.qualified_name != component_info.name %}
+            {% dds__usage_example title="Qualified tag usage" code=tag_signature_long.minimal canvas_id="qualified" show_sandbox_link=False %}
+        {% endif %}
+        </l-stack>
+    </section>
+{% endif %}
 
-            {% if doc_html %}
-                <section data-docs-section="documentation">
-                    {% dds__prose html=doc_html %}{% enddds__prose %}
-            </section>
+<hr data-docs-divider>
+
+<section data-docs-section="parameters">
+    <l-stack>
+    <h2 data-docs-heading>Parameters</h2>
+    {% dds__params_table params=params slots_list=declared_slots title="" %}
+    </l-stack>
+</section>
+
+{% if doc_html %}
+    <hr data-docs-divider>
+
+    <section data-docs-section="documentation">
+        <l-stack>
+        <h2 data-docs-heading>Further documentation</h2>
+        {% dds__prose html=doc_html %}{% enddds__prose %}
+    </l-stack>
+</section>
 {% endif %}
 </l-stack>
-{% endif %}
 </div>
 </div>
 {% endslot %}
 {% slot "secondary" %}
-<div id="pane-sandbox">
+<div id="pane-sandbox" data-sandbox-pane>
     <div id="dds-panel-sandbox" data-gallery-sandbox-body>
         {% include "dj_design_system/gallery/sandbox_fragment.html" %}
     </div>

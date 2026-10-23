@@ -270,6 +270,7 @@ class TestVariantViewRenderingAndTemplate:
             "<div data-variant-description><p>Primary call to action.</p></div>"
             in html
         )
+        assert "<h3 data-variant-subheading>Preview</h3>" in html
         assert '<div data-variant-preview data-surface="stage">' in html
         assert (
             '<iframe src="/canvas/button/?variant=primary" name="variant" '
@@ -281,7 +282,8 @@ class TestVariantViewRenderingAndTemplate:
         assert 'aria-label="Open in sandbox"' in html
         assert 'data-icon="external-link"' in html
         assert "<dds-code-block" in html
-        assert "{% dds__button &#x27;Save&#x27; variant=&#x27;primary&#x27; %}" in html
+        assert "dds__button" in html
+        assert "primary" in html
 
     def test_omits_optional_sections_when_not_provided(self) -> None:
         """Verify description, preview stage, and code block are omitted when empty."""

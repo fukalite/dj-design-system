@@ -8,6 +8,7 @@ import markdown as markdown_lib
 from django.http import Http404, HttpRequest
 from django.shortcuts import render
 from django.urls import reverse
+from django.utils import safestring
 
 from dj_design_system.components import BlockComponent
 from dj_design_system.data import CanvasSpec
@@ -354,9 +355,11 @@ def _render_component(request, context, node, app_label, path_parts):
             tag_name=info.name,
         )
         if active_variant.description:
-            context["variant_description"] = markdown_lib.markdown(
-                active_variant.description.strip(),
-                extensions=["fenced_code", "tables"],
+            context["variant_description"] = safestring.mark_safe(
+                markdown_lib.markdown(
+                    active_variant.description.strip(),
+                    extensions=["fenced_code", "tables"],
+                )
             )
         else:
             context["variant_description"] = ""
@@ -396,9 +399,16 @@ def _render_component(request, context, node, app_label, path_parts):
         active_bg_value = get_default_background()["value"]
 
     context["component_info"] = info
-    context["component_description"] = markdown_lib.markdown(
-        (component_class.__doc__ or "").strip(),
-        extensions=["fenced_code", "tables"],
+    raw_doc = (component_class.__doc__ or "").strip()
+    context["component_description"] = (
+        safestring.mark_safe(
+            markdown_lib.markdown(
+                raw_doc,
+                extensions=["fenced_code", "tables"],
+            )
+        )
+        if raw_doc
+        else ""
     )
     context["tag_signature"] = tag_signature
     context["tag_signature_long"] = tag_signature_long
@@ -448,11 +458,6 @@ def _render_component(request, context, node, app_label, path_parts):
     # Note: the global available_themes from base context shouldn't be overwritten.
     context["active_theme"] = active_theme
     context["sandbox_active_theme"] = active_theme
-    context["theme_body_class"] = (
-        "gallery-theme-dark"
-        if "dark" in str(active_theme).lower()
-        else "gallery-theme-light"
-    )
     component_label = to_display_label(info.name, component=info)
     crumbs = build_breadcrumbs(
         app_label,

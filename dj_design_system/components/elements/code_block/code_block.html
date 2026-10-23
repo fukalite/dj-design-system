@@ -12,6 +12,11 @@
         </button>
       {% endif %}
     </header>
+  {% elif show_overlay_copy %}
+    <button type="button" data-copy-trigger data-copy-overlay aria-label="Copy code">
+      {% dds__icon name="copy" size="sm" %}
+      <span data-copy-status>Copy</span>
+    </button>
   {% endif %}
-  <pre><code data-code-content>{{ stripped_code }}</code></pre>
+  <pre><code data-code-content>{{ highlighted_code }}</code></pre>
 </dds-code-block>

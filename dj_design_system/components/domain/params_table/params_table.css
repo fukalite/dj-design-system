@@ -1,11 +1,11 @@
 @layer blocks {
   .dds-params-table {
     --_params-table-choices-gap: var(--dds-space-2xs);
-    --_params-table-code-bg-color: var(--dds-control-bg-color);
+    --_params-table-code-bg-color: var(--dds-state-hover-bg-color);
     --_params-table-code-border-color: var(--dds-control-border-color);
     --_params-table-code-border-radius: var(--dds-control-border-radius);
     --_params-table-code-border-style: var(--dds-control-border-style);
-    --_params-table-code-border-width: var(--dds-control-border-width);
+    --_params-table-code-border-width: var(--dds-surface-border-width);
     --_params-table-code-color: var(--dds-text-prominent-color);
     --_params-table-code-font: var(--dds-text-code-font);
     --_params-table-code-line-height: var(--dds-text-code-line-height);

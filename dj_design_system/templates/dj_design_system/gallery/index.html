@@ -3,13 +3,14 @@
 
 {% block content %}
     <l-stack>
-    <div id="static-snapshot-notice" hidden>
-        {% dds__notice variant="warning" title="Static snapshot" %}
-        This is a read-only build of the gallery. Interactive sandbox controls (live parameter editing, form submissions) require a running Django server.
+    {% dds__prose title=design_system_name %}
+    <p>Browse the component library using the sidebar. Select a component to see its documentation, preview, and parameters.</p>
+    <p>{{ total_components_label }}</p>
+{% enddds__prose %}
+<div id="static-snapshot-notice" hidden>
+    {% dds__notice variant="warning" title="Static snapshot" %}
+    This is a read-only build of the gallery. Interactive sandbox controls (live parameter editing, form submissions) require a running Django server.
 {% enddds__notice %}
 </div>
-{% dds__prose title=design_system_name %}
-<p>{{ total_components_label }} Select a component from the sidebar to view its documentation and interactive sandbox.</p>
-{% enddds__prose %}
 </l-stack>
 {% endblock %}

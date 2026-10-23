@@ -125,21 +125,24 @@ class TestCodeBlockParametersAndContext:
     """Verify CodeBlock parameter validation and get_context() shaping."""
 
     def test_default_parameters_and_context_shaping(self) -> None:
-        """Verify default language='django', title='', copyable=True, and stripped_code."""
+        """Verify default language='django', title='', copyable=True, stripped_code, and highlighted_code."""
         comp = code_block_module.CodeBlock(code="\r\n{% dds__icon 'copy' %}\n\r")
         ctx = comp.get_context()
         assert ctx["code"] == "\r\n{% dds__icon 'copy' %}\n\r"
         assert ctx["stripped_code"] == "{% dds__icon 'copy' %}"
+        assert '<span class="cp">{%</span>' in ctx["highlighted_code"]
+        assert "dds__icon" in ctx["highlighted_code"]
         assert ctx["language"] == "django"
         assert ctx["title"] == ""
         assert ctx["copyable"] is True
         assert ctx["has_title"] is False
         assert ctx["has_language"] is True
         assert ctx["header_label"] == "django"
-        assert ctx["show_header"] is True
+        assert ctx["show_header"] is False
+        assert ctx["show_overlay_copy"] is True
 
     def test_title_overrides_language_for_header_label(self) -> None:
-        """Verify explicit title takes precedence over language in header_label."""
+        """Verify explicit title takes precedence over language in header_label and shows header."""
         comp = code_block_module.CodeBlock(
             code="print('ok')",
             language="python",
@@ -150,9 +153,11 @@ class TestCodeBlockParametersAndContext:
         assert ctx["has_language"] is True
         assert ctx["header_label"] == "example.py"
         assert ctx["show_header"] is True
+        assert ctx["show_overlay_copy"] is False
+        assert '<span class="nb">print</span>' in ctx["highlighted_code"]
 
-    def test_show_header_when_only_copyable_or_only_label(self) -> None:
-        """Verify show_header is True if either header_label or copyable is truthy, False when both are falsy."""
+    def test_show_header_and_overlay_copy_states(self) -> None:
+        """Verify show_header requires explicit title and show_overlay_copy handles untitled copyable blocks."""
         copy_only = code_block_module.CodeBlock(
             code="x = 1",
             language="",
@@ -160,7 +165,8 @@ class TestCodeBlockParametersAndContext:
             copyable=True,
         ).get_context()
         assert copy_only["header_label"] == ""
-        assert copy_only["show_header"] is True
+        assert copy_only["show_header"] is False
+        assert copy_only["show_overlay_copy"] is True
 
         label_only = code_block_module.CodeBlock(
             code="x = 1",
@@ -169,7 +175,8 @@ class TestCodeBlockParametersAndContext:
             copyable=False,
         ).get_context()
         assert label_only["header_label"] == "python"
-        assert label_only["show_header"] is True
+        assert label_only["show_header"] is False
+        assert label_only["show_overlay_copy"] is False
 
         neither = code_block_module.CodeBlock(
             code="x = 1",
@@ -181,6 +188,7 @@ class TestCodeBlockParametersAndContext:
         assert neither["has_language"] is False
         assert neither["header_label"] == ""
         assert neither["show_header"] is False
+        assert neither["show_overlay_copy"] is False
 
     def test_invalid_code_type_raises_type_error(self) -> None:
         """Verify passing a non-string code parameter raises TypeError."""
@@ -192,7 +200,7 @@ class TestCodeBlockRenderingAndTemplate:
     """Verify template tag rendering, positional args, HTML escaping, and template purity."""
 
     def test_renders_default_code_block_via_positional_arg(self) -> None:
-        """Verify {% dds__code_block %} renders dds-code-block, header label, copy button, and pre/code."""
+        """Verify {% dds__code_block %} renders dds-code-block, overlay copy button, and pre/code."""
         html = _render_template(
             source="{% dds__code_block raw_code %}",
             context={"raw_code": "\n<div>Hello</div>\n"},
@@ -201,9 +209,11 @@ class TestCodeBlockRenderingAndTemplate:
             '<dds-code-block class="dds-code-block" data-surface="code" data-language="django">'
             in html
         )
-        assert '<header class="l-cluster">' in html
-        assert "<span data-code-label>django</span>" in html
-        assert '<button type="button" data-copy-trigger aria-label="Copy code">' in html
+        assert "<header" not in html
+        assert (
+            '<button type="button" data-copy-trigger data-copy-overlay aria-label="Copy code">'
+            in html
+        )
         assert 'data-icon="copy"' in html
         assert 'data-size="sm"' in html
         assert "<span data-copy-status>Copy</span>" in html
@@ -213,17 +223,22 @@ class TestCodeBlockRenderingAndTemplate:
         )
 
     def test_renders_with_title_and_copyable_false(self) -> None:
-        """Verify title overrides language in [data-code-label] and copyable=False omits copy button."""
+        """Verify explicit title renders header with [data-code-label] and copyable=False omits copy button."""
         html = _render_template(
             source='{% dds__code_block code="x = 1" language="python" title="app.py" copyable=False %}'
         ).strip()
         assert 'data-language="python"' in html
+        assert '<header class="l-cluster">' in html
         assert "<span data-code-label>app.py</span>" in html
         assert "data-copy-trigger" not in html
-        assert "<pre><code data-code-content>x = 1</code></pre>" in html
+        assert (
+            '<pre><code data-code-content><span class="n">x</span> '
+            '<span class="o">=</span> <span class="mi">1</span></code></pre>'
+            in html
+        )
 
     def test_omits_header_when_no_label_and_not_copyable(self) -> None:
-        """Verify <header> is omitted when language='', title='', and copyable=False."""
+        """Verify <header> and copy button are omitted when language='', title='', and copyable=False."""
         html = _render_template(
             source='{% dds__code_block code="plain" language="" title="" copyable=False %}'
         ).strip()

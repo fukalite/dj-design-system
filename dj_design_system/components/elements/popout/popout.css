@@ -101,6 +101,10 @@
     outline-width: var(--_popout-trigger-focus-outline-width);
   }
 
+  dds-popout[data-state='open'] {
+    z-index: var(--_popout-menu-z-index);
+  }
+
   dds-popout[data-state='open'] [data-popout-trigger] {
     background-color: var(--_popout-trigger-open-bg-color);
     border-color: var(--_popout-trigger-open-border-color);
