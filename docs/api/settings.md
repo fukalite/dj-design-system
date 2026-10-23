@@ -32,7 +32,7 @@ If `True`, the gallery is accessible to anyone. If `False`, only logged-in staff
 ### `GALLERY_INCLUDE_APPS`
 **Type:** `list[str] | None`  
 **Default:** `None`  
-An optional allowlist of Django `app_label` strings to include in the gallery. When set, only components from these apps are displayed in navigation, search, and folder listings. Set to `["dj_design_system"]` to inspect the built-in `dds` component library in isolation (see [`example_project/settings_dds_gallery.py`](../../example_project/settings_dds_gallery.py)).
+An optional allowlist of Django `app_label` strings to include in the gallery. When set, only components from these apps are displayed in navigation, search, and folder listings. Set to `["dj_design_system"]` to inspect the built-in `dds` component library in isolation (see [`example_project/settings_dds_gallery.py`](https://github.com/fukalite/dj-design-system/blob/main/example_project/settings_dds_gallery.py)).
 
 ### `GALLERY_EXCLUDE_APPS`
 **Type:** `list[str]`  
