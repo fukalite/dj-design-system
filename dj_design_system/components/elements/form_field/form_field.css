@@ -1,0 +1,138 @@
+@layer reset, tokens, global, composition, blocks, utilities;
+
+@layer blocks {
+  .dds-form-field {
+    --_form-field-caption-font: var(--dds-text-caption-font);
+    --_form-field-caption-letter-spacing: var(--dds-text-caption-letter-spacing);
+    --_form-field-caption-line-height: var(--dds-text-caption-line-height);
+    --_form-field-caption-size: var(--dds-text-caption-size);
+    --_form-field-caption-weight: var(--dds-text-caption-weight);
+    --_form-field-control-accent-color: var(--dds-control-accent-color);
+    --_form-field-control-bg-color: var(--dds-control-bg-color);
+    --_form-field-control-border-color: var(--dds-control-border-color);
+    --_form-field-control-border-radius: var(--dds-control-border-radius);
+    --_form-field-control-border-style: var(--dds-control-border-style);
+    --_form-field-control-border-width: var(--dds-control-border-width);
+    --_form-field-control-font: var(--dds-text-control-font);
+    --_form-field-control-letter-spacing: var(--dds-text-control-letter-spacing);
+    --_form-field-control-line-height: var(--dds-text-control-line-height);
+    --_form-field-control-padding-block: var(--dds-space-xs);
+    --_form-field-control-padding-inline: var(--dds-space-sm);
+    --_form-field-control-shadow-color: var(--dds-control-shadow-color);
+    --_form-field-control-shadow-shape: var(--dds-control-shadow-shape);
+    --_form-field-control-size: var(--dds-text-control-size);
+    --_form-field-control-text-color: var(--dds-text-default-color);
+    --_form-field-control-weight: var(--dds-text-control-weight);
+    --_form-field-description-color: var(--dds-text-muted-color);
+    --_form-field-disabled-bg-color: var(--dds-state-disabled-bg-color);
+    --_form-field-disabled-border-color: var(--dds-state-disabled-border-color);
+    --_form-field-disabled-opacity: var(--dds-state-disabled-opacity);
+    --_form-field-disabled-text-color: var(--dds-state-disabled-text-color);
+    --_form-field-error-bg-color: var(--dds-status-error-bg-color);
+    --_form-field-error-border-color: var(--dds-status-error-border-color);
+    --_form-field-error-text-color: var(--dds-status-error-text-color);
+    --_form-field-focus-border-color: var(--dds-state-focus-border-color);
+    --_form-field-focus-outline-color: var(--dds-state-focus-outline-color);
+    --_form-field-focus-outline-offset: var(--dds-state-focus-outline-offset);
+    --_form-field-focus-outline-style: var(--dds-state-focus-outline-style);
+    --_form-field-focus-outline-width: var(--dds-state-focus-outline-width);
+    --_form-field-gap: var(--dds-space-gap-tight);
+    --_form-field-inline-gap: var(--dds-space-gap-default);
+    --_form-field-label-color: var(--dds-text-prominent-color);
+    --_form-field-required-gap: var(--dds-space-2xs);
+    display: block;
+    margin: 0;
+  }
+
+  .dds-form-field > l-stack {
+    --space: var(--_form-field-gap);
+  }
+
+  .dds-form-field l-cluster {
+    --space: var(--_form-field-inline-gap);
+  }
+
+  .dds-form-field label {
+    color: var(--_form-field-label-color);
+    display: inline-flex;
+    font-family: var(--_form-field-control-font);
+    font-size: var(--_form-field-control-size);
+    font-weight: var(--_form-field-control-weight);
+    gap: var(--_form-field-required-gap);
+    letter-spacing: var(--_form-field-control-letter-spacing);
+    line-height: var(--_form-field-control-line-height);
+  }
+
+  .dds-form-field label span {
+    color: var(--_form-field-error-text-color);
+  }
+
+  .dds-form-field input,
+  .dds-form-field select,
+  .dds-form-field textarea {
+    accent-color: var(--_form-field-control-accent-color);
+    background-color: var(--_form-field-control-bg-color);
+    border-color: var(--_form-field-control-border-color);
+    border-radius: var(--_form-field-control-border-radius);
+    border-style: var(--_form-field-control-border-style);
+    border-width: var(--_form-field-control-border-width);
+    box-shadow: var(--_form-field-control-shadow-shape) var(--_form-field-control-shadow-color);
+    box-sizing: border-box;
+    color: var(--_form-field-control-text-color);
+    font-family: var(--_form-field-control-font);
+    font-size: var(--_form-field-control-size);
+    font-weight: var(--_form-field-control-weight);
+    inline-size: 100%;
+    letter-spacing: var(--_form-field-control-letter-spacing);
+    line-height: var(--_form-field-control-line-height);
+    margin: 0;
+    padding-block: var(--_form-field-control-padding-block);
+    padding-inline: var(--_form-field-control-padding-inline);
+  }
+
+  .dds-form-field[data-layout='inline'] input,
+  .dds-form-field[data-layout='inline'] select,
+  .dds-form-field[data-layout='inline'] textarea {
+    inline-size: auto;
+  }
+
+  .dds-form-field input:focus-visible,
+  .dds-form-field select:focus-visible,
+  .dds-form-field textarea:focus-visible {
+    border-color: var(--_form-field-focus-border-color);
+    outline-color: var(--_form-field-focus-outline-color);
+    outline-offset: var(--_form-field-focus-outline-offset);
+    outline-style: var(--_form-field-focus-outline-style);
+    outline-width: var(--_form-field-focus-outline-width);
+  }
+
+  .dds-form-field input:disabled,
+  .dds-form-field select:disabled,
+  .dds-form-field textarea:disabled {
+    background-color: var(--_form-field-disabled-bg-color);
+    border-color: var(--_form-field-disabled-border-color);
+    color: var(--_form-field-disabled-text-color);
+    cursor: not-allowed;
+    opacity: var(--_form-field-disabled-opacity);
+  }
+
+  .dds-form-field[data-invalid='true'] input,
+  .dds-form-field[data-invalid='true'] select,
+  .dds-form-field[data-invalid='true'] textarea {
+    border-color: var(--_form-field-error-border-color);
+  }
+
+  .dds-form-field p {
+    color: var(--_form-field-description-color);
+    font-family: var(--_form-field-caption-font);
+    font-size: var(--_form-field-caption-size);
+    font-weight: var(--_form-field-caption-weight);
+    letter-spacing: var(--_form-field-caption-letter-spacing);
+    line-height: var(--_form-field-caption-line-height);
+    margin: 0;
+  }
+
+  .dds-form-field p[role='alert'] {
+    color: var(--_form-field-error-text-color);
+  }
+}

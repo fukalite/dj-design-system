@@ -1,0 +1,151 @@
+@layer blocks {
+  dds-code-block {
+    --_code-block-bg-color: var(--dds-surface-bg-color);
+    --_code-block-border-color: var(--dds-surface-border-color);
+    --_code-block-border-radius: var(--dds-surface-border-radius);
+    --_code-block-border-style: var(--dds-surface-border-style);
+    --_code-block-border-width: var(--dds-surface-border-width);
+    --_code-block-copy-active-bg-color: var(--dds-state-active-bg-color);
+    --_code-block-copy-bg-color: var(--dds-state-interactive-bg-color);
+    --_code-block-copy-border-color: var(--dds-surface-border-color);
+    --_code-block-copy-border-radius: var(--dds-control-border-radius);
+    --_code-block-copy-border-style: var(--dds-control-border-style);
+    --_code-block-copy-border-width: var(--dds-control-border-width);
+    --_code-block-copy-copied-bg-color: var(--dds-state-selected-bg-color);
+    --_code-block-copy-copied-text-color: var(--dds-state-selected-text-color);
+    --_code-block-copy-focus-outline-color: var(--dds-state-focus-outline-color);
+    --_code-block-copy-focus-outline-offset: var(--dds-state-focus-outline-offset);
+    --_code-block-copy-focus-outline-style: var(--dds-state-focus-outline-style);
+    --_code-block-copy-focus-outline-width: var(--dds-state-focus-outline-width);
+    --_code-block-copy-gap: var(--dds-space-2xs);
+    --_code-block-copy-hover-bg-color: var(--dds-state-hover-bg-color);
+    --_code-block-copy-padding-block: var(--dds-space-3xs);
+    --_code-block-copy-padding-inline: var(--dds-space-xs);
+    --_code-block-copy-text-color: var(--dds-state-interactive-text-color);
+    --_code-block-copy-transition-duration: var(--dds-state-entry-duration);
+    --_code-block-copy-transition-easing: var(--dds-state-entry-easing);
+    --_code-block-font: var(--dds-text-code-font);
+    --_code-block-font-size: var(--dds-text-code-size);
+    --_code-block-font-weight: var(--dds-text-code-weight);
+    --_code-block-header-gap: var(--dds-space-gap-default);
+    --_code-block-header-padding-block: var(--dds-space-xs);
+    --_code-block-header-padding-inline: var(--dds-space-md);
+    --_code-block-label-color: var(--dds-text-muted-color);
+    --_code-block-label-font: var(--dds-text-caption-font);
+    --_code-block-label-font-size: var(--dds-text-caption-size);
+    --_code-block-label-font-weight: var(--dds-text-caption-weight);
+    --_code-block-label-letter-spacing: var(--dds-text-caption-letter-spacing);
+    --_code-block-label-line-height: var(--dds-text-caption-line-height);
+    --_code-block-letter-spacing: var(--dds-text-code-letter-spacing);
+    --_code-block-line-height: var(--dds-text-code-line-height);
+    --_code-block-padding-block: var(--dds-space-md);
+    --_code-block-padding-inline: var(--dds-space-lg);
+    --_code-block-shadow-color: var(--dds-surface-shadow-color);
+    --_code-block-shadow-shape: var(--dds-surface-shadow-shape);
+    --_code-block-text-color: var(--dds-text-default-color);
+    background-color: var(--_code-block-bg-color);
+    border-color: var(--_code-block-border-color);
+    border-radius: var(--_code-block-border-radius);
+    border-style: var(--_code-block-border-style);
+    border-width: var(--_code-block-border-width);
+    box-shadow: var(--_code-block-shadow-shape) var(--_code-block-shadow-color);
+    color: var(--_code-block-text-color);
+    display: block;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  dds-code-block > header {
+    --space: var(--_code-block-header-gap);
+    align-items: center;
+    border-bottom-color: var(--_code-block-border-color);
+    border-bottom-style: var(--_code-block-border-style);
+    border-bottom-width: var(--_code-block-border-width);
+    justify-content: space-between;
+    padding-block: var(--_code-block-header-padding-block);
+    padding-inline: var(--_code-block-header-padding-inline);
+  }
+
+  dds-code-block [data-code-label] {
+    color: var(--_code-block-label-color);
+    font-family: var(--_code-block-label-font);
+    font-size: var(--_code-block-label-font-size);
+    font-weight: var(--_code-block-label-font-weight);
+    letter-spacing: var(--_code-block-label-letter-spacing);
+    line-height: var(--_code-block-label-line-height);
+  }
+
+  dds-code-block [data-copy-trigger] {
+    align-items: center;
+    appearance: none;
+    background-color: var(--_code-block-copy-bg-color);
+    border-color: var(--_code-block-copy-border-color);
+    border-radius: var(--_code-block-copy-border-radius);
+    border-style: var(--_code-block-copy-border-style);
+    border-width: var(--_code-block-copy-border-width);
+    color: var(--_code-block-copy-text-color);
+    cursor: pointer;
+    display: inline-flex;
+    font-family: var(--_code-block-label-font);
+    font-size: var(--_code-block-label-font-size);
+    font-weight: var(--_code-block-label-font-weight);
+    gap: var(--_code-block-copy-gap);
+    letter-spacing: var(--_code-block-label-letter-spacing);
+    line-height: var(--_code-block-label-line-height);
+    margin-inline-start: auto;
+    padding-block: var(--_code-block-copy-padding-block);
+    padding-inline: var(--_code-block-copy-padding-inline);
+    transition-duration: var(--_code-block-copy-transition-duration);
+    transition-property: background-color, border-color, color;
+    transition-timing-function: var(--_code-block-copy-transition-easing);
+  }
+
+  dds-code-block [data-copy-trigger]:hover {
+    background-color: var(--_code-block-copy-hover-bg-color);
+  }
+
+  dds-code-block [data-copy-trigger]:active {
+    background-color: var(--_code-block-copy-active-bg-color);
+  }
+
+  dds-code-block [data-copy-trigger]:focus-visible {
+    outline-color: var(--_code-block-copy-focus-outline-color);
+    outline-offset: var(--_code-block-copy-focus-outline-offset);
+    outline-style: var(--_code-block-copy-focus-outline-style);
+    outline-width: var(--_code-block-copy-focus-outline-width);
+  }
+
+  dds-code-block[data-copied='true'] [data-copy-trigger] {
+    background-color: var(--_code-block-copy-copied-bg-color);
+    color: var(--_code-block-copy-copied-text-color);
+  }
+
+  dds-code-block pre {
+    font-family: var(--_code-block-font);
+    font-size: var(--_code-block-font-size);
+    font-variant-ligatures: none;
+    font-weight: var(--_code-block-font-weight);
+    letter-spacing: var(--_code-block-letter-spacing);
+    line-height: var(--_code-block-line-height);
+    margin: 0;
+    overflow-x: auto;
+    padding-block: var(--_code-block-padding-block);
+    padding-inline: var(--_code-block-padding-inline);
+    tab-size: 4;
+    white-space: pre;
+  }
+
+  dds-code-block code {
+    background-color: transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    font-variant-ligatures: none;
+    font-weight: inherit;
+    letter-spacing: inherit;
+    line-height: inherit;
+    padding: 0;
+    tab-size: 4;
+    white-space: pre;
+  }
+}

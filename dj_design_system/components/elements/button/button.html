@@ -1,0 +1,39 @@
+{% load design_components %}
+{% if is_link %}
+  <a class="dds-button"
+     href="{{ resolved_href }}"
+     data-variant="{{ variant }}"
+     data-size="{{ size }}"
+     {% if icon_only %}data-icon-only="true"{% endif %}
+     {% if has_action %}data-action="{{ action }}"{% endif %}
+     {% if resolved_target %}target="{{ resolved_target }}"{% endif %}
+     {% if resolved_rel %}rel="{{ resolved_rel }}"{% endif %}
+     {% if aria_pressed %}aria-pressed="{{ aria_pressed }}"{% endif %}
+     {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>
+    {% if has_icon %}
+      {% dds__icon name=icon size=icon_size %}
+    {% endif %}
+    {% if show_label %}<span>{{ label }}</span>{% endif %}
+    {% if has_trailing_icon %}
+      {% dds__icon name=icon_trailing size=icon_size %}
+    {% endif %}
+  </a>
+{% else %}
+  <button class="dds-button"
+          type="{{ button_type }}"
+          data-variant="{{ variant }}"
+          data-size="{{ size }}"
+          {% if icon_only %}data-icon-only="true"{% endif %}
+          {% if has_action %}data-action="{{ action }}"{% endif %}
+          {% if disabled %}disabled{% endif %}
+          {% if aria_pressed %}aria-pressed="{{ aria_pressed }}"{% endif %}
+          {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>
+    {% if has_icon %}
+      {% dds__icon name=icon size=icon_size %}
+    {% endif %}
+    {% if show_label %}<span>{{ label }}</span>{% endif %}
+    {% if has_trailing_icon %}
+      {% dds__icon name=icon_trailing size=icon_size %}
+    {% endif %}
+  </button>
+{% endif %}

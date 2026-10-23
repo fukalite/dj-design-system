@@ -49,7 +49,7 @@
 - [x] **Track: Gallery Rebuild 2 — CSS Architecture, 3-Tier Design Tokens & TypeScript Pipeline**
   *Link: [tracks/gallery_rebuild_02_tokens_layout_ts_20261007/index.md](tracks/gallery_rebuild_02_tokens_layout_ts_20261007/index.md)*
 
-- [ ] **Track: Gallery Rebuild 3 — Built-in `elements` Collection**
+- [x] **Track: Gallery Rebuild 3 — Built-in `elements` Collection**
   *Link: [tracks/gallery_rebuild_03_elements_20261007/index.md](tracks/gallery_rebuild_03_elements_20261007/index.md)*
 
 - [ ] **Track: Gallery Rebuild 4 — Built-in `domain` Collection: Shell, Navigation & Docs**

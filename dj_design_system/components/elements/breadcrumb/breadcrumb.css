@@ -1,0 +1,88 @@
+@layer blocks {
+  .dds-breadcrumb {
+    --_breadcrumb-current-color: var(--dds-text-prominent-color);
+    --_breadcrumb-current-weight: var(--dds-text-control-weight);
+    --_breadcrumb-focus-outline-color: var(--dds-state-focus-outline-color);
+    --_breadcrumb-focus-outline-offset: var(--dds-state-focus-outline-offset);
+    --_breadcrumb-focus-outline-style: var(--dds-state-focus-outline-style);
+    --_breadcrumb-focus-outline-width: var(--dds-state-focus-outline-width);
+    --_breadcrumb-font: var(--dds-text-control-font);
+    --_breadcrumb-font-size: var(--dds-text-control-size);
+    --_breadcrumb-font-weight: var(--dds-text-body-weight);
+    --_breadcrumb-gap: var(--dds-space-2xs);
+    --_breadcrumb-hover-bg-color: var(--dds-state-hover-bg-color);
+    --_breadcrumb-hover-color: var(--dds-state-hover-text-color);
+    --_breadcrumb-item-gap: var(--dds-space-2xs);
+    --_breadcrumb-item-padding-block: var(--dds-space-3xs);
+    --_breadcrumb-item-padding-inline: var(--dds-space-2xs);
+    --_breadcrumb-letter-spacing: var(--dds-text-control-letter-spacing);
+    --_breadcrumb-line-height: var(--dds-text-control-line-height);
+    --_breadcrumb-link-color: var(--dds-state-interactive-text-color);
+    --_breadcrumb-separator-color: var(--dds-text-muted-color);
+    --_breadcrumb-text-color: var(--dds-text-muted-color);
+    --_breadcrumb-transition-duration: var(--dds-state-entry-duration);
+    --_breadcrumb-transition-easing: var(--dds-state-entry-easing);
+    color: var(--_breadcrumb-text-color);
+    display: block;
+    font-family: var(--_breadcrumb-font);
+    font-size: var(--_breadcrumb-font-size);
+    font-weight: var(--_breadcrumb-font-weight);
+    letter-spacing: var(--_breadcrumb-letter-spacing);
+    line-height: var(--_breadcrumb-line-height);
+    margin: 0;
+  }
+
+  .dds-breadcrumb ol {
+    --space: var(--_breadcrumb-gap);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .dds-breadcrumb li {
+    align-items: center;
+    color: var(--_breadcrumb-separator-color);
+    display: inline-flex;
+    gap: var(--_breadcrumb-gap);
+    margin: 0;
+  }
+
+  .dds-breadcrumb a,
+  .dds-breadcrumb span {
+    align-items: center;
+    display: inline-flex;
+    gap: var(--_breadcrumb-item-gap);
+    padding-block: var(--_breadcrumb-item-padding-block);
+    padding-inline: var(--_breadcrumb-item-padding-inline);
+  }
+
+  .dds-breadcrumb span {
+    color: var(--_breadcrumb-text-color);
+  }
+
+  .dds-breadcrumb a {
+    color: var(--_breadcrumb-link-color);
+    text-decoration: none;
+    transition-duration: var(--_breadcrumb-transition-duration);
+    transition-property: background-color, color;
+    transition-timing-function: var(--_breadcrumb-transition-easing);
+  }
+
+  .dds-breadcrumb a:hover {
+    background-color: var(--_breadcrumb-hover-bg-color);
+    color: var(--_breadcrumb-hover-color);
+    text-decoration: underline;
+  }
+
+  .dds-breadcrumb a:focus-visible {
+    outline-color: var(--_breadcrumb-focus-outline-color);
+    outline-offset: var(--_breadcrumb-focus-outline-offset);
+    outline-style: var(--_breadcrumb-focus-outline-style);
+    outline-width: var(--_breadcrumb-focus-outline-width);
+  }
+
+  .dds-breadcrumb [aria-current='page'] {
+    color: var(--_breadcrumb-current-color);
+    font-weight: var(--_breadcrumb-current-weight);
+  }
+}

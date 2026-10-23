@@ -1,0 +1,15 @@
+<div class="dds-table" data-density="{{ density }}">
+  <table>
+    {% if has_caption %}
+      <caption>{{ caption }}</caption>
+    {% endif %}
+    {% if slots.head %}
+      <thead>
+        {{ slots.head }}
+      </thead>
+    {% endif %}
+    <tbody>
+      {{ slots.body }}
+    </tbody>
+  </table>
+</div>

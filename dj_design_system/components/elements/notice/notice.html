@@ -1,0 +1,10 @@
+{% load design_components %}
+<aside class="dds-notice" data-variant="{{ variant }}" role="{{ role }}">
+  {% dds__icon name=resolved_icon size="md" %}
+  <l-stack>
+    {% if has_title %}
+      <strong>{{ title }}</strong>
+    {% endif %}
+    <div>{{ content }}</div>
+  </l-stack>
+</aside>

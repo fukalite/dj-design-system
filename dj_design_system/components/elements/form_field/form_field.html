@@ -1,0 +1,19 @@
+<div class="dds-form-field" data-layout="{{ layout }}"{% if has_error %} data-invalid="true"{% endif %}>
+  <l-stack>
+    {% if is_inline %}
+      <l-cluster>
+        <label{% if has_field_id %} for="{{ field_id }}"{% endif %}>{{ label }}{% if required_field %}<span aria-hidden="true">*</span>{% endif %}</label>
+        {% if slots.control %}{{ slots.control }}{% else %}{{ content }}{% endif %}
+      </l-cluster>
+    {% else %}
+      <label{% if has_field_id %} for="{{ field_id }}"{% endif %}>{{ label }}{% if required_field %}<span aria-hidden="true">*</span>{% endif %}</label>
+      {% if slots.control %}{{ slots.control }}{% else %}{{ content }}{% endif %}
+    {% endif %}
+    {% if has_description %}
+      <p>{{ description }}</p>
+    {% endif %}
+    {% if has_error %}
+      <p role="alert">{{ error }}</p>
+    {% endif %}
+  </l-stack>
+</div>

@@ -28,9 +28,18 @@ To prevent context window exhaustion across Tracks 2–7, the main session acts 
    - Leaf components (e.g. `icon`, `badge`, `notice`, `table`, `breadcrumb`, `form_field`) have zero dependencies on each other. Spawn up to 3–4 `dds-component-builder` subagents in a **single `invoke_subagent` call** with `Workspace="inherit"`.
    - Because each `dds-component-builder` is restricted to `dj_design_system/components/<collection>/<name>/` and `tests/components/test_<name>.py`, parallel subagents never edit the same file.
    - Composite components that invoke a child component (e.g. `toolbar` invoking `{% dds__search_box %}` and `{% dds__theme_select %}`) are dispatched **after** their child components exist, or with the child's exact tag signature locked in the prompt.
-4. **Handling Drift (`[DRIFT & CONTEXT NOTES]`):**
-   - Each prompt template below includes a `[DRIFT & CONTEXT NOTES]` block.
-   - Whenever a subagent reports back a nuance (e.g. a new Tier 2 token name, a helper in `tests/conftest.py`, or a specific parameter name on `dds__button`), the orchestrator records that one-liner and pastes it into `[DRIFT & CONTEXT NOTES]` for subsequent subagent calls.
+4. **End-of-Phase Drift Consolidation & Workaround Cleanup:**
+   - Because parallel subagents operate within strict file boundaries, they may introduce local workarounds when a shared file (`types.ts`, `tokens.css`, `conftest.py`) needs an export or token outside their boundary, reporting it back under **Drift Notes**.
+   - At the end of **every phase** (before committing the phase):
+     1. **Consolidate Reported Drift:** Collect all drift notes and workarounds reported by the phase's subagents.
+     2. **Fix Root Causes & Strip Workarounds:** Apply the canonical fix in the shared module (e.g. exporting `DDSCustomElement` in `dj_design_system/components/types.ts`) and remove any local shims/workarounds (e.g. `declare module` blocks) from the subagent-authored files.
+     3. **Update Specs, Plans & `[DRIFT & CONTEXT NOTES]`:** Update `subagents.md` and relevant track `spec.md` / `plan.md` files so downstream phases inherit the clean contract, and mark completed phase tasks `[x]` in `plan.md`.
+     4. **Run Phase Review & Commit:** Run `dds-reviewer` (`/code-review`), `just build-ts`, `just test`, `just check`, and `just typecheck`, then create a dedicated phase commit.
+
+### Canonical Shared Contracts & Drift Ledger
+- **`dj_design_system/components/types.ts`:** Exports `DdsCustomEventDetail` and `DDSCustomElement` (`connectedCallback(): void; disconnectedCallback(): void`). Subagents must import `type { DDSCustomElement } from '../../types.js';` directly—never add `declare module` augmentations in `<name>.ts`.
+- **`ListParam` / `DictParam` Defaults (`python.md`):** Never pass a mutable default (`default=[]` or `default={}`) or `default=list`; when `required=False`, pass `default=None` and normalise `list(self.items) if self.items else []` inside `get_context()`.
+- **`dds__icon` Contract (`dj_design_system/components/elements/icon/`):** Exports `Icon` and `ICON_NAMES` (26 icons: `external-link`, `eye`, `code`, `file-code`, `monitor`, `box-model`, `ruler`, `rtl`, `component`, `doc`, `folder`, `folder-open`, `search`, `menu`, `close`, `chevron-right`, `chevron-down`, `copy`, `check`, `sun`, `moon`, `reset`, `info`, `success`, `warning`, `error`). Accepts `name` (positional), `size` (`xs`, `sm`, `md`, `lg`), `label`.
 
 ---
 
@@ -96,8 +105,11 @@ Build the co-located `dds__<name>` component in `dj_design_system/components/<co
 
 ## [DRIFT & CONTEXT NOTES]
 - Read `conductor/code_styleguides/dds-components.md`, `conductor/code_styleguides/python.md`, and `conductor/code_styleguides/html-css.md` before writing code.
+- **Python Imports & Defaults (`python.md`):** Never import classes, functions, or constants directly (e.g. `from dj_design_system.components import TagComponent` is forbidden). Always import modules/submodules (`import typing`, `from dj_design_system import components, gallery, parameters, slots`, `from dj_design_system.components.elements import icon as icon_element`) and reference `components.TagComponent`, `parameters.StrParam`, `icon_element.ICON_NAMES`, etc. Never import the same module with both `import x` and `from x import y`. Never use mutable defaults (`default=[]` or `default={}`) on `ListParam` or `DictParam`—use `default=None` when `required=False`. Always use keyword arguments when calling functions (`safestring.mark_safe(s=val)`).
+- **Component Methods & Booleans (`layered-architecture.md` & `python.md`):** Do not define private helper methods (`def _foo(...)`) on Component classes (Gemini Code Review flags private methods on interface layer classes). Keep `get_context()` self-contained. Use implicit boolean evaluation (`not self.label`) instead of `not bool(self.label)`.
+- **TypeScript Imports, Strings & JSDoc (`javascript.md`):** Always include the `.js` extension in relative TypeScript imports, use single quotes (`'`) for all string literals (`import type { DDSCustomElement } from '../../types.js';`), and include JSDoc comments on all classes, fields (including private fields), and methods.
 - Never define `@pytest.fixture` inside `tests/components/test_<name>.py`; use module-level helper functions.
-- Run `uv run --no-sync pytest tests/components/test_<name>.py` and `uv run --no-sync ruff check dj_design_system/components/<collection>/<name> tests/components/test_<name>.py`.
+- Run `just test-file tests/components/test_<name>.py` and `just check`.
 - <Insert any additional drift notes from earlier phases>
 ```
 
@@ -120,6 +132,7 @@ Build the co-located `dds__<name>` component in `dj_design_system/components/<co
 
 ## [DRIFT & CONTEXT NOTES]
 - Read `conductor/code_styleguides/dds-components.md` (Section 7) and `conductor/code_styleguides/javascript.md`.
+- Always include the `.js` extension in relative TypeScript imports, use single quotes (`'`) for all string literals (`import type { DDSCustomElement } from '../../types.js';`), and include JSDoc comments on all classes, fields (including private fields), and methods.
 - Compiled `<name>.js` files in `dj_design_system/components/**/*.js` are gitignored; verify compilation via `just build-ts`.
 - <Insert any additional drift notes from earlier phases>
 ```
@@ -140,9 +153,10 @@ Execute the `/code-review` audit on all files created or modified in the current
    - Check 100% co-location (`<name>.py`, `<name>.html`, `<name>.css`, `<name>.ts`, `gallery.py`, `index.md`).
    - Check zero BEM (`__` or `--`), `@layer blocks` wrapping, `margin: 0` on component roots, and Tier 3 `--_<component>-*` tokens mapped exclusively from Tier 2 `--dds-*` tokens.
    - Check Python-biased `get_context()` (no template filters for value computation, no `.render()` in Python, no `services/` imports in components).
+   - Check Python module-only imports (`from dj_design_system import components, gallery, parameters, slots`; zero direct class/constant imports; zero duplicate `import` + `from ... import` of the same module) and TypeScript `.js` import extensions (`from "../../types.js"`).
    - Check test files for zero inline `@pytest.fixture` decorators and module-level imports.
 3. Immediately fix any violations found using IDE edit tools.
-4. Run `just test`, `just check`, and `uv run --no-sync mypy dj_design_system`.
+4. Run `just test`, `just check`, and `just typecheck`.
 5. Return a <=25-line summary of fixes applied and verification output. Do NOT run any `git` stage/commit commands.
 
 ## [DRIFT & CONTEXT NOTES]

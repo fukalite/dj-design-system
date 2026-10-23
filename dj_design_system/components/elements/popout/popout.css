@@ -1,0 +1,138 @@
+@layer reset, tokens, global, composition, blocks, utilities;
+
+@layer blocks {
+  dds-popout {
+    --_popout-menu-bg-blur: var(--dds-surface-popout-bg-blur);
+    --_popout-menu-bg-color: var(--dds-surface-popout-bg-color);
+    --_popout-menu-border-color: var(--dds-surface-popout-border-color);
+    --_popout-menu-border-radius: var(--dds-surface-popout-border-radius);
+    --_popout-menu-border-style: var(--dds-surface-popout-border-style);
+    --_popout-menu-border-width: var(--dds-surface-popout-border-width);
+    --_popout-menu-gap: var(--dds-space-3xs);
+    --_popout-menu-offset: var(--dds-space-2xs);
+    --_popout-menu-padding: var(--dds-space-2xs);
+    --_popout-menu-shadow-color: var(--dds-surface-popout-shadow-color);
+    --_popout-menu-shadow-shape: var(--dds-surface-popout-shadow-shape);
+    --_popout-menu-z-index: var(--dds-surface-popout-z-index);
+    --_popout-trigger-active-bg-color: var(--dds-state-active-bg-color);
+    --_popout-trigger-active-border-color: var(--dds-state-active-border-color);
+    --_popout-trigger-active-text-color: var(--dds-state-active-text-color);
+    --_popout-trigger-bg-color: var(--dds-control-bg-color);
+    --_popout-trigger-border-color: var(--dds-control-border-color);
+    --_popout-trigger-border-radius: var(--dds-control-border-radius);
+    --_popout-trigger-border-style: var(--dds-control-border-style);
+    --_popout-trigger-border-width: var(--dds-control-border-width);
+    --_popout-trigger-focus-border-color: var(--dds-state-focus-border-color);
+    --_popout-trigger-focus-outline-color: var(--dds-state-focus-outline-color);
+    --_popout-trigger-focus-outline-offset: var(--dds-state-focus-outline-offset);
+    --_popout-trigger-focus-outline-style: var(--dds-state-focus-outline-style);
+    --_popout-trigger-focus-outline-width: var(--dds-state-focus-outline-width);
+    --_popout-trigger-font: var(--dds-text-control-font);
+    --_popout-trigger-font-size: var(--dds-text-control-size);
+    --_popout-trigger-font-weight: var(--dds-text-control-weight);
+    --_popout-trigger-gap: var(--dds-space-gap-tight);
+    --_popout-trigger-hover-bg-color: var(--dds-state-hover-bg-color);
+    --_popout-trigger-hover-border-color: var(--dds-state-hover-border-color);
+    --_popout-trigger-hover-text-color: var(--dds-state-hover-text-color);
+    --_popout-trigger-letter-spacing: var(--dds-text-control-letter-spacing);
+    --_popout-trigger-line-height: var(--dds-text-control-line-height);
+    --_popout-trigger-open-bg-color: var(--dds-state-selected-bg-color);
+    --_popout-trigger-open-border-color: var(--dds-state-selected-border-color);
+    --_popout-trigger-open-text-color: var(--dds-state-selected-text-color);
+    --_popout-trigger-padding-block: var(--dds-space-xs);
+    --_popout-trigger-padding-inline: var(--dds-space-sm);
+    --_popout-trigger-shadow-color: var(--dds-control-shadow-color);
+    --_popout-trigger-shadow-shape: var(--dds-control-shadow-shape);
+    --_popout-trigger-text-color: var(--dds-state-interactive-text-color);
+    --_popout-trigger-transition-duration: var(--dds-state-entry-duration);
+    --_popout-trigger-transition-easing: var(--dds-state-entry-easing);
+    display: inline-block;
+    margin: 0;
+    position: relative;
+  }
+
+  dds-popout [data-popout-trigger] {
+    align-items: center;
+    appearance: none;
+    background-color: var(--_popout-trigger-bg-color);
+    border-color: var(--_popout-trigger-border-color);
+    border-radius: var(--_popout-trigger-border-radius);
+    border-style: var(--_popout-trigger-border-style);
+    border-width: var(--_popout-trigger-border-width);
+    box-shadow: var(--_popout-trigger-shadow-shape) var(--_popout-trigger-shadow-color);
+    box-sizing: border-box;
+    color: var(--_popout-trigger-text-color);
+    cursor: pointer;
+    display: inline-flex;
+    font-family: var(--_popout-trigger-font);
+    font-size: var(--_popout-trigger-font-size);
+    font-weight: var(--_popout-trigger-font-weight);
+    gap: var(--_popout-trigger-gap);
+    justify-content: center;
+    letter-spacing: var(--_popout-trigger-letter-spacing);
+    line-height: var(--_popout-trigger-line-height);
+    margin: 0;
+    padding-block: var(--_popout-trigger-padding-block);
+    padding-inline: var(--_popout-trigger-padding-inline);
+    transition-duration: var(--_popout-trigger-transition-duration);
+    transition-property: background-color, border-color, box-shadow, color;
+    transition-timing-function: var(--_popout-trigger-transition-easing);
+    user-select: none;
+    white-space: nowrap;
+  }
+
+  dds-popout [data-popout-trigger]:hover:not(:disabled) {
+    background-color: var(--_popout-trigger-hover-bg-color);
+    border-color: var(--_popout-trigger-hover-border-color);
+    color: var(--_popout-trigger-hover-text-color);
+  }
+
+  dds-popout [data-popout-trigger]:active:not(:disabled) {
+    background-color: var(--_popout-trigger-active-bg-color);
+    border-color: var(--_popout-trigger-active-border-color);
+    color: var(--_popout-trigger-active-text-color);
+  }
+
+  dds-popout [data-popout-trigger]:focus-visible {
+    border-color: var(--_popout-trigger-focus-border-color);
+    outline-color: var(--_popout-trigger-focus-outline-color);
+    outline-offset: var(--_popout-trigger-focus-outline-offset);
+    outline-style: var(--_popout-trigger-focus-outline-style);
+    outline-width: var(--_popout-trigger-focus-outline-width);
+  }
+
+  dds-popout[data-state='open'] [data-popout-trigger] {
+    background-color: var(--_popout-trigger-open-bg-color);
+    border-color: var(--_popout-trigger-open-border-color);
+    color: var(--_popout-trigger-open-text-color);
+  }
+
+  dds-popout [data-popout-menu] {
+    backdrop-filter: blur(var(--_popout-menu-bg-blur));
+    background-color: var(--_popout-menu-bg-color);
+    border-color: var(--_popout-menu-border-color);
+    border-radius: var(--_popout-menu-border-radius);
+    border-style: var(--_popout-menu-border-style);
+    border-width: var(--_popout-menu-border-width);
+    box-shadow: var(--_popout-menu-shadow-shape) var(--_popout-menu-shadow-color);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: var(--_popout-menu-gap);
+    inset-block-start: calc(100% + var(--_popout-menu-offset));
+    inset-inline-start: 0;
+    margin: 0;
+    padding: var(--_popout-menu-padding);
+    position: absolute;
+    z-index: var(--_popout-menu-z-index);
+  }
+
+  dds-popout[data-align='end'] [data-popout-menu] {
+    inset-inline-end: 0;
+    inset-inline-start: auto;
+  }
+
+  dds-popout [data-popout-menu][hidden] {
+    display: none;
+  }
+}
