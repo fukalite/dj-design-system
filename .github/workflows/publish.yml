@@ -31,7 +31,7 @@ jobs:
       - name: Compile TypeScript components
         run: |
           npm ci
-          npx tsc -p tsconfig.json
+          npx typescript -p tsconfig.json
 
       - name: Build package
         run: uv build
