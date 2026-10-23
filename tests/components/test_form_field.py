@@ -77,7 +77,7 @@ class TestFormFieldDiscoveryAndContract:
         info = reg.get_by_name(name="form_field", app_label="dj_design_system")
         assert info.component_class is form_field_mod.FormField
         assert info.qualified_name == "dds__form_field"
-        assert info.is_internal is True
+        assert info.is_builtin is True
         assert form_field_mod.FormField.has_slots() is True
 
     def test_template_and_media_paths(self) -> None:

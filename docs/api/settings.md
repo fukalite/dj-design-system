@@ -29,15 +29,24 @@ Whether the gallery UI is enabled. If `False`, the gallery views will return 404
 **Default:** `True`  
 If `True`, the gallery is accessible to anyone. If `False`, only logged-in staff users (`is_staff=True`) can view it.
 
-### `GALLERY_SHOW_DDS_COMPONENTS`
-**Type:** `bool`  
-**Default:** `False`  
-When `False` (the default), built-in `dj_design_system` components (`dds__*`) are excluded from the gallery navigation tree, search index, and component counts so consumer galleries display only project apps. Set to `True` to inspect the built-in `dds` component library (`elements` and `domain` collections) in the gallery.
+### `GALLERY_INCLUDE_APPS`
+**Type:** `list[str] | None`  
+**Default:** `None`  
+An optional allowlist of Django `app_label` strings to include in the gallery. When set, only components from these apps are displayed in navigation, search, and folder listings. Set to `["dj_design_system"]` to inspect the built-in `dds` component library in isolation (see [`example_project/settings_dds_gallery.py`](../../example_project/settings_dds_gallery.py)).
 
 ### `GALLERY_EXCLUDE_APPS`
 **Type:** `list[str]`  
 **Default:** `[]`  
-A list of Django `app_label` strings to exclude from gallery navigation, search, and folder listings. Useful alongside `GALLERY_SHOW_DDS_COMPONENTS = True` when isolating specific apps in the gallery (see [`example_project/settings_dds_gallery.py`](../../example_project/settings_dds_gallery.py)).
+A list of Django `app_label` strings to exclude from gallery navigation, search, and folder listings when `GALLERY_INCLUDE_APPS` is `None`. Built-in framework components (`dj_design_system`) are excluded by default from consumer galleries.
+
+> [!TIP]
+> **Avoiding App Visibility Settings Conflicts**
+> - **Mutual Exclusivity:** Prefer using either `GALLERY_INCLUDE_APPS` (allowlist) or `GALLERY_EXCLUDE_APPS` (denylist), never both simultaneously. When `GALLERY_INCLUDE_APPS` is configured, `GALLERY_EXCLUDE_APPS` is ignored.
+> - **System Checks:** Run `python manage.py check` to catch configuration conflicts before deployment:
+>   - `dj_design_system.E003` (Error): Raised if an app appears in both `GALLERY_INCLUDE_APPS` and `GALLERY_EXCLUDE_APPS`.
+>   - `dj_design_system.W001` (Warning): Raised when both settings are specified, indicating that `GALLERY_EXCLUDE_APPS` is redundant.
+>   - `dj_design_system.W002` (Warning): Raised if a configured app label is not present in `INSTALLED_APPS`.
+
 
 ### `GALLERY_NAV_ORDER`
 **Type:** `list[NodeType] | str`  

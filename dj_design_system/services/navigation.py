@@ -13,11 +13,11 @@ import markdown as markdown_lib
 from django.apps import apps
 from django.urls import reverse
 
-from dj_design_system.data import (
+from dj_design_system.constants import (
     BUILTIN_APP_LABEL,
     BUILTIN_GALLERY_SUBFOLDER,
-    NavNode,
 )
+from dj_design_system.data import NavNode
 from dj_design_system.services import component_dirs as component_dirs_service
 from dj_design_system.services import visibility as visibility_service
 from dj_design_system.services.registry import component_registry
@@ -357,14 +357,15 @@ def _build_navigation(
     if app_component_paths is None:
         app_component_paths = {}
 
-    hidden_apps = visibility_service.get_hidden_apps()
     apps: dict[str, list[ComponentInfo]] = {}
     for info in components:
-        if info.app_label not in hidden_apps:
+        if visibility_service.is_app_visible(app_label=info.app_label):
             apps.setdefault(info.app_label, []).append(info)
 
     for app_label, _path in app_component_paths.items():
-        if app_label not in apps and app_label not in hidden_apps:
+        if app_label not in apps and visibility_service.is_app_visible(
+            app_label=app_label
+        ):
             apps[app_label] = []
 
     result: list[NavNode] = []

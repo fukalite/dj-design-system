@@ -5,6 +5,10 @@ from django.templatetags.static import static
 from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
 
+from dj_design_system.constants import (
+    COMPONENTS_STATIC_FINDER,
+    COMPONENTS_TEMPLATE_LOADER,
+)
 from dj_design_system.data import ComponentMedia
 
 try:
@@ -146,10 +150,6 @@ def build_script_tags(
         else:
             tags.append(format_html('<script{} src="{}"></script>', type_attr, url))
     return mark_safe("\n".join(tags))
-
-
-COMPONENTS_TEMPLATE_LOADER = "dj_design_system.loaders.ComponentsTemplateLoader"
-COMPONENTS_STATIC_FINDER = "dj_design_system.finders.ComponentsStaticFinder"
 
 
 def _contains_loader(loaders: Sequence[Any], target: str) -> bool:

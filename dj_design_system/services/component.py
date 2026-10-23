@@ -1,7 +1,7 @@
 import re
 from typing import Type
 
-from dj_design_system.data import (
+from dj_design_system.constants import (
     BUILTIN_APP_LABEL,
     BUILTIN_GALLERY_SUBFOLDER,
     BUILTIN_PREFIX,
@@ -17,7 +17,7 @@ __all__ = [
     "get_meta_name",
     "get_own_meta",
     "is_abstract",
-    "is_internal",
+    "is_builtin",
 ]
 
 
@@ -43,16 +43,17 @@ def is_abstract(cls: Type) -> bool:
     return getattr(get_own_meta(cls), "abstract", False)
 
 
-def is_internal(cls: Type, app_label: str) -> bool:
-    """Return True if the component is internal.
+def is_builtin(cls: Type, app_label: str | None = None) -> bool:
+    """Return True if the component is built-in to the framework.
 
-    Built-in components (from the ``dj_design_system`` app) are always
-    internal. Any other component is internal when its own ``Meta`` sets
-    ``internal = True``; like other ``Meta`` options, it is not inherited.
+    Built-in components inherit from ``BuiltinComponent`` or originate
+    from ``BUILTIN_APP_LABEL``.
     """
-    return app_label == BUILTIN_APP_LABEL or bool(
-        getattr(get_own_meta(cls), "internal", False)
-    )
+    from dj_design_system.components.base import BuiltinComponent
+
+    return (
+        isinstance(cls, type) and issubclass(cls, BuiltinComponent)
+    ) or app_label == BUILTIN_APP_LABEL
 
 
 def get_meta_name(cls: Type) -> str | None:

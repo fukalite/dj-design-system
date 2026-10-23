@@ -6,14 +6,16 @@ from pathlib import Path
 from typing import Any, Type
 
 from dj_design_system import settings
+from dj_design_system.constants import (
+    BUILTIN_APP_LABEL,
+    BUILTIN_PREFIX,
+)
 from dj_design_system.data import ComponentInfo, ComponentMedia
 from dj_design_system.exceptions import (
     ComponentDoesNotExist,
     MultipleComponentsFound,
 )
 from dj_design_system.services.component import (
-    BUILTIN_APP_LABEL,
-    BUILTIN_PREFIX,
     derive_name,
     derive_relative_path,
     get_meta_name,
@@ -335,17 +337,17 @@ class ComponentRegistry:
     def get_merged_media(self) -> ComponentMedia:
         """Return a single ``ComponentMedia`` merging all public components.
 
-        Internal components are left out, so their CSS and JS never reach
-        consumer pages or canvases. Use :meth:`get_internal_media` for those.
+        Built-in components are left out, so their CSS and JS never reach
+        consumer pages or canvases. Use :meth:`get_builtin_media` for those.
         """
-        return self._merge_media(i for i in self._components if not i.is_internal)
+        return self._merge_media(i for i in self._components if not i.is_builtin)
 
-    def get_internal_media(self) -> ComponentMedia:
-        """Return a single ``ComponentMedia`` merging all internal components."""
+    def get_builtin_media(self) -> ComponentMedia:
+        """Return a single ``ComponentMedia`` merging all built-in components."""
         return self._merge_media(
             i
             for i in self._components
-            if i.is_internal or i.namespace_prefix == BUILTIN_PREFIX
+            if i.is_builtin or i.namespace_prefix == BUILTIN_PREFIX
         )
 
     @staticmethod
@@ -364,7 +366,7 @@ class ComponentRegistry:
         Look up a component by its name.
 
         If ``app_label`` is provided, the search is scoped to that app.
-        Without it, internal components are ignored: pass their
+        Without it, built-in components are ignored: pass their
         ``app_label``, or look them up by qualified name with
         :func:`dj_design_system.services.canvas.resolve_component`.
         Raises ``ComponentDoesNotExist`` if no match is found, and
@@ -373,7 +375,7 @@ class ComponentRegistry:
         if app_label is not None:
             candidates = self.list_by_app(app_label)
         else:
-            candidates = [c for c in self._components if not c.is_internal]
+            candidates = [c for c in self._components if not c.is_builtin]
 
         matches = [c for c in candidates if c.name == name]
 
@@ -425,10 +427,10 @@ class ComponentRegistry:
           ``dj_design_system`` components are registered before consumer apps
           so a consumer app mapping a component to ``dds__<name>`` always
           shadows the built-in component regardless of ``INSTALLED_APPS`` order.
-        * Also registers with the short ``name`` for non-internal components.
+        * Also registers with the short ``name`` for non-built-in components.
           When multiple components share the same short name, the **last one
           discovered wins** — i.e. the one from the app that appears latest in
-          ``INSTALLED_APPS``. Internal components never get a short name, so
+          ``INSTALLED_APPS``. Built-in components never get a short name, so
           they can neither shadow nor be shadowed by another app's short tags.
 
         Args:
@@ -444,7 +446,7 @@ class ComponentRegistry:
             self._register_tag(library, info.qualified_name, info)
 
             # Register short names — last discovered wins
-            if not info.is_internal:
+            if not info.is_builtin:
                 short_names[info.name] = info
 
         for name, info in short_names.items():

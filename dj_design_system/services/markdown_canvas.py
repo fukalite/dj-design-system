@@ -34,12 +34,11 @@ from markdown import Extension
 from markdown.postprocessors import Postprocessor
 from markdown.preprocessors import Preprocessor
 
-from dj_design_system.services import media as media_service
 from dj_design_system.services.canvas_renderer import (
     build_canvas_srcdoc,
+    build_markdown_canvas_media,
     render_canvas_block,
 )
-from dj_design_system.services.registry import component_registry
 
 
 if TYPE_CHECKING:
@@ -153,23 +152,9 @@ class CanvasPreprocessor(Preprocessor):
 
         try:
             rendered_html = render_canvas_block(source)
-            media = component_registry.get_merged_media()
-            css_paths = list(media.css)
-            js_paths = list(media.js)
-            if self.app_label == "dj_design_system":
-                internal_media = component_registry.get_internal_media()
-                css_paths = list(
-                    dict.fromkeys(
-                        [
-                            "dj_design_system/gallery.css",
-                            *internal_media.css,
-                            *css_paths,
-                        ]
-                    )
-                )
-                js_paths = list(dict.fromkeys([*internal_media.js, *js_paths]))
-            component_css = media_service.build_link_tags(css_paths)
-            component_js = media_service.build_script_tags(js_paths)
+            component_css, component_js = build_markdown_canvas_media(
+                app_label=self.app_label
+            )
             srcdoc = build_canvas_srcdoc(
                 rendered_html=rendered_html,
                 component_css=component_css,

@@ -61,6 +61,26 @@ class TestCanvasPreprocessor:
         assert static("myapp/component.css") in result
         assert "%3A" not in result
 
+    def test_builtin_canvas_includes_gallery_css_and_builtin_media(self):
+        """Built-in canvas blocks include gallery.css and builtin media."""
+        import markdown
+
+        media = ComponentMedia(
+            css=["dj_design_system/components/button.css"],
+            js=["dj_design_system/components/button.js"],
+        )
+        md = markdown.Markdown()
+        preprocessor = CanvasPreprocessor(md, app_label="dj_design_system", debug=False)
+        text = '```canvas\n{% button "Click" %}\n```'
+        with patch.object(component_registry, "get_builtin_media", return_value=media):
+            lines = text.split("\n")
+            result = "\n".join(preprocessor.run(lines))
+            for token, html_str in preprocessor.ext_stash.items():
+                result = result.replace(token, html_str)
+        assert "dj_design_system/gallery.css" in result
+        assert "dj_design_system/components/button.css" in result
+        assert "dj_design_system/components/button.js" in result
+
     def test_iframe_has_lazy_loading(self):
         """Iframes should defer loading until near the viewport for performance."""
         text = '```canvas\n{% button "Click" %}\n```'

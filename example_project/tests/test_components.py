@@ -41,7 +41,7 @@ def test_all_components(page, live_server):
         ),
     ]
 
-    components = [c for c in component_registry.list_all() if not c.is_internal]
+    components = [c for c in component_registry.list_all() if not c.is_builtin]
     engine = IterationEngine(
         components=components,
         variants=["basic", "maximal"],

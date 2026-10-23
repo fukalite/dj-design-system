@@ -1,4 +1,4 @@
-"""Tests for internal components (built-ins and ``Meta.internal = True``)."""
+"""Tests for built-in framework components (from dj_design_system or BuiltinComponent)."""
 
 import types
 
@@ -8,9 +8,11 @@ from django import template
 from django.test import override_settings
 
 from dj_design_system.components import TagComponent
+from dj_design_system.components.base import BuiltinComponent
 from dj_design_system.exceptions import ComponentDoesNotExist
-from dj_design_system.services import markdown_canvas
+from dj_design_system.services import canvas_renderer, markdown_canvas
 from dj_design_system.services.canvas import resolve_component
+from dj_design_system.services.component import is_builtin
 from dj_design_system.services.registry import ComponentRegistry
 from dj_design_system.types import FlattenStrategy
 from tests.conftest import discover_app_into_registry
@@ -48,11 +50,8 @@ def _consumer_module() -> types.ModuleType:
         class Media:
             css = "consumer_app/button.css"
 
-    class SecretComponent(TagComponent):
+    class SecretComponent(BuiltinComponent, TagComponent):
         template_format_str = "<span>consumer secret</span>"
-
-        class Meta:
-            internal = True
 
         class Media:
             css = "consumer_app/secret.css"
@@ -83,33 +82,38 @@ def _render(library: template.Library, source: str) -> str:
     return engine.from_string(source).render(template.Context())
 
 
-class TestIsInternal:
-    def test_builtin_component_is_internal(self, internal_registry):
-        assert _info(internal_registry, "dj_design_system", "crumb").is_internal
-
-    def test_meta_internal_marks_consumer_component_internal(self, internal_registry):
-        assert _info(internal_registry, "consumer_app", "secret").is_internal
-
-    def test_regular_consumer_component_is_not_internal(self, internal_registry):
-        assert not _info(internal_registry, "consumer_app", "button").is_internal
-
-    def test_is_internal_is_cached(self, internal_registry):
+class TestIsBuiltin:
+    def test_builtin_component_is_builtin(self, internal_registry):
         info = _info(internal_registry, "dj_design_system", "crumb")
-        assert info.is_internal
-        assert "is_internal" in info.__dict__
+        assert info.is_builtin
 
-    def test_meta_internal_is_not_inherited(self, internal_registry):
+    def test_builtin_component_subclass_marks_builtin(self, internal_registry):
+        info = _info(internal_registry, "consumer_app", "secret")
+        assert info.is_builtin
+
+    def test_regular_consumer_component_is_not_builtin(self, internal_registry):
+        info = _info(internal_registry, "consumer_app", "button")
+        assert not info.is_builtin
+
+    def test_is_builtin_is_cached(self, internal_registry):
+        info = _info(internal_registry, "dj_design_system", "crumb")
+        assert info.is_builtin
+        assert "is_builtin" in info.__dict__
+
+    def test_builtin_component_inheritance(self, internal_registry):
         secret = _info(internal_registry, "consumer_app", "secret").component_class
 
-        class PublicSecret(secret):
+        class ChildSecret(secret):
             pass
 
-        reg = ComponentRegistry()
-        module = types.ModuleType("consumer_app.more")
-        PublicSecret.__module__ = module.__name__
-        module.PublicSecret = PublicSecret
-        reg._discover_module(module, "consumer_app", relative_path="")
-        assert not reg.list_all()[0].is_internal
+        assert is_builtin(ChildSecret)
+
+    def test_meta_internal_is_ignored_on_consumer_component(self):
+        class RegularWithMetaInternal(TagComponent):
+            class Meta:
+                internal = True
+
+        assert not is_builtin(RegularWithMetaInternal)
 
 
 class TestBuiltinQualifiedName:
@@ -262,7 +266,7 @@ class TestMedia:
         assert media.js == []
 
     def test_internal_media_returns_only_internal(self, internal_registry):
-        media = internal_registry.get_internal_media()
+        media = internal_registry.get_builtin_media()
         assert media.css == [
             "dj_design_system/components/fixture_nav/crumb/crumb.css",
             "consumer_app/secret.css",
@@ -275,7 +279,7 @@ class TestMarkdownCanvasMedia:
     def test_canvas_does_not_receive_internal_media(
         self, internal_registry, monkeypatch
     ):
-        monkeypatch.setattr(markdown_canvas, "component_registry", internal_registry)
+        monkeypatch.setattr(canvas_renderer, "component_registry", internal_registry)
         preprocessor = markdown_canvas.CanvasPreprocessor(
             markdown.Markdown(), app_label="", debug=True
         )

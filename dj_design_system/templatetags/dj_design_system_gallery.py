@@ -28,18 +28,18 @@ INDENT_PER_LEVEL_PX = 16
 
 
 @register.simple_tag
-def internal_component_stylesheets() -> str:
+def builtin_component_stylesheets() -> str:
     """Output ``<link>`` tags for all built-in ``dds`` component stylesheets."""
-    media = component_registry.get_internal_media()
+    media = component_registry.get_builtin_media()
     return media_service.build_link_tags(media.css)
 
 
 @register.simple_tag(takes_context=True)
-def internal_component_scripts(
+def builtin_component_scripts(
     context: template.Context | dict | None = None,
 ) -> str:
     """Output ``<script type="module">`` tags for all built-in ``dds`` component scripts."""
-    media = component_registry.get_internal_media()
+    media = component_registry.get_builtin_media()
     request = context.get("request") if context else None
     nonce = getattr(request, "csp_nonce", None) if request else None
     return media_service.build_script_tags(media.js, nonce=nonce, is_module=True)

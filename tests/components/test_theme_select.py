@@ -123,7 +123,7 @@ class TestThemeSelectDiscoveryAndMetadata:
         assert info.component_class is theme_select_module.ThemeSelect
         assert info.qualified_name == QUALIFIED_NAME
         assert info.relative_path == RELATIVE_PATH
-        assert info.is_internal is True
+        assert info.is_builtin is True
         assert info.media.css == [CSS_MEDIA_PATH]
         assert info.media.js == [JS_MEDIA_PATH]
 

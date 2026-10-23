@@ -8,6 +8,7 @@ class DjangoDesignSystemConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
 
     def ready(self) -> None:
+        from dj_design_system import checks as _checks  # noqa: F401
         from dj_design_system import component_registry
         from dj_design_system.services import media as media_service
 

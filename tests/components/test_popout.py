@@ -120,7 +120,7 @@ class TestPopoutDiscoveryAndExports:
         assert popout_info.component_class is popout_module.Popout
         assert popout_info.qualified_name == "dds__popout"
         assert popout_info.relative_path == "gallery.elements.popout"
-        assert popout_info.is_internal is True
+        assert popout_info.is_builtin is True
         assert (
             popout_info.template_name
             == "dj_design_system/components/gallery/elements/popout/popout.html"
@@ -137,7 +137,7 @@ class TestPopoutDiscoveryAndExports:
         assert option_info.component_class is popout_option_module.PopoutOption
         assert option_info.qualified_name == "dds__popout_option"
         assert option_info.relative_path == "gallery.elements.popout_option"
-        assert option_info.is_internal is True
+        assert option_info.is_builtin is True
         assert (
             option_info.template_name
             == "dj_design_system/components/gallery/elements/popout_option/popout_option.html"

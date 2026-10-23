@@ -257,6 +257,13 @@ class BaseComponent:
         return kwargs
 
 
+class BuiltinComponent:
+    """Marker class for built-in framework components.
+
+    Not exported in ``dj_design_system.components.__all__``.
+    """
+
+
 class TagComponent(BaseComponent):
     """A component registered as a Django ``simple_tag``."""
 
