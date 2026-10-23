@@ -488,7 +488,7 @@ class TestBuildCanvasAssetTags:
         theme = Theme(value="default", label="Default")
         media = ComponentMedia(
             css=[],
-            js=["dj_design_system/components/elements/button/button.js"],
+            js=["dj_design_system/components/gallery/elements/button/button.js"],
         )
         _, js_tags = canvas_service.build_canvas_asset_tags(
             theme_dict=theme,

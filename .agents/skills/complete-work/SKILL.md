@@ -120,11 +120,13 @@ Harness the [gemini-reviewer](file:///home/marcel/projects/dj-design-system/.age
 1. Invoke the subagent with the resolved `BASE_REF`:
    ```python
    invoke_subagent(
-       Subagents=[{
-           "TypeName": "gemini-reviewer",
-           "Role": "Local Gemini Reviewer",
-           "Prompt": f"Review the changeset against origin/{BASE_REF}...HEAD following CI review criteria."
-       }]
+       Subagents=[
+           {
+               "TypeName": "gemini-reviewer",
+               "Role": "Local Gemini Reviewer",
+               "Prompt": f"Review the changeset against origin/{BASE_REF}...HEAD following CI review criteria.",
+           }
+       ]
    )
    ```
    *(Scoping to `origin/{BASE_REF}...HEAD` ensures stacked PRs are only audited for their own commits, ignoring upstream parent commits).*

@@ -10,10 +10,10 @@ from django import forms, template
 from django.utils import safestring
 
 from dj_design_system import components, data, gallery, parameters
-from dj_design_system.components.domain import (
+from dj_design_system.components.gallery.domain import (
     params_form as params_form_package,
 )
-from dj_design_system.components.domain.params_form import (
+from dj_design_system.components.gallery.domain.params_form import (
     params_form as params_form_module,
 )
 from dj_design_system.services import canvas as canvas_service
@@ -24,15 +24,20 @@ from tests import conftest
 APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "params_form"
 QUALIFIED_NAME = "dds__params_form"
-RELATIVE_PATH = "domain.params_form"
-TEMPLATE_PATH = "dj_design_system/components/domain/params_form/params_form.html"
-CSS_MEDIA_PATH = "dj_design_system/components/domain/params_form/params_form.css"
-JS_MEDIA_PATH = "dj_design_system/components/domain/params_form/params_form.js"
+RELATIVE_PATH = "gallery.domain.params_form"
+TEMPLATE_PATH = (
+    "dj_design_system/components/gallery/domain/params_form/params_form.html"
+)
+CSS_MEDIA_PATH = (
+    "dj_design_system/components/gallery/domain/params_form/params_form.css"
+)
+JS_MEDIA_PATH = "dj_design_system/components/gallery/domain/params_form/params_form.js"
 
 PARAMS_FORM_DIR = (
     pathlib.Path(__file__).resolve().parent.parent.parent
     / "dj_design_system"
     / "components"
+    / "gallery"
     / "domain"
     / "params_form"
 )
@@ -123,7 +128,7 @@ class TestParamsFormDiscoveryAndMetadata:
     """Verify ParamsForm exports, metadata, media, and registry discovery."""
 
     def test_exported_from_package_init(self) -> None:
-        """Verify ParamsForm is exported in dj_design_system.components.domain.params_form."""
+        """Verify ParamsForm is exported in dj_design_system.components.gallery.domain.params_form."""
         assert params_form_package.ParamsForm is params_form_module.ParamsForm
         assert issubclass(
             params_form_module.ParamsForm,

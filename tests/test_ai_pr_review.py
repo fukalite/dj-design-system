@@ -280,7 +280,11 @@ def test_should_not_skip_normal_open_pr():
         pr_number="42",
         pr_author="alice",
         is_merged="false",
-        pr_info={"merged": False, "user": {"login": "alice"}, "head": {"ref": "feat/foo"}},
+        pr_info={
+            "merged": False,
+            "user": {"login": "alice"},
+            "head": {"ref": "feat/foo"},
+        },
     )
     assert skip is False
     assert reason == ""
@@ -309,7 +313,10 @@ def test_main_skips_when_dependabot_in_env(monkeypatch, capsys):
 
     assert exc_info.value.code == 0
     captured = capsys.readouterr()
-    assert "PR #11 author is dependabot[bot] (Dependabot). Skipping Gemini code review." in captured.out
+    assert (
+        "PR #11 author is dependabot[bot] (Dependabot). Skipping Gemini code review."
+        in captured.out
+    )
 
 
 @patch.object(ai_pr_review, "get_pr_info")
@@ -333,7 +340,9 @@ def test_main_fetches_pr_info_and_skips_merged(mock_get_pr_info, monkeypatch, ca
 
 
 @patch.object(ai_pr_review, "get_pr_info")
-def test_main_fetches_pr_info_and_skips_dependabot(mock_get_pr_info, monkeypatch, capsys):
+def test_main_fetches_pr_info_and_skips_dependabot(
+    mock_get_pr_info, monkeypatch, capsys
+):
     monkeypatch.setenv("REPO", "owner/repo")
     monkeypatch.setenv("PR_NUMBER", "13")
     monkeypatch.setenv("GITHUB_TOKEN", "fake-token")
@@ -350,4 +359,3 @@ def test_main_fetches_pr_info_and_skips_dependabot(mock_get_pr_info, monkeypatch
     assert exc_info.value.code == 0
     captured = capsys.readouterr()
     assert "PR #13 is from Dependabot (author: dependabot[bot]" in captured.out
-

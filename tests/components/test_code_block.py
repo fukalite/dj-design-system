@@ -8,8 +8,10 @@ from django import template
 
 from dj_design_system import data, gallery
 from dj_design_system.components import base as components_base
-from dj_design_system.components.elements import code_block as code_block_package
-from dj_design_system.components.elements.code_block import (
+from dj_design_system.components.gallery.elements import (
+    code_block as code_block_package,
+)
+from dj_design_system.components.gallery.elements.code_block import (
     code_block as code_block_module,
 )
 from dj_design_system.services import canvas as canvas_service
@@ -24,15 +26,20 @@ load_gallery_config = gallery.load_gallery_config
 APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "code_block"
 QUALIFIED_NAME = "dds__code_block"
-RELATIVE_PATH = "elements.code_block"
-TEMPLATE_PATH = "dj_design_system/components/elements/code_block/code_block.html"
-CSS_MEDIA_PATH = "dj_design_system/components/elements/code_block/code_block.css"
-JS_MEDIA_PATH = "dj_design_system/components/elements/code_block/code_block.js"
+RELATIVE_PATH = "gallery.elements.code_block"
+TEMPLATE_PATH = (
+    "dj_design_system/components/gallery/elements/code_block/code_block.html"
+)
+CSS_MEDIA_PATH = (
+    "dj_design_system/components/gallery/elements/code_block/code_block.css"
+)
+JS_MEDIA_PATH = "dj_design_system/components/gallery/elements/code_block/code_block.js"
 
 CODE_BLOCK_DIR = (
     pathlib.Path(__file__).resolve().parent.parent.parent
     / "dj_design_system"
     / "components"
+    / "gallery"
     / "elements"
     / "code_block"
 )
@@ -98,7 +105,7 @@ class TestCodeBlockDiscoveryAndMetadata:
     """Verify CodeBlock class exports, metadata, media, and registry discovery."""
 
     def test_exported_from_package_init(self) -> None:
-        """Verify CodeBlock is exported in dj_design_system.components.elements.code_block."""
+        """Verify CodeBlock is exported in dj_design_system.components.gallery.elements.code_block."""
         assert code_block_package.CodeBlock is code_block_module.CodeBlock
         assert issubclass(code_block_module.CodeBlock, components_base.TagComponent)
 
@@ -235,8 +242,7 @@ class TestCodeBlockRenderingAndTemplate:
         assert "data-copy-trigger" not in html
         assert (
             '<pre><code data-code-content><span class="n">x</span> '
-            '<span class="o">=</span> <span class="mi">1</span></code></pre>'
-            in html
+            '<span class="o">=</span> <span class="mi">1</span></code></pre>' in html
         )
 
     def test_omits_header_when_no_label_and_not_copyable(self) -> None:

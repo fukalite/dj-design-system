@@ -85,6 +85,9 @@ BUILTIN_APP_LABEL = "dj_design_system"
 BUILTIN_PREFIX = "dds"
 """Qualified-name prefix for built-in components, e.g. ``dds__button``."""
 
+BUILTIN_GALLERY_SUBFOLDER = "gallery"
+"""Subfolder under components containing internal gallery components."""
+
 
 @dataclass(frozen=True)
 class ComponentInfo:

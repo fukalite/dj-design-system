@@ -273,4 +273,3 @@ class TestFitViewportToContent:
         )
         clipped = find_clipped_containers(page)
         assert not any(item["name"].startswith("textarea") for item in clipped)
-

@@ -9,8 +9,8 @@ from django.utils import safestring
 
 from dj_design_system import data, gallery
 from dj_design_system.components import base as components_base
-from dj_design_system.components.domain import split_pane as split_pane_package
-from dj_design_system.components.domain.split_pane import (
+from dj_design_system.components.gallery.domain import split_pane as split_pane_package
+from dj_design_system.components.gallery.domain.split_pane import (
     split_pane as split_pane_module,
 )
 from dj_design_system.services import canvas as canvas_service
@@ -22,14 +22,14 @@ from tests import conftest
 APP_LABEL = "dj_design_system"
 COMPONENT_NAME = "split_pane"
 QUALIFIED_NAME = "dds__split_pane"
-RELATIVE_PATH = "domain.split_pane"
-TEMPLATE_PATH = "dj_design_system/components/domain/split_pane/split_pane.html"
-CSS_MEDIA_PATH = "dj_design_system/components/domain/split_pane/split_pane.css"
-JS_MEDIA_PATH = "dj_design_system/components/domain/split_pane/split_pane.js"
+RELATIVE_PATH = "gallery.domain.split_pane"
+TEMPLATE_PATH = "dj_design_system/components/gallery/domain/split_pane/split_pane.html"
+CSS_MEDIA_PATH = "dj_design_system/components/gallery/domain/split_pane/split_pane.css"
+JS_MEDIA_PATH = "dj_design_system/components/gallery/domain/split_pane/split_pane.js"
 
 ROOT_DIR = pathlib.Path(__file__).resolve().parent.parent.parent
 SPLIT_PANE_DIR = (
-    ROOT_DIR / "dj_design_system" / "components" / "domain" / "split_pane"
+    ROOT_DIR / "dj_design_system" / "components" / "gallery" / "domain" / "split_pane"
 )
 SPLIT_PANE_PY_PATH = SPLIT_PANE_DIR / "split_pane.py"
 SPLIT_PANE_HTML_PATH = SPLIT_PANE_DIR / "split_pane.html"
@@ -102,7 +102,7 @@ class TestSplitPaneDiscoveryAndMetadata:
     """Verify SplitPane exports, metadata, media, slots, and registry discovery."""
 
     def test_exported_from_package_init_and_subclasses_block_component(self) -> None:
-        """Verify SplitPane is exported in dj_design_system.components.domain.split_pane."""
+        """Verify SplitPane is exported in dj_design_system.components.gallery.domain.split_pane."""
         assert split_pane_package.SplitPane is split_pane_module.SplitPane
         assert issubclass(
             split_pane_module.SplitPane,
@@ -395,9 +395,7 @@ class TestSplitPaneStylesheet:
         )
         root_props = _extract_defined_properties(block_text="\n".join(root_blocks))
         tier_3_props = {
-            name: value
-            for name, value in root_props.items()
-            if name.startswith("--_")
+            name: value for name, value in root_props.items() if name.startswith("--_")
         }
         assert tier_3_props
         for name, value in tier_3_props.items():
@@ -486,10 +484,7 @@ class TestSplitPaneTypeScriptCustomElement:
         """Verify split_pane.ts defines DDSSplitPaneElement, AbortController, and registration."""
         assert SPLIT_PANE_TS_PATH.is_file()
         ts_text = _read_text(path=SPLIT_PANE_TS_PATH)
-        assert (
-            "import type { DDSCustomElement } from '../../types.js';"
-            in ts_text
-        )
+        assert "import type { DDSCustomElement } from '../../types.js';" in ts_text
         assert "export class DDSSplitPaneElement" in ts_text
         assert "extends HTMLElement" in ts_text
         assert "implements DDSCustomElement {" in ts_text
@@ -498,14 +493,10 @@ class TestSplitPaneTypeScriptCustomElement:
         assert "this.abortController = new AbortController();" in ts_text
         assert "connectedCallback(): void {" in ts_text
         assert "disconnectedCallback(): void {" in ts_text
-        assert (
-            "this.querySelector<HTMLElement>('[data-split-resizer]')"
-            in ts_text
-        )
+        assert "this.querySelector<HTMLElement>('[data-split-resizer]')" in ts_text
         assert "if (!customElements.get('dds-split-pane')) {" in ts_text
         assert (
-            "customElements.define('dds-split-pane', DDSSplitPaneElement);"
-            in ts_text
+            "customElements.define('dds-split-pane', DDSSplitPaneElement);" in ts_text
         )
         assert "attachShadow" not in ts_text
         assert "document.querySelector" not in ts_text
@@ -519,14 +510,8 @@ class TestSplitPaneTypeScriptCustomElement:
     ) -> None:
         """Verify split_pane.ts handles pointer drag, keyboard resize, clamping, and dds:split-resize."""
         ts_text = _read_text(path=SPLIT_PANE_TS_PATH)
-        assert (
-            "Number(this.getAttribute('data-min-ratio') ?? '20') || 20"
-            in ts_text
-        )
-        assert (
-            "Number(this.getAttribute('data-max-ratio') ?? '80') || 80"
-            in ts_text
-        )
+        assert "Number(this.getAttribute('data-min-ratio') ?? '20') || 20" in ts_text
+        assert "Number(this.getAttribute('data-max-ratio') ?? '80') || 80" in ts_text
         assert "this.getAttribute('data-orientation') === 'vertical'" in ts_text
         assert "const STEP_PERCENT = 5;" in ts_text
         assert "this.setAttribute('data-dragging', 'true');" in ts_text
@@ -549,12 +534,8 @@ class TestSplitPaneTypeScriptCustomElement:
         ):
             assert f"'{key}'" in ts_text
         assert "event.preventDefault();" in ts_text
-        assert (
-            "this.style.setProperty('--_split-pane-ratio', `${ratio}%`);"
-            in ts_text
-        )
+        assert "this.style.setProperty('--_split-pane-ratio', `${ratio}%`);" in ts_text
         assert "resizer.setAttribute('aria-valuenow', String(ratio));" in ts_text
         assert "'dds:split-resize'" in ts_text
         assert "bubbles: true" in ts_text
         assert "detail: { ratio, orientation }" in ts_text
-

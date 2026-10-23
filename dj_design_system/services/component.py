@@ -1,11 +1,16 @@
 import re
 from typing import Type
 
-from dj_design_system.data import BUILTIN_APP_LABEL, BUILTIN_PREFIX
+from dj_design_system.data import (
+    BUILTIN_APP_LABEL,
+    BUILTIN_GALLERY_SUBFOLDER,
+    BUILTIN_PREFIX,
+)
 
 
 __all__ = [
     "BUILTIN_APP_LABEL",
+    "BUILTIN_GALLERY_SUBFOLDER",
     "BUILTIN_PREFIX",
     "EmptyMeta",
     "derive_name",

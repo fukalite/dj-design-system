@@ -25,16 +25,16 @@ PYPROJECT_PATH = ROOT_DIR / "pyproject.toml"
 PUBLISH_WORKFLOW_PATH = ROOT_DIR / ".github" / "workflows" / "publish.yml"
 PUBLISH_TEST_WORKFLOW_PATH = ROOT_DIR / ".github" / "workflows" / "publish-test.yml"
 COMPONENTS_DIR = ROOT_DIR / "dj_design_system" / "components"
-SHARED_TYPES_PATH = COMPONENTS_DIR / "types.ts"
+SHARED_TYPES_PATH = COMPONENTS_DIR / "gallery" / "types.ts"
 
-PROBE_COMPONENT_DIR = COMPONENTS_DIR / "elements" / "_ts_probe_widget"
+PROBE_COMPONENT_DIR = COMPONENTS_DIR / "gallery" / "elements" / "_ts_probe_widget"
 PROBE_TS_PATH = PROBE_COMPONENT_DIR / "_ts_probe_widget.ts"
 PROBE_JS_PATH = PROBE_COMPONENT_DIR / "_ts_probe_widget.js"
 PROBE_STATIC_JS_PATH = (
-    "dj_design_system/components/elements/_ts_probe_widget/_ts_probe_widget.js"
+    "dj_design_system/components/gallery/elements/_ts_probe_widget/_ts_probe_widget.js"
 )
 PROBE_STATIC_TS_PATH = (
-    "dj_design_system/components/elements/_ts_probe_widget/_ts_probe_widget.ts"
+    "dj_design_system/components/gallery/elements/_ts_probe_widget/_ts_probe_widget.ts"
 )
 
 PROBE_TS_SOURCE = """/**
@@ -208,13 +208,11 @@ class TestPackageArtifactsAndReleaseWorkflows:
         """Verify Hatch wheel and sdist targets include gitignored component .js bundles."""
         config = tomllib.loads(PYPROJECT_PATH.read_text(encoding="utf-8"))
         targets = config["tool"]["hatch"]["build"]["targets"]
-        assert (
-            "dj_design_system/components/**/*.js"
-            in targets["wheel"].get("artifacts", [])
+        assert "dj_design_system/components/**/*.js" in targets["wheel"].get(
+            "artifacts", []
         )
-        assert (
-            "dj_design_system/components/**/*.js"
-            in targets["sdist"].get("artifacts", [])
+        assert "dj_design_system/components/**/*.js" in targets["sdist"].get(
+            "artifacts", []
         )
 
     @pytest.mark.parametrize(
@@ -237,4 +235,3 @@ class TestPackageArtifactsAndReleaseWorkflows:
         assert tsc_pos < build_pos, (
             f"{workflow_path.name} must compile TypeScript before uv build"
         )
-

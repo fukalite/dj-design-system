@@ -4,7 +4,7 @@ Tests hidden filtering, icon propagation, order sorting, group sub-folders,
 and variant child nodes in the navigation tree.
 """
 
-from dj_design_system.components.domain.nav_tree.nav_tree import NavTree
+from dj_design_system.components.gallery.domain.nav_tree.nav_tree import NavTree
 from dj_design_system.data import ComponentInfo
 from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.services.navigation import (
@@ -178,6 +178,24 @@ class TestNavigationGroup:
         assert inputs_folder.label == "Inputs"
         assert inputs_folder.children[0].slug == "text_input"
 
+    def test_collapsed_component_with_custom_group_does_not_conflict_raw_path(self):
+        grouped = make_info_with_config(
+            "button",
+            GalleryConfig(group="Actions"),
+            relative_path="button",
+        )
+        normal = make_info_with_config(
+            "button_other",
+            GalleryConfig(),
+            relative_path="button",
+        )
+        tree = _build_navigation([grouped, normal])
+        app_node = tree[0]
+        actions_folder = next(c for c in app_node.children if c.slug == "actions")
+        assert any(c.slug == "button" for c in actions_folder.children)
+        button_folder = next(c for c in app_node.children if c.slug == "button")
+        assert any(c.slug == "button_other" for c in button_folder.children)
+
 
 class TestNavigationVariants:
     """Tests for variant child nodes in navigation."""
@@ -288,18 +306,14 @@ class TestNavTreeTemplate:
         info = make_info_with_config("button", GalleryConfig(icon="eye"))
         tree = _build_navigation([info])
 
-        html = NavTree(
-            nodes=tree, active_path="", active_variant=""
-        ).render()
+        html = NavTree(nodes=tree, active_path="", active_variant="").render()
         assert 'data-icon="eye"' in html
 
     def test_unknown_custom_icon_falls_back_to_component_icon(self):
         info = make_info_with_config("button", GalleryConfig(icon="mdi-star"))
         tree = _build_navigation([info])
 
-        html = NavTree(
-            nodes=tree, active_path="", active_variant=""
-        ).render()
+        html = NavTree(nodes=tree, active_path="", active_variant="").render()
         assert 'data-icon="component"' in html
 
     def test_variant_child_links_render(self):
@@ -312,9 +326,7 @@ class TestNavTreeTemplate:
         info = make_info_with_config("button", config)
         tree = _build_navigation([info])
 
-        html = NavTree(
-            nodes=tree, active_path="", active_variant=""
-        ).render()
+        html = NavTree(nodes=tree, active_path="", active_variant="").render()
         assert 'data-variant-link="true"' in html
         assert "?variant=primary" in html
         assert "?variant=danger" in html
@@ -350,18 +362,13 @@ class TestNavTreeTemplate:
         info = make_info_with_config("button", config)
         tree = _build_navigation([info])
 
-        html = NavTree(
-            nodes=tree, active_path="", active_variant=""
-        ).render()
-        assert 'data-icon="folder"' in html
+        html = NavTree(nodes=tree, active_path="", active_variant="").render()
+        assert 'data-icon="component"' in html
         assert 'data-icon="code"' in html
 
     def test_component_without_variants_icon_renders(self):
         info = make_info_with_config("button", GalleryConfig())
         tree = _build_navigation([info])
 
-        html = NavTree(
-            nodes=tree, active_path="", active_variant=""
-        ).render()
+        html = NavTree(nodes=tree, active_path="", active_variant="").render()
         assert 'data-icon="component"' in html
-
