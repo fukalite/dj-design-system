@@ -4,6 +4,7 @@ import pytest
 
 from dj_design_system.components import BlockComponent, TagComponent
 from dj_design_system.data import BLOCK_CONTENT_PLACEHOLDER
+from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.parameters import (
     BoolCSSClassParam,
     BoolParam,
@@ -14,6 +15,7 @@ from dj_design_system.parameters.base import BaseParam
 from dj_design_system.services.tag_signature import (
     generate_current_tag_signature,
     generate_tag_signature,
+    generate_usage_examples,
 )
 from dj_design_system.slots import Slot
 
@@ -646,3 +648,275 @@ class TestBlockContentFromGalleryConfig:
             )
         finally:
             component_registry._components.remove(info)
+
+
+class OptionalSlotCard(BlockComponent):
+    title = StrParam("Title", required=False)
+
+    class Meta:
+        slots = {
+            "body": Slot(required=True),
+            "footer": Slot(required=False),
+        }
+
+
+class OptionalParamsComponent(TagComponent):
+    template_format_str = "<p>{label} {size} {note}</p>"
+    label = StrParam("Label")
+    size = StrParam("Size", required=False, default="small")
+    note = StrParam("Note", required=False)
+    heading = StrParam("Heading", required=True)
+
+    class Meta:
+        positional_args = ["label", "note"]
+
+
+def _custom_param_factory(*, param_spec, param_name: str, index: int):
+    del param_spec, index
+    return f"factory_{param_name}"
+
+
+def _custom_slot_factory(*, slot, slot_name: str):
+    del slot
+    return f"Factory {slot_name}"
+
+
+class TestExplicitVariantSlotsAndParams:
+    """Explicitly defined variants follow their definition strictly with zero guesswork."""
+
+    def test_omitted_optional_slot_not_rendered(self, register_gallery_component):
+        register_gallery_component(
+            OptionalSlotCard,
+            "optional_slot_card",
+            GalleryConfig(
+                variants=[
+                    Variant(
+                        name="maximal",
+                        kwargs={"title": "Hello", "slot__body": "Body text"},
+                    ),
+                ]
+            ),
+        )
+
+        sig = generate_tag_signature(OptionalSlotCard)
+
+        assert '{% slot "body" %}Body text{% endslot %}' in sig.maximal
+        assert '{% slot "footer" %}' not in sig.maximal
+        assert sig.maximal_spec.params.get("slot__body") == "Body text"
+        assert "slot__footer" not in sig.maximal_spec.params
+
+    def test_omitted_required_slot_raises_value_error(self, register_gallery_component):
+        register_gallery_component(
+            OptionalSlotCard,
+            "optional_slot_card",
+            GalleryConfig(variants=[Variant(name="maximal", kwargs={"title": "Hi"})]),
+        )
+
+        with pytest.raises(ValueError, match="missing required slot 'body'"):
+            generate_tag_signature(OptionalSlotCard)
+
+    def test_without_maximal_variant_all_slots_filled(self, register_gallery_component):
+        register_gallery_component(
+            OptionalSlotCard, "optional_slot_card", GalleryConfig()
+        )
+
+        sig = generate_tag_signature(OptionalSlotCard)
+
+        assert '{% slot "footer" %}Sample footer content{% endslot %}' in sig.maximal
+        assert sig.maximal_spec.params.get("slot__footer") == "Sample footer content"
+
+    def test_omitted_optional_params_not_generated(self, register_gallery_component):
+        register_gallery_component(
+            OptionalParamsComponent,
+            "optional_params",
+            GalleryConfig(
+                variants=[
+                    Variant(
+                        name="maximal",
+                        kwargs={"label": "Hello", "heading": "Title"},
+                    ),
+                ]
+            ),
+        )
+
+        sig = generate_tag_signature(OptionalParamsComponent)
+
+        assert sig.maximal == '{% optional_params "Hello" heading="Title" %}'
+        assert sig.maximal_spec.positional_args == ("Hello",)
+        assert sig.maximal_spec.params == {"heading": "Title"}
+
+    def test_omitted_required_params_raises_value_error(
+        self, register_gallery_component
+    ):
+        register_gallery_component(
+            OptionalParamsComponent,
+            "optional_params",
+            GalleryConfig(variants=[Variant(name="maximal", kwargs={"size": "big"})]),
+        )
+
+        with pytest.raises(ValueError, match="missing required parameter 'label'"):
+            generate_tag_signature(OptionalParamsComponent)
+
+    def test_without_maximal_variant_all_params_generated(
+        self, register_gallery_component
+    ):
+        register_gallery_component(
+            OptionalParamsComponent, "optional_params", GalleryConfig()
+        )
+
+        sig = generate_tag_signature(OptionalParamsComponent)
+
+        assert 'size="small"' in sig.maximal
+        assert "heading=" in sig.maximal
+        assert len(sig.maximal_spec.positional_args) == 2
+
+
+class TestGenerateUsageExamples:
+    """Tests for generate_usage_examples resolution, suppression, and strategies."""
+
+    def test_default_global_variants_remain_when_other_variant_defined(
+        self, register_gallery_component
+    ):
+        register_gallery_component(
+            OptionalParamsComponent,
+            "optional_params",
+            GalleryConfig(
+                variants=[
+                    Variant(
+                        name="custom_doc",
+                        label="Custom Doc Example",
+                        description="Shown in docs.",
+                        kwargs={"label": "Custom", "heading": "Head"},
+                        show_in_docs=True,
+                    ),
+                    Variant(
+                        name="nav_only",
+                        label="Nav Only",
+                        kwargs={"label": "Nav", "heading": "Head"},
+                    ),
+                ]
+            ),
+        )
+
+        examples = generate_usage_examples(component_class=OptionalParamsComponent)
+        assert [ex.name for ex in examples] == ["basic", "maximal", "custom_doc"]
+        assert [ex.label for ex in examples] == [
+            "Minimal example",
+            "All parameters",
+            "Custom Doc Example",
+        ]
+        assert examples[2].description == "Shown in docs."
+
+    def test_component_level_doc_variants_suppression_and_selection(
+        self, register_gallery_component
+    ):
+        register_gallery_component(
+            OptionalParamsComponent,
+            "optional_params",
+            GalleryConfig(
+                doc_variants={"maximal": False},
+                variants=[
+                    Variant(
+                        name="basic",
+                        kwargs={"label": "Only Basic", "heading": "H"},
+                    ),
+                ],
+            ),
+        )
+
+        examples = generate_usage_examples(component_class=OptionalParamsComponent)
+        assert [ex.name for ex in examples] == ["basic"]
+        assert examples[0].code == '{% optional_params "Only Basic" heading="H" %}'
+
+    def test_component_level_doc_variants_sequence_includes_custom_and_builtin(
+        self, register_gallery_component
+    ):
+        register_gallery_component(
+            OptionalSlotCard,
+            "optional_slot_card",
+            GalleryConfig(
+                doc_variants=["basic", "all_slots", "with_footer"],
+                variants=[
+                    Variant(
+                        name="with_footer",
+                        label="Footer Example",
+                        kwargs={
+                            "title": "Card",
+                            "slot__body": "Body",
+                            "slot__footer": "Footer text",
+                        },
+                    ),
+                ],
+            ),
+        )
+        examples = generate_usage_examples(component_class=OptionalSlotCard)
+        assert [ex.name for ex in examples] == ["basic", "all_slots", "with_footer"]
+        assert [ex.label for ex in examples] == [
+            "Minimal example",
+            "All slots",
+            "Footer Example",
+        ]
+
+    def test_defaults_and_all_slots_strategies_and_factories(
+        self, settings, register_gallery_component
+    ):
+        settings.DJ_DESIGN_SYSTEM = {
+            "GALLERY_DOC_VARIANTS": {
+                "minimal": {"show_in_docs": False},
+                "maximal": {"show_in_docs": False},
+                "defaults": {
+                    "show_in_docs": True,
+                    "param_factory": _custom_param_factory,
+                },
+                "all_slots": {
+                    "show_in_docs": True,
+                    "slot_factory": _custom_slot_factory,
+                },
+            }
+        }
+        register_gallery_component(
+            OptionalSlotCard, "optional_slot_card", GalleryConfig()
+        )
+        examples = generate_usage_examples(component_class=OptionalSlotCard)
+        assert [ex.name for ex in examples] == ["defaults", "all_slots"]
+        assert "Factory body" in examples[1].code
+        assert "Factory footer" in examples[1].code
+
+        register_gallery_component(
+            OptionalParamsComponent, "optional_params", GalleryConfig()
+        )
+        param_examples = generate_usage_examples(
+            component_class=OptionalParamsComponent
+        )
+        defaults_ex = param_examples[0]
+        assert 'size="small"' in defaults_ex.code
+        assert "note" not in defaults_ex.code
+        assert "factory_label" in defaults_ex.code
+        assert 'heading="factory_heading"' in defaults_ex.code
+
+    def test_global_disable_applies_to_implicit_variant_unless_explicitly_enabled(
+        self, settings, register_gallery_component
+    ):
+        register_gallery_component(
+            OptionalParamsComponent,
+            "optional_params",
+            GalleryConfig(
+                variants=[
+                    Variant(
+                        name="basic",
+                        kwargs={"label": "Basic", "heading": "H"},
+                    ),
+                    Variant(
+                        name="maximal",
+                        kwargs={"label": "Max", "heading": "H", "size": "large"},
+                    ),
+                ]
+            ),
+        )
+        settings.DJ_DESIGN_SYSTEM = {
+            "GALLERY_DOC_VARIANTS": {
+                "maximal": {"show_in_docs": False},
+            }
+        }
+        examples = generate_usage_examples(component_class=OptionalParamsComponent)
+        assert [ex.name for ex in examples] == ["basic"]

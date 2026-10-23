@@ -1,0 +1,26 @@
+.callout {
+  border-left: 4px solid #64748b;
+  background: #f8fafc;
+  color: #1e293b;
+  padding: 1rem 1.25rem;
+  font-family: system-ui, sans-serif;
+}
+
+.callout.success {
+  border-left-color: #15803d;
+  background: #f0fdf4;
+}
+
+.callout.warning {
+  border-left-color: #b45309;
+  background: #fffbeb;
+}
+
+.callout__title {
+  margin: 0 0 0.25rem;
+  font-weight: 600;
+}
+
+.callout__actions {
+  margin-top: 0.75rem;
+}

@@ -259,11 +259,7 @@ class _AppTreeBuilder:
                         path=".".join(path_parts[: depth + 1]),
                     )
                 )
-                order = (
-                    FOLDER_ORDER_MAP.get(path_parts[depth], 0)
-                    if is_builtin
-                    else 0
-                )
+                order = FOLDER_ORDER_MAP.get(path_parts[depth], 0) if is_builtin else 0
                 node = NavNode(
                     label=label,
                     slug=path_parts[depth],
@@ -277,8 +273,9 @@ class _AppTreeBuilder:
 
     def _attach_variants(self, node: NavNode, info: ComponentInfo) -> None:
         """Attach visible variants as child nodes under a component node."""
+        comp_doc_variants = info.gallery_config.get_doc_variants()
         for i, variant in enumerate(info.gallery_config.variants):
-            if variant.show_in_nav:
+            if variant.is_shown_in_nav(doc_variants=comp_doc_variants):
                 variant_node = NavNode(
                     label=variant.label or to_display_label(variant.name),
                     slug=variant.name,
