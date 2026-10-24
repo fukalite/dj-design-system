@@ -53,6 +53,7 @@ class NavItemInputData:
     has_children: bool | None
     has_index_doc: bool
     child_count: int | None
+    has_variants: bool | None = None
 
     @classmethod
     def from_raw(
@@ -89,6 +90,7 @@ class NavItemInputData:
         raw_is_document = _get_field(raw_node, "is_document")
         raw_is_variant = _get_field(raw_node, "is_variant")
         raw_has_children = _get_field(raw_node, "has_children")
+        raw_has_variants = _get_field(raw_node, "has_variants")
         raw_has_index_doc = _get_field(raw_node, "has_index_doc")
         if raw_has_index_doc is None:
             raw_has_index_doc = _get_field(raw_node, "index_doc_path") is not None
@@ -108,6 +110,27 @@ class NavItemInputData:
             and not isinstance(raw_child_count, bool)
             else None
         )
+        if raw_has_variants is not None:
+            has_variants: bool | None = bool(raw_has_variants)
+        else:
+            has_variants = any(
+                bool(_get_field(c, "is_variant"))
+                or str(
+                    getattr(
+                        _get_field(c, "node_type")
+                        or _get_field(c, "type")
+                        or _get_field(c, "node_kind")
+                        or "",
+                        "value",
+                        _get_field(c, "node_type")
+                        or _get_field(c, "type")
+                        or _get_field(c, "node_kind")
+                        or "",
+                    )
+                ).lower()
+                == "variant"
+                for c in children
+            )
         return cls(
             label=str(raw_label) if raw_label is not None else "",
             slug=str(raw_slug) if raw_slug is not None else "",
@@ -127,6 +150,7 @@ class NavItemInputData:
             else None,
             has_index_doc=bool(raw_has_index_doc),
             child_count=child_count,
+            has_variants=has_variants,
         )
 
 
@@ -774,7 +798,7 @@ def normalize_folder_items(
 
         if parsed.is_component or parsed.node_type == "component":
             node_kind = "component"
-            icon = "component-variants" if parsed.has_children else "component"
+            icon = "component-variants" if parsed.has_variants else "component"
             badge_label = "Component"
             badge_variant = "info"
         elif parsed.is_document or parsed.node_type in ("document", "doc"):

@@ -5,12 +5,13 @@ and variant child nodes in the navigation tree.
 """
 
 from dj_design_system.components.gallery.composites.nav_tree.nav_tree import NavTree
-from dj_design_system.data import ComponentInfo
+from dj_design_system.data import ComponentInfo, NavNode
 from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.services.navigation import (
     NodeType,
     _build_navigation,
     build_search_index,
+    normalize_folder_items,
 )
 from tests.conftest import make_info
 
@@ -372,3 +373,42 @@ class TestNavTreeTemplate:
 
         html = NavTree(nodes=tree, active_path="", active_variant="").render()
         assert 'data-icon="component"' in html
+
+    def test_component_with_document_child_renders_component_icon_not_variants(self):
+        """A component node whose only child is a document gets component icon, not component-variants."""
+        info = make_info_with_config("button", GalleryConfig())
+        tree = _build_navigation([info])
+        btn_node = tree[0].children[0]
+        doc_child = NavNode(
+            label="Overview",
+            slug="overview",
+            node_type=NodeType.DOCUMENT,
+            url="/gallery/test_app/button/overview/",
+            active_path="test_app/button/overview",
+        )
+        btn_node.children.append(doc_child)
+
+        assert btn_node.has_children is True
+        assert btn_node.has_variants is False
+
+        html = NavTree(nodes=tree, active_path="", active_variant="").render()
+        assert 'data-icon="component-variants"' not in html
+        assert 'data-icon="component"' in html
+
+    def test_component_with_document_child_in_normalize_folder_items(self):
+        """normalize_folder_items yields 'component' icon when only child is a document."""
+        info = make_info_with_config("button", GalleryConfig())
+        tree = _build_navigation([info])
+        btn_node = tree[0].children[0]
+        doc_child = NavNode(
+            label="Overview",
+            slug="overview",
+            node_type=NodeType.DOCUMENT,
+            url="/gallery/test_app/button/overview/",
+            active_path="test_app/button/overview",
+        )
+        btn_node.children.append(doc_child)
+
+        items = normalize_folder_items(items=[btn_node])
+        assert items[0]["icon"] == "component"
+        assert items[0]["node_kind"] == "component"
