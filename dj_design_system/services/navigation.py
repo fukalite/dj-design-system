@@ -23,6 +23,7 @@ from dj_design_system.constants import (
 from dj_design_system.data import NavNode
 from dj_design_system.services import component_dirs as component_dirs_service
 from dj_design_system.services import visibility as visibility_service
+from dj_design_system.services.markdown import extract_frontmatter
 from dj_design_system.services.registry import component_registry
 from dj_design_system.settings import dds_settings
 from dj_design_system.types import NodeType
@@ -132,6 +133,7 @@ class NavItemInputData:
 
 FOLDER_ORDER_MAP: dict[str, int] = {
     "about": -10,
+    "foundations": -10,
     "areas": -5,
     "areas_and_panes": -5,
     "docs": 1,
@@ -168,6 +170,16 @@ DOC_ORDER_MAP: dict[str, int] = {
     "folder": 1,
     "index_pane": 2,
 }
+
+
+def _read_markdown_frontmatter(md_path: Path) -> dict[str, Any]:
+    """Read and extract frontmatter from a markdown file, returning an empty dict on OSError."""
+    try:
+        content = md_path.read_text(encoding="utf-8")
+        meta, _ = extract_frontmatter(content)
+        return meta
+    except OSError:
+        return {}
 
 
 _SEARCH_INDEX_CACHE_MAXSIZE = 32
@@ -247,23 +259,31 @@ class _AppTreeBuilder:
         """Return the node at *path_parts*, creating intermediate folders as needed."""
         current = self.root
         is_builtin = self.root.slug == BUILTIN_APP_LABEL
+        directories = (dds_settings.COMPONENT_DIRECTORIES or {}).get(self.root.slug, {})
         for depth in range(len(path_parts)):
             path_key = "/".join(path_parts[: depth + 1])
             if path_key not in self._nodes_by_path:
+                dot_path = ".".join(path_parts[: depth + 1])
+                dir_config = (
+                    directories.get(dot_path) if isinstance(directories, dict) else None
+                )
                 label = (
                     labels_by_depth[depth]
                     if labels_by_depth and depth in labels_by_depth
                     else to_display_label(
                         path_parts[depth],
                         app_label=self.root.slug,
-                        path=".".join(path_parts[: depth + 1]),
+                        path=dot_path,
                     )
                 )
-                order = (
-                    FOLDER_ORDER_MAP.get(path_parts[depth], 0)
-                    if is_builtin
-                    else 0
-                )
+                if isinstance(dir_config, dict) and isinstance(
+                    dir_config.get("order"), int
+                ):
+                    order = dir_config["order"]
+                else:
+                    order = (
+                        FOLDER_ORDER_MAP.get(path_parts[depth], 0) if is_builtin else 0
+                    )
                 node = NavNode(
                     label=label,
                     slug=path_parts[depth],
@@ -352,15 +372,50 @@ class _AppTreeBuilder:
     def add_markdown(self, dir_parts: list[str], md_path: Path) -> None:
         """Add a markdown file to the tree."""
         parent = self.get_or_create_folder(dir_parts)
+        frontmatter = _read_markdown_frontmatter(md_path)
 
         if md_path.name.lower() == "index.md":
             parent.index_doc_path = md_path
+
+            directories = (dds_settings.COMPONENT_DIRECTORIES or {}).get(
+                self.root.slug, {}
+            )
+            dot_path = ".".join(dir_parts)
+            dir_config = (
+                directories.get(dot_path)
+                if dot_path
+                else (directories.get("") if isinstance(directories, dict) else None)
+            )
+            has_dir_order = isinstance(dir_config, dict) and isinstance(
+                dir_config.get("order"), int
+            )
+            has_dir_label = isinstance(dir_config, dict) and (
+                "label" in dir_config or "title" in dir_config
+            )
+
+            if not has_dir_order and isinstance(frontmatter.get("order"), int):
+                parent.order = frontmatter["order"]
+
+            raw_label = frontmatter.get("label") or frontmatter.get("title")
+            if not has_dir_label and raw_label is not None:
+                parent.label = str(raw_label)
         else:
             stem = md_path.stem
             is_builtin = self.root.slug == BUILTIN_APP_LABEL
-            order = DOC_ORDER_MAP.get(stem, 0) if is_builtin else 0
+
+            if isinstance(frontmatter.get("order"), int):
+                order = frontmatter["order"]
+            else:
+                order = DOC_ORDER_MAP.get(stem, 0) if is_builtin else 0
+
+            raw_label = frontmatter.get("label") or frontmatter.get("title")
+            if raw_label is not None:
+                label = str(raw_label)
+            else:
+                label = to_display_label(stem, app_label=self.root.slug)
+
             node = NavNode(
-                label=to_display_label(stem, app_label=self.root.slug),
+                label=label,
                 slug=stem,
                 node_type=NodeType.DOCUMENT,
                 doc_path=md_path,
@@ -532,10 +587,19 @@ def _build_navigation(
 
     result: list[NavNode] = []
     for app_label in sorted(apps):
+        directories = (dds_settings.COMPONENT_DIRECTORIES or {}).get(app_label, {})
+        root_config = directories.get("") if isinstance(directories, dict) else None
+        app_order = (
+            root_config["order"]
+            if isinstance(root_config, dict)
+            and isinstance(root_config.get("order"), int)
+            else 0
+        )
         app_node = NavNode(
             label=to_display_label(app_label, app_label=app_label),
             slug=app_label,
             node_type=NodeType.APP,
+            order=app_order,
         )
 
         builder = _AppTreeBuilder(app_node)
@@ -558,7 +622,6 @@ def _build_navigation(
         _sort_children(app_node)
         _annotate_paths(app_node)
 
-        directories = (dds_settings.COMPONENT_DIRECTORIES or {}).get(app_label, {})
         promoted_nodes: list[NavNode] = []
 
         def _extract_promoted(node: NavNode, current_path: str) -> None:
@@ -568,11 +631,17 @@ def _build_navigation(
                     f"{current_path}.{child.slug}" if current_path else child.slug
                 )
 
-                alias_config = directories.get(child_path)
+                alias_config = (
+                    directories.get(child_path)
+                    if isinstance(directories, dict)
+                    else None
+                )
                 if isinstance(alias_config, dict) and alias_config.get(
                     "promote_to_app"
                 ):
                     child.node_type = NodeType.APP
+                    if isinstance(alias_config.get("order"), int):
+                        child.order = alias_config["order"]
                     promoted_nodes.append(child)
                 else:
                     _extract_promoted(child, child_path)
@@ -585,6 +654,7 @@ def _build_navigation(
             result.append(app_node)
         result.extend(promoted_nodes)
 
+    result.sort(key=lambda node: (node.order, node.slug.lower()))
     for node in result:
         _annotate_paths(node)
 

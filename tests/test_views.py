@@ -415,7 +415,7 @@ class TestGalleryComponentView:
         content = response.content.decode("utf-8")
         assert 'href="/static/css/cyber.css"' in content
         assert 'src="/static/js/cyber.js"' in content
-        assert 'cyber-dark.css' not in content
+        assert "cyber-dark.css" not in content
 
         # In dark mode
         client.cookies["dds_gallery_theme"] = "dark"
@@ -469,7 +469,6 @@ class TestGalleryComponentView:
         assert 'data-supports-dark-mode="true"' in content
         assert 'data-action="toggle-consumer-color-scheme"' in content
         assert 'data-action="toggle-consumer-color-scheme" disabled' not in content
-
 
     def test_component_renders_section_headings_and_dividers(self, client):
         url = reverse(

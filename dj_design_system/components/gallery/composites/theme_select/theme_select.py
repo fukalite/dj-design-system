@@ -88,12 +88,8 @@ class ThemeSelect(components.TagComponent):
                     ThemeOption(value=str(raw_item[0]), label=str(raw_item[1]))
                 )
             elif isinstance(raw_item, str):
-                label_text = (
-                    raw_item.capitalize() if raw_item.islower() else raw_item
-                )
-                extracted_options.append(
-                    ThemeOption(value=raw_item, label=label_text)
-                )
+                label_text = raw_item.capitalize() if raw_item.islower() else raw_item
+                extracted_options.append(ThemeOption(value=raw_item, label=label_text))
             elif isinstance(raw_item, dict):
                 raw_val = raw_item.get("value")
                 raw_lbl = raw_item.get("label")
@@ -103,9 +99,7 @@ class ThemeSelect(components.TagComponent):
                     if raw_lbl is not None
                     else (val_str.capitalize() if val_str.islower() else val_str)
                 )
-                extracted_options.append(
-                    ThemeOption(value=val_str, label=lbl_str)
-                )
+                extracted_options.append(ThemeOption(value=val_str, label=lbl_str))
             else:
                 raw_val = getattr(raw_item, "value", None)
                 raw_lbl = getattr(raw_item, "label", None)
@@ -115,9 +109,7 @@ class ThemeSelect(components.TagComponent):
                     if raw_lbl is not None
                     else (val_str.capitalize() if val_str.islower() else val_str)
                 )
-                extracted_options.append(
-                    ThemeOption(value=val_str, label=lbl_str)
-                )
+                extracted_options.append(ThemeOption(value=val_str, label=lbl_str))
 
         theme_values = [opt.value for opt in extracted_options]
         if self.active_theme and self.active_theme in theme_values:

@@ -1,3 +1,6 @@
+---
+order: 2
+---
 # Sidebar Area
 
 - **Template Path**: `dj_design_system/templates/dj_design_system/gallery/areas/sidebar.html`

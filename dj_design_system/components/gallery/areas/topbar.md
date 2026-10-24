@@ -1,3 +1,6 @@
+---
+order: 1
+---
 # Topbar Area
 
 - **Template Path**: `dj_design_system/templates/dj_design_system/gallery/areas/topbar.html`

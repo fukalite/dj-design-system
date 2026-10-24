@@ -1,3 +1,7 @@
+---
+order: 2
+label: Index
+---
 # Index Template
 
 - **Template Path**: `dj_design_system/templates/dj_design_system/gallery/panes/index.html`

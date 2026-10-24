@@ -1,3 +1,6 @@
+---
+order: 1
+---
 # Documentation Header Area
 
 - **Template Path**: `dj_design_system/templates/dj_design_system/gallery/panes/docs/header.html`
