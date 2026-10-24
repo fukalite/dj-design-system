@@ -1,3 +1,6 @@
+---
+order: 3
+---
 # Tabs Area
 
 - **Template Path**: `dj_design_system/templates/dj_design_system/gallery/areas/tabs.html`

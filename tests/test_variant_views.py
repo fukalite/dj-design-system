@@ -278,4 +278,3 @@ class TestVariantViews:
             assert "Detailed+alert+body" in response.context["maximal_preview_url"]
         finally:
             component_registry._components.remove(info)
-

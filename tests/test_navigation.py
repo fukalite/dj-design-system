@@ -1,5 +1,6 @@
 """Tests for the gallery navigation tree builder."""
 
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -9,6 +10,7 @@ from dj_design_system.components.gallery.composites.nav_tree.nav_tree import Nav
 from dj_design_system.data import ComponentInfo, NavNode
 from dj_design_system.services.navigation import (
     NodeType,
+    _AppTreeBuilder,
     _build_navigation,
     _discover_markdown_files,
     _effective_path_parts,
@@ -1297,3 +1299,133 @@ def test_consumer_app_ignores_builtin_folder_and_doc_maps(tmp_path):
     builder.add_markdown(["about"], md_file)
     assert about_folder.children[0].order == 0
 
+
+class TestNavigationFrontmatterOrdering:
+    """Tests for frontmatter ordering and labels in navigation documents and folders."""
+
+    def test_document_frontmatter_order_and_label(self, tmp_path):
+        doc1 = tmp_path / "doc_b.md"
+        doc1.write_text(
+            "---\norder: 10\ntitle: Second Doc\n---\n# Doc B", encoding="utf-8"
+        )
+        doc2 = tmp_path / "doc_a.md"
+        doc2.write_text(
+            "---\norder: -5\nlabel: First Doc\n---\n# Doc A", encoding="utf-8"
+        )
+
+        app_node = NavNode(label="App", slug="app", node_type=NodeType.APP)
+        builder = _AppTreeBuilder(app_node)
+        builder.add_markdown(["guides"], doc1)
+        builder.add_markdown(["guides"], doc2)
+
+        guides = app_node.children[0]
+        assert len(guides.children) == 2
+        from dj_design_system.services.navigation import _sort_children
+
+        _sort_children(app_node)
+
+        assert guides.children[0].label == "First Doc"
+        assert guides.children[0].order == -5
+        assert guides.children[1].label == "Second Doc"
+        assert guides.children[1].order == 10
+
+    def test_index_md_frontmatter_sets_folder_order_and_label(self, tmp_path):
+        index_md = tmp_path / "index.md"
+        index_md.write_text(
+            "---\norder: 42\ntitle: Custom Folder Title\n---\n# Index",
+            encoding="utf-8",
+        )
+
+        app_node = NavNode(label="App", slug="app", node_type=NodeType.APP)
+        builder = _AppTreeBuilder(app_node)
+        builder.add_markdown(["my_folder"], index_md)
+
+        folder = app_node.children[0]
+        assert folder.order == 42
+        assert folder.label == "Custom Folder Title"
+        assert folder.index_doc_path == index_md
+
+    def test_component_directories_order_overrides_index_md(self, tmp_path):
+        index_md = tmp_path / "index.md"
+        index_md.write_text(
+            "---\norder: 42\nlabel: Frontmatter Label\n---\n# Index",
+            encoding="utf-8",
+        )
+
+        app_node = NavNode(label="App", slug="app", node_type=NodeType.APP)
+        with override_settings(
+            DJ_DESIGN_SYSTEM={
+                "COMPONENT_DIRECTORIES": {
+                    "app": {
+                        "my_folder": {
+                            "order": 5,
+                            "label": "Settings Label",
+                        }
+                    }
+                }
+            }
+        ):
+            builder = _AppTreeBuilder(app_node)
+            builder.add_markdown(["my_folder"], index_md)
+
+            folder = app_node.children[0]
+            assert folder.order == 5
+            assert folder.label == "Settings Label"
+
+    def test_nonexistent_markdown_file_handled_gracefully(self):
+        app_node = NavNode(label="App", slug="app", node_type=NodeType.APP)
+        builder = _AppTreeBuilder(app_node)
+        # Should not raise FileNotFoundError or OSError
+        builder.add_markdown(["guides"], Path("nonexistent.md"))
+        guides = app_node.children[0]
+        assert len(guides.children) == 1
+        assert guides.children[0].order == 0
+
+
+class TestAppLevelRootOrdering:
+    """Tests for ordering root app nodes and promoted folders."""
+
+    def test_root_app_order_via_component_directories(self):
+        c1 = make_info("zebra", app_label="zoo")
+        c2 = make_info("alpha", app_label="abc")
+
+        # By default, "abc" comes before "zoo"
+        default_tree = _build_navigation([c1, c2])
+        assert [n.slug for n in default_tree] == ["abc", "zoo"]
+
+        # Configure "zoo" with order -1
+        with override_settings(
+            DJ_DESIGN_SYSTEM={
+                "COMPONENT_DIRECTORIES": {
+                    "zoo": {"": {"order": -1}},
+                }
+            }
+        ):
+            ordered_tree = _build_navigation([c1, c2])
+            assert [n.slug for n in ordered_tree] == ["zoo", "abc"]
+            assert ordered_tree[0].order == -1
+            assert ordered_tree[1].order == 0
+
+    def test_promoted_folder_order(self):
+        c1 = make_info("button", app_label="demo")
+        c2 = make_info("card", relative_path="promo.card", app_label="demo")
+
+        with override_settings(
+            DJ_DESIGN_SYSTEM={
+                "COMPONENT_DIRECTORIES": {
+                    "demo": {
+                        "promo": {
+                            "promote_to_app": True,
+                            "order": -2,
+                            "label": "Promoted App",
+                        }
+                    }
+                }
+            }
+        ):
+            tree = _build_navigation([c1, c2])
+            # "promo" has order -2, "demo" has order 0
+            assert tree[0].slug == "promo"
+            assert tree[0].order == -2
+            assert tree[1].slug == "demo"
+            assert tree[1].order == 0

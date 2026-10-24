@@ -1,3 +1,6 @@
+---
+order: 2
+---
 # Typography & Spacing System
 
 This document specifies the typography and spacing foundations of the design system, outlining their token hierarchies, purpose mappings, and live visual specimens.

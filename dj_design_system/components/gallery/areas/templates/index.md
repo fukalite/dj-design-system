@@ -1,3 +1,6 @@
+---
+order: 3
+---
 # Folder and Index Templates
 
 - **Directory**: `dj_design_system/templates/dj_design_system/gallery/panes/`
