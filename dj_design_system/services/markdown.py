@@ -82,6 +82,7 @@ def extract_frontmatter(*, content: str) -> tuple[dict[str, Any], str]:
             try:
                 parsed_val = int(parsed_val)
             except ValueError:
+                # Keep original string value when order is not a valid integer.
                 pass
 
         metadata[key] = parsed_val
@@ -168,7 +169,7 @@ def render_markdown_doc(
     if not file_path or not file_path.is_file():
         return ""
     content = file_path.read_text(encoding="utf-8")
-    _, body = extract_frontmatter(content)
+    _, body = extract_frontmatter(content=content)
 
     resolved_color_scheme = (
         color_scheme

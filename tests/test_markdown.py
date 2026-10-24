@@ -20,7 +20,7 @@ title: "My Component"
 # Content Heading
 Here is the body.
 """
-        meta, body = extract_frontmatter(content)
+        meta, body = extract_frontmatter(content=content)
         assert meta == {"order": 2, "title": "My Component"}
         assert body == "# Content Heading\nHere is the body.\n"
 
@@ -31,7 +31,7 @@ label: 'Custom Label'
 ---
 Paragraph
 """
-        meta, body = extract_frontmatter(content)
+        meta, body = extract_frontmatter(content=content)
         assert meta == {"order": -10, "label": "Custom Label"}
         assert body == "Paragraph\n"
 
@@ -42,7 +42,7 @@ disabled: false
 ---
 Body
 """
-        meta, body = extract_frontmatter(content)
+        meta, body = extract_frontmatter(content=content)
         assert meta == {"active": True, "disabled": False}
         assert body == "Body\n"
 
@@ -52,7 +52,7 @@ order: "15"
 ---
 Body
 """
-        meta, body = extract_frontmatter(content)
+        meta, body = extract_frontmatter(content=content)
         assert meta == {"order": 15}
 
     def test_extract_frontmatter_colon_in_value(self):
@@ -61,7 +61,7 @@ title: "Prefix: Subtitle"
 ---
 Body
 """
-        meta, body = extract_frontmatter(content)
+        meta, body = extract_frontmatter(content=content)
         assert meta == {"title": "Prefix: Subtitle"}
 
     def test_extract_frontmatter_comments_and_blank_lines(self):
@@ -73,7 +73,7 @@ title: Unquoted Title
 ---
 Body
 """
-        meta, body = extract_frontmatter(content)
+        meta, body = extract_frontmatter(content=content)
         assert meta == {"order": 5, "title": "Unquoted Title"}
         assert body == "Body\n"
 
@@ -82,13 +82,13 @@ Body
 ---
 Body
 """
-        meta, body = extract_frontmatter(content)
+        meta, body = extract_frontmatter(content=content)
         assert meta == {}
         assert body == "Body\n"
 
     def test_extract_frontmatter_no_frontmatter(self):
         content = "# Just Heading\n---\nHorizontal rule\n"
-        meta, body = extract_frontmatter(content)
+        meta, body = extract_frontmatter(content=content)
         assert meta == {}
         assert body == content
 
@@ -98,13 +98,13 @@ order: 5
 title: Never closed
 # No closing delimiter
 """
-        meta, body = extract_frontmatter(content)
+        meta, body = extract_frontmatter(content=content)
         assert meta == {}
         assert body == content
 
     def test_extract_frontmatter_bom_handling(self):
         content = "\ufeff---\norder: 1\n---\nBody\n"
-        meta, body = extract_frontmatter(content)
+        meta, body = extract_frontmatter(content=content)
         assert meta == {"order": 1}
         assert body == "Body\n"
 

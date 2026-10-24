@@ -176,7 +176,7 @@ def _read_markdown_frontmatter(md_path: Path) -> dict[str, Any]:
     """Read and extract frontmatter from a markdown file, returning an empty dict on OSError."""
     try:
         content = md_path.read_text(encoding="utf-8")
-        meta, _ = extract_frontmatter(content)
+        meta, _ = extract_frontmatter(content=content)
         return meta
     except OSError:
         return {}
