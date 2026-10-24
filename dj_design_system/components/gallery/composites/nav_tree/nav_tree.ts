@@ -1,16 +1,14 @@
 /**
  * @fileoverview Light DOM `<dds-nav-tree>` custom element for collapsible
- * folder and group toggling, localStorage persistence, and nav events.
+ * folder and group toggling and nav events.
  */
 
 import type { DDSCustomElement } from '../../types.js';
 
-const STORAGE_KEY = 'dds-nav-expanded-state';
-
 /**
  * Light DOM custom element enhancing `<dds-nav-tree>` with delegated folder
- * and group toggle interactions, ARIA/state synchronisation, persistence,
- * and `dds:nav-toggle` events.
+ * and group toggle interactions, ARIA/state synchronisation, and
+ * `dds:nav-toggle` events.
  */
 export class DDSNavTreeElement
   extends HTMLElement
@@ -21,15 +19,12 @@ export class DDSNavTreeElement
   private abortController: AbortController | null = null;
 
   /**
-   * Attaches an idempotent delegated click listener scoped to this element
-   * and restores persisted folder and group states from localStorage.
+   * Attaches an idempotent delegated click listener scoped to this element.
    */
   connectedCallback(): void {
     this.abortController?.abort();
     this.abortController = new AbortController();
     const { signal } = this.abortController;
-
-    this.restoreExpandedState();
 
     this.addEventListener(
       'click',
@@ -49,98 +44,65 @@ export class DDSNavTreeElement
   }
 
   /**
-   * Restores persisted expanded/collapsed states from localStorage,
-   * skipping elements that contain the currently active nav item.
+   * Applies persisted or external open/closed state to matching nav folders
+   * and groups, skipping nodes containing the currently active nav item.
+   *
+   * @param {!Record<string, 'open' | 'closed'>} stateMap Map of node IDs to
+   *     their target expanded states.
    */
-  private restoreExpandedState(): void {
-    const stateMap = this.readState();
+  applyExpandedState(stateMap: Record<string, 'open' | 'closed'>): void {
     const items = this.querySelectorAll<HTMLElement>(
       '[data-nav-folder], [data-nav-group]',
     );
-    for (const item of items) {
-      const id = item.dataset.folderId || item.dataset.groupId;
+    for (const el of items) {
+      const id = el.dataset.folderId || el.dataset.groupId;
       if (!id || !(id in stateMap)) {
         continue;
       }
 
-      const hasActiveChild =
-        item.querySelector('[aria-current="page"], [data-active="true"]') !==
-        null;
-      if (hasActiveChild) {
+      if (
+        el.querySelector('[aria-current="page"], [data-active="true"]')
+      ) {
         continue;
       }
 
-      const savedState = stateMap[id];
-      const isExpanded = savedState === 'open';
+      const state = stateMap[id];
+      const isOpen = state === 'open';
+      el.dataset.state = state;
 
-      item.dataset.state = savedState;
-
-      const toggle = item.querySelector<HTMLButtonElement>(
-        ':scope > [data-nav-row] [data-nav-toggle]',
+      const trigger = el.querySelector<HTMLElement>(
+        '[data-nav-trigger], [data-nav-toggle]',
       );
-      if (toggle) {
-        toggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+      if (trigger) {
+        trigger.setAttribute('aria-expanded', String(isOpen));
       }
 
-      const childrenEl = item.querySelector<HTMLElement>(
+      const childrenEl = el.querySelector<HTMLElement>(
         ':scope > [data-nav-children]',
       );
       if (childrenEl) {
-        childrenEl.hidden = !isExpanded;
+        childrenEl.hidden = !isOpen;
       }
     }
   }
 
   /**
-   * Reads persisted expanded states map from localStorage.
+   * Handles delegated clicks on nav toggle trigger buttons.
    *
-   * @return Record of node IDs to their saved states.
+   * @param {!Event} event The click event within `<dds-nav-tree>`.
    */
-  private readState(): Record<string, 'open' | 'closed'> {
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (!raw) {
-        return {};
-      }
-      return JSON.parse(raw) as Record<string, 'open' | 'closed'>;
-    } catch {
-      return {};
-    }
-  }
-
-  /**
-   * Saves an item's expanded state to localStorage.
-   *
-   * @param id The folder or group identifier.
-   * @param state The state ('open' | 'closed').
-   */
-  private saveState(id: string, state: 'open' | 'closed'): void {
-    try {
-      const stateMap = this.readState();
-      stateMap[id] = state;
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(stateMap));
-    } catch {
-      // Ignore storage errors in restricted environments.
-    }
-  }
-
-  /**
-   * Handles delegated clicks on `[data-nav-toggle]` buttons.
-   *
-   * @param {!MouseEvent} event The click event within `<dds-nav-tree>`.
-   */
-  private handleClick(event: MouseEvent): void {
+  private handleClick(event: Event): void {
     if (!(event.target instanceof Element)) {
       return;
     }
-    const toggle = event.target.closest<HTMLButtonElement>(
-      '[data-nav-toggle]',
+    const trigger = event.target.closest<HTMLButtonElement>(
+      '[data-nav-trigger], [data-nav-toggle]',
     );
-    if (!toggle || !this.contains(toggle)) {
+    if (!trigger || !this.contains(trigger)) {
       return;
     }
 
-    const container = toggle.closest<HTMLElement>(
+    const container = trigger.closest<HTMLElement>(
       '[data-nav-folder], [data-nav-group]',
     );
     if (!container || !this.contains(container)) {
@@ -150,36 +112,28 @@ export class DDSNavTreeElement
     const childrenEl = container.querySelector<HTMLElement>(
       ':scope > [data-nav-children]',
     );
-    const expanded = toggle.getAttribute('aria-expanded') !== 'true';
+    const expanded = trigger.getAttribute('aria-expanded') !== 'true';
 
-    toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
     container.dataset.state = expanded ? 'open' : 'closed';
+    trigger.setAttribute('aria-expanded', String(expanded));
     if (childrenEl) {
       childrenEl.hidden = !expanded;
     }
 
     const id =
       container.dataset.folderId || container.dataset.groupId || '';
-    if (id) {
-      this.saveState(id, expanded ? 'open' : 'closed');
-    }
-
-    const detail: {
-      folderId: string;
-      expanded: boolean;
-      groupId?: string;
-    } = {
-      folderId: id,
-      expanded,
-    };
-    if (container.dataset.groupId) {
-      detail.groupId = container.dataset.groupId;
-    }
 
     this.dispatchEvent(
       new CustomEvent('dds:nav-toggle', {
         bubbles: true,
-        detail,
+        composed: true,
+        detail: {
+          folderId: id,
+          expanded,
+          ...(container.dataset.groupId
+            ? { groupId: container.dataset.groupId }
+            : {}),
+        },
       }),
     );
   }

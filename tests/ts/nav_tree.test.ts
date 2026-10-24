@@ -2,21 +2,14 @@
  * @fileoverview Behavioural DOM tests for `<dds-nav-tree>`.
  */
 
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import {
   DDSNavTreeElement,
 } from '../../dj_design_system/components/gallery/composites/nav_tree/nav_tree.js';
 
-const STORAGE_KEY = 'dds-nav-expanded-state';
-
 describe('DDSNavTreeElement', () => {
-  beforeEach(() => {
-    window.localStorage.clear();
-  });
-
   afterEach(() => {
     document.body.innerHTML = '';
-    window.localStorage.clear();
   });
 
   it('toggles folder state and dispatches dds:nav-toggle', () => {
@@ -52,15 +45,16 @@ describe('DDSNavTreeElement', () => {
     expect(toggleBtn.getAttribute('aria-expanded')).toBe('false');
     expect(folder.dataset.state).toBe('closed');
     expect(children.hidden).toBe(true);
-    expect(events).toEqual([{ folderId: 'elements', expanded: false }]);
+    expect(events[0]).toEqual({ folderId: 'elements', expanded: false });
 
-    const saved = JSON.parse(
-      window.localStorage.getItem(STORAGE_KEY) || '{}',
-    );
-    expect(saved['elements']).toBe('closed');
+    toggleBtn.click();
+    expect(toggleBtn.getAttribute('aria-expanded')).toBe('true');
+    expect(folder.dataset.state).toBe('open');
+    expect(children.hidden).toBe(false);
+    expect(events[1]).toEqual({ folderId: 'elements', expanded: true });
   });
 
-  it('toggles app group state, dispatches event, and persists state', () => {
+  it('toggles app group state and dispatches event with groupId', () => {
     const tree = document.createElement('dds-nav-tree') as DDSNavTreeElement;
     tree.innerHTML = `
       <div data-nav-group data-group-id="dj_design_system" data-state="open">
@@ -103,11 +97,6 @@ describe('DDSNavTreeElement', () => {
       expanded: false,
     });
 
-    let saved = JSON.parse(
-      window.localStorage.getItem(STORAGE_KEY) || '{}',
-    );
-    expect(saved['dj_design_system']).toBe('closed');
-
     toggleBtn.click();
     expect(toggleBtn.getAttribute('aria-expanded')).toBe('true');
     expect(group.dataset.state).toBe('open');
@@ -117,23 +106,9 @@ describe('DDSNavTreeElement', () => {
       groupId: 'dj_design_system',
       expanded: true,
     });
-
-    saved = JSON.parse(
-      window.localStorage.getItem(STORAGE_KEY) || '{}',
-    );
-    expect(saved['dj_design_system']).toBe('open');
   });
 
-  it('restores persisted collapsed and open states on initialization', () => {
-    window.localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        'app-closed': 'closed',
-        'app-open': 'open',
-        'folder-closed': 'closed',
-      }),
-    );
-
+  it('applies saved open and closed states via applyExpandedState', () => {
     const tree = document.createElement('dds-nav-tree') as DDSNavTreeElement;
     tree.innerHTML = `
       <div data-nav-group data-group-id="app-closed" data-state="open">
@@ -172,6 +147,12 @@ describe('DDSNavTreeElement', () => {
     `;
     document.body.appendChild(tree);
 
+    tree.applyExpandedState({
+      'app-closed': 'closed',
+      'app-open': 'open',
+      'folder-closed': 'closed',
+    });
+
     const appClosed =
       tree.querySelector<HTMLElement>('[data-group-id="app-closed"]')!;
     const appClosedToggle =
@@ -203,14 +184,7 @@ describe('DDSNavTreeElement', () => {
     expect(folderClosedChildren.hidden).toBe(true);
   });
 
-  it('keeps group open on initialization if containing active page', () => {
-    window.localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        'app-active': 'closed',
-      }),
-    );
-
+  it('never collapses a group or folder containing active link', () => {
     const tree = document.createElement('dds-nav-tree') as DDSNavTreeElement;
     tree.innerHTML = `
       <div data-nav-group data-group-id="app-active" data-state="open">
@@ -227,18 +201,46 @@ describe('DDSNavTreeElement', () => {
           </a>
         </div>
       </div>
+      <div data-nav-folder data-folder-id="folder-active" data-state="open">
+        <div data-nav-row>
+          <a href="/folder" data-nav-link>Active Folder</a>
+          <button type="button" data-nav-toggle aria-expanded="true">
+            Toggle
+          </button>
+        </div>
+        <div data-nav-children>
+          <a href="/folder/page" data-nav-link
+             aria-current="page" data-active="true">
+            Folder Page
+          </a>
+        </div>
+      </div>
     `;
     document.body.appendChild(tree);
 
+    tree.applyExpandedState({
+      'app-active': 'closed',
+      'folder-active': 'closed',
+    });
+
     const group =
       tree.querySelector<HTMLElement>('[data-group-id="app-active"]')!;
-    const toggle =
+    const groupToggle =
       group.querySelector<HTMLButtonElement>('[data-nav-toggle]')!;
-    const children =
+    const groupChildren =
       group.querySelector<HTMLElement>('[data-nav-children]')!;
-
     expect(group.dataset.state).toBe('open');
-    expect(toggle.getAttribute('aria-expanded')).toBe('true');
-    expect(children.hidden).toBe(false);
+    expect(groupToggle.getAttribute('aria-expanded')).toBe('true');
+    expect(groupChildren.hidden).toBe(false);
+
+    const folder =
+      tree.querySelector<HTMLElement>('[data-folder-id="folder-active"]')!;
+    const folderToggle =
+      folder.querySelector<HTMLButtonElement>('[data-nav-toggle]')!;
+    const folderChildren =
+      folder.querySelector<HTMLElement>('[data-nav-children]')!;
+    expect(folder.dataset.state).toBe('open');
+    expect(folderToggle.getAttribute('aria-expanded')).toBe('true');
+    expect(folderChildren.hidden).toBe(false);
   });
 });
