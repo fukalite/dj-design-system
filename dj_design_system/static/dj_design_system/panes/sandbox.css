@@ -32,6 +32,31 @@
     min-block-size: min-content;
     margin: 0;
     overflow: visible;
+
+    & [data-theme-override-notice] {
+      display: flex;
+      align-items: center;
+      box-sizing: border-box;
+      inline-size: 100%;
+      margin: 0;
+      padding-block: var(--dds-space-xs);
+      padding-inline: var(--dds-space-sm);
+      border-width: 0 0 var(--dds-control-border-width) 0;
+      border-style: var(--dds-control-border-style);
+      border-color: var(--dds-status-info-border-color);
+      border-radius: 0;
+      color: var(--dds-status-info-text-color);
+      background-color: var(--dds-status-info-bg-color);
+      font-family: var(--dds-text-body-font);
+      font-size: var(--dds-text-caption-size);
+      line-height: var(--dds-text-body-line-height);
+
+      &[data-theme-overridden='true'] {
+        border-color: var(--dds-status-warning-border-color);
+        color: var(--dds-status-warning-text-color);
+        background-color: var(--dds-status-warning-bg-color);
+      }
+    }
   }
 
   [data-sandbox-stack] > dds-canvas-widget,

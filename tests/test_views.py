@@ -415,7 +415,7 @@ class TestGalleryComponentView:
         content = response.content.decode("utf-8")
         assert 'href="/static/css/cyber.css"' in content
         assert 'src="/static/js/cyber.js"' in content
-        assert 'cyber-dark.css' not in content
+        assert "cyber-dark.css" not in content
 
         # In dark mode
         client.cookies["dds_gallery_theme"] = "dark"
@@ -469,7 +469,6 @@ class TestGalleryComponentView:
         assert 'data-supports-dark-mode="true"' in content
         assert 'data-action="toggle-consumer-color-scheme"' in content
         assert 'data-action="toggle-consumer-color-scheme" disabled' not in content
-
 
     def test_component_renders_section_headings_and_dividers(self, client):
         url = reverse(
@@ -1237,3 +1236,132 @@ class TestThinViewsAndImmutableParams:
         assert all(isinstance(r, ParamRowData) for r in rows)
         for param_obj in params.values():
             assert "type_name" not in param_obj.__dict__
+
+
+class TestComponentThemeOverride:
+    """Tests for Issue #124: gallery component theme override indication."""
+
+    TWO_THEMES_SETTINGS = {
+        "GALLERY_THEMES": {
+            "default": {
+                "label": "Default Theme",
+                "html_attrs": {"html": {"data-theme": "default"}},
+            },
+            "dark": {
+                "label": "Dark Theme",
+                "html_attrs": {"html": {"data-theme": "dark"}},
+            },
+        },
+        "GALLERY_DEFAULT_THEME": "default",
+    }
+
+    def test_component_theme_override_when_unsupported_theme_selected(
+        self, client, settings
+    ):
+        settings.DJ_DESIGN_SYSTEM = self.TWO_THEMES_SETTINGS
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+
+        # Global theme remains 'default', while sandbox active theme resolves to 'dark'
+        assert response.context["global_active_theme"] == "default"
+        assert response.context["sandbox_active_theme"] == "dark"
+        assert response.context["is_theme_restricted"] is True
+        assert response.context["is_theme_overridden"] is True
+        assert response.context["component_available_themes"] == ["dark"]
+        assert response.context["available_theme_labels"] == ["Dark Theme"]
+        assert (
+            response.context["theme_override_message"]
+            == "This component only supports Dark Theme (overriding Default Theme)."
+        )
+
+        content = response.content.decode("utf-8")
+        # Notice and notes present in HTML
+        assert "data-theme-override-note" in content
+        assert "data-theme-override-notice" in content
+        assert 'data-theme-overridden="true"' in content
+        assert 'data-unsupported="true"' in content
+        assert "Default Theme (unsupported)" in content
+        assert "Theme overridden" in content
+        assert (
+            "This component only supports Dark Theme (overriding Default Theme)."
+            in content
+        )
+
+    def test_component_theme_restricted_when_supported_theme_selected(
+        self, client, settings
+    ):
+        settings.DJ_DESIGN_SYSTEM = self.TWO_THEMES_SETTINGS
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        response = client.get(f"{url}?_dds_theme=dark")
+        assert response.status_code == 200
+
+        assert response.context["global_active_theme"] == "dark"
+        assert response.context["sandbox_active_theme"] == "dark"
+        assert response.context["is_theme_restricted"] is True
+        assert response.context["is_theme_overridden"] is False
+        assert (
+            response.context["theme_override_message"]
+            == "This component only supports Dark Theme."
+        )
+
+        content = response.content.decode("utf-8")
+        assert "data-theme-override-note" in content
+        assert "data-theme-override-notice" in content
+        assert 'data-theme-overridden="false"' in content
+        assert "Theme restricted" in content
+        assert "This component only supports Dark Theme." in content
+        # Default Theme remains annotated as unsupported by the component
+        assert "Default Theme (unsupported)" in content
+
+    def test_unrestricted_component_does_not_render_override_indicators(
+        self, client, settings
+    ):
+        settings.DJ_DESIGN_SYSTEM = self.TWO_THEMES_SETTINGS
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "button"},
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+
+        assert response.context["is_theme_restricted"] is False
+        assert response.context["is_theme_overridden"] is False
+
+        content = response.content.decode("utf-8")
+        assert "data-theme-override-note" not in content
+        assert "data-theme-override-notice" not in content
+        assert "data-unsupported" not in content
+        assert "(unsupported)" not in content
+
+    def test_theme_select_supported_themes_parameter(self):
+        from dj_design_system.components.gallery.composites.theme_select.theme_select import (
+            ThemeOption,
+            ThemeSelect,
+        )
+
+        ts = ThemeSelect(
+            themes=[
+                ThemeOption(value="default", label="Default Theme"),
+                ThemeOption(value="dark", label="Dark Theme"),
+            ],
+            active_theme="default",
+            supported_themes=["dark"],
+        )
+        ctx = ts.get_context()
+        normalized = ctx["normalized_themes"]
+        assert len(normalized) == 2
+        assert normalized[0]["value"] == "default"
+        assert normalized[0]["is_supported"] is False
+        assert normalized[0]["label"] == "Default Theme (unsupported)"
+        assert normalized[0]["raw_label"] == "Default Theme"
+        assert normalized[1]["value"] == "dark"
+        assert normalized[1]["is_supported"] is True
+        assert normalized[1]["label"] == "Dark Theme"
+        assert normalized[1]["raw_label"] == "Dark Theme"

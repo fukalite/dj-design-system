@@ -6,7 +6,7 @@
     {% endif %}
     <select id="{{ select_id }}" data-theme-select aria-label="{{ label }}" title="{{ label }}">
       {% for item in normalized_themes %}
-        <option value="{{ item.value }}"{% if item.is_selected %} selected{% endif %}>{{ item.label }}</option>
+        <option value="{{ item.value }}"{% if item.raw_label %} data-raw-label="{{ item.raw_label }}"{% endif %}{% if item.is_supported is False %} data-unsupported="true"{% endif %}{% if item.is_selected %} selected{% endif %}>{{ item.label }}</option>
       {% endfor %}
     </select>
   </div>

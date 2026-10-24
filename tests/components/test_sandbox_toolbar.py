@@ -115,9 +115,7 @@ class TestSandboxToolbarDiscoveryAndMetadata:
             sandbox_toolbar_package.SandboxControlOption
             is sandbox_toolbar_module.SandboxControlOption
         )
-        assert dataclasses.is_dataclass(
-            sandbox_toolbar_module.SandboxControlOption
-        )
+        assert dataclasses.is_dataclass(sandbox_toolbar_module.SandboxControlOption)
         assert sandbox_toolbar_package.__all__ == [
             "SandboxControlOption",
             "SandboxToolbar",

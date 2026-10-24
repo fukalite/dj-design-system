@@ -1296,4 +1296,3 @@ def test_consumer_app_ignores_builtin_folder_and_doc_maps(tmp_path):
     md_file.write_text("# Tokens", encoding="utf-8")
     builder.add_markdown(["about"], md_file)
     assert about_folder.children[0].order == 0
-
