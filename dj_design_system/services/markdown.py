@@ -28,7 +28,7 @@ FRONTMATTER_PATTERN = re.compile(
 )
 
 
-def extract_frontmatter(content: str) -> tuple[dict[str, Any], str]:
+def extract_frontmatter(*, content: str) -> tuple[dict[str, Any], str]:
     """Extract YAML-like frontmatter from markdown content.
 
     Parses an optional leading metadata block enclosed by lines containing only
