@@ -220,6 +220,15 @@ class TestNavTreeParametersAndContext:
         assert app_node["node_kind"] == "app"
         assert app_node["depth"] == 0
         assert app_node["is_active"] is False
+        assert app_node["is_open"] is True
+        assert app_node["folder_state"] == "open"
+        assert app_node["aria_expanded"] == "true"
+        assert app_node["folder_id"] == "dj_design_system"
+        assert (
+            app_node["children_dom_id"]
+            == "dds-nav-children-dj_design_system"
+        )
+        assert app_node["has_children"] is True
 
         folder_node = app_node["children"][0]
         assert folder_node["node_kind"] == "folder"
@@ -358,7 +367,20 @@ class TestNavTreeRenderingAndTemplate:
         assert (
             '<nav class="dds-nav-tree-nav" aria-label="Component navigation">' in html
         )
-        assert "<div data-nav-group>" in html
+        assert (
+            '<div data-nav-group data-state="open" '
+            'data-group-id="dj_design_system">' in html
+        )
+        assert '<div data-nav-row data-nav-group-row>' in html
+        assert (
+            '<button type="button" data-nav-toggle aria-expanded="true" '
+            'aria-controls="dds-nav-children-dj_design_system" '
+            'aria-label="Toggle Design System">' in html
+        )
+        assert (
+            '<div id="dds-nav-children-dj_design_system" data-nav-children>'
+            in html
+        )
         assert (
             '<div data-nav-folder data-state="open" '
             'data-folder-id="dj_design_system-elements">' in html
@@ -395,6 +417,30 @@ class TestNavTreeRenderingAndTemplate:
             '<div id="dds-nav-children-dj_design_system-elements" '
             "data-nav-children hidden>" in html
         )
+
+    def test_renders_app_node_without_children_as_plain_header(self) -> None:
+        """Verify app node without children renders label without toggle button or children div."""
+        html = _render_template(
+            source="{% dds__nav_tree nodes=nodes %}",
+            context={
+                "nodes": [
+                    {
+                        "label": "Standalone App",
+                        "slug": "standalone",
+                        "node_type": "app",
+                        "url": "/gallery/standalone/",
+                    }
+                ]
+            },
+        )
+        assert (
+            '<div data-nav-group data-state="open" '
+            'data-group-id="standalone">' in html
+        )
+        assert '<div data-nav-row data-nav-group-row>' in html
+        assert "<span>Standalone App</span>" in html
+        assert "data-nav-toggle" not in html
+        assert "data-nav-children" not in html
 
     def test_escapes_untrusted_labels_and_aria_label(self) -> None:
         """Verify untrusted HTML in node labels and aria_label is escaped."""
@@ -525,6 +571,15 @@ class TestNavTreeStylesheet:
         css_text = _read_text(path=NAV_TREE_CSS_PATH)
         assert ".dds-icon" not in css_text
         assert "& [data-nav-group]" in css_text
+        assert "& [data-nav-group-row]" in css_text
+        assert (
+            "& [data-nav-group][data-state='closed'] > [data-nav-children]"
+            in css_text
+        )
+        assert (
+            "& [data-nav-group][data-state='open'] > [data-nav-row] [data-nav-toggle]"
+            in css_text
+        )
         assert "& [data-nav-link]" in css_text
         assert "dds-nav-tree [" not in css_text
 
