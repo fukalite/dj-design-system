@@ -4,8 +4,8 @@
 {% if is_theme_restricted %}
     <div data-theme-override-notice
          class="dds-theme-override-notice"
-         data-available-themes="{{ component_available_themes|join:',' }}"
-         data-supported-label="{{ available_theme_labels|join:', ' }}"
+         data-available-themes="{{ component_available_themes_csv }}"
+         data-supported-label="{{ available_theme_labels_str }}"
          data-theme-overridden="{% if is_theme_overridden %}true{% else %}false{% endif %}"
          role="status"
          aria-live="polite">

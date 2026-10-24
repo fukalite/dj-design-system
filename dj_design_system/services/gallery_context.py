@@ -766,7 +766,9 @@ def build_component_page_context(
     context["global_active_theme"] = global_active_theme
     context["sandbox_active_theme"] = active_theme
     context["component_available_themes"] = component_available_themes
+    context["component_available_themes_csv"] = ",".join(component_available_themes)
     context["available_theme_labels"] = available_theme_labels
+    context["available_theme_labels_str"] = ", ".join(available_theme_labels)
     context["is_theme_restricted"] = is_theme_restricted
     context["is_theme_overridden"] = is_theme_overridden
     context["theme_override_message"] = theme_override_message
