@@ -1,6 +1,24 @@
 {% load design_components %}
 <l-stack data-sandbox-stack>
 {% dds__sandbox_toolbar variants=gallery_variants active_variant=active_variant component_url=component_base_url backgrounds=canvas_backgrounds active_background=active_bg_value canvas_url=canvas_iframe_url reset_url=sandbox_reset_url %}
+{% if is_theme_restricted %}
+    <div data-theme-override-notice
+         class="dds-theme-override-notice"
+         data-available-themes="{{ component_available_themes|join:',' }}"
+         data-supported-label="{{ available_theme_labels|join:', ' }}"
+         data-theme-overridden="{% if is_theme_overridden %}true{% else %}false{% endif %}"
+         role="status"
+         aria-live="polite">
+        <l-cluster style="--space: var(--dds-space-2xs); align-items: center;">
+        {% if is_theme_overridden %}
+            {% dds__badge label="Theme overridden" variant="warning" %}
+        {% else %}
+            {% dds__badge label="Theme restricted" variant="info" %}
+        {% endif %}
+        <span data-theme-override-text>{{ theme_override_message }}</span>
+        </l-cluster>
+    </div>
+{% endif %}
 {% dds__canvas_widget canvas_id="sandbox" iframe_src=canvas_iframe_url source_code=source_html rendered_html=rendered_output_html background=active_bg_value title="Component preview" %}
 {% dds__sandbox_params param_rows=param_rows action_url=request.path hx_target="[data-gallery-sandbox-body]" %}
 {% slot "extra_inputs" %}

@@ -104,6 +104,7 @@ export class ThemeManager {
     this.syncInitialGalleryUITheme();
     this.syncInitialGalleryTheme();
     this.syncInitialConsumerColorScheme();
+    this.syncComponentThemeOverride();
   }
 
   /**
@@ -547,6 +548,107 @@ export class ThemeManager {
     }
 
     this.syncConsumerColorSchemeToggle();
+    this.syncComponentThemeOverride(theme);
+  }
+
+  /**
+   * Synchronises component theme override notices and topbar badges when
+   * a component restricts its supported themes.
+   *
+   * @param {string} [activeTheme] Active consumer theme.
+   */
+  syncComponentThemeOverride(activeTheme?: string): void {
+    const actions = this.host.querySelector<HTMLElement>(
+      '[data-toolbar-actions]',
+    );
+    const select = this.host.querySelector<HTMLSelectElement>(
+      '[data-theme-select]',
+    );
+    const currentTheme =
+      activeTheme ??
+      actions?.dataset.activeTheme ??
+      select?.value ??
+      this.host.dataset.theme ??
+      '';
+    const notices = this.host.querySelectorAll<HTMLElement>(
+      '[data-theme-override-notice]',
+    );
+    const notes = this.host.querySelectorAll<HTMLElement>(
+      '[data-theme-override-note]',
+    );
+    if (notices.length === 0 && notes.length === 0) {
+      return;
+    }
+
+    const firstNotice = notices[0];
+    const availableAttr =
+      firstNotice?.dataset.availableThemes ??
+      this.host.querySelector<HTMLElement>('[data-available-themes]')
+        ?.dataset.availableThemes ??
+      '';
+    const supportedThemes = availableAttr
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
+    if (supportedThemes.length === 0) {
+      return;
+    }
+
+    const isOverridden = !supportedThemes.includes(currentTheme);
+    const supportedLabel =
+      firstNotice?.dataset.supportedLabel || supportedThemes.join(', ');
+
+    let currentThemeLabel = currentTheme;
+    if (select && select.selectedIndex >= 0) {
+      const activeOption = select.options[select.selectedIndex];
+      if (activeOption) {
+        currentThemeLabel = (
+          activeOption.dataset.rawLabel ||
+          activeOption.text ||
+          currentTheme
+        )
+          .replace(/\s*\(unsupported\)$/i, '')
+          .trim();
+      }
+    }
+
+    const overrideMessage = isOverridden
+      ? `This component only supports ${supportedLabel} ` +
+        `(overriding ${currentThemeLabel}).`
+      : `This component only supports ${supportedLabel}.`;
+
+    for (const notice of notices) {
+      notice.dataset.themeOverridden = isOverridden ? 'true' : 'false';
+      const textSpan = notice.querySelector<HTMLElement>(
+        '[data-theme-override-text]',
+      );
+      if (textSpan) {
+        textSpan.textContent = overrideMessage;
+      }
+      const badge = notice.querySelector<HTMLElement>(
+        '.dds-badge, [data-badge]',
+      );
+      if (badge) {
+        badge.textContent = isOverridden
+          ? 'Theme overridden'
+          : 'Theme restricted';
+        badge.dataset.variant = isOverridden ? 'warning' : 'info';
+      }
+    }
+
+    for (const note of notes) {
+      note.dataset.themeOverridden = isOverridden ? 'true' : 'false';
+      note.title = overrideMessage;
+      const badge = note.querySelector<HTMLElement>(
+        '.dds-badge, [data-badge]',
+      );
+      if (badge) {
+        badge.textContent = isOverridden
+          ? 'Theme overridden'
+          : 'Theme restricted';
+        badge.dataset.variant = isOverridden ? 'warning' : 'info';
+      }
+    }
   }
 
   /**

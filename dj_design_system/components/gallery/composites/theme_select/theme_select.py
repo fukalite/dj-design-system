@@ -19,10 +19,12 @@ class ThemeOption:
     Attributes:
         value: Theme identifier string.
         label: Human-readable display label for the theme.
+        supported: Whether this theme option is supported by the active context.
     """
 
     value: str
     label: str
+    supported: bool = True
 
 
 class ThemeSelect(components.TagComponent):
@@ -47,6 +49,11 @@ class ThemeSelect(components.TagComponent):
     active_theme = parameters.StrParam(
         description="Currently active theme identifier.",
         default=DEFAULT_ACTIVE_THEME,
+        required=False,
+    )
+    supported_themes = parameters.ListParam(
+        description="Theme values supported by active component. If set, unsupported options are marked.",
+        default=None,
         required=False,
     )
     label = parameters.StrParam(
@@ -88,15 +95,12 @@ class ThemeSelect(components.TagComponent):
                     ThemeOption(value=str(raw_item[0]), label=str(raw_item[1]))
                 )
             elif isinstance(raw_item, str):
-                label_text = (
-                    raw_item.capitalize() if raw_item.islower() else raw_item
-                )
-                extracted_options.append(
-                    ThemeOption(value=raw_item, label=label_text)
-                )
+                label_text = raw_item.capitalize() if raw_item.islower() else raw_item
+                extracted_options.append(ThemeOption(value=raw_item, label=label_text))
             elif isinstance(raw_item, dict):
                 raw_val = raw_item.get("value")
                 raw_lbl = raw_item.get("label")
+                raw_sup = raw_item.get("supported", True)
                 val_str = str(raw_val) if raw_val is not None else ""
                 lbl_str = (
                     str(raw_lbl)
@@ -104,11 +108,12 @@ class ThemeSelect(components.TagComponent):
                     else (val_str.capitalize() if val_str.islower() else val_str)
                 )
                 extracted_options.append(
-                    ThemeOption(value=val_str, label=lbl_str)
+                    ThemeOption(value=val_str, label=lbl_str, supported=bool(raw_sup))
                 )
             else:
                 raw_val = getattr(raw_item, "value", None)
                 raw_lbl = getattr(raw_item, "label", None)
+                raw_sup = getattr(raw_item, "supported", True)
                 val_str = str(raw_val) if raw_val is not None else ""
                 lbl_str = (
                     str(raw_lbl)
@@ -116,7 +121,7 @@ class ThemeSelect(components.TagComponent):
                     else (val_str.capitalize() if val_str.islower() else val_str)
                 )
                 extracted_options.append(
-                    ThemeOption(value=val_str, label=lbl_str)
+                    ThemeOption(value=val_str, label=lbl_str, supported=bool(raw_sup))
                 )
 
         theme_values = [opt.value for opt in extracted_options]
@@ -127,14 +132,25 @@ class ThemeSelect(components.TagComponent):
         else:
             resolved_active_theme = str(self.active_theme or DEFAULT_ACTIVE_THEME)
 
-        normalized_themes: list[dict[str, typing.Any]] = [
-            {
+        supported_set = (
+            set(self.supported_themes) if self.supported_themes is not None else None
+        )
+        normalized_themes: list[dict[str, typing.Any]] = []
+        for opt in extracted_options:
+            is_supported = (
+                opt.supported
+                if supported_set is None
+                else (opt.value in supported_set and opt.supported)
+            )
+            item_dict: dict[str, typing.Any] = {
                 "value": opt.value,
-                "label": opt.label,
+                "label": (opt.label if is_supported else f"{opt.label} (unsupported)"),
                 "is_selected": opt.value == resolved_active_theme,
             }
-            for opt in extracted_options
-        ]
+            if supported_set is not None or not opt.supported:
+                item_dict["raw_label"] = opt.label
+                item_dict["is_supported"] = is_supported
+            normalized_themes.append(item_dict)
 
         resolved_label = str(self.label) if self.label else DEFAULT_LABEL
         resolved_select_id = (

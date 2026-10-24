@@ -33,6 +33,7 @@ from dj_design_system.settings import (
     get_default_background,
     get_default_theme,
     get_theme,
+    get_themes,
 )
 from dj_design_system.slots import SLOT_PARAM_PREFIX
 from dj_design_system.types import Theme
@@ -707,13 +708,71 @@ def build_component_page_context(
     else:
         source_html = ""
 
+    component_available_themes = component_class.get_available_themes()
+    all_configured_themes = get_themes()
+    all_configured_theme_values = {t.value for t in all_configured_themes}
+
+    theme_from_get = control_params_service.get_control_param(
+        query_params,
+        "theme",
+        bare_fallback=not bare_belongs_to_component(
+            query_params, component_class, "theme"
+        ),
+    )
+    requested_global_theme = (
+        theme_from_get
+        or cookies.get("dds_theme")
+        or base_context.get("global_active_theme")
+        or get_default_theme().value
+    )
+    global_theme_obj = get_theme(requested_global_theme)
+    if global_theme_obj is not None:
+        global_active_theme = global_theme_obj.value
+    elif requested_global_theme in component_available_themes:
+        global_active_theme = requested_global_theme
+        global_theme_obj = active_theme_obj
+    else:
+        global_theme_obj = get_default_theme()
+        global_active_theme = global_theme_obj.value
+
+    is_theme_restricted = bool(
+        component_available_themes
+        and (set(component_available_themes) != all_configured_theme_values)
+    )
+    is_theme_overridden = bool(
+        is_theme_restricted and (global_active_theme not in component_available_themes)
+    )
+    available_theme_labels: list[str] = []
+    for t_val in component_available_themes:
+        t_obj = get_theme(t_val)
+        available_theme_labels.append(t_obj.label if t_obj else t_val.capitalize())
+
+    if len(available_theme_labels) == 1:
+        themes_str = available_theme_labels[0]
+    else:
+        themes_str = ", ".join(available_theme_labels)
+
+    global_theme_label = (
+        global_theme_obj.label if global_theme_obj else global_active_theme.capitalize()
+    )
+    if is_theme_overridden:
+        theme_override_message = f"This component only supports {themes_str} (overriding {global_theme_label})."
+    else:
+        theme_override_message = f"This component only supports {themes_str}."
+
     context["source_html"] = source_html
     context["rendered_output_html"] = raw_rendered_html
     context["active_theme"] = active_theme
-    context["global_active_theme"] = active_theme
+    context["global_active_theme"] = global_active_theme
     context["sandbox_active_theme"] = active_theme
+    context["component_available_themes"] = component_available_themes
+    context["available_theme_labels"] = available_theme_labels
+    context["is_theme_restricted"] = is_theme_restricted
+    context["is_theme_overridden"] = is_theme_overridden
+    context["theme_override_message"] = theme_override_message
     context["active_color_scheme"] = active_color_scheme
-    context["active_theme_supports_dark_mode"] = active_theme_obj.supports_dark_mode
+    context["active_theme_supports_dark_mode"] = global_theme_obj.supports_dark_mode
+    context["sandbox_theme_supports_dark_mode"] = active_theme_obj.supports_dark_mode
 
     component_label = navigation_service.to_display_label(
         name=info.name,

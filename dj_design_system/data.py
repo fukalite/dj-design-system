@@ -106,6 +106,11 @@ class ComponentInfo:
         return self.component_class.__name__
 
     @property
+    def available_themes(self) -> list[str]:
+        """Return the list of theme values supported by this component."""
+        return self.component_class.get_available_themes()
+
+    @property
     def gallery_basic_kwargs(self) -> dict[str, Any]:
         warnings.warn(
             f"ComponentInfo.gallery_basic_kwargs for '{self.name}' is deprecated and will be removed "
