@@ -333,11 +333,13 @@ class TestNavTreeParametersAndContext:
             label="Overview",
             slug="overview",
             node_type=types.NodeType.DOCUMENT,
+            doc_path=pathlib.Path("overview.md"),
         )
         comp_node = data.NavNode(
             label="Button",
             slug="button",
             node_type=types.NodeType.COMPONENT,
+            component=conftest.make_info("button"),
             children=[doc_node],
             url="/gallery/app/button/",
             active_path="app/button",

@@ -376,6 +376,8 @@ class TestNavTreeTemplate:
 
     def test_component_with_document_child_renders_component_icon_not_variants(self):
         """A component node whose only child is a document gets component icon, not component-variants."""
+        from pathlib import Path
+
         info = make_info_with_config("button", GalleryConfig())
         tree = _build_navigation([info])
         btn_node = tree[0].children[0]
@@ -383,6 +385,7 @@ class TestNavTreeTemplate:
             label="Overview",
             slug="overview",
             node_type=NodeType.DOCUMENT,
+            doc_path=Path("overview.md"),
             url="/gallery/test_app/button/overview/",
             active_path="test_app/button/overview",
         )
@@ -397,6 +400,8 @@ class TestNavTreeTemplate:
 
     def test_component_with_document_child_in_normalize_folder_items(self):
         """normalize_folder_items yields 'component' icon when only child is a document."""
+        from pathlib import Path
+
         info = make_info_with_config("button", GalleryConfig())
         tree = _build_navigation([info])
         btn_node = tree[0].children[0]
@@ -404,6 +409,7 @@ class TestNavTreeTemplate:
             label="Overview",
             slug="overview",
             node_type=NodeType.DOCUMENT,
+            doc_path=Path("overview.md"),
             url="/gallery/test_app/button/overview/",
             active_path="test_app/button/overview",
         )
