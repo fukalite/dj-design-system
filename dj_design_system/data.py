@@ -371,6 +371,11 @@ class NavNode:
         return self.node_type == NodeType.VARIANT
 
     @property
+    def has_variants(self) -> bool:
+        """Return True if any immediate child node represents a variant."""
+        return any(c.is_variant for c in self.children)
+
+    @property
     def has_index_doc(self) -> bool:
         return self.index_doc_path is not None and self.index_doc_path.is_file()
 
