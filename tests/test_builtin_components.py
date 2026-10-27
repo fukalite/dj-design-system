@@ -142,6 +142,7 @@ class TestBuiltinColocationZeroBoilerplate:
                 in info.media.css
             )
             if (comp_dir / f"{info.name}.ts").is_file():
+                assert (comp_dir / f"{info.name}.js").is_file()
                 assert (
                     f"dj_design_system/components/{rel_dir.as_posix()}/{info.name}.js"
                     in info.media.js

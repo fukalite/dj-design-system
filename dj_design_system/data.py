@@ -241,14 +241,14 @@ class ComponentInfo:
                 dict.fromkeys([f"{self.name}{ext}", f"{source_path.stem}{ext}"])
             )
             for candidate in candidates:
-                template_base_name = candidate[: -len(ext)]
-                has_file = (source_dir / candidate).is_file() or (
-                    ext == ".js" and (source_dir / f"{template_base_name}.ts").is_file()
-                )
-                if has_file:
+                if (source_dir / candidate).is_file():
+                    template_base_name = candidate[: -len(ext)]
                     target.append(
                         build_static_url(
-                            self.app_label, self.relative_path, template_base_name, ext
+                            app_label=self.app_label,
+                            relative_path=self.relative_path,
+                            name=template_base_name,
+                            ext=ext,
                         )
                     )
                     break

@@ -29,6 +29,7 @@ install-hooks:
 
 # Run unit tests (excluding e2e)
 test:
+    @just build-ts
     @just test-ts
     uv run --no-sync pytest tests/ -m "not e2e"
 
