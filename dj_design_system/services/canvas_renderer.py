@@ -212,7 +212,9 @@ def build_resize_script(
 ) -> str:
     """Build the script tag for auto-height and stage message handling in iframes."""
     del iframe_id
-    nonce_attr = f' nonce="{html.escape(str(csp_nonce))}"' if csp_nonce else ""
+    nonce_attr = (
+        f' nonce="{html.escape(str(csp_nonce))}"' if csp_nonce else ""
+    )
     script_url = static("dj_design_system/canvas-resize.js")
     return f'<script src="{script_url}"{nonce_attr}></script>'
 
@@ -287,7 +289,9 @@ def build_canvas_srcdoc(
         f'<link rel="stylesheet" href="{static("dj_design_system/canvas.css")}">'
     )
 
-    nonce_attr = f' nonce="{html.escape(str(csp_nonce))}"' if csp_nonce else ""
+    nonce_attr = (
+        f' nonce="{html.escape(str(csp_nonce))}"' if csp_nonce else ""
+    )
 
     basic_mode_css = ""
     if mode_class == "canvas-wrapper--basic":
@@ -320,8 +324,12 @@ def build_canvas_srcdoc(
     theme_app_css_tags, theme_app_js_tags = build_theme_app_media(
         theme_dict, app_label, color_scheme=color_scheme
     )
-    bg_styles = build_canvas_bg_styles(theme_dict=theme_dict, csp_nonce=csp_nonce)
-    resize_script = build_resize_script(iframe_id=iframe_id, csp_nonce=csp_nonce)
+    bg_styles = build_canvas_bg_styles(
+        theme_dict=theme_dict, csp_nonce=csp_nonce
+    )
+    resize_script = build_resize_script(
+        iframe_id=iframe_id, csp_nonce=csp_nonce
+    )
     html_attrs_str, body_attrs_str = build_html_attrs(
         theme_dict, app_label, color_scheme=color_scheme
     )

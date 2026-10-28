@@ -161,3 +161,4 @@ def do_canvas(parser: template.Parser, token: template.Token) -> CanvasNode:
     nodelist = parser.parse(("endcanvas",))
     parser.delete_first_token()
     return CanvasNode(nodelist)
+

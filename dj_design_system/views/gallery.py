@@ -220,3 +220,4 @@ def gallery_node(
         return render_document_node(request, context, node, app_label, path_parts)
 
     return render_folder_node(request, context, node, app_label, path_parts)
+

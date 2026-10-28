@@ -259,7 +259,11 @@ class _AppTreeBuilder:
                         path=".".join(path_parts[: depth + 1]),
                     )
                 )
-                order = FOLDER_ORDER_MAP.get(path_parts[depth], 0) if is_builtin else 0
+                order = (
+                    FOLDER_ORDER_MAP.get(path_parts[depth], 0)
+                    if is_builtin
+                    else 0
+                )
                 node = NavNode(
                     label=label,
                     slug=path_parts[depth],

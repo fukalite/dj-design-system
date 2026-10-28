@@ -95,8 +95,12 @@ class ThemeSelect(components.TagComponent):
                     ThemeOption(value=str(raw_item[0]), label=str(raw_item[1]))
                 )
             elif isinstance(raw_item, str):
-                label_text = raw_item.capitalize() if raw_item.islower() else raw_item
-                extracted_options.append(ThemeOption(value=raw_item, label=label_text))
+                label_text = (
+                    raw_item.capitalize() if raw_item.islower() else raw_item
+                )
+                extracted_options.append(
+                    ThemeOption(value=raw_item, label=label_text)
+                )
             elif isinstance(raw_item, dict):
                 raw_val = raw_item.get("value")
                 raw_lbl = raw_item.get("label")

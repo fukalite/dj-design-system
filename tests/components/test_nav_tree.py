@@ -566,3 +566,4 @@ class TestNavTreeGalleryAndDocs:
         assert "<dds-nav-tree" in doc_text
         assert "Behaviour & Accessibility" in doc_text
         assert "aria-current" in doc_text
+

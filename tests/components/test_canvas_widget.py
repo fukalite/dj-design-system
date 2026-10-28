@@ -516,3 +516,4 @@ class TestCanvasWidgetGalleryAndDocs:
         assert "Mode Toggling" in doc_text
         assert "Iframe Auto-Resize" in doc_text
         assert "Public Methods" in doc_text
+

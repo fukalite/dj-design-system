@@ -415,7 +415,7 @@ class TestGalleryComponentView:
         content = response.content.decode("utf-8")
         assert 'href="/static/css/cyber.css"' in content
         assert 'src="/static/js/cyber.js"' in content
-        assert "cyber-dark.css" not in content
+        assert 'cyber-dark.css' not in content
 
         # In dark mode
         client.cookies["dds_gallery_theme"] = "dark"

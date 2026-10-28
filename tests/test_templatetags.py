@@ -446,3 +446,4 @@ class TestGalleryUIThemeTags:
         res_dark = str(gallery_ui_theme_scripts(context_dark))
         assert 'src="/static/js/custom.js"' in res_dark
         assert 'src="/static/js/custom-dark.js"' in res_dark
+

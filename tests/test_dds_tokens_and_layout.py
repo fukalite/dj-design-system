@@ -517,9 +517,7 @@ class TestClassicThemeTokens:
             props.get("--dds-surface-sidebar-text-prominent-color")
             == "var(--_dds-neutral-0)"
         )
-        assert (
-            props.get("--dds-surface-sidebar-text-muted-color") == "var(--_dds-ink-300)"
-        )
+        assert props.get("--dds-surface-sidebar-text-muted-color") == "var(--_dds-ink-300)"
 
         # Surface content/docs/stage colors from main
         assert props.get("--dds-surface-docs-bg-color") == "var(--_dds-neutral-0)"
@@ -557,6 +555,7 @@ class TestClassicThemeTokens:
         )
         for name in props:
             for forbidden in forbidden_prefixes:
-                assert not name.startswith(forbidden), (
-                    f"Classic theme should not override {name}"
-                )
+                assert not name.startswith(
+                    forbidden
+                ), f"Classic theme should not override {name}"
+
