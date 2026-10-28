@@ -150,8 +150,15 @@ class TestBuildRecipesAndSharedTypes:
         assert "test-ts" in test_body
 
     def test_justfile_hooks_build_ts_into_dependent_recipes(self) -> None:
-        """Verify e2e, visual-run, _visual-docker, build, and demo run build-ts."""
-        for recipe_name in ("e2e", "visual-run", "_visual-docker", "build", "demo"):
+        """Verify test, e2e, visual-run, _visual-docker, build, and demo run build-ts."""
+        for recipe_name in (
+            "test",
+            "e2e",
+            "visual-run",
+            "_visual-docker",
+            "build",
+            "demo",
+        ):
             body = _get_recipe_body(name=recipe_name)
             assert "build-ts" in body
 

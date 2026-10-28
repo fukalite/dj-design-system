@@ -115,6 +115,13 @@ jobs:
           python-version: "${{ matrix.python-version }}"
           activate-environment: true
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Compile TypeScript components
+        run: just build-ts
+
       - name: Install testing dependencies
         run: uv pip install -e ".[dev]"
 

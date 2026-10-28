@@ -1,8 +1,11 @@
 import dataclasses
+import inspect
+import pathlib
 from types import SimpleNamespace
 
 import pytest
 
+from dj_design_system import components
 from dj_design_system.components.gallery.composites.sandbox_params import (
     FormFieldRowData,
 )
@@ -10,6 +13,7 @@ from dj_design_system.components.gallery.composites.sandbox_toolbar.sandbox_tool
     SandboxControlOption,
 )
 from dj_design_system.data import (
+    ComponentInfo,
     ComponentMedia,
     ParamRowData,
     ParamSpecData,
@@ -103,6 +107,73 @@ class TestAutoDiscovery:
         reg = registry_with_demo_components
         info = reg.get_info(ButtonComponent)
         assert info.media
+
+    def test_colocated_ts_without_js_is_not_autodiscovered(
+        self,
+        tmp_path: pathlib.Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """A co-located .ts file without a sibling .js file must not be added to media.js (#264)."""
+        comp_dir = tmp_path / "widget"
+        comp_dir.mkdir()
+        py_file = comp_dir / "widget.py"
+        py_file.write_text(data="pass\n", encoding="utf-8")
+        (comp_dir / "widget.ts").write_text(data="export {};\n", encoding="utf-8")
+        (comp_dir / "widget.css").write_text(data=".widget {}\n", encoding="utf-8")
+
+        class WidgetComponent(components.TagComponent):
+            pass
+
+        orig_getfile = inspect.getfile
+        monkeypatch.setattr(
+            target=inspect,
+            name="getfile",
+            value=lambda obj: (
+                str(py_file) if obj is WidgetComponent else orig_getfile(obj)
+            ),
+        )
+
+        info = ComponentInfo(
+            component_class=WidgetComponent,
+            name="widget",
+            app_label="myapp",
+            relative_path="widget",
+        )
+        assert info.media.css == ["myapp/components/widget/widget.css"]
+        assert info.media.js == []
+
+    def test_colocated_ts_with_compiled_js_autodiscovers_js(
+        self,
+        tmp_path: pathlib.Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """When both .ts and compiled .js exist on disk, media.js includes the .js path (#264)."""
+        comp_dir = tmp_path / "widget"
+        comp_dir.mkdir()
+        py_file = comp_dir / "widget.py"
+        py_file.write_text(data="pass\n", encoding="utf-8")
+        (comp_dir / "widget.ts").write_text(data="export {};\n", encoding="utf-8")
+        (comp_dir / "widget.js").write_text(data="export {};\n", encoding="utf-8")
+
+        class WidgetComponent(components.TagComponent):
+            pass
+
+        orig_getfile = inspect.getfile
+        monkeypatch.setattr(
+            target=inspect,
+            name="getfile",
+            value=lambda obj: (
+                str(py_file) if obj is WidgetComponent else orig_getfile(obj)
+            ),
+        )
+
+        info = ComponentInfo(
+            component_class=WidgetComponent,
+            name="widget",
+            app_label="myapp",
+            relative_path="widget",
+        )
+        assert info.media.js == ["myapp/components/widget/widget.js"]
 
 
 # ---------------------------------------------------------------------------
