@@ -13,7 +13,11 @@
         {% dds__search_box search_index=search_index %}
     {% endif %}
     {% if available_themes.1 %}
-        {% dds__theme_select themes=available_themes active_theme=global_active_theme supported_themes=component_available_themes show_icon=False %}
+        {% if component_available_themes %}
+            {% dds__theme_select themes=available_themes active_theme=global_active_theme supported_themes=component_available_themes show_icon=False %}
+        {% else %}
+            {% dds__theme_select themes=available_themes active_theme=global_active_theme show_icon=False %}
+        {% endif %}
         {% if is_theme_restricted %}
             <span data-theme-override-note
                   class="dds-theme-override-note"

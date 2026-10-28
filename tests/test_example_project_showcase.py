@@ -4,6 +4,7 @@ import pathlib
 import re
 import types
 
+import pytest
 from django import template, test, urls
 
 from dj_design_system import components, parameters
@@ -32,6 +33,15 @@ def _render_template(*, library: template.Library, source: str) -> str:
     engine.template_builtins.append(library)
     compiled = engine.from_string(template_code=source)
     return compiled.render(context=template.Context())
+
+
+def _assert_nodes_render(*, client: test.Client, nodes: list) -> None:
+    """Assert that every navigation node and its children return HTTP 200."""
+    for node in nodes:
+        resp = client.get(path=node.url)
+        assert resp.status_code == 200, f"{node.url} returned {resp.status_code}"
+        if node.children:
+            _assert_nodes_render(client=client, nodes=node.children)
 
 
 class TestExampleProjectPedagogicalBreadth:
@@ -98,6 +108,26 @@ class TestExampleProjectPedagogicalBreadth:
         md_files = list(EXAMPLE_PROJECT_DIR.rglob(pattern="index.md"))
         assert md_files
         assert any("```canvas" in md.read_text(encoding="utf-8") for md in md_files)
+
+    @pytest.mark.django_db
+    def test_example_project_settings_render_all_gallery_views(
+        self, client: test.Client
+    ) -> None:
+        """Every gallery view renders under example_project.settings.DJ_DESIGN_SYSTEM (#268)."""
+        navigation_service.clear_navigation_cache()
+        try:
+            with test.override_settings(
+                DJ_DESIGN_SYSTEM=base_settings.DJ_DESIGN_SYSTEM
+            ):
+                index_response = client.get(path=urls.reverse(viewname="gallery"))
+                assert index_response.status_code == 200
+                assert b"gallery-global-theme-select" in index_response.content
+                _assert_nodes_render(
+                    client=client,
+                    nodes=navigation_service.build_navigation(),
+                )
+        finally:
+            navigation_service.clear_navigation_cache()
 
 
 class TestSettingsDdsGallery:
