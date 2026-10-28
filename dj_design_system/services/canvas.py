@@ -57,6 +57,7 @@ from dj_design_system.types import CanvasMode, ColorScheme, Theme
 
 __all__ = [
     "resolve_from_get_params",
+    "resolve_param_value",
     "render_component",
     "merge_variant_params",
     "get_component_media",
@@ -193,7 +194,7 @@ def resolve_from_get_params(
     )
 
 
-def _resolve_param_value(val: Any) -> Any:
+def resolve_param_value(val: Any) -> Any:
     """Unwrap GalleryParameter and evaluate callables dynamically."""
     if isinstance(val, GalleryParameter):
         val = val.value
@@ -202,6 +203,9 @@ def _resolve_param_value(val: Any) -> Any:
     if isinstance(val, GalleryParameter):
         val = val.value
     return val
+
+
+_resolve_param_value = resolve_param_value
 
 
 def merge_variant_params(

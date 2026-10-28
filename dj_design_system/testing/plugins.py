@@ -6,7 +6,10 @@ from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
 
+from django.db import models
+
 from dj_design_system.data import ComponentInfo
+from dj_design_system.services import canvas as canvas_service
 from dj_design_system.testing.engine import AssessmentPlugin
 from dj_design_system.testing.visual import ScreenshotMismatch, compare_images
 
@@ -38,11 +41,33 @@ class PlaywrightAssessmentPlugin(AssessmentPlugin):
             getattr(cfg, "variants", None), (list, tuple)
         ):
             variant_obj = cfg.get_variant(variant)
-            return dict(variant_obj.kwargs) if variant_obj else {}
+            if variant_obj is not None:
+                comp_cls = getattr(component, "component_class", None)
+                if isinstance(comp_cls, type):
+                    return canvas_service.merge_variant_params(
+                        component_class=comp_cls,
+                        config=cfg,
+                        variant=variant_obj,
+                        resolve_values=True,
+                    )
+                return {
+                    k: canvas_service.resolve_param_value(val=v)
+                    for k, v in variant_obj.kwargs.items()
+                }
         if variant == "basic":
-            return component.gallery_basic_kwargs
+            raw_basic = getattr(component, "gallery_basic_kwargs", None)
+            if isinstance(raw_basic, dict):
+                return {
+                    k: canvas_service.resolve_param_value(val=v)
+                    for k, v in raw_basic.items()
+                }
         elif variant == "maximal":
-            return component.gallery_maximal_kwargs
+            raw_max = getattr(component, "gallery_maximal_kwargs", None)
+            if isinstance(raw_max, dict):
+                return {
+                    k: canvas_service.resolve_param_value(val=v)
+                    for k, v in raw_max.items()
+                }
         return {}
 
     def _navigate_to_component(
@@ -52,11 +77,14 @@ class PlaywrightAssessmentPlugin(AssessmentPlugin):
         params: dict[str, str] = {"component": component.qualified_name}
 
         for key, value in kwargs.items():
+            value = canvas_service.resolve_param_value(val=value)
             if hasattr(value, "value"):
                 value = value.value
             if value is not None:
                 if isinstance(value, bool):
                     params[key] = "true" if value else "false"
+                elif isinstance(value, models.Model):
+                    params[key] = str(value.pk)
                 elif isinstance(value, (list, dict)):
                     params[key] = json.dumps(value, default=_json_serialise_default)
                 else:

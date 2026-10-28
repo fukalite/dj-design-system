@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 
+from dj_design_system import components, gallery, parameters
 from dj_design_system.testing.plugins import (
     AccessibilityPlugin,
     HTMLValidationPlugin,
@@ -9,6 +10,11 @@ from dj_design_system.testing.plugins import (
     VisualRegressionPlugin,
 )
 from dj_design_system.testing.visual import ImageComparison
+
+
+class _UserCardAssessmentComponent(components.TagComponent):
+    person = parameters.UserParam("User")
+    title = parameters.StrParam("Title", default="Default")
 
 
 def _write_fake_screenshot(path: str) -> None:
@@ -318,3 +324,40 @@ def test_strict_html_parser_flags_explicit_closing_void_elements():
     parser.feed('<div><input type="text"></input></div>')
     parser.close()
     assert any("</input>" in err for err in parser.errors)
+
+
+@pytest.mark.django_db
+def test_playwright_assessment_plugin_serialises_model_pk_and_callables(
+    mocker, django_user_model
+):
+    """PlaywrightAssessmentPlugin serialises Model instances by pk and resolves callables."""
+    user = django_user_model.objects.create_user(username="playwright_user")
+
+    mock_page = mocker.Mock()
+    plugin = VisualRegressionPlugin(
+        page=mock_page, base_url="http://localhost:8000", enable_diff=False
+    )
+
+    mock_comp = mocker.Mock()
+    mock_comp.qualified_name = "test_app__user_card"
+    mock_comp.component_class = _UserCardAssessmentComponent
+    mock_comp.gallery_config = gallery.GalleryConfig(
+        param_defaults={"title": "From Defaults"},
+        variants=[
+            gallery.Variant(
+                name="custom_user",
+                kwargs={"person": lambda: user},
+            )
+        ],
+    )
+    mock_comp.gallery_basic_kwargs = {"person": lambda: user}
+
+    plugin.run_assessment(mock_comp, "custom_user", "light")
+    url = mock_page.goto.call_args[0][0]
+    assert f"person={user.pk}" in url
+    assert "title=From+Defaults" in url
+
+    mock_page.goto.reset_mock()
+    plugin.run_assessment(mock_comp, "basic", "light")
+    basic_url = mock_page.goto.call_args[0][0]
+    assert f"person={user.pk}" in basic_url
