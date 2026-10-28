@@ -205,7 +205,6 @@ def resolve_param_value(val: Any) -> Any:
     return val
 
 
-_resolve_param_value = resolve_param_value
 
 
 def merge_variant_params(
