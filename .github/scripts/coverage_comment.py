@@ -15,10 +15,10 @@ LEGACY_MARKERS = ["<!-- Pytest Coverage Comment: test -->"]
 
 @dataclass
 class RatchetConfig:
-    lines: float = 85.0
-    statements: float = 85.0
-    branches: float = 80.0
-    functions: float = 85.0
+    lines: float = 94.0
+    statements: float = 94.0
+    branches: float = 85.0
+    functions: float = 97.0
 
 
 @dataclass
@@ -431,22 +431,22 @@ def main() -> int:
     parser.add_argument(
         "--ratchet-lines",
         type=float,
-        default=float(os.getenv("COVERAGE_RATCHET_LINES", "85.0")),
+        default=float(os.getenv("COVERAGE_RATCHET_LINES", "94.0")),
     )
     parser.add_argument(
         "--ratchet-statements",
         type=float,
-        default=float(os.getenv("COVERAGE_RATCHET_STATEMENTS", "85.0")),
+        default=float(os.getenv("COVERAGE_RATCHET_STATEMENTS", "94.0")),
     )
     parser.add_argument(
         "--ratchet-branches",
         type=float,
-        default=float(os.getenv("COVERAGE_RATCHET_BRANCHES", "80.0")),
+        default=float(os.getenv("COVERAGE_RATCHET_BRANCHES", "85.0")),
     )
     parser.add_argument(
         "--ratchet-functions",
         type=float,
-        default=float(os.getenv("COVERAGE_RATCHET_FUNCTIONS", "85.0")),
+        default=float(os.getenv("COVERAGE_RATCHET_FUNCTIONS", "97.0")),
     )
 
     args = parser.parse_args()
