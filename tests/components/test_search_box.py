@@ -99,9 +99,7 @@ class TestSearchBoxDiscoveryAndExports:
     def test_search_box_exports_and_inheritance(self) -> None:
         """Verify SearchBox and SearchIndexEntry are exported from package and module."""
         assert search_box_package.SearchBox is search_box_module.SearchBox
-        assert (
-            search_box_package.SearchIndexEntry is search_box_module.SearchIndexEntry
-        )
+        assert search_box_package.SearchIndexEntry is search_box_module.SearchIndexEntry
         assert dataclasses.is_dataclass(search_box_module.SearchIndexEntry)
         assert search_box_package.__all__ == ["SearchBox", "SearchIndexEntry"]
         assert issubclass(
@@ -352,4 +350,3 @@ class TestSearchBoxStylesheetAndHygiene:
         assert cfg.variants == []
         direct_html = search_box_module.SearchBox(**cfg.param_defaults).render()
         assert '<dds-search-box class="dds-search-box"' in direct_html
-

@@ -188,4 +188,3 @@ class SandboxParams(components.BlockComponent):
         context["has_hx_target"] = has_hx_target
         context["empty_message"] = empty_message
         return context
-

@@ -99,6 +99,7 @@ update-snapshots:
 # Check linting and formatting without making changes
 check:
     uv run --no-sync ruff check .
+    uv run --no-sync ruff format --check .
     uv run --no-sync djlint dj_design_system/templates --check
     npx stylelint "dj_design_system/**/*.css"
 
@@ -106,8 +107,8 @@ check:
 fix:
     uv run --no-sync ruff check --fix .
     uv run --no-sync ruff format .
-    uv run --no-sync djlint dj_design_system/templates --reformat || true
-    npx stylelint "dj_design_system/**/*.css" --fix || true
+    uv run --no-sync djlint dj_design_system/templates --reformat || uv run --no-sync djlint dj_design_system/templates --check
+    npx stylelint "dj_design_system/**/*.css" --fix
 
 # Check CSS formatting with stylelint
 check-css:
@@ -171,3 +172,7 @@ demo target="demo":
 # Fetch, parse, and display unresolved PR comments
 comments pr_number="":
     uv run --no-sync python .github/scripts/pr_comments.py {{pr_number}}
+
+# Upload before/after screenshots to the orphan pr-assets branch and output Markdown embeds
+pr-screenshots pr_number +files:
+    uv run --no-sync python .github/scripts/pr_screenshots.py {{pr_number}} {{files}}

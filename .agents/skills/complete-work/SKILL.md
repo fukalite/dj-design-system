@@ -125,7 +125,7 @@ Run the `/code-review` workflow in-process to audit code (`origin/${BASE_REF}...
    gh pr view --json number,url 2>/dev/null || true
    ```
 3. **If PR Already Exists (Scenario A)**:
-   - The push has automatically updated the PR. Proceed directly to CI monitoring.
+   - The push has automatically updated the PR. If this update introduces or modifies visual/UI changes, update the PR screenshots via step 5 below before proceeding to CI monitoring.
 4. **If New PR Needed (Scenario B or C)**:
    - Create the PR using the dynamic `--base ${BASE_REF}` and draft preference:
      - **Draft PR**:
@@ -136,6 +136,14 @@ Run the `/code-review` workflow in-process to audit code (`origin/${BASE_REF}...
        ```bash
        gh pr create --base "${BASE_REF}" --head "<branch>" --title "<title>" --body "<body>"
        ```
+5. **Before & After Screenshots (Mandatory for Visual Changes)**:
+   - If the PR touches templates, CSS, components, layout primitives, or theming with any user-visible visual impact:
+     1. Capture deterministic **Before (`origin/${BASE_REF}`)** and **After (`HEAD`)** screenshots in Playwright (stored in a scratch directory outside the git working tree).
+     2. Upload the PNGs to the orphan `pr-assets` branch under `pr-<pr_number>/` without polluting the feature branch:
+        ```bash
+        just pr-screenshots <pr_number> <path/to/before.png> <path/to/after.png>
+        ```
+     3. Update the PR description (`gh pr edit <pr_number> --body-file ...`) to include the `### Before & After Screenshots` Markdown table referencing `https://raw.githubusercontent.com/fukalite/dj-design-system/pr-assets/pr-<pr_number>/<file>.png`.
 
 ---
 

@@ -188,4 +188,3 @@ class TestRenderMarkdownService:
         )
         assert "themes/light.css" in doc_ctx["doc_html"]
         assert "demo_components/app_bundle.css" in doc_ctx["doc_html"]
-

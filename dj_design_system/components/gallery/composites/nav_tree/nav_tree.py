@@ -74,9 +74,7 @@ class NavTreeNode:
             or cls.read_field(raw_node, "node_kind")
             or ""
         )
-        raw_url = cls.read_field(raw_node, "url") or cls.read_field(
-            raw_node, "href"
-        )
+        raw_url = cls.read_field(raw_node, "url") or cls.read_field(raw_node, "href")
         raw_active = cls.read_field(raw_node, "active_path", "")
         raw_base_active = cls.read_field(raw_node, "base_active_path", "")
         raw_children_val = cls.read_field(raw_node, "children")
@@ -87,9 +85,7 @@ class NavTreeNode:
         raw_has_children = cls.read_field(raw_node, "has_children")
         raw_has_index_doc = cls.read_field(raw_node, "has_index_doc")
         if raw_has_index_doc is None:
-            raw_has_index_doc = (
-                cls.read_field(raw_node, "index_doc_path") is not None
-            )
+            raw_has_index_doc = cls.read_field(raw_node, "index_doc_path") is not None
 
         node_type_val = getattr(raw_type, "value", raw_type)
         node_type = str(node_type_val).lower() if node_type_val else ""
@@ -108,20 +104,14 @@ class NavTreeNode:
             children=children,
             icon=str(raw_icon) if raw_icon else "",
             is_component=(
-                bool(raw_is_component)
-                if raw_is_component is not None
-                else None
+                bool(raw_is_component) if raw_is_component is not None else None
             ),
             is_document=(
                 bool(raw_is_document) if raw_is_document is not None else None
             ),
-            is_variant=(
-                bool(raw_is_variant) if raw_is_variant is not None else None
-            ),
+            is_variant=(bool(raw_is_variant) if raw_is_variant is not None else None),
             has_children=(
-                bool(raw_has_children)
-                if raw_has_children is not None
-                else None
+                bool(raw_has_children) if raw_has_children is not None else None
             ),
             has_index_doc=bool(raw_has_index_doc),
         )
