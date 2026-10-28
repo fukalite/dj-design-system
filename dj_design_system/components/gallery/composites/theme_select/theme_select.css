@@ -97,6 +97,10 @@
       &:disabled {
         cursor: not-allowed;
       }
+
+      & option[data-unsupported='true'] {
+        color: var(--_theme-select-disabled-text-color);
+      }
     }
   }
 }
