@@ -110,4 +110,87 @@ describe('ThemeManager', () => {
     ).toBe('<html>dark</html>');
     controller.abort();
   });
+
+  it('synchronises component theme override notices on theme change', () => {
+    const host = document.createElement('div');
+    host.innerHTML = `
+      <div data-toolbar-actions
+           data-dark-mode-themes="dark"
+           data-active-theme="default">
+        <select data-theme-select>
+          <option value="default" data-raw-label="Default Theme">
+            Default Theme (unsupported)
+          </option>
+          <option value="dark" data-raw-label="Dark Theme">
+            Dark Theme
+          </option>
+        </select>
+        <span data-theme-override-note>
+          <span class="dds-badge" data-variant="warning">
+            Theme overridden
+          </span>
+        </span>
+      </div>
+      <div data-theme-override-notice
+           data-available-themes="dark"
+           data-supported-label="Dark Theme"
+           data-theme-overridden="true">
+        <span class="dds-badge" data-variant="warning">Theme overridden</span>
+        <span data-theme-override-text>Initial</span>
+      </div>
+    `;
+    document.body.appendChild(host);
+
+    const manager = new ThemeManager(host);
+    const controller = new AbortController();
+    manager.connect(controller.signal);
+
+    const notice = host.querySelector<HTMLElement>(
+      '[data-theme-override-notice]',
+    )!;
+    const note = host.querySelector<HTMLElement>(
+      '[data-theme-override-note]',
+    )!;
+    const textSpan = host.querySelector<HTMLElement>(
+      '[data-theme-override-text]',
+    )!;
+
+    expect(notice.dataset.themeOverridden).toBe('true');
+    expect(note.dataset.themeOverridden).toBe('true');
+    expect(textSpan.textContent).toContain('overriding Default Theme');
+
+    // Switch to supported theme "dark"
+    host.dispatchEvent(
+      new CustomEvent('dds:theme-change', {
+        bubbles: true,
+        detail: { theme: 'dark' },
+      }),
+    );
+
+    expect(notice.dataset.themeOverridden).toBe('false');
+    expect(note.dataset.themeOverridden).toBe('false');
+    expect(textSpan.textContent).toBe(
+      'This component only supports Dark Theme.',
+    );
+    expect(notice.querySelector('.dds-badge')?.textContent).toBe(
+      'Theme restricted',
+    );
+
+    // Switch back to unsupported theme "default"
+    host.dispatchEvent(
+      new CustomEvent('dds:theme-change', {
+        bubbles: true,
+        detail: { theme: 'default' },
+      }),
+    );
+
+    expect(notice.dataset.themeOverridden).toBe('true');
+    expect(note.dataset.themeOverridden).toBe('true');
+    expect(textSpan.textContent).toContain('overriding Default Theme');
+    expect(notice.querySelector('.dds-badge')?.textContent).toBe(
+      'Theme overridden',
+    );
+
+    controller.abort();
+  });
 });

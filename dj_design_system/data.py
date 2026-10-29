@@ -106,6 +106,11 @@ class ComponentInfo:
         return self.component_class.__name__
 
     @property
+    def available_themes(self) -> list[str]:
+        """Return the list of theme values supported by this component."""
+        return self.component_class.get_available_themes()
+
+    @property
     def gallery_basic_kwargs(self) -> dict[str, Any]:
         warnings.warn(
             f"ComponentInfo.gallery_basic_kwargs for '{self.name}' is deprecated and will be removed "
@@ -128,8 +133,13 @@ class ComponentInfo:
     @cached_property
     def _gallery_kwargs(self) -> tuple[dict, dict]:
         cfg = self.gallery_config
-        basic_v = cfg.get_variant("basic")
-        maximal_v = cfg.get_variant("maximal")
+        doc_by_key = {dv.key: dv for dv in cfg.get_doc_variants()}
+        min_doc = doc_by_key.get("minimal")
+        max_doc = doc_by_key.get("maximal")
+        min_name = min_doc.name if min_doc else "basic"
+        max_name = max_doc.name if max_doc else "maximal"
+        basic_v = cfg.get_variant(min_name)
+        maximal_v = cfg.get_variant(max_name)
         return (
             dict(basic_v.kwargs) if basic_v else {},
             dict(maximal_v.kwargs) if maximal_v else {},
@@ -241,14 +251,14 @@ class ComponentInfo:
                 dict.fromkeys([f"{self.name}{ext}", f"{source_path.stem}{ext}"])
             )
             for candidate in candidates:
-                template_base_name = candidate[: -len(ext)]
-                has_file = (source_dir / candidate).is_file() or (
-                    ext == ".js" and (source_dir / f"{template_base_name}.ts").is_file()
-                )
-                if has_file:
+                if (source_dir / candidate).is_file():
+                    template_base_name = candidate[: -len(ext)]
                     target.append(
                         build_static_url(
-                            self.app_label, self.relative_path, template_base_name, ext
+                            app_label=self.app_label,
+                            relative_path=self.relative_path,
+                            name=template_base_name,
+                            ext=ext,
                         )
                     )
                     break
@@ -369,6 +379,11 @@ class NavNode:
     @property
     def is_variant(self) -> bool:
         return self.node_type == NodeType.VARIANT
+
+    @property
+    def has_variants(self) -> bool:
+        """Return True if any immediate child node represents a variant."""
+        return any(c.is_variant for c in self.children)
 
     @property
     def has_index_doc(self) -> bool:

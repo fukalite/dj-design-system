@@ -1,5 +1,6 @@
 """Tests for the gallery views."""
 
+import copy
 import inspect
 from urllib.parse import parse_qs, urlsplit
 
@@ -952,6 +953,31 @@ class TestParamsTable:
 class TestSmokeAllPages:
     """Walk the entire navigation tree and assert every page renders."""
 
+    MULTI_THEME_SETTINGS = {
+        "GALLERY_THEMES": {
+            "theme_a": {
+                "label": "Theme A",
+                "canvas_background": "white",
+                "html_attrs": {"html": {"class": "theme-a"}},
+                "dark_mode": {
+                    "canvas_background": {"color": "rgb(18, 19, 23)"},
+                    "html_attrs": {"html": {"class": "theme-a is-dark"}},
+                },
+            },
+            "dark": {
+                "label": "Dark Theme",
+                "canvas_background": {"color": "#f9f6f0"},
+                "html_attrs": {"html": {"class": "theme-b"}},
+            },
+        },
+        "GALLERY_DEFAULT_THEME": "theme_a",
+        "GALLERY_UI_THEMES": {
+            "desert": {"label": "Desert", "dark_mode": {}},
+            "classic": {"label": "Classic"},
+        },
+        "GALLERY_DEFAULT_UI_THEME": "desert",
+    }
+
     def test_every_nav_node_returns_200(self, client):
         """Every node in the nav tree should have a resolvable URL that returns 200."""
         nav_tree = _get_nav_tree()
@@ -968,6 +994,49 @@ class TestSmokeAllPages:
                 errors.append(f"{url} -> {response.status_code} ({node.label})")
 
         assert errors == [], "Pages that failed:\n" + "\n".join(errors)
+
+    def test_every_page_returns_200_with_multiple_themes(self, client, settings):
+        """Every gallery page (index, folder, doc, component) renders when 2+ themes are configured (#268)."""
+        settings.DJ_DESIGN_SYSTEM = self.MULTI_THEME_SETTINGS
+        index_response = client.get(reverse("gallery"))
+        assert index_response.status_code == 200
+        assert b"gallery-global-theme-select" in index_response.content
+
+        nav_tree = _get_nav_tree()
+        all_nodes = _collect_all_nodes(nav_tree)
+        errors = []
+        for node in all_nodes:
+            response = client.get(node.url)
+            if response.status_code != 200:
+                errors.append(f"{node.url} -> {response.status_code} ({node.label})")
+        assert errors == [], "Pages that failed under multi-theme:\n" + "\n".join(
+            errors
+        )
+
+    def test_no_undefined_template_variables_across_gallery_views(
+        self, client, settings
+    ):
+        """Ensure gallery views do not reference undefined template context variables (#268)."""
+        templates_cfg = copy.deepcopy(settings.TEMPLATES)
+        templates_cfg[0]["OPTIONS"]["string_if_invalid"] = "__UNDEFINED_VAR:%s__"
+        settings.TEMPLATES = templates_cfg
+        settings.DJ_DESIGN_SYSTEM = self.MULTI_THEME_SETTINGS
+
+        urls_to_check = [
+            reverse("gallery"),
+            "/dds/demo_components/card/",
+            "/dds/demo_nav/elements/",
+            "/dds/demo_nav/design_guidelines/",
+            "/dds/demo_components/alert/",
+            "/dds/demo_components/badge/?variant=status",
+        ]
+        for url in urls_to_check:
+            response = client.get(path=url)
+            assert response.status_code == 200
+            html = response.content.decode("utf-8")
+            assert "__UNDEFINED_VAR:" not in html, (
+                f"Undefined template variable rendered on {url}"
+            )
 
     def test_index_page_renders(self, client):
         response = client.get(reverse("gallery"))
@@ -1236,3 +1305,159 @@ class TestThinViewsAndImmutableParams:
         assert all(isinstance(r, ParamRowData) for r in rows)
         for param_obj in params.values():
             assert "type_name" not in param_obj.__dict__
+
+
+class TestComponentThemeOverride:
+    """Tests for Issue #124: gallery component theme override indication."""
+
+    TWO_THEMES_SETTINGS = {
+        "GALLERY_THEMES": {
+            "default": {
+                "label": "Default Theme",
+                "html_attrs": {"html": {"data-theme": "default"}},
+            },
+            "dark": {
+                "label": "Dark Theme",
+                "html_attrs": {"html": {"data-theme": "dark"}},
+            },
+        },
+        "GALLERY_DEFAULT_THEME": "default",
+    }
+
+    def test_component_theme_override_when_unsupported_theme_selected(
+        self, client, settings
+    ):
+        settings.DJ_DESIGN_SYSTEM = self.TWO_THEMES_SETTINGS
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+
+        # Global theme remains 'default', while sandbox active theme resolves to 'dark'
+        assert response.context["global_active_theme"] == "default"
+        assert response.context["sandbox_active_theme"] == "dark"
+        assert response.context["is_theme_restricted"] is True
+        assert response.context["is_theme_overridden"] is True
+        assert response.context["component_available_themes"] == ["dark"]
+        assert response.context["available_theme_labels"] == ["Dark Theme"]
+        assert (
+            response.context["theme_override_message"]
+            == "This component only supports Dark Theme (overriding Default Theme)."
+        )
+
+        content = response.content.decode("utf-8")
+        # Notice and notes present in HTML
+        assert "data-theme-override-note" in content
+        assert "data-theme-override-notice" in content
+        assert 'data-theme-overridden="true"' in content
+        assert 'data-unsupported="true"' in content
+        assert "Default Theme (unsupported)" in content
+        assert "Theme overridden" in content
+        assert (
+            "This component only supports Dark Theme (overriding Default Theme)."
+            in content
+        )
+
+    def test_component_theme_restricted_when_supported_theme_selected(
+        self, client, settings
+    ):
+        settings.DJ_DESIGN_SYSTEM = self.TWO_THEMES_SETTINGS
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        response = client.get(f"{url}?_dds_theme=dark")
+        assert response.status_code == 200
+
+        assert response.context["global_active_theme"] == "dark"
+        assert response.context["sandbox_active_theme"] == "dark"
+        assert response.context["is_theme_restricted"] is True
+        assert response.context["is_theme_overridden"] is False
+        assert (
+            response.context["theme_override_message"]
+            == "This component only supports Dark Theme."
+        )
+
+        content = response.content.decode("utf-8")
+        assert "data-theme-override-note" in content
+        assert "data-theme-override-notice" in content
+        assert 'data-theme-overridden="false"' in content
+        assert "Theme restricted" in content
+        assert "This component only supports Dark Theme." in content
+        # Default Theme remains annotated as unsupported by the component
+        assert "Default Theme (unsupported)" in content
+
+    def test_unrestricted_component_does_not_render_override_indicators(
+        self, client, settings
+    ):
+        settings.DJ_DESIGN_SYSTEM = self.TWO_THEMES_SETTINGS
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "button"},
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+
+        assert response.context["is_theme_restricted"] is False
+        assert response.context["is_theme_overridden"] is False
+
+        content = response.content.decode("utf-8")
+        assert "data-theme-override-note" not in content
+        assert "data-theme-override-notice" not in content
+        assert "data-unsupported" not in content
+        assert "(unsupported)" not in content
+
+    def test_theme_select_supported_themes_parameter(self):
+        from dj_design_system.components.gallery.composites.theme_select.theme_select import (
+            ThemeOption,
+            ThemeSelect,
+        )
+
+        ts = ThemeSelect(
+            themes=[
+                ThemeOption(value="default", label="Default Theme"),
+                ThemeOption(value="dark", label="Dark Theme"),
+            ],
+            active_theme="default",
+            supported_themes=["dark"],
+        )
+        ctx = ts.get_context()
+        normalized = ctx["normalized_themes"]
+        assert len(normalized) == 2
+        assert normalized[0]["value"] == "default"
+        assert normalized[0]["is_supported"] is False
+        assert normalized[0]["label"] == "Default Theme (unsupported)"
+        assert normalized[0]["raw_label"] == "Default Theme"
+        assert normalized[1]["value"] == "dark"
+        assert normalized[1]["is_supported"] is True
+        assert normalized[1]["label"] == "Dark Theme"
+        assert normalized[1]["raw_label"] == "Dark Theme"
+
+    def test_non_component_views_render_with_multiple_themes(self, client, settings):
+        """Regression test for #268: gallery_index, folder, and document views render with 2+ themes."""
+        settings.DJ_DESIGN_SYSTEM = self.TWO_THEMES_SETTINGS
+
+        index_resp = client.get(reverse("gallery"))
+        assert index_resp.status_code == 200
+        assert index_resp.context["component_available_themes"] is None
+        assert index_resp.context["is_theme_restricted"] is False
+        index_html = index_resp.content.decode("utf-8")
+        assert "gallery-global-theme-select" in index_html
+        assert "data-theme-override-note" not in index_html
+        assert "(unsupported)" not in index_html
+
+        folder_resp = client.get("/dds/demo_components/card/")
+        assert folder_resp.status_code == 200
+        assert "gallery-global-theme-select" in folder_resp.content.decode("utf-8")
+
+        index_doc_folder_resp = client.get("/dds/demo_nav/elements/")
+        assert index_doc_folder_resp.status_code == 200
+        assert "gallery-global-theme-select" in index_doc_folder_resp.content.decode(
+            "utf-8"
+        )
+
+        doc_resp = client.get("/dds/demo_nav/design_guidelines/")
+        assert doc_resp.status_code == 200
+        assert "gallery-global-theme-select" in doc_resp.content.decode("utf-8")

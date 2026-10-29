@@ -24,6 +24,50 @@ interface CanvasStageMessage {
     Boolean(window.parent) && window.parent !== window;
 
   /**
+   * Checks whether the target or any of its scrollable ancestors can scroll
+   * in the specified direction.
+   *
+   * @param {EventTarget | null} target Target element under cursor.
+   * @param {number} deltaX Horizontal scroll delta.
+   * @param {number} deltaY Vertical scroll delta.
+   * @return {boolean} True if an ancestor can absorb the scroll.
+   */
+  function canScrollInDirection(
+    target: EventTarget | null,
+    deltaX: number,
+    deltaY: number,
+  ): boolean {
+    let el = target instanceof Element ? target : null;
+    while (el && el !== document.body && el !== document.documentElement) {
+      const style = window.getComputedStyle(el);
+      if (
+        Math.abs(deltaY) > 0 &&
+        (style.overflowY === 'auto' || style.overflowY === 'scroll')
+      ) {
+        const canScrollDown =
+          deltaY > 0 && el.scrollTop + el.clientHeight < el.scrollHeight - 1;
+        const canScrollUp = deltaY < 0 && el.scrollTop > 0;
+        if (canScrollDown || canScrollUp) {
+          return true;
+        }
+      }
+      if (
+        Math.abs(deltaX) > 0 &&
+        (style.overflowX === 'auto' || style.overflowX === 'scroll')
+      ) {
+        const canScrollRight =
+          deltaX > 0 && el.scrollLeft + el.clientWidth < el.scrollWidth - 1;
+        const canScrollLeft = deltaX < 0 && el.scrollLeft > 0;
+        if (canScrollRight || canScrollLeft) {
+          return true;
+        }
+      }
+      el = el.parentElement;
+    }
+    return false;
+  }
+
+  /**
    * Measures `.canvas-wrapper` height and posts `canvas-resize` to parent.
    *
    * @param {unknown=} force Pass `true` to emit even if height has not changed.
@@ -126,5 +170,24 @@ interface CanvasStageMessage {
 
     window.addEventListener('load', sendResize);
     document.addEventListener('DOMContentLoaded', sendResize);
+
+    window.addEventListener(
+      'wheel',
+      (event: WheelEvent) => {
+        if (!canScrollInDirection(event.target, event.deltaX, event.deltaY)) {
+          window.parent.postMessage(
+            {
+              type: 'canvas-scroll',
+              id: wrapper.dataset.canvasId || window.name || '',
+              deltaX: event.deltaX,
+              deltaY: event.deltaY,
+              deltaMode: event.deltaMode,
+            },
+            '*',
+          );
+        }
+      },
+      { passive: true },
+    );
   }
 })();

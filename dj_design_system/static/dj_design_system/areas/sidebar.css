@@ -114,14 +114,19 @@
       gap: var(--_sidebar-gap);
       min-block-size: 0;
       margin: 0;
-      padding-block: var(--_sidebar-padding-block);
-      padding-inline: var(--_sidebar-padding-inline);
+      padding: 0;
 
       & > * {
         display: flex;
         flex: 1 1 0;
         flex-direction: column;
         min-block-size: 0;
+      }
+
+      & nav {
+        box-sizing: border-box;
+        padding-block: var(--_sidebar-padding-block);
+        padding-inline: var(--_sidebar-padding-inline);
       }
     }
 

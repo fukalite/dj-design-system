@@ -43,6 +43,7 @@ class NavTreeNode:
     is_document: bool | None = None
     is_variant: bool | None = None
     has_children: bool | None = None
+    has_variants: bool | None = None
     has_index_doc: bool = False
 
     @staticmethod
@@ -83,6 +84,7 @@ class NavTreeNode:
         raw_is_document = cls.read_field(raw_node, "is_document")
         raw_is_variant = cls.read_field(raw_node, "is_variant")
         raw_has_children = cls.read_field(raw_node, "has_children")
+        raw_has_variants = cls.read_field(raw_node, "has_variants")
         raw_has_index_doc = cls.read_field(raw_node, "has_index_doc")
         if raw_has_index_doc is None:
             raw_has_index_doc = cls.read_field(raw_node, "index_doc_path") is not None
@@ -112,6 +114,11 @@ class NavTreeNode:
             is_variant=(bool(raw_is_variant) if raw_is_variant is not None else None),
             has_children=(
                 bool(raw_has_children) if raw_has_children is not None else None
+            ),
+            has_variants=(
+                bool(raw_has_variants)
+                if raw_has_variants is not None
+                else None
             ),
             has_index_doc=bool(raw_has_index_doc),
         )
@@ -207,6 +214,27 @@ class NavTree(components.TagComponent):
 
             raw_children = parsed.children
             has_children = bool(raw_children) or bool(parsed.has_children)
+            if parsed.has_variants is not None:
+                has_variants = bool(parsed.has_variants)
+            else:
+                has_variants = any(
+                    bool(NavTreeNode.read_field(c, "is_variant"))
+                    or str(
+                        getattr(
+                            NavTreeNode.read_field(c, "node_type")
+                            or NavTreeNode.read_field(c, "type")
+                            or NavTreeNode.read_field(c, "node_kind")
+                            or "",
+                            "value",
+                            NavTreeNode.read_field(c, "node_type")
+                            or NavTreeNode.read_field(c, "type")
+                            or NavTreeNode.read_field(c, "node_kind")
+                            or "",
+                        )
+                    ).lower()
+                    == NODE_TYPE_VARIANT
+                    for c in raw_children
+                )
 
             is_component = (
                 parsed.is_component
@@ -262,7 +290,7 @@ class NavTree(components.TagComponent):
             icon_str = parsed.icon
             if icon_str in icon_element.ICON_NAMES:
                 resolved_icon = icon_str
-            elif is_component and has_children:
+            elif is_component and has_variants:
                 resolved_icon = ICON_COMPONENT_VARIANTS
             elif is_component:
                 resolved_icon = ICON_COMPONENT

@@ -53,6 +53,16 @@ jobs:
         with:
           python-version: "3.13"
 
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Compile TypeScript components
+        run: |
+          npm ci
+          npx --yes --package=typescript tsc -p tsconfig.json
+
       - name: Install dependencies
         run: uv sync --all-extras
 
@@ -96,6 +106,10 @@ jobs:
           if [ "${wget_exit:-0}" -ne 0 ] && [ "${wget_exit:-0}" -ne 8 ]; then
             exit "$wget_exit"
           fi
+          # Ensure ES module imports not crawled by wget (e.g. theme-manager.js,
+          # pane-manager.js, sandbox-manager.js) are present in the snapshot.
+          mkdir -p gallery-snapshot/static
+          cp -rn staticfiles/. gallery-snapshot/static/
 
       - name: Save canvas iframe pages as clean static files
         run: |

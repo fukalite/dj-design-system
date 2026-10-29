@@ -6,6 +6,24 @@
     {% else %}
         <h1 data-docs-title>{{ component_info.name }}</h1>
     {% endif %}
+    {% if is_theme_restricted %}
+        <div data-theme-override-notice
+             class="dds-theme-override-notice"
+             data-available-themes="{{ component_available_themes_csv }}"
+             data-supported-label="{{ available_theme_labels_str }}"
+             data-theme-overridden="{% if is_theme_overridden %}true{% else %}false{% endif %}"
+             role="status"
+             aria-live="polite">
+            <l-cluster style="--space: var(--dds-space-2xs); align-items: center;">
+            {% if is_theme_overridden %}
+                {% dds__badge label="Theme overridden" variant="warning" %}
+            {% else %}
+                {% dds__badge label="Theme restricted" variant="info" %}
+            {% endif %}
+            <span data-theme-override-text>{{ theme_override_message }}</span>
+            </l-cluster>
+        </div>
+    {% endif %}
 </header>
 {% if active_variant %}
     <section class="dds-variant-view" data-surface="docs">
