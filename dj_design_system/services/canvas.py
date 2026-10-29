@@ -6,6 +6,7 @@ import dataclasses
 import json
 import logging
 import re
+from collections import abc
 from functools import lru_cache
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlencode
@@ -58,6 +59,7 @@ from dj_design_system.types import CanvasMode, ColorScheme, Theme
 __all__ = [
     "resolve_from_get_params",
     "resolve_param_value",
+    "resolve_param_values",
     "render_component",
     "merge_variant_params",
     "get_component_media",
@@ -205,6 +207,11 @@ def resolve_param_value(*, val: Any) -> Any:
     return val
 
 
+def resolve_param_values(*, params: abc.Mapping[str, Any]) -> dict[str, Any]:
+    """Return a dictionary with all GalleryParameter and callable values resolved."""
+    return {k: resolve_param_value(val=v) for k, v in params.items()}
+
+
 def merge_variant_params(
     component_class: type[BaseComponent],
     config: GalleryConfig | None = None,
@@ -253,7 +260,7 @@ def merge_variant_params(
                     merged[pos_arg_names[i]] = val
 
     if resolve_values:
-        return {k: resolve_param_value(val=v) for k, v in merged.items()}
+        return resolve_param_values(params=merged)
 
     return merged
 
@@ -335,7 +342,7 @@ def _resolve_extra_context(
     merged_extra: dict[str, Any] = dict(config.extra_context)
     if variant and variant.extra_context:
         merged_extra.update(variant.extra_context)
-    return {k: resolve_param_value(val=v) for k, v in merged_extra.items()}
+    return resolve_param_values(params=merged_extra)
 
 
 def _render_with_canvas_template(

@@ -50,24 +50,15 @@ class PlaywrightAssessmentPlugin(AssessmentPlugin):
                         variant=variant_obj,
                         resolve_values=True,
                     )
-                return {
-                    k: canvas_service.resolve_param_value(val=v)
-                    for k, v in variant_obj.kwargs.items()
-                }
+                return canvas_service.resolve_param_values(params=variant_obj.kwargs)
         if variant == "basic":
             raw_basic = getattr(component, "gallery_basic_kwargs", None)
             if isinstance(raw_basic, dict):
-                return {
-                    k: canvas_service.resolve_param_value(val=v)
-                    for k, v in raw_basic.items()
-                }
+                return canvas_service.resolve_param_values(params=raw_basic)
         elif variant == "maximal":
             raw_max = getattr(component, "gallery_maximal_kwargs", None)
             if isinstance(raw_max, dict):
-                return {
-                    k: canvas_service.resolve_param_value(val=v)
-                    for k, v in raw_max.items()
-                }
+                return canvas_service.resolve_param_values(params=raw_max)
         return {}
 
     def _navigate_to_component(
