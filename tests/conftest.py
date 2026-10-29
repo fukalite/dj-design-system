@@ -5,6 +5,7 @@ import sys
 import textwrap
 from importlib import import_module
 from pathlib import Path
+from typing import Any
 
 import pytest
 from django.contrib.auth import get_user_model
@@ -186,6 +187,50 @@ def registry_with_two_apps(registry_with_demo_components):
     reg = registry_with_demo_components
     discover_app_into_registry(reg, "example_project.demo_extra", "demo_extra")
     return reg
+
+
+class _GalleryComponentRegistrar:
+    """Helper callable that registers temporary components with GalleryConfig in component_registry."""
+
+    def __init__(self) -> None:
+        self.registered: list[ComponentInfo] = []
+
+    def __call__(
+        self,
+        component_class: type,
+        name: str,
+        config: Any,
+        *,
+        app_label: str = "test_app",
+        relative_path: str = "",
+    ) -> ComponentInfo:
+        from dj_design_system.services.registry import component_registry
+
+        info = ComponentInfo(
+            component_class=component_class,
+            name=name,
+            app_label=app_label,
+            relative_path=relative_path,
+        )
+        info.__dict__["gallery_config"] = config
+        component_registry._components.append(info)
+        self.registered.append(info)
+        return info
+
+    def cleanup(self) -> None:
+        from dj_design_system.services.registry import component_registry
+
+        for info in self.registered:
+            if info in component_registry._components:
+                component_registry._components.remove(info)
+
+
+@pytest.fixture()
+def register_gallery_component():
+    """Register components with a GalleryConfig in the global registry."""
+    registrar = _GalleryComponentRegistrar()
+    yield registrar
+    registrar.cleanup()
 
 
 @pytest.fixture()

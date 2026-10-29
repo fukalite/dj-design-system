@@ -1,7 +1,44 @@
+from collections.abc import Mapping, Sequence
+from typing import Any
+
 from django.conf import settings
 
 from dj_design_system.services.media import coerce_path_list
-from dj_design_system.types import DarkModeConfig, NodeType, Theme
+from dj_design_system.types import (
+    DarkModeConfig,
+    DocVariantConfig,
+    DocVariantStrategy,
+    NodeType,
+    Theme,
+)
+
+
+BUILTIN_DOC_VARIANTS: dict[str, dict[str, Any]] = {
+    "minimal": {
+        "name": "basic",
+        "label": "Minimal example",
+        "strategy": DocVariantStrategy.MINIMAL.value,
+        "show_in_docs": True,
+    },
+    "maximal": {
+        "name": "maximal",
+        "label": "All parameters",
+        "strategy": DocVariantStrategy.MAXIMAL.value,
+        "show_in_docs": True,
+    },
+    "defaults": {
+        "name": "defaults",
+        "label": "Default values",
+        "strategy": DocVariantStrategy.DEFAULTS.value,
+        "show_in_docs": False,
+    },
+    "all_slots": {
+        "name": "all_slots",
+        "label": "All slots",
+        "strategy": DocVariantStrategy.ALL_SLOTS.value,
+        "show_in_docs": False,
+    },
+}
 
 
 # Built-in canvas backgrounds keyed by slug.  Each entry is a dict with
@@ -79,6 +116,7 @@ DEFAULTS: dict = {
     "GALLERY_EXCLUDE_APPS": [],
     # Additional stylesheets injected into the gallery UI chrome (to override :root tokens, custom fonts, etc.)
     "GALLERY_EXTRA_CSS": [],
+    "GALLERY_DOC_VARIANTS": BUILTIN_DOC_VARIANTS,
     "APP_THEMES": {},
     "APP_CSS": {},
     "APP_CSS_BUNDLES": {},
@@ -114,6 +152,7 @@ class DjangoDesignSystemSettings:
     GALLERY_INCLUDE_APPS: list[str] | None
     GALLERY_EXCLUDE_APPS: list[str]
     GALLERY_EXTRA_CSS: list[str]
+    GALLERY_DOC_VARIANTS: Mapping[str, Any] | Sequence[Any]
     APP_THEMES: dict[str, list[str]]
     APP_CSS: dict[str, list[str] | str]
     APP_CSS_BUNDLES: dict[str, list[tuple[str, ...]]]
@@ -284,3 +323,266 @@ def get_app_static(app_label: str) -> tuple[list[str], list[str]]:
 def get_app_html_attrs(app_label: str) -> dict:
     """Return app-specific canvas HTML attributes."""
     return (dds_settings.APP_CANVAS_HTML_ATTRS or {}).get(app_label, {})
+
+
+def _coerce_doc_variant_strategy(
+    *,
+    raw_strategy: str | DocVariantStrategy | None,
+    default: DocVariantStrategy,
+) -> DocVariantStrategy:
+    """Coerce a raw strategy value into a DocVariantStrategy enum."""
+    if isinstance(raw_strategy, DocVariantStrategy):
+        return raw_strategy
+    if isinstance(raw_strategy, str):
+        try:
+            return DocVariantStrategy(raw_strategy)
+        except ValueError:
+            return default
+    return default
+
+
+def _parse_doc_variant_entry(
+    *,
+    key: str,
+    raw_entry: Any,
+    base_entry: Mapping[str, Any] | None = None,
+) -> DocVariantConfig:
+    """Parse a single GALLERY_DOC_VARIANTS entry into a DocVariantConfig."""
+    if isinstance(raw_entry, DocVariantConfig):
+        return raw_entry
+
+    base = dict(base_entry) if base_entry else {}
+    default_strategy = _coerce_doc_variant_strategy(
+        raw_strategy=base.get("strategy", key),
+        default=(
+            DocVariantStrategy.CUSTOM
+            if key not in BUILTIN_DOC_VARIANTS
+            else DocVariantStrategy.MINIMAL
+        ),
+    )
+    default_name = str(base.get("name", key))
+    default_label = str(base.get("label", key.replace("_", " ").capitalize()))
+
+    if raw_entry is None or raw_entry is False:
+        return DocVariantConfig(
+            key=key,
+            name=default_name,
+            label=default_label,
+            strategy=default_strategy,
+            show_in_docs=False,
+            kwargs=dict(base.get("kwargs", {})),
+            param_factory=base.get("param_factory"),
+            slot_factory=base.get("slot_factory"),
+        )
+
+    if raw_entry is True:
+        return DocVariantConfig(
+            key=key,
+            name=default_name,
+            label=default_label,
+            strategy=default_strategy,
+            show_in_docs=True,
+            kwargs=dict(base.get("kwargs", {})),
+            param_factory=base.get("param_factory"),
+            slot_factory=base.get("slot_factory"),
+        )
+
+    if isinstance(raw_entry, Mapping):
+        if len(raw_entry) == 0:
+            return DocVariantConfig(
+                key=key,
+                name=default_name,
+                label=default_label,
+                strategy=default_strategy,
+                show_in_docs=False,
+                kwargs=dict(base.get("kwargs", {})),
+                param_factory=base.get("param_factory"),
+                slot_factory=base.get("slot_factory"),
+            )
+
+        merged = {**base, **raw_entry}
+        strategy = _coerce_doc_variant_strategy(
+            raw_strategy=merged.get("strategy"),
+            default=default_strategy,
+        )
+        name = str(merged.get("name", default_name))
+        label = str(
+            merged.get(
+                "label",
+                base.get("label", name.replace("_", " ").capitalize()),
+            )
+        )
+        show_in_docs = bool(merged.get("show_in_docs", True))
+        kwargs = dict(merged.get("kwargs", {}))
+        return DocVariantConfig(
+            key=key,
+            name=name,
+            label=label,
+            strategy=strategy,
+            show_in_docs=show_in_docs,
+            kwargs=kwargs,
+            param_factory=merged.get("param_factory"),
+            slot_factory=merged.get("slot_factory"),
+        )
+
+    return DocVariantConfig(
+        key=key,
+        name=default_name,
+        label=default_label,
+        strategy=default_strategy,
+        show_in_docs=bool(base.get("show_in_docs", True)),
+        kwargs=dict(base.get("kwargs", {})),
+        param_factory=base.get("param_factory"),
+        slot_factory=base.get("slot_factory"),
+    )
+
+
+def _doc_variant_to_dict(*, doc_variant: DocVariantConfig) -> dict[str, Any]:
+    """Serialize a DocVariantConfig into a dictionary for layered merging."""
+    return {
+        "key": doc_variant.key,
+        "name": doc_variant.name,
+        "label": doc_variant.label,
+        "strategy": doc_variant.strategy,
+        "show_in_docs": doc_variant.show_in_docs,
+        "kwargs": dict(doc_variant.kwargs),
+        "param_factory": doc_variant.param_factory,
+        "slot_factory": doc_variant.slot_factory,
+    }
+
+
+def resolve_doc_variants(
+    *,
+    raw_setting: Mapping[str, Any] | Sequence[Any] | None = None,
+    base_variants: Sequence[DocVariantConfig] | None = None,
+) -> list[DocVariantConfig]:
+    """Resolve documentation variants by applying *raw_setting* over *base_variants*."""
+    if base_variants is None:
+        base_list = [
+            _parse_doc_variant_entry(
+                key=key,
+                raw_entry=base_entry,
+                base_entry=base_entry,
+            )
+            for key, base_entry in BUILTIN_DOC_VARIANTS.items()
+        ]
+    else:
+        base_list = list(base_variants)
+
+    if raw_setting is None:
+        return base_list
+
+    if isinstance(raw_setting, Mapping):
+        results: list[DocVariantConfig] = []
+        seen_raw_keys: set[str] = set()
+        for base_dv in base_list:
+            matched_raw_key: str | None = None
+            if base_dv.key in raw_setting:
+                matched_raw_key = base_dv.key
+            elif base_dv.name in raw_setting:
+                matched_raw_key = base_dv.name
+
+            if matched_raw_key is not None:
+                seen_raw_keys.add(matched_raw_key)
+                results.append(
+                    _parse_doc_variant_entry(
+                        key=base_dv.key,
+                        raw_entry=raw_setting[matched_raw_key],
+                        base_entry=_doc_variant_to_dict(doc_variant=base_dv),
+                    )
+                )
+            else:
+                results.append(base_dv)
+
+        for key, raw_entry in raw_setting.items():
+            if key in seen_raw_keys:
+                continue
+            results.append(
+                _parse_doc_variant_entry(
+                    key=key,
+                    raw_entry=raw_entry,
+                    base_entry=None,
+                )
+            )
+        return results
+
+    if isinstance(raw_setting, Sequence) and not isinstance(raw_setting, (str, bytes)):
+        results = []
+        matched_base_keys: set[str] = set()
+        base_by_key = {dv.key: dv for dv in base_list}
+        base_by_name = {dv.name: dv for dv in base_list}
+
+        for item in raw_setting:
+            if isinstance(item, DocVariantConfig):
+                matched_dv = base_by_key.get(item.key) or base_by_name.get(item.name)
+                if matched_dv is not None:
+                    matched_base_keys.add(matched_dv.key)
+                results.append(item)
+            elif isinstance(item, str):
+                matched_dv = base_by_key.get(item) or base_by_name.get(item)
+                if matched_dv is not None:
+                    matched_base_keys.add(matched_dv.key)
+                    results.append(
+                        _parse_doc_variant_entry(
+                            key=matched_dv.key,
+                            raw_entry=True,
+                            base_entry=_doc_variant_to_dict(doc_variant=matched_dv),
+                        )
+                    )
+                else:
+                    results.append(
+                        DocVariantConfig(
+                            key=item,
+                            name=item,
+                            label=item.replace("_", " ").capitalize(),
+                            strategy=DocVariantStrategy.CUSTOM,
+                            show_in_docs=True,
+                        )
+                    )
+            elif isinstance(item, Mapping):
+                raw_key = str(item.get("key") or item.get("name") or "custom")
+                matched_dv = base_by_key.get(raw_key) or base_by_name.get(raw_key)
+                if matched_dv is not None:
+                    matched_base_keys.add(matched_dv.key)
+                    results.append(
+                        _parse_doc_variant_entry(
+                            key=matched_dv.key,
+                            raw_entry=item,
+                            base_entry=_doc_variant_to_dict(doc_variant=matched_dv),
+                        )
+                    )
+                else:
+                    results.append(
+                        _parse_doc_variant_entry(
+                            key=raw_key,
+                            raw_entry=item,
+                            base_entry=None,
+                        )
+                    )
+
+        for base_dv in base_list:
+            if base_dv.key not in matched_base_keys:
+                results.append(
+                    _parse_doc_variant_entry(
+                        key=base_dv.key,
+                        raw_entry=False,
+                        base_entry=_doc_variant_to_dict(doc_variant=base_dv),
+                    )
+                )
+        return results
+
+    return base_list
+
+
+def get_doc_variants() -> list[DocVariantConfig]:
+    """Return normalized standard documentation variant configurations."""
+    raw_setting = getattr(dds_settings, "GALLERY_DOC_VARIANTS", BUILTIN_DOC_VARIANTS)
+    return resolve_doc_variants(raw_setting=raw_setting)
+
+
+def get_doc_variant_by_key(*, key: str) -> DocVariantConfig | None:
+    """Return the DocVariantConfig matching the given key, or None."""
+    for doc_variant in get_doc_variants():
+        if doc_variant.key == key:
+            return doc_variant
+    return None

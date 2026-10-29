@@ -53,6 +53,22 @@ A list of Django `app_label` strings to exclude from gallery navigation, search,
 **Default:** `[NodeType.FOLDER, NodeType.COMPONENT, NodeType.DOCUMENT]`  
 Controls the sorting order of the gallery sidebar navigation. Can specify the order in which folders, components, and documents appear.
 
+### `GALLERY_DOC_VARIANTS`
+**Type:** `Mapping[str, Any] | Sequence[Any]`  
+**Default:** `BUILTIN_DOC_VARIANTS` (`"minimal"` and `"maximal"` enabled; `"defaults"` and `"all_slots"` disabled)  
+Configures the standard documentation usage examples rendered in the component documentation pane when no active variant is selected. Accepts a dictionary mapping strategy keys (`"minimal"`, `"maximal"`, `"defaults"`, `"all_slots"`, or custom keys) to configuration dictionaries or booleans, or an ordered sequence of variant keys/names.
+
+Each entry supports:
+- **`name`** (`str`): Variant slug matched against `GalleryConfig.variants` (e.g. `"basic"`, `"maximal"`).
+- **`label`** (`str`): Section heading label displayed above the example in the Usage pane.
+- **`strategy`** (`DocVariantStrategy | str`): Parameter and slot generation strategy used when the variant is not explicitly defined in `gallery.py` (`"minimal"`, `"maximal"`, `"defaults"`, `"all_slots"`, or `"custom"`).
+- **`show_in_docs`** (`bool`): Whether this documentation variant is enabled by default.
+- **`kwargs`** (`dict[str, Any]`): Optional base parameter overrides for custom global documentation variants.
+- **`param_factory`** (`Callable[..., Any] | None`): Optional callable `(param_spec, param_name, str_index) -> Any` for custom parameter placeholder generation.
+- **`slot_factory`** (`Callable[..., Any] | None`): Optional callable `(slot_name, slot) -> str` for custom slot placeholder generation.
+
+See [Standard Documentation Variants (`GALLERY_DOC_VARIANTS`)](../gallery.md#standard-documentation-variants-gallery_doc_variants) for examples and component-level overrides via `GalleryConfig(doc_variants=...)`.
+
 ## Global Assets
 
 ### `GLOBAL_CSS`

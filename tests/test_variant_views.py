@@ -279,3 +279,69 @@ class TestVariantViews:
         finally:
             component_registry._components.remove(info)
 
+
+class TestOmittedOptionalSlotsInSandbox:
+    """Optional slots a variant leaves empty start empty in the sandbox form."""
+
+    @staticmethod
+    def _url() -> str:
+        return reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "callout"},
+        )
+
+    def test_maximal_variant_without_slot_leaves_textarea_empty(self, client: Client):
+        response = client.get(self._url())
+        assert response.status_code == 200
+        form = response.context["form"]
+        assert form.initial.get("slot__actions") == ""
+        assert b"Sample actions content" not in response.content
+
+    def test_variant_without_slot_leaves_textarea_empty(self, client: Client):
+        response = client.get(f"{self._url()}?variant=basic")
+        assert response.status_code == 200
+        assert response.context["form"].initial.get("slot__actions") == ""
+
+    def test_variant_with_slot_prefills_textarea(self, client: Client):
+        response = client.get(f"{self._url()}?variant=with_actions")
+        assert response.status_code == 200
+        assert "Upgrade now" in response.context["form"].initial.get("slot__actions")
+
+
+class TestConfigurableDocVariantsInViews:
+    """Tests for rendering usage examples in component documentation pane."""
+
+    def test_show_in_docs_custom_variant_renders_in_usage_pane(
+        self, client: Client, register_gallery_component
+    ):
+        cfg = GalleryConfig(
+            doc_variants={"maximal": False},
+            variants=[
+                Variant(
+                    name="danger_doc",
+                    label="Danger Example",
+                    description="Use for **destructive** actions.",
+                    kwargs={"label": "Destroy", "theme": "danger"},
+                    show_in_docs=True,
+                ),
+            ],
+        )
+        register_gallery_component(
+            VariantDemoButton,
+            "doc_btn_demo",
+            cfg,
+            app_label="demo_components",
+            relative_path="doc_btn_demo",
+        )
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "doc_btn_demo"},
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+        examples = response.context["usage_examples"]
+        assert [ex.name for ex in examples] == ["basic", "danger_doc"]
+        assert b"Minimal example" in response.content
+        assert b"All parameters" not in response.content
+        assert b"Danger Example" in response.content
+        assert b"<strong>destructive</strong>" in response.content

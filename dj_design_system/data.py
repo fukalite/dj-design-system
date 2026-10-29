@@ -133,8 +133,13 @@ class ComponentInfo:
     @cached_property
     def _gallery_kwargs(self) -> tuple[dict, dict]:
         cfg = self.gallery_config
-        basic_v = cfg.get_variant("basic")
-        maximal_v = cfg.get_variant("maximal")
+        doc_by_key = {dv.key: dv for dv in cfg.get_doc_variants()}
+        min_doc = doc_by_key.get("minimal")
+        max_doc = doc_by_key.get("maximal")
+        min_name = min_doc.name if min_doc else "basic"
+        max_name = max_doc.name if max_doc else "maximal"
+        basic_v = cfg.get_variant(min_name)
+        maximal_v = cfg.get_variant(max_name)
         return (
             dict(basic_v.kwargs) if basic_v else {},
             dict(maximal_v.kwargs) if maximal_v else {},

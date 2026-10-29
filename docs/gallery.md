@@ -277,6 +277,7 @@ config = GalleryConfig(
 | Attribute | Type | Default | Description |
 | --- | --- | --- | --- |
 | `variants` | `list[Variant]` or `list[dict]` | `[]` | List of named component variants. Supports `Variant` instances or shorthand dicts. |
+| `doc_variants` | `Mapping[str, Any] \| Sequence[Any] \| None` | `None` | Component-level documentation variant overrides layered on top of `GALLERY_DOC_VARIANTS`. |
 | `order` | `int` | `0` | Explicit ordering priority in the sidebar navigation. Lower numbers appear first. |
 | `group` | `str | None` | `None` | Grouping sub-folder name in the sidebar navigation. |
 | `icon` | `str | None` | `None` | Custom icon identifier (e.g. `"ph:cursor-click"`) for the component in the sidebar. |
@@ -288,9 +289,9 @@ config = GalleryConfig(
 
 ---
 
-## Named Variants
+## Named Variants & Documentation Examples
 
-The `Variant` class defines specific component variations, configurations, and documentation snippets.
+The `Variant` class defines specific component variations, parameter presets, and documentation examples.
 
 ```python
 from dj_design_system.gallery import Variant
@@ -306,6 +307,7 @@ Variant(
     icon="ph:trash",
     theme=None,
     show_in_nav=True,
+    show_in_docs=False,
 )
 ```
 
@@ -320,7 +322,90 @@ Variant(
 - **`extra_context`** (`dict[str, Any]`): Extra context variables merged into preview rendering for this variant.
 - **`icon`** (`str | None`): Custom icon identifier displayed next to the variant in the sidebar.
 - **`theme`** (`str | None`): Theme override applied when previewing this specific variant.
-- **`show_in_nav`** (`bool`): Whether this variant appears as a nested child link in the sidebar navigation. Defaults to `False` for default variants (`basic`, `maximal`) and `True` for custom variants.
+- **`show_in_nav`** (`bool | None`): Whether this variant appears as a nested child link in the sidebar navigation. Defaults to `False` for standard global documentation variants (`basic`, `maximal`, `defaults`, `all_slots`) so they do not clutter the sidebar tree, and `True` for custom named variants.
+- **`show_in_docs`** (`bool | None`): Whether this variant renders as an inline usage example in the component documentation pane. Defaults to `True` for enabled documentation variants (`basic`, `maximal`) and `False` for other variants.
+
+> [!NOTE]
+> `show_in_docs` and `show_in_nav` are orthogonal: setting `show_in_docs=True` on a custom variant renders it in the component's main documentation pane while keeping it in the sidebar navigation unless you explicitly set `show_in_nav=False`.
+
+### Standard Documentation Variants (`GALLERY_DOC_VARIANTS`)
+
+Standard documentation variants are configured globally via `DJ_DESIGN_SYSTEM["GALLERY_DOC_VARIANTS"]`. Four built-in generation strategies are provided (`minimal` and `maximal` are enabled by default; `defaults` and `all_slots` are disabled by default):
+
+| Key | Default `name` | Default `label` | `strategy` | Default `show_in_docs` | Generation Rules (when not overridden in `gallery.py`) |
+| --- | --- | --- | --- | --- | --- |
+| `"minimal"` | `"basic"` | `"Minimal example"` | `"minimal"` | `True` | Required parameters and required slots only. |
+| `"maximal"` | `"maximal"` | `"All parameters"` | `"maximal"` | `True` | All parameters and all slots (respecting `Meta.mutually_exclusive`). |
+| `"defaults"` | `"defaults"` | `"Default values"` | `"defaults"` | `False` | Required parameters/slots plus optional parameters/slots that declare a non-empty `default`. |
+| `"all_slots"` | `"all_slots"` | `"All slots"` | `"all_slots"` | `False` | Required parameters plus all declared slots (required and optional). |
+
+```python
+DJ_DESIGN_SYSTEM = {
+    "GALLERY_DOC_VARIANTS": {
+        "minimal": {
+            "name": "basic",
+            "label": "Minimal example",
+            "strategy": "minimal",
+            "show_in_docs": True,
+        },
+        "maximal": {
+            "name": "maximal",
+            "label": "All parameters",
+            "strategy": "maximal",
+            "show_in_docs": True,
+        },
+        "defaults": {
+            "name": "defaults",
+            "label": "Default values",
+            "strategy": "defaults",
+            "show_in_docs": False,
+        },
+        "all_slots": {
+            "name": "all_slots",
+            "label": "All slots",
+            "strategy": "all_slots",
+            "show_in_docs": False,
+        },
+    }
+}
+```
+
+You can also pass a sequence of keys or names to enable and order specific documentation variants globally (e.g. `"GALLERY_DOC_VARIANTS": ["basic", "maximal", "all_slots"]`), or supply `param_factory` / `slot_factory` callables on any strategy entry to customise placeholder generation.
+
+### Explicit Variants vs Auto-Generated Strategies
+
+1. **Auto-Generated Strategies**: When an enabled documentation variant is *not* defined in a component's `gallery.py`, its parameters and slots are generated automatically according to its strategy (`minimal`, `maximal`, `defaults`, or `all_slots`). If an auto-generated example produces the exact same template tag snippet as an earlier example on the page, it is automatically deduplicated.
+2. **Full Override on Explicit Definition**: When a variant is explicitly defined in `gallery.py` (whether overriding `"basic"`/`"maximal"` or adding a custom variant), it is **fully overridden** rather than deep-merged with auto-generated placeholders:
+   - Omitted optional parameters and omitted optional slots remain omitted in the code snippet, live preview iframe, and sandbox form.
+   - If an explicit variant omits a required parameter (with `default=None`) or a required slot (without a default), a `ValueError` is raised.
+3. **Component-Level Documentation Overrides (`GalleryConfig.doc_variants`)**: Even when custom variants are defined in `gallery.py`, enabled global documentation variants still render in the documentation pane by default. You can customise which documentation variants render for a specific component using `GalleryConfig(doc_variants=...)` with the same mapping or sequence grammar as `GALLERY_DOC_VARIANTS`:
+
+```python
+# Suppress the auto-generated maximal variant and enable all_slots for this component
+config = GalleryConfig(
+    doc_variants={"maximal": False, "all_slots": True},
+    variants=[
+        Variant(name="basic", kwargs={"title": "Welcome", "slot__body": "<p>Hello</p>"}),
+    ],
+)
+
+# Or specify the exact ordered list of documentation examples (including custom variants)
+config = GalleryConfig(
+    doc_variants=["basic", "with_actions"],
+    variants=[
+        Variant(
+            name="with_actions",
+            label="With Actions",
+            description="Includes optional action links in the footer slot.",
+            kwargs={
+                "title": "Trial ending soon",
+                "slot__message": "Your free trial ends in 3 days.",
+                "slot__actions": '<a href="/billing/">Upgrade now</a>',
+            },
+        ),
+    ],
+)
+```
 
 ### Focused Variant View & Breadcrumb Navigation
 
@@ -589,6 +674,7 @@ DJ_DESIGN_SYSTEM = {
 | `GALLERY_INCLUDE_APPS`              | `list[str]` or `None`     | `None`                                                     | When set, only components from these apps appear in gallery.|
 | `GALLERY_EXCLUDE_APPS`              | `list[str]`               | `[]`                                                       | App labels excluded from gallery navigation and search.     |
 | `GALLERY_NAV_ORDER`                 | `list[NodeType]` or `str` | `[NodeType.FOLDER, NodeType.COMPONENT, NodeType.DOCUMENT]` | Controls the sort order of nodes in the sidebar.            |
+| `GALLERY_DOC_VARIANTS`              | `dict` or `list`          | `BUILTIN_DOC_VARIANTS`                                     | Global documentation usage example variants and strategies. |
 | `GALLERY_CANVAS_DEFAULT_BACKGROUND` | `str`                     | `"light-grey"`                                             | Default background for the sandbox canvas.                  |
 | `GALLERY_CANVAS_BACKGROUNDS`        | `dict`                    | `BUILTIN_CANVAS_BACKGROUNDS`                               | Dict of canvas backgrounds (replaces built-ins).            |
 | `GALLERY_CANVAS_EXTRA_BACKGROUNDS`  | `dict`                    | `{}`                                                       | Extra backgrounds merged into the built-in set.             |
@@ -697,7 +783,7 @@ Layout and presentation markup are structured into modular Django templates unde
 
 - **`panes/docs.html`**: The documentation column on component pages. Composed of modular sub-templates:
   - `panes/docs/header.html`: Component title, docstring description, or active variant badge & preview.
-  - `panes/docs/usage.html`: Minimal, maximal, and qualified tag code blocks and preview canvases.
+  - `panes/docs/usage.html`: Configured documentation usage examples (e.g. minimal, maximal, and custom documentation variants), qualified tag code block, and live preview canvases.
   - `panes/docs/params.html`: Parameter specifications table and named slots table.
   - `panes/docs/further.html`: Extended Markdown documentation rendered from co-located `index.md`.
 - **`panes/sandbox.html`**: The interactive testing canvas, controls toolbar, and live parameter editing form (`{% dds__sandbox_params %}`).
