@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from dj_design_system import components, gallery, parameters
+from dj_design_system import components, data, gallery, parameters
 from dj_design_system.testing.plugins import (
     AccessibilityPlugin,
     HTMLValidationPlugin,
@@ -67,12 +67,8 @@ def test_visual_regression_plugin_maximal(mocker):
     mock_comp = mocker.Mock()
     mock_comp.qualified_name = "test_app__test_component"
 
-    class GalleryParam:
-        def __init__(self, value):
-            self.value = value
-
     mock_comp.gallery_maximal_kwargs = {
-        "param1": GalleryParam("val1"),
+        "param1": data.GalleryParameter(value="val1"),
         "is_active": False,
     }
 

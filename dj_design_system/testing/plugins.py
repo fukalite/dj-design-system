@@ -78,8 +78,6 @@ class PlaywrightAssessmentPlugin(AssessmentPlugin):
 
         for key, value in kwargs.items():
             value = canvas_service.resolve_param_value(val=value)
-            if hasattr(value, "value"):
-                value = value.value
             if value is not None:
                 if isinstance(value, bool):
                     params[key] = "true" if value else "false"
