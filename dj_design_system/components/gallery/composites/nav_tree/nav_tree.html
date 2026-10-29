@@ -4,11 +4,24 @@
     {% if has_nodes %}
       {% for entry in tree_events %}
         {% if entry.event == "app_open" %}
-          <div data-nav-group>
-            <a href="{{ entry.node.url }}" data-nav-group-label data-nav-link data-depth="{{ entry.node.depth }}"{% if entry.node.is_active %} aria-current="page" data-active="true"{% endif %}>
-              <span>{{ entry.node.label }}</span>
-            </a>
+          <div data-nav-group data-state="{{ entry.node.folder_state }}" data-group-id="{{ entry.node.folder_id }}">
+            <div data-nav-row data-nav-group-row>
+              <a href="{{ entry.node.url }}" data-nav-group-label data-nav-link data-depth="{{ entry.node.depth }}"{% if entry.node.is_active %} aria-current="page" data-active="true"{% endif %}>
+                <span>{{ entry.node.label }}</span>
+              </a>
+              {% if entry.node.has_children %}
+                <button type="button" data-nav-toggle aria-expanded="{{ entry.node.aria_expanded }}" aria-controls="{{ entry.node.children_dom_id }}" aria-label="Toggle {{ entry.node.label }}">
+                  {% dds__icon name="chevron-right" size="sm" %}
+                </button>
+              {% endif %}
+            </div>
+            {% if entry.node.has_children %}
+              <div id="{{ entry.node.children_dom_id }}" data-nav-children{% if not entry.node.is_open %} hidden{% endif %}>
+            {% endif %}
         {% elif entry.event == "app_close" %}
+            {% if entry.node.has_children %}
+              </div>
+            {% endif %}
           </div>
         {% elif entry.event == "folder_open" %}
           <div data-nav-folder data-state="{{ entry.node.folder_state }}" data-folder-id="{{ entry.node.folder_id }}">
