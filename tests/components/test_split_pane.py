@@ -445,4 +445,3 @@ class TestSplitPaneGalleryAndDocs:
             "secondary",
         ):
             assert documented_item in doc_text
-

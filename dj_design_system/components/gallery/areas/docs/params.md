@@ -1,3 +1,6 @@
+---
+order: 3
+---
 # Documentation Parameters Area
 
 - **Template Path**: `dj_design_system/templates/dj_design_system/gallery/panes/docs/params.html`

@@ -1,3 +1,7 @@
+---
+order: -5
+label: Areas
+---
 # Areas & Panes
 
 - **Location**: `dj_design_system/templates/dj_design_system/gallery/`
