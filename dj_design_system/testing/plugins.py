@@ -1,3 +1,4 @@
+import dataclasses
 import json
 import shutil
 import urllib.parse
@@ -5,7 +6,15 @@ from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
 
+from dj_design_system.data import ComponentInfo
 from dj_design_system.testing.engine import AssessmentPlugin
+from dj_design_system.testing.visual import ScreenshotMismatch, compare_images
+
+
+def _json_serialise_default(obj: Any) -> Any:
+    if dataclasses.is_dataclass(obj) and not isinstance(obj, type):
+        return dataclasses.asdict(obj)
+    raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
 
 
 try:
@@ -19,18 +28,26 @@ except ImportError:
 class PlaywrightAssessmentPlugin(AssessmentPlugin):
     """Base class for Playwright-based assessment plugins."""
 
-    def __init__(self, page: Any, base_url: str):
+    def __init__(self, page: Any, base_url: str) -> None:
         self.page = page
         self.base_url = base_url.rstrip("/")
 
-    def _resolve_kwargs(self, component: Any, variant: str) -> dict[str, Any]:
+    def _resolve_kwargs(self, component: ComponentInfo, variant: str) -> dict[str, Any]:
+        cfg = getattr(component, "gallery_config", None)
+        if cfg is not None and isinstance(
+            getattr(cfg, "variants", None), (list, tuple)
+        ):
+            variant_obj = cfg.get_variant(variant)
+            return dict(variant_obj.kwargs) if variant_obj else {}
         if variant == "basic":
             return component.gallery_basic_kwargs
         elif variant == "maximal":
             return component.gallery_maximal_kwargs
         return {}
 
-    def _navigate_to_component(self, component: Any, variant: str, theme: str) -> Any:
+    def _navigate_to_component(
+        self, component: ComponentInfo, variant: str, theme: str
+    ) -> Any:
         kwargs = self._resolve_kwargs(component, variant)
         params: dict[str, str] = {"component": component.qualified_name}
 
@@ -41,10 +58,12 @@ class PlaywrightAssessmentPlugin(AssessmentPlugin):
                 if isinstance(value, bool):
                     params[key] = "true" if value else "false"
                 elif isinstance(value, (list, dict)):
-                    params[key] = json.dumps(value)
+                    params[key] = json.dumps(value, default=_json_serialise_default)
                 else:
                     params[key] = str(value)
 
+        if variant and variant not in ("basic", "maximal"):
+            params["_dds_variant"] = variant
         params["_dds_theme"] = theme
         url = f"{self.base_url}/_canvas/?{urllib.parse.urlencode(params, doseq=True)}"
         return self.page.goto(url)
@@ -63,7 +82,7 @@ class VisualRegressionPlugin(PlaywrightAssessmentPlugin):
         threshold: float = 0.1,
         update_snapshots: bool = False,
         enable_diff: bool = True,
-    ):
+    ) -> None:
         try:
             import playwright  # noqa: F401
         except ImportError:
@@ -85,7 +104,9 @@ class VisualRegressionPlugin(PlaywrightAssessmentPlugin):
                 "Install them with `pip install pixelmatch Pillow` or disable diffs."
             )
 
-    def run_assessment(self, component: Any, variant: str, theme: str) -> None:
+    def run_assessment(
+        self, component: ComponentInfo, variant: str, theme: str
+    ) -> None:
         """Run a visual regression assessment."""
         self._navigate_to_component(component, variant, theme)
         wrapper = self.page.locator(".canvas-wrapper")
@@ -109,25 +130,19 @@ class VisualRegressionPlugin(PlaywrightAssessmentPlugin):
             else:
                 raise AssertionError(f"Missing baseline snapshot for {filename}")
 
-        img_actual = Image.open(actual_path).convert("RGBA")
-        img_baseline = Image.open(baseline_path).convert("RGBA")
-
-        if img_actual.size != img_baseline.size:
-            raise AssertionError(
-                f"Snapshot sizes differ for {filename}: expected {img_baseline.size}, got {img_actual.size}"
+        try:
+            result = compare_images(
+                actual_path, baseline_path, threshold=self.threshold
             )
+        except ScreenshotMismatch as exc:
+            raise AssertionError(f"Snapshot sizes differ for {filename}: {exc}")
 
-        diff_img = Image.new("RGBA", img_actual.size)
-        mismatched_pixels = pixelmatch(
-            img_actual, img_baseline, diff_img, includeAA=True, threshold=self.threshold
-        )
-
-        if mismatched_pixels > 0:
+        if result.mismatched_pixels > 0:
             diff_path = self.diff_dir / filename
             diff_path.parent.mkdir(parents=True, exist_ok=True)
-            diff_img.save(diff_path)
+            result.diff.save(diff_path)
             raise AssertionError(
-                f"Visual regression detected for {filename}: {mismatched_pixels} pixels differ. Diff saved to {diff_path}"
+                f"Visual regression detected for {filename}: {result.mismatched_pixels} pixels differ. Diff saved to {diff_path}"
             )
 
 
@@ -139,7 +154,7 @@ class AccessibilityPlugin(PlaywrightAssessmentPlugin):
         page: Any,
         base_url: str = "http://localhost:8000",
         disabled_rules: list[str] | None = None,
-    ):
+    ) -> None:
         try:
             import playwright  # noqa: F401
         except ImportError:
@@ -150,7 +165,10 @@ class AccessibilityPlugin(PlaywrightAssessmentPlugin):
         super().__init__(page, base_url)
         self.disabled_rules = disabled_rules or []
 
-    def run_assessment(self, component: Any, variant: str, theme: str) -> None:
+    def run_assessment(
+        self, component: ComponentInfo, variant: str, theme: str
+    ) -> None:
+        """Run axe-core accessibility assessment on the rendered component."""
         try:
             from axe_playwright_python.sync_playwright import (  # type: ignore[import-untyped]
                 Axe,
@@ -178,6 +196,8 @@ class AccessibilityPlugin(PlaywrightAssessmentPlugin):
 
 
 class StrictHTMLParser(HTMLParser):
+    """HTMLParser subclass that records unclosed, orphaned, or mismatched tags."""
+
     def __init__(self) -> None:
         super().__init__()
         self.stack: list[str] = []
@@ -231,7 +251,7 @@ class StrictHTMLParser(HTMLParser):
 class HTMLValidationPlugin(PlaywrightAssessmentPlugin):
     """Plugin that parses the component's HTML to detect structural issues like unclosed tags."""
 
-    def __init__(self, page: Any, base_url: str = "http://localhost:8000"):
+    def __init__(self, page: Any, base_url: str = "http://localhost:8000") -> None:
         try:
             import playwright  # noqa: F401
         except ImportError:
@@ -241,9 +261,18 @@ class HTMLValidationPlugin(PlaywrightAssessmentPlugin):
             )
         super().__init__(page, base_url)
 
-    def run_assessment(self, component: Any, variant: str, theme: str) -> None:
+    def run_assessment(
+        self, component: ComponentInfo, variant: str, theme: str
+    ) -> None:
+        """Validate that the canvas response contains no render errors or structural HTML errors."""
         response = self._navigate_to_component(component, variant, theme)
         html_content = response.text()
+
+        if 'class="gallery-canvas-error"' in html_content:
+            raise AssertionError(
+                f"Canvas failed to render component '{component.qualified_name}' "
+                f"(variant='{variant}', theme='{theme}'):\n{html_content}"
+            )
 
         parser = StrictHTMLParser()
         parser.feed(html_content)

@@ -11,7 +11,7 @@ from typing import Any
 
 
 CONTROL_PARAM_PREFIX = "_dds_"
-CONTROL_PARAM_NAMES = ("variant", "mode", "theme", "bg")
+CONTROL_PARAM_NAMES = ("variant", "mode", "theme", "bg", "color_scheme")
 
 # Sent by the sandbox form so the server knows bare names belong to the component.
 SANDBOX_SUBMISSION_PARAM = "_iss"

@@ -1,0 +1,20 @@
+<div class="dds-table" data-density="{{ density }}" tabindex="0" role="region" aria-label="{{ resolved_aria_label }}">
+  <table>
+    {% if caption %}
+      <caption>{{ caption }}</caption>
+    {% endif %}
+    {% if head %}
+      <thead>
+        {{ head }}
+      </thead>
+    {% endif %}
+    <tbody>
+      {{ body }}
+    </tbody>
+    {% if foot %}
+      <tfoot>
+        {{ foot }}
+      </tfoot>
+    {% endif %}
+  </table>
+</div>

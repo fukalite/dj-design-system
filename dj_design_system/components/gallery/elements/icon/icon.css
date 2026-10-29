@@ -1,0 +1,42 @@
+@layer blocks {
+  .dds-icon {
+    --_icon-color: currentColor;
+    --_icon-size-xs: var(--dds-space-sm);
+    --_icon-size-sm: var(--dds-space-md);
+    --_icon-size-md: var(--dds-space-lg);
+    --_icon-size-lg: var(--dds-space-xl);
+    --_icon-size: var(--_icon-size-md);
+    display: inline-block;
+    flex-shrink: 0;
+    inline-size: var(--_icon-size);
+    block-size: var(--_icon-size);
+    margin: 0;
+    color: var(--_icon-color);
+    vertical-align: middle;
+
+    &[data-size='xs'] {
+      --_icon-size: var(--_icon-size-xs);
+    }
+
+    &[data-size='sm'] {
+      --_icon-size: var(--_icon-size-sm);
+    }
+
+    &[data-size='md'] {
+      --_icon-size: var(--_icon-size-md);
+    }
+
+    &[data-size='lg'] {
+      --_icon-size: var(--_icon-size-lg);
+    }
+
+    & [data-icon-glyph] {
+      display: none;
+    }
+
+    &[data-icon='sun'] [data-icon-glyph='sun'],
+    &[data-icon='moon'] [data-icon-glyph='moon'] {
+      display: inline;
+    }
+  }
+}

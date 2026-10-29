@@ -34,13 +34,12 @@ from markdown import Extension
 from markdown.postprocessors import Postprocessor
 from markdown.preprocessors import Preprocessor
 
-from dj_design_system.services import media as media_service
 from dj_design_system.services.canvas_renderer import (
     build_canvas_srcdoc,
+    build_markdown_canvas_media,
     render_canvas_block,
 )
-from dj_design_system.services.registry import component_registry
-from dj_design_system.services.tag_signature import highlight_code, highlight_html
+from dj_design_system.types import ColorScheme
 
 
 if TYPE_CHECKING:
@@ -57,6 +56,9 @@ def _build_widget_html(
     srcdoc: str,
     rendered_html: str,
     unique_id: str,
+    srcdoc_light: str = "",
+    srcdoc_dark: str = "",
+    background: str = "white",
 ) -> str:
     """Build the HTML widget with preview iframe, code block, and toggle.
 
@@ -64,16 +66,14 @@ def _build_widget_html(
     ``:checked ~ .target`` selectors can show/hide preview and code.
 
     """
-    code_markup = highlight_code(source) or html.escape(source)
-    html_markup = highlight_html(rendered_html.strip()) or html.escape(
-        rendered_html.strip()
-    )
-
     context = {
         "unique_id": unique_id,
-        "source_html": code_markup,
-        "rendered_output_html": html_markup,
+        "source_html": source,
+        "rendered_output_html": rendered_html.strip(),
         "iframe_srcdoc": srcdoc,
+        "iframe_srcdoc_light": srcdoc_light,
+        "iframe_srcdoc_dark": srcdoc_dark,
+        "background": background,
     }
     return render_to_string("dj_design_system/canvas_widget.html", context)
 
@@ -135,11 +135,21 @@ class DjangoLangPreprocessor(Preprocessor):
 class CanvasPreprocessor(Preprocessor):
     """Preprocessor that extracts ```canvas blocks and replaces them with iframe widgets."""
 
-    def __init__(self, md: Markdown, app_label: str, debug: bool, theme_dict=None):
+    app_label: str
+
+    def __init__(
+        self,
+        md: Markdown,
+        app_label: str,
+        debug: bool,
+        theme_dict=None,
+        color_scheme: ColorScheme = ColorScheme.LIGHT,
+    ):
         super().__init__(md)
         self.app_label = app_label
         self.debug = debug
         self.theme_dict = theme_dict
+        self.color_scheme = color_scheme
         self._counter = 0
         self.ext_stash: dict[str, str] = {}
 
@@ -157,10 +167,10 @@ class CanvasPreprocessor(Preprocessor):
 
         try:
             rendered_html = render_canvas_block(source)
-            media = component_registry.get_merged_media()
-            component_css = media_service.build_link_tags(media.css)
-            component_js = media_service.build_script_tags(media.js)
-            srcdoc = build_canvas_srcdoc(
+            component_css, component_js = build_markdown_canvas_media(
+                app_label=self.app_label
+            )
+            srcdoc_light = build_canvas_srcdoc(
                 rendered_html=rendered_html,
                 component_css=component_css,
                 component_js=component_js,
@@ -168,8 +178,33 @@ class CanvasPreprocessor(Preprocessor):
                 mode_class="canvas-wrapper--basic",
                 app_label=self.app_label,
                 iframe_id=unique_id,
+                color_scheme=ColorScheme.LIGHT,
             )
-            widget_html = _build_widget_html(source, srcdoc, rendered_html, unique_id)
+            srcdoc_dark = build_canvas_srcdoc(
+                rendered_html=rendered_html,
+                component_css=component_css,
+                component_js=component_js,
+                theme_dict=self.theme_dict,
+                mode_class="canvas-wrapper--basic",
+                app_label=self.app_label,
+                iframe_id=unique_id,
+                color_scheme=ColorScheme.DARK,
+            )
+            initial_srcdoc = (
+                srcdoc_dark if self.color_scheme == ColorScheme.DARK else srcdoc_light
+            )
+            initial_background = (
+                "dark" if self.color_scheme == ColorScheme.DARK else "white"
+            )
+            widget_html = _build_widget_html(
+                source=source,
+                srcdoc=initial_srcdoc,
+                rendered_html=rendered_html,
+                unique_id=unique_id,
+                srcdoc_light=srcdoc_light,
+                srcdoc_dark=srcdoc_dark,
+                background=initial_background,
+            )
             token = f"CANVAS_STASH_{unique_id}"
             self.ext_stash[token] = widget_html
             return f"\n\n{token}\n\n"
@@ -209,12 +244,18 @@ class CanvasPostprocessor(Postprocessor):
 class CanvasExtension(Extension):
     """Markdown extension that parses ```canvas blocks into Django gallery components."""
 
-    def __init__(self, theme_dict=None, **kwargs):
+    def __init__(
+        self,
+        theme_dict=None,
+        color_scheme: ColorScheme = ColorScheme.LIGHT,
+        **kwargs,
+    ):
         self.config = {
             "app_label": ["", "The Django app label to load static media for"],
             "debug": [False, "Enable debug mode"],
         }
         self.theme_dict = theme_dict
+        self.color_scheme = color_scheme
         super().__init__(**kwargs)
         self.stash: dict[str, str] = {}
 
@@ -231,6 +272,7 @@ class CanvasExtension(Extension):
             app_label=self.getConfig("app_label"),
             debug=self.getConfig("debug"),
             theme_dict=self.theme_dict,
+            color_scheme=self.color_scheme,
         )
         preprocessor.ext_stash = self.stash
         md.preprocessors.register(preprocessor, "canvas", 32)

@@ -13,6 +13,7 @@ from dj_design_system.services.markdown_canvas import (
     DjangoLangPreprocessor,
 )
 from dj_design_system.services.registry import component_registry
+from dj_design_system.types import ColorScheme, DarkModeConfig, Theme
 
 
 # ---------------------------------------------------------------------------
@@ -25,12 +26,24 @@ pytestmark = pytest.mark.django_db
 class TestCanvasPreprocessor:
     """Test the preprocessor that replaces fenced canvas blocks."""
 
-    def _process(self, text, debug=False):
+    def _process(
+        self,
+        text,
+        debug=False,
+        theme_dict=None,
+        color_scheme=ColorScheme.LIGHT,
+    ):
         """Run the preprocessor on markdown text, return joined output."""
         import markdown
 
         md = markdown.Markdown()
-        preprocessor = CanvasPreprocessor(md, app_label="", debug=debug)
+        preprocessor = CanvasPreprocessor(
+            md,
+            app_label="",
+            debug=debug,
+            theme_dict=theme_dict,
+            color_scheme=color_scheme,
+        )
         lines = text.split("\n")
         result = preprocessor.run(lines)
         joined_result = "\n".join(result)
@@ -42,10 +55,12 @@ class TestCanvasPreprocessor:
     def test_simple_canvas_block(self):
         text = '```canvas\n{% button "Click" %}\n```'
         result = self._process(text)
-        assert "gallery-md-canvas" in result
-        assert "gallery-md-canvas__iframe" in result
-        assert "gallery-md-canvas__code" in result
+        assert "dds-canvas-widget" in result
+        assert "data-canvas-iframe" in result
+        assert 'data-canvas-panel="code"' in result
         assert "srcdoc=" in result
+        assert "data-srcdoc-light=" in result
+        assert "data-srcdoc-dark=" in result
 
     def test_component_media_external_urls_preserved(self):
         """External component media URLs are not passed through ``static()`` (#166)."""
@@ -60,6 +75,26 @@ class TestCanvasPreprocessor:
         assert "//cdn.example.com/component.js" in result
         assert static("myapp/component.css") in result
         assert "%3A" not in result
+
+    def test_builtin_canvas_includes_gallery_css_and_builtin_media(self):
+        """Built-in canvas blocks include gallery.css and builtin media."""
+        import markdown
+
+        media = ComponentMedia(
+            css=["dj_design_system/components/button.css"],
+            js=["dj_design_system/components/button.js"],
+        )
+        md = markdown.Markdown()
+        preprocessor = CanvasPreprocessor(md, app_label="dj_design_system", debug=False)
+        text = '```canvas\n{% button "Click" %}\n```'
+        with patch.object(component_registry, "get_builtin_media", return_value=media):
+            lines = text.split("\n")
+            result = "\n".join(preprocessor.run(lines))
+            for token, html_str in preprocessor.ext_stash.items():
+                result = result.replace(token, html_str)
+        assert "dj_design_system/gallery.css" in result
+        assert "dj_design_system/components/button.css" in result
+        assert "dj_design_system/components/button.js" in result
 
     def test_iframe_has_lazy_loading(self):
         """Iframes should defer loading until near the viewport for performance."""
@@ -79,11 +114,57 @@ class TestCanvasPreprocessor:
         result = self._process(text)
         assert "srcdoc=" in result
 
+    def test_canvas_block_renders_light_and_dark_srcdoc_attributes(self):
+        """Markdown canvas iframes render data-srcdoc-light and data-srcdoc-dark."""
+        theme = Theme(
+            value="demo",
+            label="Demo",
+            css=["demo.css"],
+            html_attrs={"html": {"data-theme": "default"}},
+            canvas_background="white",
+            dark_mode=DarkModeConfig(
+                css=["demo-dark.css"],
+                html_attrs={"html": {"data-theme": "dark"}},
+                canvas_background="dark",
+            ),
+        )
+        text = '```canvas\n{% button "Click" %}\n```'
+        result = self._process(text, theme_dict=theme, color_scheme=ColorScheme.LIGHT)
+        assert "data-srcdoc-light=" in result
+        assert "data-srcdoc-dark=" in result
+        assert "demo-dark.css" in result
+        assert "data-theme=&quot;dark&quot;" in result
+        assert "data-theme=&quot;default&quot;" in result
+        assert 'data-background="white"' in result
+
+    def test_canvas_block_initial_dark_mode_sets_srcdoc_to_dark(self):
+        """When rendered with color_scheme=DARK, initial srcdoc matches dark mode."""
+        theme = Theme(
+            value="demo",
+            label="Demo",
+            css=["demo.css"],
+            html_attrs={"html": {"data-theme": "default"}},
+            canvas_background="white",
+            dark_mode=DarkModeConfig(
+                css=["demo-dark.css"],
+                html_attrs={"html": {"data-theme": "dark"}},
+                canvas_background="dark",
+            ),
+        )
+        text = '```canvas\n{% button "Click" %}\n```'
+        result_dark = self._process(
+            text, theme_dict=theme, color_scheme=ColorScheme.DARK
+        )
+        assert "srcdoc=" in result_dark
+        assert "data-theme=&quot;dark&quot;" in result_dark
+        assert "canvas-bg-dark" in result_dark
+        assert 'data-background="dark"' in result_dark
+
     def test_block_component_canvas(self):
         text = '```canvas\n{% alert "warning" %}Danger!{% endalert %}\n```'
         result = self._process(text)
         assert "srcdoc=" in result
-        assert "gallery-md-canvas" in result
+        assert "dds-canvas-widget" in result
 
     def test_basic_mode_appended(self):
         text = '```canvas\n{% button "Click" %}\n```'
@@ -97,15 +178,14 @@ class TestCanvasPreprocessor:
             '```canvas\n{% button "Two" %}\n```'
         )
         result = self._process(text)
-        assert result.count("gallery-md-canvas") >= 2
+        assert result.count("<dds-canvas-widget") >= 2
 
     def test_toggle_radios_present(self):
         text = '```canvas\n{% button "Click" %}\n```'
         result = self._process(text)
-        assert "mc-toggle-" in result
-        assert 'gallery-md-canvas__input--html"' in result
-        assert 'gallery-md-canvas__input--preview"' in result
-        assert 'gallery-md-canvas__input--code"' in result
+        assert 'data-canvas-mode="preview"' in result
+        assert 'data-canvas-mode="code"' in result
+        assert 'data-canvas-mode="html"' in result
 
     def test_invalid_syntax_shows_error(self):
         text = "```canvas\n{% invalid_tag %}\n```"
@@ -130,19 +210,21 @@ class TestCanvasPreprocessor:
         text = "```python\ndef hello():\n    pass\n```"
         result = self._process(text)
         # Should be untouched by the canvas preprocessor
-        assert "gallery-md-canvas" not in result
+        assert "dds-canvas-widget" not in result
         assert "def hello():" in result
 
     def test_highlighted_code_in_widget(self):
         text = '```canvas\n{% button "Click" %}\n```'
         result = self._process(text)
-        assert "gallery-highlight" in result
+        assert "<dds-code-block" in result
+        assert "button" in result
+        assert "Click" in result
 
     def test_unique_ids_per_block(self):
         text = '```canvas\n{% button "A" %}\n```\n\n```canvas\n{% button "B" %}\n```'
         result = self._process(text)
-        assert "mc-toggle-1" in result
-        assert "mc-toggle-2" in result
+        assert 'data-canvas-id="1"' in result
+        assert 'data-canvas-id="2"' in result
 
 
 # ---------------------------------------------------------------------------
@@ -169,13 +251,13 @@ class TestCanvasExtension:
     def test_canvas_block_rendered_in_full_pipeline(self):
         text = '```canvas\n{% button "Click" %}\n```'
         html = self._render(text)
-        assert "gallery-md-canvas" in html
+        assert "dds-canvas-widget" in html
 
     def test_regular_fenced_code_still_works(self):
         text = "```python\nprint('hello')\n```"
         html = self._render(text)
         assert "<code" in html
-        assert "gallery-md-canvas" not in html
+        assert "dds-canvas-widget" not in html
 
     def test_mixed_content(self):
         text = (
@@ -185,7 +267,7 @@ class TestCanvasExtension:
             "```python\nx = 1\n```"
         )
         html = self._render(text)
-        assert "gallery-md-canvas" in html
+        assert "dds-canvas-widget" in html
         assert "<h1" in html
         assert "x = 1" in html
 
@@ -195,7 +277,7 @@ class TestCanvasExtension:
             '```canvas\n{% icon "arrow-left" %}\n```'
         )
         html = self._render(text)
-        assert html.count("gallery-md-canvas") >= 2
+        assert html.count("<dds-canvas-widget") >= 2
         assert "```canvas" not in html
         assert "```html+django" not in html
 
@@ -206,9 +288,9 @@ class TestCanvasExtension:
             f'```canvas\n{{% button "B{i}" %}}\n```' for i in range(1, count + 1)
         )
         html = self._render(text)
-        assert html.count('<div class="gallery-md-canvas ">') == count
+        assert html.count('<dds-canvas-widget class="dds-canvas-widget"') == count
         for i in range(1, count + 1):
-            assert html.count(f'name="mc-toggle-{i}"') == 3
+            assert html.count(f'data-canvas-id="{i}"') == 2
         assert "CANVAS_STASH" not in html
 
 

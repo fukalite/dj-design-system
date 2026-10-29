@@ -156,10 +156,11 @@ iframe provides full CSS/JS isolation from the gallery chrome — the
 component is rendered in its own HTML document with the correct cascade:
 
 1. Global CSS (`{% global_stylesheets %}`)
-2. Canvas layout CSS (padding, backgrounds)
-3. Component-specific CSS
-4. Global JS (`GLOBAL_JS_BUNDLES`, `GLOBAL_JS`), then theme, app and
-   component JS
+2. Theme CSS and active dark mode CSS (when `dark_mode` is configured and dark mode is active)
+3. App-specific CSS (`APP_CSS`)
+4. Canvas layout CSS (padding, backgrounds)
+5. Component-specific CSS
+6. Global JS (`GLOBAL_JS_BUNDLES`, `GLOBAL_JS`), then theme, dark mode, app, and component JS
 
 A **toolbar** above the canvas provides:
 
@@ -227,8 +228,18 @@ document:
 DJ_DESIGN_SYSTEM = {
     "GALLERY_CANVAS_HTML_ATTRS": {
         "html": {"class": "govuk-template"},
+    },
 }
 ```
+
+#### Canvas Dark Mode and Color Scheme
+
+When previewing components in canvas iframes:
+
+- The active theme's `dark_mode` configuration dictates whether dark mode can be activated (`supports_dark_mode=True`).
+- When dark mode is active (`_dds_color_scheme=dark`), the canvas document merges `dark_mode.html_attrs` into `<html>` and `<body>`, appends `dark_mode.css` and `dark_mode.js`, and sets the dedicated dark mode background (`theme.dark_mode.canvas_background`).
+- When a theme does not configure `dark_mode`, the preview canvas is constrained to light mode (`ColorScheme.LIGHT`), guarding against OS-level dark mode styles leaking into components that lack dark mode styling.
+- Inline Markdown documentation canvas blocks (````canvas ... ````) automatically inherit and reflect the active color scheme.
 
 <a id="customising-gallery-examples"></a>
 ## Customising Gallery Examples & Configuration
@@ -316,8 +327,8 @@ Variant(
 When navigating to a variant via deep-link (e.g. `/demo_components/badge/?variant=status`):
 
 1. **Focused Documentation**: The usage section displays the dedicated variant title, badge, markdown description, a focused live preview canvas, and syntax-highlighted tag code.
-2. **Breadcrumb Trail**: The active variant is appended as the terminal crumb:  
-   `Gallery / Demo Components / Badge / Status Indicator`  
+2. **Breadcrumb Trail**: The active variant is appended as the terminal crumb:
+   `Gallery / Demo Components / Badge / Status Indicator`
    Clicking the parent component in the breadcrumbs navigates directly back to the full component overview.
 3. **Sandbox Pre-filling**: Form fields in the interactive Sandbox pane are automatically populated with the variant's arguments, and the toolbar preset selector reflects the active preset.
 
@@ -399,7 +410,7 @@ Variant(
 ## Upgrading Legacy Gallery Configurations
 
 > [!WARNING] Deprecation Notice: Legacy Kwargs
-> Defining `basic_kwargs` and `maximal_kwargs` dictionaries directly in gallery files is deprecated and will be removed in a future release. 
+> Defining `basic_kwargs` and `maximal_kwargs` dictionaries directly in gallery files is deprecated and will be removed in a future release.
 > Export `config = GalleryConfig(...)` instead. The gallery currently maintains backwards compatibility and automatically synthesizes a `GalleryConfig` while emitting a `DeprecationWarning`.
 
 ### Automated Migration Command
@@ -575,12 +586,15 @@ DJ_DESIGN_SYSTEM = {
 | `ENABLE_GALLERY`                    | `bool`                    | `True`                                                     | Enable or disable the gallery entirely.                     |
 | `GALLERY_IS_PUBLIC`                 | `bool`                    | `True`                                                     | When `False`, requires the `can_view_gallery` perm.         |
 | `DESIGN_SYSTEM_NAME`                | `str`                     | `"Django Design System"`                                   | Display name shown in the gallery header.                   |
+| `GALLERY_INCLUDE_APPS`              | `list[str]` or `None`     | `None`                                                     | When set, only components from these apps appear in gallery.|
+| `GALLERY_EXCLUDE_APPS`              | `list[str]`               | `[]`                                                       | App labels excluded from gallery navigation and search.     |
 | `GALLERY_NAV_ORDER`                 | `list[NodeType]` or `str` | `[NodeType.FOLDER, NodeType.COMPONENT, NodeType.DOCUMENT]` | Controls the sort order of nodes in the sidebar.            |
 | `GALLERY_CANVAS_DEFAULT_BACKGROUND` | `str`                     | `"light-grey"`                                             | Default background for the sandbox canvas.                  |
 | `GALLERY_CANVAS_BACKGROUNDS`        | `dict`                    | `BUILTIN_CANVAS_BACKGROUNDS`                               | Dict of canvas backgrounds (replaces built-ins).            |
 | `GALLERY_CANVAS_EXTRA_BACKGROUNDS`  | `dict`                    | `{}`                                                       | Extra backgrounds merged into the built-in set.             |
 | `GALLERY_CANVAS_HTML_ATTRS`         | `dict`                    | `{}`                                                       | Extra attributes for the canvas `<html>` and `<body>` tags. |
 | `GALLERY_CODEHILITE_STYLE`          | `str`                     | `"monokai"`                                                | Pygments style for code highlighting. `""` to disable.      |
+| `GALLERY_EXTRA_CSS`                 | `list[str]`               | `[]`                                                       | Custom CSS static paths or external URLs loaded in `<head>`.|
 
 ### Navigation sort order
 
@@ -617,6 +631,124 @@ DJ_DESIGN_SYSTEM = {
 By default, the gallery is public. To restrict access, set
 `GALLERY_IS_PUBLIC = False` and assign the
 `dj_design_system.can_view_gallery` permission to appropriate users.
+
+---
+
+## Customising Gallery Look and Feel
+
+The gallery UI employs a modular, 3-tiered customisation architecture that allows consumers to tailor the appearance and layout from lightweight design token tweaks to bespoke template structures:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Tier 1: Design Tokens (GALLERY_EXTRA_CSS)                   │
+│ Override :root --dds-* tokens (colours, fonts, surfaces)    │
+├─────────────────────────────────────────────────────────────┤
+│ Tier 2: Template Areas & Panes                              │
+│ Override areas (topbar, sidebar, tabs) & panes (docs, etc.) │
+├─────────────────────────────────────────────────────────────┤
+│ Tier 3: Component Shadowing                                 │
+│ Shadow interactive widgets (canvas_widget, sandbox_params)  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Tier 1: Token Overrides via `GALLERY_EXTRA_CSS`
+
+To brand the gallery chrome without modifying any templates, supply one or more CSS file paths in `GALLERY_EXTRA_CSS`. These files are linked in `<head>` after all built-in styles and component stylesheets:
+
+```python
+DJ_DESIGN_SYSTEM = {
+    "GALLERY_EXTRA_CSS": [
+        "myapp/css/gallery-theme.css",
+    ],
+}
+```
+
+Inside your CSS file, override the semantic `--dds-*` custom properties on `:root`:
+
+```css
+:root {
+  /* Brand accents */
+  --dds-brand-primary-color: #0052cc;
+  --dds-brand-primary-hover-color: #0747a6;
+
+  /* Typography */
+  --dds-text-body-font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --dds-text-heading-font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Surface & background colours */
+  --dds-surface-bg-color: #f8fafc;
+  --dds-surface-topbar-bg: #ffffff;
+  --dds-surface-sidebar-bg: #f1f5f9;
+  --dds-border-default-color: #e2e8f0;
+}
+```
+
+### Tier 2: Overriding Template Areas and Panes
+
+Layout and presentation markup are structured into modular Django templates under `dj_design_system/gallery/areas/` and `dj_design_system/gallery/panes/`. Structural layout across areas and panes is composed with **Every Layout** primitives (`<l-stack>`, `<l-cluster>`, `<l-sidebar>`, `<l-grid>`) in `@layer composition`. To customise any section, place a template with the matching path in your project's `templates/` directory:
+
+#### Layout Areas (`dj_design_system/gallery/areas/`)
+
+- **`areas/topbar.html`**: Header branding bar, mobile drawer toggle, breadcrumbs, search box trigger, theme dropdown (`{% dds__theme_select %}`, rendered when multiple themes exist), consumer color scheme toggle button (`action="toggle-consumer-color-scheme"`, enabled when the active theme configures `dark_mode`), and toolbar actions slot.
+- **`areas/sidebar.html`**: Navigation drawer containing brand link, the interactive `<dds-nav-tree>`, and gallery UI theme toggle button (`action="toggle-theme"`).
+- **`areas/tabs.html`**: Mobile responsive tabs switcher toggling between Documentation and Sandbox views.
+
+#### Content Panes (`dj_design_system/gallery/panes/`)
+
+- **`panes/docs.html`**: The documentation column on component pages. Composed of modular sub-templates:
+  - `panes/docs/header.html`: Component title, docstring description, or active variant badge & preview.
+  - `panes/docs/usage.html`: Minimal, maximal, and qualified tag code blocks and preview canvases.
+  - `panes/docs/params.html`: Parameter specifications table and named slots table.
+  - `panes/docs/further.html`: Extended Markdown documentation rendered from co-located `index.md`.
+- **`panes/sandbox.html`**: The interactive testing canvas, controls toolbar, and live parameter editing form (`{% dds__sandbox_params %}`).
+- **`panes/folder.html`**: Navigable card grid rendered when browsing folder nodes without an `index.md`.
+- **`panes/index.html`**: Landing page welcome message and static snapshot notices.
+
+#### The `<dds-gallery-shell>` Custom Element & Page Mediators
+
+While structural markup lives in templates, client-side coordination is handled by the `<dds-gallery-shell>` custom element (`dj_design_system/static/dj_design_system/gallery-shell.ts`) and three dedicated page mediators:
+1. **Shell Drawer & Keyboard Shortcuts (`gallery-shell.ts`):** Toggling `data-drawer-state="open|closed"` on mobile viewports, managing backdrop/Escape dismissal, and routing the global `/` search shortcut to `DdsSearchBox.focusInput()`.
+2. **Theme Mediation (`theme-manager.ts`):** Switching the gallery chrome between Light and Dark modes (`dds_gallery_theme`), switching Gallery UI themes (`dds_gallery_ui_theme`), and synchronising consumer component themes (`dds_theme`) and colour schemes (`dds_color_scheme`) across URL parameters, hidden inputs, and preview iframes.
+3. **Pane Mediation (`pane-manager.ts`):** Synchronising URL `#pane-*` fragments, persisted split ratios (`dds_split_ratio`), and active tab selections (`dds_active_tabs`).
+4. **Sandbox Mediation (`sandbox-manager.ts`):** Mediating `<dds-sandbox-toolbar>`, `<dds-canvas-widget>`, and `<dds-sandbox-params>` events, persisting toolbar stage state to `sessionStorage` (`dds_toolbar_state`), and forwarding stage toggles (`background`, `zoom`, `outline`, `measure`, `rtl`) across the iframe boundary via `window.postMessage` (`canvas-resize.ts`).
+
+### Tier 3: Built-in `dds` Primitives & Component Shadowing
+
+The gallery UI delegates interactive widgets to built-in components under `dj_design_system/components/gallery/`:
+- **`elements/`** (`badge`, `breadcrumb`, `button`, `code_block`, `form_field`, `icon`, `notice`, `popout`, `table`, `tabs`, `tooltip`) — atomic UI primitives registered as `{% dds__<name> %}`.
+- **`composites/`** (`canvas_widget`, `nav_tree`, `sandbox_params`, `sandbox_toolbar`, `search_box`, `split_pane`, `theme_select`) — multi-part gallery widgets registered as `{% dds__<name> %}`.
+
+To shadow any built-in component with your own implementation, map a directory in `COMPONENT_DIRECTORIES`:
+
+```python
+from dj_design_system.types import FlattenStrategy
+
+DJ_DESIGN_SYSTEM = {
+    "COMPONENT_DIRECTORIES": {
+        "myapp": {
+            "dds_overrides": {
+                "prefix": "dds",
+                "flatten": FlattenStrategy.ALL,
+            },
+        },
+    },
+}
+```
+
+### Inspecting Built-in `dds` Components (`GALLERY_INCLUDE_APPS` & `GALLERY_EXCLUDE_APPS`)
+
+By default, built-in `dj_design_system` components are excluded from consumer galleries, so the gallery sidebar and search index display only your project's own Django apps.
+
+To browse and inspect the built-in `dj_design_system` component library inside the gallery in isolation, use `GALLERY_INCLUDE_APPS` (see [`example_project/settings_dds_gallery.py`](https://github.com/fukalite/dj-design-system/blob/main/example_project/settings_dds_gallery.py)):
+
+```python
+DJ_DESIGN_SYSTEM = {
+    "DESIGN_SYSTEM_NAME": "Built-in Component Library",
+    "GALLERY_INCLUDE_APPS": ["dj_design_system"],
+}
+```
+
+---
 
 ## Content Security Policy (CSP)
 

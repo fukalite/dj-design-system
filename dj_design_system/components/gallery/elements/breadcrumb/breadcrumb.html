@@ -1,0 +1,57 @@
+{% load design_components %}
+{% if has_items %}
+  <nav class="dds-breadcrumb" aria-label="{{ aria_label }}">
+    <ol class="l-cluster">
+      {% for item in normalized_items %}
+        <li{% if not forloop.first and not forloop.last %} data-breadcrumb-collapsible{% endif %}>
+          {% if not forloop.first %}
+            {% dds__icon name=separator_icon size="xs" %}
+          {% endif %}
+          {% if item.is_current %}
+            <span aria-current="page">
+              {% if item.has_icon %}
+                {% dds__icon name=item.icon size="xs" %}
+              {% endif %}
+              {{ item.label }}
+            </span>
+          {% elif item.has_url %}
+            <a href="{{ item.url }}">
+              {% if item.has_icon %}
+                {% dds__icon name=item.icon size="xs" %}
+              {% endif %}
+              {{ item.label }}
+            </a>
+          {% else %}
+            <span>
+              {% if item.has_icon %}
+                {% dds__icon name=item.icon size="xs" %}
+              {% endif %}
+              {{ item.label }}
+            </span>
+          {% endif %}
+        </li>
+        {% if forloop.first and has_collapsed_items %}
+          <li data-breadcrumb-ellipsis-item>
+            {% dds__icon name=separator_icon size="xs" %}
+            {% dds__popout align="start" menu_label="Intermediate breadcrumbs" %}
+              {% slot "trigger" %}
+                <button type="button" data-popout-trigger data-breadcrumb-ellipsis aria-haspopup="true" aria-expanded="false" aria-label="Show intermediate breadcrumbs">&hellip;</button>
+              {% endslot %}
+              {% slot "menu" %}
+                <div data-breadcrumb-flyout role="group">
+                  {% for collapsed in collapsed_items %}
+                    {% if collapsed.has_url %}
+                      {% dds__popout_option label=collapsed.label href=collapsed.url %}
+                    {% else %}
+                      {% dds__popout_option label=collapsed.label disabled=True %}
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              {% endslot %}
+            {% enddds__popout %}
+          </li>
+        {% endif %}
+      {% endfor %}
+    </ol>
+  </nav>
+{% endif %}

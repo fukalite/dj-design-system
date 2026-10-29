@@ -1,5 +1,6 @@
 """Tests for the gallery views."""
 
+import inspect
 from urllib.parse import parse_qs, urlsplit
 
 import pytest
@@ -7,11 +8,28 @@ from django.contrib.auth.models import Permission
 from django.test import override_settings
 from django.urls import reverse
 
+from dj_design_system.components import BlockComponent
+from dj_design_system.data import ParamRowData
+from dj_design_system.forms import build_component_form
+from dj_design_system.parameters.base import JSONParam, StrParam
+from dj_design_system.services.gallery_context import build_param_rows
 from dj_design_system.services.navigation import (
     build_breadcrumbs,
     find_node,
 )
-from dj_design_system.views import get_base_context
+from dj_design_system.views import (
+    canvas as canvas_views,
+)
+from dj_design_system.views import (
+    component as component_views,
+)
+from dj_design_system.views import (
+    gallery as gallery_views,
+)
+from dj_design_system.views import (
+    gallery_index,
+    get_base_context,
+)
 
 
 def _get_nav_tree():
@@ -175,6 +193,390 @@ class TestGalleryComponentView:
         response = user_client.get(url)
         assert response.status_code == 404
 
+    def test_component_docstring_renders_unescaped_html(self, client):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+        content = response.content.decode("utf-8")
+        assert "<p>A dismissable alert banner" in content
+        assert "&lt;p&gt;A dismissable alert banner" not in content
+
+    def test_consumer_theme_does_not_force_gallery_chrome_theme_class(self, client):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        response = client.get(f"{url}?_dds_theme=dark")
+        assert response.status_code == 200
+        assert "theme_body_class" not in response.context
+        assert response.context["global_active_theme"] == "dark"
+        assert response.context["sandbox_active_theme"] == "dark"
+        content = response.content.decode("utf-8")
+        assert '<html lang="en">' in content
+        assert "gallery-theme-dark" not in content
+        assert "gallery-theme-light" not in content
+
+    def test_gallery_theme_cookie_dark_sets_gallery_theme_class_and_sidebar_icon(
+        self, client
+    ):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        client.cookies["dds_gallery_theme"] = "dark"
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response.context["gallery_theme"] == "dark"
+        content = response.content.decode("utf-8")
+        assert '<html lang="en" class="gallery-theme-dark">' in content
+        assert 'data-gallery-theme="dark"' in content
+        assert 'data-action="toggle-theme"' in content
+        assert 'data-icon="moon"' in content
+
+    def test_gallery_theme_cookie_light_sets_gallery_theme_class_and_sidebar_icon(
+        self, client
+    ):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        client.cookies["dds_gallery_theme"] = "light"
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response.context["gallery_theme"] == "light"
+        content = response.content.decode("utf-8")
+        assert '<html lang="en" class="gallery-theme-light">' in content
+        assert 'data-gallery-theme="light"' in content
+        assert 'data-action="toggle-theme"' in content
+        assert 'data-icon="sun"' in content
+
+    def test_consumer_theme_query_param_does_not_alter_gallery_theme_or_sidebar_button(
+        self, client
+    ):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        response = client.get(f"{url}?_dds_theme=dark")
+        assert response.status_code == 200
+        assert response.context["global_active_theme"] == "dark"
+        assert response.context["gallery_theme"] == ""
+        content = response.content.decode("utf-8")
+        assert '<html lang="en">' in content
+        assert "gallery-theme-dark" not in content
+        assert 'data-action="toggle-theme"' in content
+        sidebar_footer = content[
+            content.find("data-sidebar-footer") : content.find("</aside>")
+        ]
+        assert 'data-icon="sun"' in sidebar_footer
+        assert 'data-icon="moon"' not in sidebar_footer
+
+    def test_both_theme_selectors_operate_independently(self, client, settings):
+        settings.DJ_DESIGN_SYSTEM = {
+            "GALLERY_THEMES": {
+                "light": {"label": "Light"},
+                "dark": {"label": "Dark"},
+            }
+        }
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        client.cookies["dds_gallery_theme"] = "light"
+        response = client.get(f"{url}?_dds_theme=dark")
+        assert response.status_code == 200
+        assert response.context["global_active_theme"] == "dark"
+        assert response.context["gallery_theme"] == "light"
+        content = response.content.decode("utf-8")
+        assert '<html lang="en" class="gallery-theme-light">' in content
+        assert 'data-gallery-theme="light"' in content
+        assert 'data-action="toggle-theme"' in content
+        assert 'data-icon="sun"' in content
+        assert "gallery-global-theme-select" in content
+        assert "_dds_theme=dark" in response.context["canvas_iframe_url"]
+
+    def test_single_theme_omits_selector(self, client):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+        content = response.content.decode("utf-8")
+        assert "gallery-global-theme-select" not in content
+        assert "dds-theme-select" not in content
+        assert 'data-action="toggle-consumer-color-scheme"' in content
+        assert 'data-variant="default"' in content
+
+    def test_default_gallery_ui_theme_is_desert(self, client):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response.context["gallery_ui_theme"] == "desert"
+        content = response.content.decode("utf-8")
+        assert 'data-gallery-ui-theme="desert"' in content
+        assert "gallery-ui-theme-classic" not in content
+        assert "data-ui-theme-select" in content
+
+    def test_gallery_ui_theme_classic_via_cookie(self, client):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        client.cookies["dds_gallery_ui_theme"] = "classic"
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response.context["gallery_ui_theme"] == "classic"
+        content = response.content.decode("utf-8")
+        assert 'class="gallery-ui-theme-classic"' in content
+        assert 'data-gallery-ui-theme="classic"' in content
+        assert "Classic theme does not support dark mode" in content
+        assert response.context["gallery_theme"] == ""
+
+    def test_gallery_ui_theme_classic_suppresses_dark_mode_cookie(self, client):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        client.cookies["dds_gallery_ui_theme"] = "classic"
+        client.cookies["dds_gallery_theme"] = "dark"
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response.context["gallery_ui_theme"] == "classic"
+        assert response.context["gallery_theme"] == ""
+        content = response.content.decode("utf-8")
+        assert "gallery-theme-dark" not in content
+
+    def test_gallery_ui_theme_via_query_param(self, client):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        response = client.get(f"{url}?_dds_gallery_ui_theme=classic")
+        assert response.status_code == 200
+        assert response.context["gallery_ui_theme"] == "classic"
+        content = response.content.decode("utf-8")
+        assert 'class="gallery-ui-theme-classic"' in content
+        assert 'data-gallery-ui-theme="classic"' in content
+
+    def test_custom_gallery_ui_theme_without_dark_mode(self, client, settings):
+        settings.DJ_DESIGN_SYSTEM = {
+            "GALLERY_UI_THEMES": {
+                "minimal": {
+                    "label": "Minimal Theme",
+                },
+            },
+            "GALLERY_DEFAULT_UI_THEME": "minimal",
+        }
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response.context["gallery_ui_theme"] == "minimal"
+        assert response.context["gallery_ui_theme_supports_dark_mode"] is False
+        content = response.content.decode("utf-8")
+        assert 'class="gallery-ui-theme-minimal"' in content
+        assert 'data-gallery-ui-theme="minimal"' in content
+        assert 'data-gallery-ui-supports-dark-mode="false"' in content
+        assert "Minimal Theme theme does not support dark mode" in content
+
+    def test_custom_gallery_ui_theme_with_dark_mode_and_assets(self, client, settings):
+        settings.DJ_DESIGN_SYSTEM = {
+            "GALLERY_UI_THEMES": {
+                "cyber": {
+                    "label": "Cyberpunk",
+                    "css": ["css/cyber.css"],
+                    "js": ["js/cyber.js"],
+                    "dark_mode": {
+                        "css": ["css/cyber-dark.css"],
+                        "js": ["js/cyber-dark.js"],
+                    },
+                },
+            },
+            "GALLERY_DEFAULT_UI_THEME": "cyber",
+        }
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        # In light mode
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response.context["gallery_ui_theme"] == "cyber"
+        assert response.context["gallery_ui_theme_supports_dark_mode"] is True
+        content = response.content.decode("utf-8")
+        assert 'href="/static/css/cyber.css"' in content
+        assert 'src="/static/js/cyber.js"' in content
+        assert 'cyber-dark.css' not in content
+
+        # In dark mode
+        client.cookies["dds_gallery_theme"] = "dark"
+        response_dark = client.get(url)
+        assert response_dark.status_code == 200
+        content_dark = response_dark.content.decode("utf-8")
+        assert 'href="/static/css/cyber.css"' in content_dark
+        assert 'href="/static/css/cyber-dark.css"' in content_dark
+        assert 'src="/static/js/cyber.js"' in content_dark
+        assert 'src="/static/js/cyber-dark.js"' in content_dark
+
+    def test_dark_mode_toggle_enabled_on_markdown_document_when_theme_supports_dark_mode(
+        self, client, settings
+    ):
+        settings.DJ_DESIGN_SYSTEM = {
+            "GALLERY_THEMES": {
+                "custom": {
+                    "label": "Custom Theme",
+                    "dark_mode": {},
+                }
+            },
+            "GALLERY_DEFAULT_THEME": "custom",
+        }
+        url = "/dds/demo_nav/design_guidelines/"
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response.context["active_theme_supports_dark_mode"] is True
+        content = response.content.decode("utf-8")
+        assert 'data-supports-dark-mode="true"' in content
+        assert 'data-action="toggle-consumer-color-scheme"' in content
+        assert 'data-action="toggle-consumer-color-scheme" disabled' not in content
+
+    def test_dark_mode_toggle_falls_back_to_default_theme_on_markdown_document(
+        self, client, settings
+    ):
+        settings.DJ_DESIGN_SYSTEM = {
+            "GALLERY_THEMES": {
+                "custom": {
+                    "label": "Custom Theme",
+                    "dark_mode": {},
+                }
+            },
+            "GALLERY_DEFAULT_THEME": "custom",
+        }
+        client.cookies["dds_theme"] = "nonexistent_stale_theme"
+        url = "/dds/demo_nav/design_guidelines/"
+        response = client.get(url)
+        assert response.status_code == 200
+        assert response.context["active_theme_supports_dark_mode"] is True
+        content = response.content.decode("utf-8")
+        assert 'data-supports-dark-mode="true"' in content
+        assert 'data-action="toggle-consumer-color-scheme"' in content
+        assert 'data-action="toggle-consumer-color-scheme" disabled' not in content
+
+    def test_component_renders_section_headings_and_dividers(self, client):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_nav", "path": "elements/icon"},
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+        content = response.content.decode("utf-8")
+        assert "<h1 data-docs-title>Icon</h1>" in content
+        assert "<h2 data-docs-heading>Description</h2>" in content
+        assert "<h2 data-docs-heading>Usage</h2>" in content
+        assert "<h2 data-docs-heading>Parameters</h2>" in content
+        assert "<h2 data-docs-heading>Further documentation</h2>" in content
+        assert "<hr data-docs-divider>" in content
+
+    def test_variant_view_renders_parameters_and_further_documentation(self, client):
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "badge"},
+        )
+        response = client.get(f"{url}?variant=maximal")
+        assert response.status_code == 200
+        content = response.content.decode("utf-8")
+        assert "<h1 data-docs-title>Badge</h1>" in content
+        assert "<h3 data-variant-subheading>Preview</h3>" in content
+        assert "<h2 data-docs-heading>Parameters</h2>" in content
+
+    def test_builtin_component_uses_fully_qualified_tag_and_suppresses_qualified_section(
+        self, client
+    ):
+        """Built-in components (is_builtin=True) cannot be invoked with short tag names.
+
+        All usage examples must use the fully-qualified version (dds__<name>),
+        and the redundant 'Qualified tag usage' section must be suppressed.
+        """
+        from dj_design_system.services.navigation import clear_navigation_cache
+
+        with override_settings(
+            DJ_DESIGN_SYSTEM={"GALLERY_INCLUDE_APPS": ["dj_design_system"]}
+        ):
+            clear_navigation_cache()
+            try:
+                url = reverse(
+                    "gallery-node",
+                    kwargs={
+                        "app_label": "dj_design_system",
+                        "path": "elements/button",
+                    },
+                )
+                response = client.get(url)
+                assert response.status_code == 200
+                content = response.content.decode("utf-8")
+
+                assert response.context["tag_signature"].minimal.startswith(
+                    "{% dds__button"
+                )
+                assert "{% dds__button" in content
+                assert "Qualified tag usage" not in content
+            finally:
+                clear_navigation_cache()
+
+    def test_builtin_component_variant_uses_fully_qualified_tag(self, client):
+        """Variant usage for built-in components must also use the fully-qualified tag."""
+        from dj_design_system.services.navigation import clear_navigation_cache
+
+        with override_settings(
+            DJ_DESIGN_SYSTEM={"GALLERY_INCLUDE_APPS": ["dj_design_system"]}
+        ):
+            clear_navigation_cache()
+            try:
+                url = reverse(
+                    "gallery-node",
+                    kwargs={
+                        "app_label": "dj_design_system",
+                        "path": "elements/button",
+                    },
+                )
+                response = client.get(f"{url}?variant=link")
+                assert response.status_code == 200
+                content = response.content.decode("utf-8")
+
+                assert response.context["variant_signature"].minimal.startswith(
+                    "{% dds__button"
+                )
+                assert "{% dds__button" in content
+            finally:
+                clear_navigation_cache()
+
+    def test_non_builtin_component_renders_short_tag_and_qualified_section(
+        self, client
+    ):
+        """Non-builtin components with a prefix use the short tag and show Qualified tag usage."""
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "badge"},
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+        content = response.content.decode("utf-8")
+
+        assert response.context["tag_signature"].minimal.startswith("{% badge")
+        assert response.context["tag_signature_long"].minimal.startswith(
+            "{% demo_components__badge"
+        )
+        assert "Qualified tag usage" in content
+        assert "demo_components__badge" in content
+
 
 class TestGalleryFolderView:
     """Test the folder view."""
@@ -294,8 +696,10 @@ class TestGalleryComponentFormIntegration:
         """When the component page first loads without parameters, form should have initial data from gallery kwargs."""
         from django.test import RequestFactory
 
+        from dj_design_system.services.gallery_context import (
+            get_form_and_sandbox_spec as _get_form_and_sandbox_spec,
+        )
         from dj_design_system.services.tag_signature import generate_tag_signature
-        from dj_design_system.views.component import _get_form_and_sandbox_spec
 
         nav_tree = _get_nav_tree()
         component = _find_component_with_params(nav_tree)
@@ -330,8 +734,10 @@ class TestGalleryComponentFormIntegration:
         from dj_design_system.data import CanvasSpec
         from dj_design_system.parameters import StrParam
         from dj_design_system.parameters.model import ModelParam
+        from dj_design_system.services.gallery_context import (
+            get_form_and_sandbox_spec as _get_form_and_sandbox_spec,
+        )
         from dj_design_system.services.tag_signature import TagSignature
-        from dj_design_system.views.component import _get_form_and_sandbox_spec
 
         dummy_qs = MagicMock()
         dummy_qs.order_by.return_value = dummy_qs
@@ -374,12 +780,12 @@ class TestGalleryComponentFormIntegration:
         assert form_kwargs.get("user") == fake_instance
 
     def test_is_sandbox_form_submission(self):
-        """_is_sandbox_form_submission returns True if and only if _iss is in GET."""
+        """is_sandbox_form_submission returns True if and only if _iss is in GET."""
         from django.test import RequestFactory
 
-        from dj_design_system.views.component import (
-            SANDBOX_SUBMISSION_PARAM,
-            _is_sandbox_form_submission,
+        from dj_design_system.services.control_params import SANDBOX_SUBMISSION_PARAM
+        from dj_design_system.services.gallery_context import (
+            is_sandbox_form_submission as _is_sandbox_form_submission,
         )
 
         rf = RequestFactory()
@@ -421,11 +827,13 @@ class TestGalleryComponentFormIntegration:
             assert "field" in row
 
     def test_param_rows_handles_tuple_type(self):
-        """_build_param_rows should handle parameter specs with tuple type definitions without raising AttributeError."""
+        """build_param_rows should handle parameter specs with tuple type definitions without raising AttributeError."""
         from dj_design_system.components import BlockComponent
         from dj_design_system.forms import build_component_form
         from dj_design_system.parameters.base import JSONParam
-        from dj_design_system.views.component import _build_param_rows
+        from dj_design_system.services.gallery_context import (
+            build_param_rows as _build_param_rows,
+        )
 
         class TupleParamComponent(BlockComponent):
             data = JSONParam("JSON data")
@@ -475,7 +883,7 @@ class TestGalleryComponentFormIntegration:
 
         response = client.get(component.url)
         assert response.status_code == 200
-        assert b"gallery-params-form" in response.content
+        assert b"dds-sandbox-params" in response.content
         assert b"hx-get" in response.content
 
     def test_htmx_partial_returns_fragment(self, client):
@@ -488,7 +896,7 @@ class TestGalleryComponentFormIntegration:
         response = client.get(component.url, HTTP_HX_REQUEST="true")
         assert response.status_code == 200
         # Fragment should contain the canvas and form but NOT the full page shell.
-        assert b"gallery-sandbox__canvas" in response.content
+        assert b"dds-canvas-widget" in response.content
         assert b"<html" not in response.content
 
     def test_block_content_updates_current_usage(self, client):
@@ -538,7 +946,7 @@ class TestParamsTable:
         response = client.get(reverse("gallery") + "demo_components/badge/")
 
         assert response.status_code == 200
-        assert b"<code>items</code>" in response.content
+        assert b"<code data-param-name>items</code>" in response.content
 
 
 class TestSmokeAllPages:
@@ -564,7 +972,7 @@ class TestSmokeAllPages:
     def test_index_page_renders(self, client):
         response = client.get(reverse("gallery"))
         assert response.status_code == 200
-        assert b"gallery-nav" in response.content
+        assert b"dds-nav-tree" in response.content
 
     def test_breadcrumbs_present_on_component_page(self, client):
         """Component pages should have breadcrumb links."""
@@ -580,7 +988,7 @@ class TestSmokeAllPages:
 
         response = client.get(component.url)
         assert response.status_code == 200
-        assert b"gallery-breadcrumb__sep" in response.content
+        assert b"dds-breadcrumb" in response.content
         assert b"Gallery" in response.content
 
     def test_nav_tree_rendered_in_sidebar(self, client):
@@ -608,7 +1016,7 @@ class TestSmokeAllPages:
 
         response = client.get(component.url)
         assert response.status_code == 200
-        assert b"gallery-nav__link--active" in response.content
+        assert b'data-active="true"' in response.content
 
 
 # ---------------------------------------------------------------------------
@@ -619,41 +1027,49 @@ class TestSmokeAllPages:
 class TestToolbarButtons:
     """Test that all sandbox toolbar buttons render on component pages."""
 
-    @pytest.fixture()
-    def component_response(self, client):
+    @staticmethod
+    def _get_component_response(client):
         nav_tree = _get_nav_tree()
         for node in _collect_all_nodes(nav_tree):
             if node.is_component:
                 return client.get(node.url)
         pytest.skip("No components registered")
 
-    def test_outline_toggle(self, component_response):
-        assert b"gallery-sandbox-toolbar__outline-toggle" in component_response.content
+    def test_outline_toggle(self, client):
+        response = self._get_component_response(client=client)
+        assert b'data-action="toggle-outline"' in response.content
 
-    def test_measure_toggle(self, component_response):
-        assert b"gallery-sandbox-toolbar__measure-toggle" in component_response.content
+    def test_measure_toggle(self, client):
+        response = self._get_component_response(client=client)
+        assert b'data-action="toggle-measure"' in response.content
 
-    def test_rtl_toggle(self, component_response):
-        assert b"gallery-sandbox-toolbar__rtl-toggle" in component_response.content
+    def test_rtl_toggle(self, client):
+        response = self._get_component_response(client=client)
+        assert b'data-action="toggle-rtl"' in response.content
 
-    def test_viewport_toggle(self, component_response):
-        assert b"gallery-sandbox-toolbar__viewport-toggle" in component_response.content
+    def test_viewport_toggle(self, client):
+        response = self._get_component_response(client=client)
+        assert b'data-sandbox-control="viewport"' in response.content
 
-    def test_zoom_toggle(self, component_response):
-        assert b"gallery-sandbox-toolbar__zoom-toggle" in component_response.content
+    def test_zoom_toggle(self, client):
+        response = self._get_component_response(client=client)
+        assert b'data-sandbox-control="zoom"' in response.content
 
-    def test_bg_toggle(self, component_response):
-        assert b"gallery-sandbox-toolbar__bg-toggle" in component_response.content
+    def test_bg_toggle(self, client):
+        response = self._get_component_response(client=client)
+        assert b'data-sandbox-control="background"' in response.content
 
-    def test_measure_script_data_attribute(self, component_response):
-        assert b"data-measure-script" in component_response.content
+    def test_measure_script_data_attribute(self, client):
+        response = self._get_component_response(client=client)
+        assert b'data-action="toggle-measure"' in response.content
 
-    def test_viewport_presets(self, component_response):
-        content = component_response.content
-        assert b'data-viewport="320"' in content
-        assert b'data-viewport="1920"' in content
-        assert b'data-viewport="2560"' in content
-        assert b'data-viewport="responsive"' in content
+    def test_viewport_presets(self, client):
+        response = self._get_component_response(client=client)
+        content = response.content
+        assert b'data-value="320"' in content
+        assert b'data-value="1920"' in content
+        assert b'data-value="2560"' in content
+        assert b'data-value="responsive"' in content
 
 
 # ---------------------------------------------------------------------------
@@ -777,8 +1193,6 @@ class TestCanvasHtmlAttrs:
 
 class TestCSPCompliance:
     def test_csp_nonce_in_gallery_views(self, rf):
-        from dj_design_system.views import gallery_index
-
         request = rf.get("/dds/")
         request.csp_nonce = "sample-nonce-987"
         response = gallery_index(request)
@@ -786,9 +1200,168 @@ class TestCSPCompliance:
         assert 'nonce="sample-nonce-987"' in content
 
     def test_no_inline_style_attributes_in_index(self, rf):
-        from dj_design_system.views import gallery_index
-
         request = rf.get("/dds/")
         response = gallery_index(request)
         content = response.content.decode()
         assert 'style="' not in content
+
+    def test_single_gallery_search_index_script_in_rendered_page(self, rf):
+        request = rf.get("/dds/")
+        response = gallery_index(request)
+        content = response.content.decode()
+        assert content.count('<script id="gallery-search-index"') == 1
+
+
+class TestThinViewsAndImmutableParams:
+    def test_component_and_canvas_views_define_no_private_helpers(self):
+        for mod in (component_views, canvas_views, gallery_views):
+            private_funcs = [
+                name
+                for name, fn in inspect.getmembers(mod, inspect.isfunction)
+                if fn.__module__ == mod.__name__ and name.startswith("_")
+            ]
+            assert private_funcs == [], (
+                f"{mod.__name__} defines private helper functions: {private_funcs}"
+            )
+
+    def test_build_param_rows_does_not_mutate_base_param_descriptors(self):
+        class ImmutableParamComponent(BlockComponent):
+            title = StrParam("Title", default="Hi")
+            payload = JSONParam("JSON data")
+
+        form = build_component_form(ImmutableParamComponent)()
+        params = ImmutableParamComponent.get_params()
+        rows = build_param_rows(form, params, ImmutableParamComponent)
+
+        assert all(isinstance(r, ParamRowData) for r in rows)
+        for param_obj in params.values():
+            assert "type_name" not in param_obj.__dict__
+
+
+class TestComponentThemeOverride:
+    """Tests for Issue #124: gallery component theme override indication."""
+
+    TWO_THEMES_SETTINGS = {
+        "GALLERY_THEMES": {
+            "default": {
+                "label": "Default Theme",
+                "html_attrs": {"html": {"data-theme": "default"}},
+            },
+            "dark": {
+                "label": "Dark Theme",
+                "html_attrs": {"html": {"data-theme": "dark"}},
+            },
+        },
+        "GALLERY_DEFAULT_THEME": "default",
+    }
+
+    def test_component_theme_override_when_unsupported_theme_selected(
+        self, client, settings
+    ):
+        settings.DJ_DESIGN_SYSTEM = self.TWO_THEMES_SETTINGS
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+
+        # Global theme remains 'default', while sandbox active theme resolves to 'dark'
+        assert response.context["global_active_theme"] == "default"
+        assert response.context["sandbox_active_theme"] == "dark"
+        assert response.context["is_theme_restricted"] is True
+        assert response.context["is_theme_overridden"] is True
+        assert response.context["component_available_themes"] == ["dark"]
+        assert response.context["available_theme_labels"] == ["Dark Theme"]
+        assert (
+            response.context["theme_override_message"]
+            == "This component only supports Dark Theme (overriding Default Theme)."
+        )
+
+        content = response.content.decode("utf-8")
+        # Notice and notes present in HTML
+        assert "data-theme-override-note" in content
+        assert "data-theme-override-notice" in content
+        assert 'data-theme-overridden="true"' in content
+        assert 'data-unsupported="true"' in content
+        assert "Default Theme (unsupported)" in content
+        assert "Theme overridden" in content
+        assert (
+            "This component only supports Dark Theme (overriding Default Theme)."
+            in content
+        )
+
+    def test_component_theme_restricted_when_supported_theme_selected(
+        self, client, settings
+    ):
+        settings.DJ_DESIGN_SYSTEM = self.TWO_THEMES_SETTINGS
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "alert"},
+        )
+        response = client.get(f"{url}?_dds_theme=dark")
+        assert response.status_code == 200
+
+        assert response.context["global_active_theme"] == "dark"
+        assert response.context["sandbox_active_theme"] == "dark"
+        assert response.context["is_theme_restricted"] is True
+        assert response.context["is_theme_overridden"] is False
+        assert (
+            response.context["theme_override_message"]
+            == "This component only supports Dark Theme."
+        )
+
+        content = response.content.decode("utf-8")
+        assert "data-theme-override-note" in content
+        assert "data-theme-override-notice" in content
+        assert 'data-theme-overridden="false"' in content
+        assert "Theme restricted" in content
+        assert "This component only supports Dark Theme." in content
+        # Default Theme remains annotated as unsupported by the component
+        assert "Default Theme (unsupported)" in content
+
+    def test_unrestricted_component_does_not_render_override_indicators(
+        self, client, settings
+    ):
+        settings.DJ_DESIGN_SYSTEM = self.TWO_THEMES_SETTINGS
+        url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "demo_components", "path": "button"},
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+
+        assert response.context["is_theme_restricted"] is False
+        assert response.context["is_theme_overridden"] is False
+
+        content = response.content.decode("utf-8")
+        assert "data-theme-override-note" not in content
+        assert "data-theme-override-notice" not in content
+        assert "data-unsupported" not in content
+        assert "(unsupported)" not in content
+
+    def test_theme_select_supported_themes_parameter(self):
+        from dj_design_system.components.gallery.composites.theme_select.theme_select import (
+            ThemeOption,
+            ThemeSelect,
+        )
+
+        ts = ThemeSelect(
+            themes=[
+                ThemeOption(value="default", label="Default Theme"),
+                ThemeOption(value="dark", label="Dark Theme"),
+            ],
+            active_theme="default",
+            supported_themes=["dark"],
+        )
+        ctx = ts.get_context()
+        normalized = ctx["normalized_themes"]
+        assert len(normalized) == 2
+        assert normalized[0]["value"] == "default"
+        assert normalized[0]["is_supported"] is False
+        assert normalized[0]["label"] == "Default Theme (unsupported)"
+        assert normalized[0]["raw_label"] == "Default Theme"
+        assert normalized[1]["value"] == "dark"
+        assert normalized[1]["is_supported"] is True
+        assert normalized[1]["label"] == "Dark Theme"
+        assert normalized[1]["raw_label"] == "Dark Theme"

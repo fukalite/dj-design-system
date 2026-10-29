@@ -1,6 +1,25 @@
 import re
 from typing import Type
 
+from dj_design_system.constants import (
+    BUILTIN_APP_LABEL,
+    BUILTIN_GALLERY_SUBFOLDER,
+    BUILTIN_PREFIX,
+)
+
+
+__all__ = [
+    "BUILTIN_APP_LABEL",
+    "BUILTIN_GALLERY_SUBFOLDER",
+    "BUILTIN_PREFIX",
+    "EmptyMeta",
+    "derive_name",
+    "get_meta_name",
+    "get_own_meta",
+    "is_abstract",
+    "is_builtin",
+]
+
 
 class EmptyMeta:
     """Sentinel returned by ``get_own_meta`` when a class has no own Meta.
@@ -22,6 +41,19 @@ def get_own_meta(cls: Type) -> type:
 def is_abstract(cls: Type) -> bool:
     """Return True if the class's own Meta marks it as abstract."""
     return getattr(get_own_meta(cls), "abstract", False)
+
+
+def is_builtin(cls: Type, app_label: str | None = None) -> bool:
+    """Return True if the component is built-in to the framework.
+
+    Built-in components inherit from ``BuiltinComponent`` or originate
+    from ``BUILTIN_APP_LABEL``.
+    """
+    from dj_design_system.components.base import BuiltinComponent
+
+    return (
+        isinstance(cls, type) and issubclass(cls, BuiltinComponent)
+    ) or app_label == BUILTIN_APP_LABEL
 
 
 def get_meta_name(cls: Type) -> str | None:

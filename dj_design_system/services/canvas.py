@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import json
 import logging
 import re
@@ -13,13 +14,15 @@ import nh3
 from django.core.exceptions import ValidationError
 from django.db.models import Model
 from django.template import Context, Template
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
 from django.utils.safestring import SafeData, SafeString, mark_safe
 
 from dj_design_system.components import BaseComponent, BlockComponent
+from dj_design_system.constants import BUILTIN_APP_LABEL, BUILTIN_GALLERY_CSS
 from dj_design_system.data import (
     BLOCK_CONTENT_PLACEHOLDER,
     CanvasSpec,
+    ComponentInfo,
     ComponentMedia,
     GalleryParameter,
 )
@@ -31,6 +34,8 @@ from dj_design_system.exceptions import (
 from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.parameters.base import DictParam, JSONParam, ListParam
 from dj_design_system.parameters.model import ModelParam
+from dj_design_system.services import canvas_renderer as canvas_renderer_service
+from dj_design_system.services import media as media_service
 from dj_design_system.services.control_params import (
     CONTROL_PARAM_NAMES,
     control_param_key,
@@ -38,7 +43,16 @@ from dj_design_system.services.control_params import (
     get_control_param,
 )
 from dj_design_system.services.registry import component_registry
+from dj_design_system.settings import (
+    dds_settings,
+    get_app_static,
+    get_backgrounds,
+    get_default_background,
+    get_default_theme,
+    get_theme,
+)
 from dj_design_system.slots import SLOT_PARAM_PREFIX
+from dj_design_system.types import CanvasMode, ColorScheme, Theme
 
 
 __all__ = [
@@ -49,6 +63,11 @@ __all__ = [
     "build_canvas_url",
     "resolve_component",
     "coerce_single",
+    "canvas_mode_class",
+    "canvas_bg_class",
+    "resolve_canvas_iframe_theme",
+    "resolve_canvas_iframe_color_scheme",
+    "build_canvas_asset_tags",
     "VariantNotFoundError",
 ]
 
@@ -451,6 +470,7 @@ def build_canvas_url(
     registry: ComponentRegistry | None = None,
     mode: str | None = None,
     theme: str | None = None,
+    color_scheme: ColorScheme | str | None = None,
     **extra_query: Any,
 ) -> str:
     """Build a URL for the canvas iframe view from a ``CanvasSpec``."""
@@ -487,6 +507,13 @@ def build_canvas_url(
         query[control_param_key("mode")] = mode
     if theme:
         query[control_param_key("theme")] = theme
+    if color_scheme:
+        color_scheme_str = (
+            color_scheme.value
+            if isinstance(color_scheme, ColorScheme)
+            else str(color_scheme)
+        )
+        query[control_param_key("color_scheme")] = color_scheme_str
     for k, v in extra_query.items():
         if v is not None:
             query[k] = v
@@ -496,11 +523,10 @@ def build_canvas_url(
     return f"{base_url}{sep}{query_str}"
 
 
-def resolve_component(name: str, registry: ComponentRegistry):
+def resolve_component(name: str, registry: ComponentRegistry) -> ComponentInfo:
     """Look up a component by name, raising ``ValueError`` on failure."""
     try:
-        # Check for fully qualified name matches first
-        for info in registry.list_all():
+        for info in reversed(registry.list_ordered()):
             if info.qualified_name == name:
                 return info
 
@@ -613,5 +639,228 @@ def _serialise_value(value: object) -> str:
     if isinstance(value, Model):
         return str(value.pk)
     if isinstance(value, (list, dict)):
-        return json.dumps(value)
+        return json.dumps(
+            value,
+            default=lambda o: (
+                dataclasses.asdict(o)
+                if dataclasses.is_dataclass(o) and not isinstance(o, type)
+                else str(o)
+            ),
+        )
     return str(value)
+
+
+def canvas_mode_class(
+    query_or_request: Any, component_class: type | None = None
+) -> str:
+    """Return the CSS class for the canvas mode from query params."""
+    query_params = getattr(query_or_request, "GET", query_or_request)
+    mode_param = get_control_param(
+        query_params, "mode", bare_fallback=not declares_param(component_class, "mode")
+    )
+    if mode_param:
+        try:
+            mode = CanvasMode(mode_param)
+        except ValueError:
+            mode = CanvasMode.EXTENDED
+    else:
+        mode = CanvasMode.EXTENDED
+    return f"canvas-wrapper--{mode.value}"
+
+
+def canvas_bg_class(
+    query_or_request: Any,
+    theme_dict: Theme | None = None,
+    component_class: type | None = None,
+    color_scheme: ColorScheme = ColorScheme.LIGHT,
+) -> str:
+    """Return the CSS class for the canvas background from query params, theme, or settings."""
+    query_params = getattr(query_or_request, "GET", query_or_request)
+    bg_param = get_control_param(
+        query_params, "bg", bare_fallback=not declares_param(component_class, "bg")
+    )
+    if bg_param:
+        for bg in get_backgrounds():
+            if bg["value"] == bg_param:
+                return f"canvas-bg-{bg['value']}"
+        if theme_dict and isinstance(theme_dict.canvas_background, dict):
+            if bg_param == f"theme-{theme_dict.value}":
+                return f"canvas-bg-theme-{theme_dict.value}"
+        if (
+            theme_dict
+            and theme_dict.supports_dark_mode
+            and theme_dict.dark_mode
+            and isinstance(theme_dict.dark_mode.canvas_background, dict)
+        ):
+            if bg_param == f"theme-{theme_dict.value}-dark":
+                return f"canvas-bg-theme-{theme_dict.value}-dark"
+
+    if (
+        color_scheme == ColorScheme.DARK
+        and theme_dict
+        and theme_dict.supports_dark_mode
+        and theme_dict.dark_mode
+        and theme_dict.dark_mode.canvas_background
+    ):
+        if isinstance(theme_dict.dark_mode.canvas_background, str):
+            return f"canvas-bg-{theme_dict.dark_mode.canvas_background}"
+        if isinstance(theme_dict.dark_mode.canvas_background, dict):
+            return f"canvas-bg-theme-{theme_dict.value}-dark"
+
+    if theme_dict and theme_dict.canvas_background:
+        if isinstance(theme_dict.canvas_background, str):
+            return f"canvas-bg-{theme_dict.canvas_background}"
+        if isinstance(theme_dict.canvas_background, dict):
+            return f"canvas-bg-theme-{theme_dict.value}"
+
+    default = get_default_background()
+    return f"canvas-bg-{default['value']}"
+
+
+def resolve_canvas_iframe_color_scheme(
+    *,
+    query_params: Any,
+    cookies: Any,
+    theme: Theme,
+) -> ColorScheme:
+    """Resolve the active ``ColorScheme`` for a canvas iframe render."""
+    if not theme.supports_dark_mode:
+        return ColorScheme.LIGHT
+
+    val = get_control_param(
+        query_params,
+        "color_scheme",
+        bare_fallback=True,
+    )
+    if not val:
+        val = cookies.get("dds_color_scheme")
+
+    if val == ColorScheme.DARK.value:
+        return ColorScheme.DARK
+    return ColorScheme.LIGHT
+
+
+def resolve_canvas_iframe_theme(
+    *,
+    query_params: Any,
+    cookies: Any,
+    info: ComponentInfo,
+    spec: CanvasSpec,
+) -> Theme:
+    """Resolve the active ``Theme`` object for a canvas iframe render."""
+    component_class = info.component_class
+    theme_val = get_control_param(
+        query_params,
+        "theme",
+        bare_fallback=not declares_param(component_class, "theme"),
+    )
+    if not theme_val:
+        theme_val = cookies.get("dds_theme")
+
+    available_theme_values = component_class.get_available_themes()
+
+    if not theme_val:
+        config = getattr(info, "gallery_config", None)
+        if config:
+            variant_obj = config.get_variant(spec.variant) if spec.variant else None
+            if variant_obj and variant_obj.theme:
+                theme_val = variant_obj.theme
+            elif config.theme:
+                theme_val = config.theme
+
+    if theme_val not in available_theme_values:
+        if available_theme_values:
+            default_theme_val = get_default_theme().value
+            theme_val = (
+                default_theme_val
+                if default_theme_val in available_theme_values
+                else available_theme_values[0]
+            )
+        else:
+            theme_val = get_default_theme().value
+
+    return get_theme(theme_val) or get_default_theme()
+
+
+def build_canvas_asset_tags(
+    *,
+    theme_dict: Theme,
+    app_label: str,
+    media: ComponentMedia,
+    registry: ComponentRegistry = component_registry,
+    color_scheme: ColorScheme = ColorScheme.LIGHT,
+) -> tuple[str, str]:
+    """Build deduplicated ``(component_css, component_js)`` HTML tag strings for a canvas iframe."""
+    theme_css = list(theme_dict.css)
+    theme_js = list(theme_dict.js)
+    theme_css_bundles = media_service.get_bundle_urls(theme_dict.css_bundles, "css")
+    theme_js_bundles = media_service.get_bundle_urls(theme_dict.js_bundles, "js")
+
+    if (
+        color_scheme == ColorScheme.DARK
+        and theme_dict.supports_dark_mode
+        and theme_dict.dark_mode
+    ):
+        theme_css.extend(theme_dict.dark_mode.css)
+        theme_js.extend(theme_dict.dark_mode.js)
+        theme_css_bundles.extend(
+            media_service.get_bundle_urls(theme_dict.dark_mode.css_bundles, "css")
+        )
+        theme_js_bundles.extend(
+            media_service.get_bundle_urls(theme_dict.dark_mode.js_bundles, "js")
+        )
+
+    app_css, app_js = get_app_static(app_label)
+    app_css_bundles = media_service.get_bundle_urls(
+        (dds_settings.APP_CSS_BUNDLES or {}).get(app_label, []), "css"
+    )
+    app_js_bundles = media_service.get_bundle_urls(
+        (dds_settings.APP_JS_BUNDLES or {}).get(app_label, []), "js"
+    )
+
+    extra_css: list[str] = []
+    extra_js: list[str] = []
+    if app_label == BUILTIN_APP_LABEL:
+        builtin_media = registry.get_builtin_media()
+        extra_css = [BUILTIN_GALLERY_CSS, *builtin_media.css]
+        extra_js = list(builtin_media.js)
+
+    all_css_urls = list(
+        dict.fromkeys(
+            theme_css_bundles
+            + [media_service.resolve_asset_url(path=p) for p in theme_css]
+            + app_css_bundles
+            + [media_service.resolve_asset_url(path=p) for p in app_css]
+            + [media_service.resolve_asset_url(path=p) for p in extra_css]
+            + [media_service.resolve_asset_url(path=p) for p in media.css]
+        )
+    )
+    all_js_urls = list(
+        dict.fromkeys(
+            canvas_renderer_service.global_js_urls()
+            + theme_js_bundles
+            + [media_service.resolve_asset_url(path=p) for p in theme_js]
+            + app_js_bundles
+            + [media_service.resolve_asset_url(path=p) for p in app_js]
+            + [media_service.resolve_asset_url(path=p) for p in extra_js]
+            + [media_service.resolve_asset_url(path=p) for p in media.js]
+        )
+    )
+
+    component_css = format_html_join(
+        "", '<link rel="stylesheet" href="{}">', ((u,) for u in all_css_urls)
+    )
+    component_js = format_html_join(
+        "",
+        '<script{} src="{}"></script>',
+        (
+            (
+                mark_safe(' type="module"')
+                if "dj_design_system/components/" in u
+                else "",
+                u,
+            )
+            for u in all_js_urls
+        ),
+    )
+    return component_css, component_js

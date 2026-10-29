@@ -1,10 +1,14 @@
-import html
-from typing import Type
+from collections.abc import Sequence
+from typing import Any, Type
 
 from django.templatetags.static import static
-from django.utils.html import format_html_join
+from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
 
+from dj_design_system.constants import (
+    COMPONENTS_STATIC_FINDER,
+    COMPONENTS_TEMPLATE_LOADER,
+)
 from dj_design_system.data import ComponentMedia
 
 try:
@@ -106,19 +110,86 @@ def build_link_tags(css_paths: list[str]) -> str:
     )
 
 
-def build_script_tags(js_paths: list[str], nonce: str | None = None) -> str:
+def _is_module_script(path: str, *, is_module: bool = False) -> bool:
+    """Return True when a script path should be emitted as an ES module."""
+    if is_module:
+        return True
+    normalised = path.lstrip("/")
+    return (
+        normalised.startswith("dj_design_system/components/")
+        or "/dj_design_system/components/" in normalised
+    )
+
+
+def build_script_tags(
+    js_paths: list[str],
+    nonce: str | None = None,
+    *,
+    is_module: bool = False,
+) -> str:
     """Build ``<script>`` tags for a list of static or external JS paths."""
     if not js_paths:
         return ""
-    if nonce:
-        nonce_attr = mark_safe(f' nonce="{html.escape(str(nonce))}"')
-        return format_html_join(
-            "\n",
-            f'<script src="{{}}" {nonce_attr}></script>',
-            ((resolve_asset_url(path=path),) for path in js_paths),
+    tags: list[str] = []
+    for path in js_paths:
+        url = resolve_asset_url(path=path)
+        type_attr = (
+            mark_safe(' type="module"')
+            if _is_module_script(path, is_module=is_module)
+            else ""
         )
-    return format_html_join(
-        "\n",
-        '<script src="{}"></script>',
-        ((resolve_asset_url(path=path),) for path in js_paths),
-    )
+        if nonce:
+            tags.append(
+                format_html(
+                    '<script{} src="{}" nonce="{}"></script>',
+                    type_attr,
+                    url,
+                    nonce,
+                )
+            )
+        else:
+            tags.append(format_html('<script{} src="{}"></script>', type_attr, url))
+    return mark_safe("\n".join(tags))
+
+
+def _contains_loader(loaders: Sequence[Any], target: str) -> bool:
+    for entry in loaders:
+        if entry == target:
+            return True
+        if (
+            isinstance(entry, (list, tuple))
+            and len(entry) >= 2
+            and isinstance(entry[1], (list, tuple))
+            and _contains_loader(entry[1], target)
+        ):
+            return True
+    return False
+
+
+def ensure_component_loaders_and_finders() -> None:
+    """Ensure ``ComponentsTemplateLoader`` and ``ComponentsStaticFinder`` are active.
+
+    Registers the static finder in ``settings.STATICFILES_FINDERS`` and the
+    template loader on active ``DjangoTemplates`` engines if the consumer project
+    did not explicitly configure them in ``settings.py``.
+    """
+    from django.conf import settings
+    from django.contrib.staticfiles import finders as static_finders
+    from django.template import engines
+    from django.template.backends.django import DjangoTemplates
+
+    finders_list = list(getattr(settings, "STATICFILES_FINDERS", ()))
+    if COMPONENTS_STATIC_FINDER not in finders_list:
+        settings.STATICFILES_FINDERS = [*finders_list, COMPONENTS_STATIC_FINDER]
+        static_finders.get_finder.cache_clear()
+
+    for backend in engines.all():
+        if not isinstance(backend, DjangoTemplates):
+            continue
+        engine = backend.engine
+        if _contains_loader(engine.loaders, COMPONENTS_TEMPLATE_LOADER):
+            continue
+        engine.loaders = [*engine.loaders, COMPONENTS_TEMPLATE_LOADER]
+        engine.__dict__.pop("template_loaders", None)
+        if hasattr(engine.get_template, "cache_clear"):
+            engine.get_template.cache_clear()

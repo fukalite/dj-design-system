@@ -1,0 +1,22 @@
+{% load design_components %}
+<dds-code-block class="dds-code-block" data-surface="code" {{ attrs }}>
+  {% if show_header %}
+    <header class="l-cluster">
+      {% if header_label %}
+        <span data-code-label>{{ header_label }}</span>
+      {% endif %}
+      {% if copyable %}
+        <button type="button" data-copy-trigger aria-label="Copy code">
+          {% dds__icon name="copy" size="sm" %}
+          <span data-copy-status>Copy</span>
+        </button>
+      {% endif %}
+    </header>
+  {% elif show_overlay_copy %}
+    <button type="button" data-copy-trigger data-copy-overlay aria-label="Copy code">
+      {% dds__icon name="copy" size="sm" %}
+      <span data-copy-status>Copy</span>
+    </button>
+  {% endif %}
+  <pre><code data-code-content>{{ highlighted_code }}</code></pre>
+</dds-code-block>

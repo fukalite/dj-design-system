@@ -1,7 +1,9 @@
-from dj_design_system.components import TagComponent
+"""Hero card component for example_project.demo_components."""
+
+from dj_design_system import components
 
 
-class HeroCardComponent(TagComponent):
+class HeroCardComponent(components.TagComponent):
     """A full-width hero card with a custom registered name.
 
     Demonstrates ``Meta.name`` — this component is registered as ``hero``

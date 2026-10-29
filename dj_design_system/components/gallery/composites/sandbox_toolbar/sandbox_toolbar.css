@@ -1,0 +1,69 @@
+@layer blocks {
+  dds-sandbox-toolbar,
+  .dds-sandbox-toolbar {
+    --_sandbox-toolbar-bg-blur: var(--dds-surface-sandbox-bg-blur);
+    --_sandbox-toolbar-bg-color: var(--dds-surface-sandbox-bg-color);
+    --_sandbox-toolbar-border-color: var(--dds-surface-sandbox-border-color);
+    --_sandbox-toolbar-border-radius: var(--dds-surface-sandbox-border-radius);
+    --_sandbox-toolbar-border-style: var(--dds-surface-sandbox-border-style);
+    --_sandbox-toolbar-border-width: var(--dds-surface-sandbox-border-width);
+    --_sandbox-toolbar-control-font: var(--dds-text-control-font);
+    --_sandbox-toolbar-control-font-size: var(--dds-text-control-size);
+    --_sandbox-toolbar-control-font-weight: var(--dds-text-control-weight);
+    --_sandbox-toolbar-control-line-height: var(--dds-text-control-line-height);
+    --_sandbox-toolbar-divider-color: var(--dds-surface-border-color);
+    --_sandbox-toolbar-divider-style: var(--dds-surface-border-style);
+    --_sandbox-toolbar-divider-width: var(--dds-control-border-width);
+    --_sandbox-toolbar-gap: var(--dds-space-gap-default);
+    --_sandbox-toolbar-group-gap: var(--dds-space-gap-tight);
+    --_sandbox-toolbar-padding-block: var(--dds-space-xs);
+    --_sandbox-toolbar-padding-inline: var(--dds-space-inset-compact);
+    --_sandbox-toolbar-shadow-color: var(--dds-surface-sandbox-shadow-color);
+    --_sandbox-toolbar-shadow-shape: var(--dds-surface-sandbox-shadow-shape);
+    --_sandbox-toolbar-text-color: var(--dds-text-default-color);
+    --_sandbox-toolbar-z-index: var(--dds-surface-sandbox-z-index);
+    position: relative;
+    z-index: var(--_sandbox-toolbar-z-index);
+    display: block;
+    box-sizing: border-box;
+    margin: 0;
+    padding-block: var(--_sandbox-toolbar-padding-block);
+    padding-inline: var(--_sandbox-toolbar-padding-inline);
+    border-radius: var(--_sandbox-toolbar-border-radius);
+    color: var(--_sandbox-toolbar-text-color);
+    background-color: var(--_sandbox-toolbar-bg-color);
+    box-shadow: var(--_sandbox-toolbar-shadow-shape) var(--_sandbox-toolbar-shadow-color);
+    backdrop-filter: blur(var(--_sandbox-toolbar-bg-blur));
+    font-family: var(--_sandbox-toolbar-control-font);
+    font-size: var(--_sandbox-toolbar-control-font-size);
+    font-weight: var(--_sandbox-toolbar-control-font-weight);
+    line-height: var(--_sandbox-toolbar-control-line-height);
+    border-block-end-width: var(--_sandbox-toolbar-border-width);
+    border-block-end-style: var(--_sandbox-toolbar-border-style);
+    border-block-end-color: var(--_sandbox-toolbar-border-color);
+
+    & [data-sandbox-controls] {
+      gap: var(--_sandbox-toolbar-gap);
+      align-items: center;
+      justify-content: flex-start;
+      margin: 0;
+    }
+
+    & [data-sandbox-control] {
+      display: inline-flex;
+      gap: var(--_sandbox-toolbar-group-gap);
+      align-items: center;
+      margin: 0;
+    }
+
+    & [data-sandbox-toggles] {
+      gap: var(--_sandbox-toolbar-group-gap);
+      align-items: center;
+      margin: 0;
+      padding-inline-start: var(--_sandbox-toolbar-gap);
+      border-inline-start-width: var(--_sandbox-toolbar-divider-width);
+      border-inline-start-style: var(--_sandbox-toolbar-divider-style);
+      border-inline-start-color: var(--_sandbox-toolbar-divider-color);
+    }
+  }
+}

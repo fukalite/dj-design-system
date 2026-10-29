@@ -31,6 +31,25 @@ def test_tag_component_cannot_define_slots():
         _ = InvalidTag
 
 
+def test_component_cannot_define_slots_with_same_name_as_params():
+    from dj_design_system.components import BlockComponent
+    from dj_design_system.exceptions import SlotParameterCollisionError
+    from dj_design_system.slots import Slot
+
+    with pytest.raises(
+        SlotParameterCollisionError,
+        match="CollisionComponent cannot define slots and parameters with the same name: 'foo'",
+    ):
+
+        class CollisionComponent(BlockComponent):
+            foo = StrParam("Foo param", required=False)
+
+            class Meta:
+                slots = {"foo": Slot("Foo slot")}
+
+        _ = CollisionComponent
+
+
 # ---------------------------------------------------------------------------
 # Meta.mutually_exclusive
 # ---------------------------------------------------------------------------
@@ -301,3 +320,93 @@ class TestGetParamsCache:
         params = TwoParamComponent.get_params()
         params["injected"] = None
         assert "injected" not in TwoParamComponent.get_params()
+
+
+class TestBaseComponentKwargValidation:
+    """Verify BaseComponent.__init__ rejects undeclared keyword arguments."""
+
+    def test_unknown_kwarg_raises_type_error(self) -> None:
+        with pytest.raises(
+            TypeError,
+            match="TwoParamComponent\\(\\) got an unexpected keyword argument 'unknown_param'",
+        ):
+            TwoParamComponent(foo="ok", unknown_param="bad")
+
+    def test_declared_kwargs_accepted(self) -> None:
+        comp = TwoParamComponent(foo="alpha", bar="beta")
+        assert comp.foo == "alpha"
+        assert comp.bar == "beta"
+
+
+class TestBlockComponentSafeStringAndTemplateFallback:
+    """Verify BlockComponent.__init__ normalises content/slots and render() falls back to template_name."""
+
+    def test_block_component_normalizes_content_to_safestring(self) -> None:
+        from django.utils.safestring import SafeString, mark_safe
+
+        from dj_design_system.components import BlockComponent
+
+        class SampleBlock(BlockComponent):
+            template_format_str = "<div>{content}</div>"
+
+        safe_comp = SampleBlock(content=mark_safe("<span>Hi</span>"))
+        assert isinstance(safe_comp.content, SafeString)
+        assert safe_comp.content == "<span>Hi</span>"
+
+        plain_comp = SampleBlock(content="<script>evil()</script>")
+        assert isinstance(plain_comp.content, SafeString)
+        assert plain_comp.content == "&lt;script&gt;evil()&lt;/script&gt;"
+
+        empty_comp = SampleBlock()
+        assert isinstance(empty_comp.content, SafeString)
+        assert empty_comp.content == ""
+
+    def test_slotted_block_component_normalizes_slots_and_exposes_slots_dict(
+        self,
+    ) -> None:
+        from django.utils.safestring import SafeString, mark_safe
+
+        from dj_design_system.components import BlockComponent
+        from dj_design_system.slots import Slot
+
+        class SlottedSample(BlockComponent):
+            template_format_str = "<div>{header}</div>"
+
+            class Meta:
+                slots = {"header": Slot(required=False)}
+
+        comp = SlottedSample(
+            content=mark_safe("<p>Body</p>"),
+            slots={"header": mark_safe("<h1>Header</h1>")},
+        )
+        assert isinstance(comp.slots["header"], SafeString)
+        assert isinstance(comp.content, SafeString)
+        ctx = comp.get_context()
+        assert ctx["slots"] == comp.slots
+        assert ctx["header"] == "<h1>Header</h1>"
+        assert ctx["content"] == "<p>Body</p>"
+
+        unsafe_comp = SlottedSample(
+            slots={"header": "<img src=x onerror=alert(1)>"},
+        )
+        assert isinstance(unsafe_comp.slots["header"], SafeString)
+        assert unsafe_comp.slots["header"] == "&lt;img src=x onerror=alert(1)&gt;"
+
+        falsy_comp = SlottedSample(
+            slots={"header": 0},  # type: ignore[dict-item]
+        )
+        assert falsy_comp.slots["header"] == "0"
+
+    def test_render_falls_back_to_explicit_template_name_without_private_attr(
+        self,
+    ) -> None:
+        class UnboundTemplateComp(TagComponent):
+            template_name = (
+                "dj_design_system/components/gallery/elements/badge/badge.html"
+            )
+            label = StrParam("Label", default="Badge")
+
+        comp = UnboundTemplateComp(label="Unbound")
+        assert "_template_name" not in UnboundTemplateComp.__dict__
+        rendered = comp.render()
+        assert "Unbound" in rendered

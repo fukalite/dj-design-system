@@ -37,6 +37,25 @@ class FlattenStrategy(str, enum.Enum):
     LEAF = "leaf"
 
 
+class ColorScheme(str, enum.Enum):
+    """W3C color scheme values."""
+
+    LIGHT = "light"
+    DARK = "dark"
+
+
+@dataclass(frozen=True)
+class DarkModeConfig:
+    """Explicit configuration for how a theme activates dark mode."""
+
+    html_attrs: dict[str, Any] = field(default_factory=dict)
+    css: list[str] = field(default_factory=list)
+    js: list[str] = field(default_factory=list)
+    css_bundles: list[tuple[str, ...]] = field(default_factory=list)
+    js_bundles: list[tuple[str, ...]] = field(default_factory=list)
+    canvas_background: str | dict | None = None
+
+
 @dataclass
 class Theme:
     """A typed configuration for a theme in the design system."""
@@ -49,3 +68,33 @@ class Theme:
     css_bundles: list[tuple[str, ...]] = field(default_factory=list)
     js_bundles: list[tuple[str, ...]] = field(default_factory=list)
     canvas_background: str | dict | None = None
+    dark_mode: DarkModeConfig | None = None
+
+    @property
+    def supports_dark_mode(self) -> bool:
+        """Return True if this theme explicitly configures dark mode support."""
+        return self.dark_mode is not None
+
+    @property
+    def has_dark_mode_assets(self) -> bool:
+        """Return True if this theme's dark mode loads external CSS or JS assets."""
+        return bool(
+            self.dark_mode
+            and (
+                self.dark_mode.css
+                or self.dark_mode.js
+                or self.dark_mode.css_bundles
+                or self.dark_mode.js_bundles
+            )
+        )
+
+    @property
+    def has_external_assets(self) -> bool:
+        """Return True if this theme loads external CSS or JS assets."""
+        return bool(
+            self.css
+            or self.js
+            or self.css_bundles
+            or self.js_bundles
+            or self.has_dark_mode_assets
+        )

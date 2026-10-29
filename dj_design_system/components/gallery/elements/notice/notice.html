@@ -1,0 +1,14 @@
+{% load design_components %}
+<div class="dds-notice" {{ attrs }}>
+  {% if show_icon %}
+    {% dds__icon name=resolved_icon size="md" %}
+  {% endif %}
+  <l-stack>
+    {% if title %}
+      <strong data-part="title">{{ title }}</strong>
+    {% endif %}
+    {% if content %}
+      <div>{{ content }}</div>
+    {% endif %}
+  </l-stack>
+</div>

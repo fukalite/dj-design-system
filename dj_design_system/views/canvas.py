@@ -1,105 +1,21 @@
-"""Canvas iframe rendering and styling views/helpers."""
+"""Canvas iframe rendering view."""
 
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
-from django.utils.html import format_html, format_html_join
+from django.utils.html import format_html
 from django.utils.safestring import SafeData
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
+from dj_design_system.services import canvas as canvas_service
 from dj_design_system.services import canvas_renderer as canvas_renderer_service
-from dj_design_system.services import media as media_service
 from dj_design_system.services.canvas import (
     get_component_media,
     render_component,
     resolve_component,
     resolve_from_get_params,
 )
-from dj_design_system.services.control_params import declares_param, get_control_param
 from dj_design_system.services.registry import component_registry
-from dj_design_system.settings import (
-    dds_settings,
-    get_app_html_attrs,
-    get_app_static,
-    get_backgrounds,
-    get_default_background,
-    get_default_theme,
-    get_theme,
-)
-from dj_design_system.types import CanvasMode, Theme
 from dj_design_system.views.decorators import gallery_access_required
-
-
-def _canvas_mode_class(
-    request: HttpRequest, component_class: type | None = None
-) -> str:
-    """Return the CSS class for the canvas mode from GET params."""
-    mode_param = get_control_param(
-        request.GET, "mode", bare_fallback=not declares_param(component_class, "mode")
-    )
-    if mode_param:
-        try:
-            mode = CanvasMode(mode_param)
-        except ValueError:
-            mode = CanvasMode.EXTENDED
-    else:
-        mode = CanvasMode.EXTENDED
-    return f"canvas-wrapper--{mode.value}"
-
-
-def _flatten_attrs(attrs: dict[str, str]) -> str:
-    """Convert a dict of HTML attributes to a safe attribute string."""
-    if not attrs:
-        return ""
-    parts = format_html_join(" ", '{}="{}"', attrs.items())
-    return format_html(" {}", parts)
-
-
-def _canvas_html_attrs(
-    theme_dict: Theme | None = None, app_label: str | None = None
-) -> tuple[str, str]:
-    """Return ``(html_attrs, body_attrs)`` strings from settings, theme, and app."""
-    raw = dds_settings.GALLERY_CANVAS_HTML_ATTRS
-    html_dict = dict(raw.get("html", {}))
-    body_dict = dict(raw.get("body", {}))
-
-    if theme_dict:
-        theme_raw = theme_dict.html_attrs
-        html_dict.update(theme_raw.get("html", {}))
-        body_dict.update(theme_raw.get("body", {}))
-
-    if app_label:
-        app_raw = get_app_html_attrs(app_label)
-        html_dict.update(app_raw.get("html", {}))
-        body_dict.update(app_raw.get("body", {}))
-
-    return _flatten_attrs(html_dict), _flatten_attrs(body_dict)
-
-
-def _canvas_bg_class(
-    request: HttpRequest,
-    theme_dict: Theme | None = None,
-    component_class: type | None = None,
-) -> str:
-    """Return the CSS class for the canvas background from GET params, theme, or settings."""
-    bg_param = get_control_param(
-        request.GET, "bg", bare_fallback=not declares_param(component_class, "bg")
-    )
-    if bg_param:
-        for bg in get_backgrounds():
-            if bg["value"] == bg_param:
-                return f"canvas-bg-{bg['value']}"
-        if theme_dict and isinstance(theme_dict.canvas_background, dict):
-            if bg_param == f"theme-{theme_dict.value}":
-                return f"canvas-bg-theme-{theme_dict.value}"
-
-    if theme_dict and theme_dict.canvas_background:
-        if isinstance(theme_dict.canvas_background, str):
-            return f"canvas-bg-{theme_dict.canvas_background}"
-        elif isinstance(theme_dict.canvas_background, dict):
-            return f"canvas-bg-theme-{theme_dict.value}"
-
-    default = get_default_background()
-    return f"canvas-bg-{default['value']}"
 
 
 @xframe_options_sameorigin
@@ -112,14 +28,14 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
         "component_js": "",
         "canvas_bg_class": "",
         "canvas_bg_styles": "",
-        "canvas_mode_class": _canvas_mode_class(request),
+        "canvas_mode_class": canvas_service.canvas_mode_class(request.GET),
         "html_attrs": "",
         "body_attrs": "",
     }
     try:
         spec = resolve_from_get_params(request.GET, component_registry)
     except ValueError as exc:
-        html_attrs, body_attrs = _canvas_html_attrs()
+        html_attrs, body_attrs = canvas_renderer_service.build_html_attrs()
         context["rendered_html"] = format_html(
             '<p class="gallery-canvas-error">Canvas error: {}</p>', str(exc)
         )
@@ -134,53 +50,20 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
     info = resolve_component(spec.component_name, component_registry)
     app_label = info.app_label
     component_class = info.component_class
-    context["canvas_mode_class"] = _canvas_mode_class(request, component_class)
-
-    theme_val = get_control_param(
-        request.GET,
-        "theme",
-        bare_fallback=not declares_param(component_class, "theme"),
+    context["canvas_mode_class"] = canvas_service.canvas_mode_class(
+        request.GET, component_class
     )
-    if not theme_val:
-        theme_val = request.COOKIES.get("dds_theme")
 
-    available_theme_values = component_class.get_available_themes()
-
-    if not theme_val:
-        config = getattr(info, "gallery_config", None)
-        if config:
-            variant_obj = config.get_variant(spec.variant) if spec.variant else None
-            if variant_obj and variant_obj.theme:
-                theme_val = variant_obj.theme
-            elif config.theme:
-                theme_val = config.theme
-
-    if theme_val not in available_theme_values:
-        if available_theme_values:
-            default_theme_val = get_default_theme().value
-            theme_val = (
-                default_theme_val
-                if default_theme_val in available_theme_values
-                else available_theme_values[0]
-            )
-        else:
-            theme_val = get_default_theme().value
-
-    theme_dict = get_theme(theme_val)
-    if not theme_dict:
-        theme_dict = get_default_theme()
-
-    theme_css = theme_dict.css
-    theme_js = theme_dict.js
-    theme_css_bundles = media_service.get_bundle_urls(theme_dict.css_bundles, "css")
-    theme_js_bundles = media_service.get_bundle_urls(theme_dict.js_bundles, "js")
-
-    app_css, app_js = get_app_static(app_label)
-    app_css_bundles = media_service.get_bundle_urls(
-        (dds_settings.APP_CSS_BUNDLES or {}).get(app_label, []), "css"
+    theme_dict = canvas_service.resolve_canvas_iframe_theme(
+        query_params=request.GET,
+        cookies=request.COOKIES,
+        info=info,
+        spec=spec,
     )
-    app_js_bundles = media_service.get_bundle_urls(
-        (dds_settings.APP_JS_BUNDLES or {}).get(app_label, []), "js"
+    color_scheme = canvas_service.resolve_canvas_iframe_color_scheme(
+        query_params=request.GET,
+        cookies=request.COOKIES,
+        theme=theme_dict,
     )
 
     media = get_component_media(spec, component_registry)
@@ -191,48 +74,38 @@ def canvas_iframe_view(request: HttpRequest) -> HttpResponse:
         # reflected XSS through components that don't escape their params.
         rendered_html = format_html(
             '<div class="gallery-canvas-warning">'
-            '<p class="gallery-canvas-warning__message">'
+            "<p data-canvas-warning-message>"
             "<code>{}.render()</code> returned a plain <code>str</code>, so its "
             "HTML is shown escaped. Return <code>format_html(...)</code> or "
             "<code>mark_safe(...)</code> from <code>render()</code> to render it."
             "</p>"
-            '<pre class="gallery-canvas-warning__output">{}</pre>'
+            "<pre data-canvas-warning-output>{}</pre>"
             "</div>",
             component_class.__qualname__,
             rendered_html,
         )
     context["rendered_html"] = rendered_html
 
-    all_css_urls = list(
-        dict.fromkeys(
-            theme_css_bundles
-            + [media_service.resolve_asset_url(path=p) for p in theme_css]
-            + app_css_bundles
-            + [media_service.resolve_asset_url(path=p) for p in app_css]
-            + [media_service.resolve_asset_url(path=p) for p in media.css]
+    context["component_css"], context["component_js"] = (
+        canvas_service.build_canvas_asset_tags(
+            theme_dict=theme_dict,
+            app_label=app_label,
+            media=media,
+            registry=component_registry,
+            color_scheme=color_scheme,
         )
     )
-    all_js_urls = list(
-        dict.fromkeys(
-            canvas_renderer_service.global_js_urls()
-            + theme_js_bundles
-            + [media_service.resolve_asset_url(path=p) for p in theme_js]
-            + app_js_bundles
-            + [media_service.resolve_asset_url(path=p) for p in app_js]
-            + [media_service.resolve_asset_url(path=p) for p in media.js]
+    context["html_attrs"], context["body_attrs"] = (
+        canvas_renderer_service.build_html_attrs(
+            theme_dict, app_label, color_scheme=color_scheme
         )
     )
-
-    context["component_css"] = format_html_join(
-        "", '<link rel="stylesheet" href="{}">', ((u,) for u in all_css_urls)
+    context["canvas_bg_class"] = canvas_service.canvas_bg_class(
+        request.GET,
+        theme_dict=theme_dict,
+        component_class=component_class,
+        color_scheme=color_scheme,
     )
-    context["component_js"] = format_html_join(
-        "", '<script src="{}"></script>', ((u,) for u in all_js_urls)
-    )
-    context["html_attrs"], context["body_attrs"] = _canvas_html_attrs(
-        theme_dict, app_label
-    )
-    context["canvas_bg_class"] = _canvas_bg_class(request, theme_dict, component_class)
     csp_nonce = getattr(request, "csp_nonce", None)
     context["canvas_bg_styles"] = canvas_renderer_service.build_canvas_bg_styles(
         theme_dict=theme_dict,

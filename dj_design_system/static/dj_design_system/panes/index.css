@@ -1,0 +1,7 @@
+@layer reset, tokens, global, composition, blocks, utilities;
+
+@layer blocks {
+  [id='static-snapshot-notice'] {
+    margin-block-start: var(--dds-space-lg);
+  }
+}

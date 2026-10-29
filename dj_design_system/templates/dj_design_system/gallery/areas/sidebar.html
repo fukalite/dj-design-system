@@ -1,0 +1,34 @@
+{% load design_components %}
+<aside class="dds-sidebar"
+       data-surface="sidebar"
+       aria-label="Component library navigation">
+    <div data-sidebar-header>
+        <a href="{% url 'gallery' %}" data-sidebar-brand>{{ design_system_name }}</a>
+    </div>
+    <div data-sidebar-body>{% dds__nav_tree nodes=nav_tree active_path=active_path active_variant=active_variant %}</div>
+    <div data-sidebar-footer>
+        <div class="l-cluster" data-sidebar-footer-controls>
+            <select id="gallery-ui-theme-select"
+                    data-action="select-ui-theme"
+                    data-ui-theme-select
+                    aria-label="Gallery UI theme"
+                    title="Gallery UI theme"
+                    class="dds-ui-theme-select">
+                {% for ui_theme in available_ui_themes %}
+                    <option value="{{ ui_theme.value }}"
+                            data-supports-dark-mode="{% if ui_theme.supports_dark_mode %}true{% else %}false{% endif %}"
+                            data-has-external-assets="{% if ui_theme.has_external_assets %}true{% else %}false{% endif %}"
+                            data-has-dark-mode-assets="{% if ui_theme.has_dark_mode_assets %}true{% else %}false{% endif %}"
+                            {% if gallery_ui_theme == ui_theme.value %} selected{% endif %}>{{ ui_theme.label }}</option>
+                {% endfor %}
+            </select>
+            {% if not gallery_ui_theme_supports_dark_mode %}
+                {% dds__button label=gallery_ui_theme_disabled_label icon_only=True variant="ghost" icon="sun" size="sm" action="toggle-theme" disabled=True %}
+            {% elif gallery_theme == "dark" %}
+                {% dds__button label="Switch to light theme" icon_only=True variant="ghost" icon="moon" size="sm" action="toggle-theme" %}
+            {% else %}
+                {% dds__button label="Switch to dark theme" icon_only=True variant="ghost" icon="sun" size="sm" action="toggle-theme" %}
+            {% endif %}
+        </div>
+    </div>
+</aside>

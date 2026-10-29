@@ -1,0 +1,355 @@
+"""Unit tests for the built-in dds__search_box composite component."""
+
+import dataclasses
+import json
+import pathlib
+import re
+
+from django import template
+
+from dj_design_system import gallery
+from dj_design_system.components import base as components_base
+from dj_design_system.components.gallery.composites import (
+    search_box as search_box_package,
+)
+from dj_design_system.components.gallery.composites.search_box import (
+    search_box as search_box_module,
+)
+from dj_design_system.services import registry as registry_service
+from dj_design_system.services import slot_node
+from tests import conftest
+
+
+APP_LABEL = "dj_design_system"
+ROOT_DIR = pathlib.Path(__file__).resolve().parent.parent.parent
+COMPOSITES_DIR = ROOT_DIR / "dj_design_system" / "components" / "gallery" / "composites"
+
+SEARCH_BOX_DIR = COMPOSITES_DIR / "search_box"
+SEARCH_BOX_PY_PATH = SEARCH_BOX_DIR / "search_box.py"
+SEARCH_BOX_HTML_PATH = SEARCH_BOX_DIR / "search_box.html"
+SEARCH_BOX_CSS_PATH = SEARCH_BOX_DIR / "search_box.css"
+SEARCH_BOX_TS_PATH = SEARCH_BOX_DIR / "search_box.ts"
+SEARCH_BOX_GALLERY_PATH = SEARCH_BOX_DIR / "gallery.py"
+SEARCH_BOX_INDEX_MD_PATH = SEARCH_BOX_DIR / "index.md"
+
+
+@dataclasses.dataclass(frozen=True)
+class _SampleIndexEntry:
+    """Sample object entry for testing attribute-based search index normalization."""
+
+    name: str
+    href: str
+    type: str = "component"
+    breadcrumb: str = "Elements"
+    content: str = "Object-based entry content"
+
+
+def _build_registry() -> registry_service.ComponentRegistry:
+    """Create a ComponentRegistry populated with built-in dds components."""
+    reg = registry_service.ComponentRegistry()
+    conftest.discover_app_into_registry(
+        reg=reg,
+        app_name=APP_LABEL,
+        app_label=APP_LABEL,
+    )
+    return reg
+
+
+def _render_template(
+    source: str,
+    context_data: dict[str, object] | None = None,
+) -> str:
+    """Render a Django template string with built-in dds component and slot tags."""
+    reg = _build_registry()
+    engine = template.engines["django"].engine
+    lib = template.Library()
+    reg.register_templatetags(library=lib)
+    lib.tag(name="slot", compile_function=slot_node.do_slot)
+    previous = engine.template_libraries.get("design_components")
+    engine.template_libraries["design_components"] = lib
+    try:
+        compiled = template.Template(
+            template_string="{% load design_components %}" + source
+        )
+        return compiled.render(context=template.Context(dict_=context_data or {}))
+    finally:
+        if previous is None:
+            engine.template_libraries.pop("design_components", None)
+        else:
+            engine.template_libraries["design_components"] = previous
+
+
+def _extract_rule_blocks(css_text: str, selector: str) -> list[str]:
+    """Extract CSS declaration blocks for a specific selector."""
+    return conftest.extract_css_rule_blocks(css_text=css_text, selector=selector)
+
+
+def _extract_defined_properties(block_text: str) -> dict[str, str]:
+    """Extract property definitions from a CSS block string."""
+    matches = re.findall(
+        pattern=r"([a-zA-Z0-9_-]+)\s*:\s*([^;]+);",
+        string=block_text,
+    )
+    return {name: value.strip() for name, value in matches}
+
+
+class TestSearchBoxDiscoveryAndExports:
+    """Verify exports, registry discovery, and metadata for SearchBox."""
+
+    def test_search_box_exports_and_inheritance(self) -> None:
+        """Verify SearchBox and SearchIndexEntry are exported from package and module."""
+        assert search_box_package.SearchBox is search_box_module.SearchBox
+        assert (
+            search_box_package.SearchIndexEntry is search_box_module.SearchIndexEntry
+        )
+        assert dataclasses.is_dataclass(search_box_module.SearchIndexEntry)
+        assert search_box_package.__all__ == ["SearchBox", "SearchIndexEntry"]
+        assert issubclass(
+            search_box_module.SearchBox,
+            components_base.TagComponent,
+        )
+
+    def test_registry_discovers_dds_search_box(self) -> None:
+        """Verify ComponentRegistry registers dds__search_box with CSS and JS media."""
+        reg = _build_registry()
+        info = reg.get_by_name(name="search_box", app_label=APP_LABEL)
+        assert info.component_class is search_box_module.SearchBox
+        assert info.qualified_name == "dds__search_box"
+        assert info.relative_path == "gallery.composites.search_box"
+        assert info.is_builtin is True
+        assert (
+            info.template_name
+            == "dj_design_system/components/gallery/composites/search_box/search_box.html"
+        )
+        assert info.media.css == [
+            "dj_design_system/components/gallery/composites/search_box/search_box.css"
+        ]
+        assert info.media.js == [
+            "dj_design_system/components/gallery/composites/search_box/search_box.js"
+        ]
+        assert search_box_module.SearchBox.get_positional_args() == ["placeholder"]
+
+
+class TestSearchBoxParametersAndContext:
+    """Verify parameter defaults and get_context() normalization for SearchBox."""
+
+    def test_default_parameters_and_context(self) -> None:
+        """Verify default SearchBox parameters and computed context values."""
+        comp = search_box_module.SearchBox()
+        ctx = comp.get_context()
+        assert ctx["placeholder"] == "Search components and docs..."
+        assert ctx["aria_label"] == "Search components and documentation"
+        assert ctx["index_id"] == "gallery-search-index"
+        assert ctx["input_id"] == "gallery-search-input"
+        assert ctx["results_id"] == "gallery-search-results"
+        assert ctx["shortcut_hint"] == "/"
+        assert ctx["has_shortcut"] is True
+        assert ctx["search_index"] == []
+        assert ctx["normalized_index"] == []
+        assert str(ctx["search_index_json"]) == "[]"
+
+    def test_normalizes_dict_and_object_entries_and_escapes_script_closing_tags(
+        self,
+    ) -> None:
+        """Verify get_context() normalizes index entries and escapes </ sequences in JSON."""
+        raw_index = [
+            search_box_module.SearchIndexEntry(
+                label="Badge",
+                url="/c/badge/",
+                type="component",
+                breadcrumb="Elements / Badge",
+                content="Badge component docs",
+            ),
+            {
+                "label": "Button",
+                "url": "/c/button/",
+                "type": "component",
+                "breadcrumb": "Elements / Button",
+                "content": "Contains </script> tag in docs",
+            },
+            _SampleIndexEntry(
+                name="Icon",
+                href="/c/icon/",
+            ),
+        ]
+        comp = search_box_module.SearchBox(
+            placeholder="Quick search...",
+            aria_label="Quick search input",
+            search_index=raw_index,
+            index_id="custom-idx",
+            input_id="custom-in",
+            results_id="custom-res",
+            shortcut_hint="⌘K",
+        )
+        ctx = comp.get_context()
+        assert ctx["placeholder"] == "Quick search..."
+        assert ctx["aria_label"] == "Quick search input"
+        assert ctx["index_id"] == "custom-idx"
+        assert ctx["input_id"] == "custom-in"
+        assert ctx["results_id"] == "custom-res"
+        assert ctx["shortcut_hint"] == "⌘K"
+        assert ctx["has_shortcut"] is True
+        assert len(ctx["normalized_index"]) == 3
+        assert ctx["normalized_index"][0] == {
+            "label": "Badge",
+            "url": "/c/badge/",
+            "type": "component",
+            "breadcrumb": "Elements / Badge",
+            "content": "Badge component docs",
+        }
+        assert ctx["normalized_index"][1] == {
+            "label": "Button",
+            "url": "/c/button/",
+            "type": "component",
+            "breadcrumb": "Elements / Button",
+            "content": "Contains </script> tag in docs",
+        }
+        assert ctx["normalized_index"][2] == {
+            "label": "Icon",
+            "url": "/c/icon/",
+            "type": "component",
+            "breadcrumb": "Elements",
+            "content": "Object-based entry content",
+        }
+
+        raw_json = str(ctx["search_index_json"])
+        assert "</script>" not in raw_json
+        assert "<\\/script>" in raw_json
+        parsed = json.loads(s=raw_json)
+        assert parsed == ctx["normalized_index"]
+
+    def test_empty_shortcut_hint_disables_has_shortcut(self) -> None:
+        """Verify passing shortcut_hint='' sets has_shortcut=False."""
+        comp = search_box_module.SearchBox(shortcut_hint="")
+        ctx = comp.get_context()
+        assert ctx["shortcut_hint"] == ""
+        assert ctx["has_shortcut"] is False
+
+
+class TestSearchBoxRendering:
+    """Verify HTML rendering for SearchBox across parameters and template tags."""
+
+    def test_renders_default_search_box_markup(self) -> None:
+        """Verify default SearchBox renders combobox input, shortcut badge, listbox, and JSON script."""
+        _build_registry()
+        html = search_box_module.SearchBox(
+            search_index=[
+                {
+                    "label": "Tabs",
+                    "url": "/c/tabs/",
+                    "type": "component",
+                    "breadcrumb": "Elements / Tabs",
+                    "content": "Accessible tabs",
+                }
+            ]
+        ).render()
+        assert (
+            '<dds-search-box class="dds-search-box" data-state="closed" '
+            'data-index-id="gallery-search-index"' in html
+        )
+        assert "<div data-search-field>" in html
+        assert 'data-icon="search"' in html
+        assert (
+            '<input type="search" id="gallery-search-input" data-search-input '
+            'placeholder="Search components and docs..." autocomplete="off" '
+            'role="combobox" aria-autocomplete="list" aria-expanded="false" '
+            'aria-controls="gallery-search-results" '
+            'aria-label="Search components and documentation">' in html
+        )
+        assert '<kbd data-search-shortcut aria-hidden="true">/</kbd>' in html
+        assert (
+            '<div id="gallery-search-results" data-search-results '
+            'data-surface="popout" role="listbox" aria-label="Search results" hidden>'
+            "</div>" in html
+        )
+        assert (
+            '<script id="gallery-search-index" type="application/json" '
+            "data-search-index>" in html
+        )
+        assert '"label": "Tabs"' in html
+
+    def test_renders_via_template_tag_without_shortcut(self) -> None:
+        """Verify {% dds__search_box %} positional placeholder and hidden shortcut badge."""
+        html = _render_template(
+            source='{% dds__search_box "Filter docs..." shortcut_hint="" %}'
+        )
+        assert 'placeholder="Filter docs..."' in html
+        assert "data-search-shortcut" not in html
+
+
+class TestSearchBoxStylesheetAndHygiene:
+    """Verify CSS @layer blocks, Tier 3 tokens, code hygiene, and gallery configs."""
+
+    def test_search_box_css_layer_and_tier_3_tokens(self) -> None:
+        """Verify search_box.css uses @layer blocks on dds-search-box and maps Tier 3 from Tier 2."""
+        css_text = SEARCH_BOX_CSS_PATH.read_text(encoding="utf-8")
+        assert "@layer blocks {" in css_text
+        assert "--_dds-" not in css_text
+
+        root_blocks = _extract_rule_blocks(
+            css_text=css_text,
+            selector="dds-search-box",
+        )
+        assert root_blocks
+        root_block_text = "\n".join(root_blocks)
+        props = _extract_defined_properties(block_text=root_block_text)
+        assert props.get("display") == "block"
+        assert props.get("margin") == "0"
+        assert props.get("position") == "relative"
+
+        token_defs = re.findall(
+            pattern=r"(--_search-box-[a-z0-9-]+)\s*:\s*([^;]+);",
+            string=css_text,
+        )
+        assert token_defs
+        for _name, value in token_defs:
+            assert value.strip().startswith("var(--dds-")
+
+        for required_domain in (
+            "var(--dds-surface-popout-",
+            "var(--dds-control-",
+            "var(--dds-state-",
+            "var(--dds-text-",
+            "var(--dds-space-",
+        ):
+            assert required_domain in root_block_text
+
+        assert "var(--dds-surface-stage-" not in css_text
+        assert "--_search-box-result-active-border-color" not in css_text
+        assert "max-block-size: 20rem;" in css_text
+
+    def test_python_and_template_hygiene(self) -> None:
+        """Verify search_box.py has no private methods/mark_safe and search_box.html has no filters."""
+        py_source = SEARCH_BOX_PY_PATH.read_text(encoding="utf-8")
+        assert "mark_safe" not in py_source
+        assert "format_html" not in py_source
+        private_defs = re.findall(
+            pattern=r"^\s+def _(?![_a-z]+__)[a-z0-9_]+\(",
+            string=py_source,
+            flags=re.MULTILINE,
+        )
+        assert not private_defs
+
+        html_source = SEARCH_BOX_HTML_PATH.read_text(encoding="utf-8")
+        assert "{% load design_components %}" in html_source
+        assert "|" not in html_source
+        bem_matches = re.findall(
+            pattern=r"\.[a-z0-9-]+(?:__|--)[a-z0-9-]+",
+            string=html_source,
+        )
+        assert not bem_matches
+
+    def test_gallery_config_and_docs_render_cleanly(self) -> None:
+        """Verify gallery.py and index.md exist and search_box renders with param defaults."""
+        assert SEARCH_BOX_GALLERY_PATH.is_file()
+        assert SEARCH_BOX_INDEX_MD_PATH.is_file()
+
+        _build_registry()
+        cfg = gallery.load_gallery_config(
+            source_dir=SEARCH_BOX_DIR,
+            component_name="search_box",
+        )
+        assert cfg.variants == []
+        direct_html = search_box_module.SearchBox(**cfg.param_defaults).render()
+        assert '<dds-search-box class="dds-search-box"' in direct_html
+

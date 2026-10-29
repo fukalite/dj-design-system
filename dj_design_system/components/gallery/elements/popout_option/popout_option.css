@@ -1,0 +1,119 @@
+@layer blocks {
+  .dds-popout-option {
+    --_popout-option-active-bg-color: var(--dds-state-active-bg-color);
+    --_popout-option-active-text-color: var(--dds-state-active-text-color);
+    --_popout-option-bg-color: var(--dds-state-interactive-bg-color);
+    --_popout-option-border-radius: var(--dds-control-border-radius);
+    --_popout-option-disabled-opacity: var(--dds-state-disabled-opacity);
+    --_popout-option-disabled-text-color: var(--dds-state-disabled-text-color);
+    --_popout-option-focus-outline-color: var(--dds-state-focus-outline-color);
+    --_popout-option-focus-outline-offset: var(--dds-state-focus-outline-offset);
+    --_popout-option-focus-outline-style: var(--dds-state-focus-outline-style);
+    --_popout-option-focus-outline-width: var(--dds-state-focus-outline-width);
+    --_popout-option-font: var(--dds-text-control-font);
+    --_popout-option-font-size: var(--dds-text-control-size);
+    --_popout-option-font-weight: var(--dds-text-control-weight);
+    --_popout-option-gap: var(--dds-space-gap-tight);
+    --_popout-option-hover-bg-color: var(--dds-state-hover-bg-color);
+    --_popout-option-hover-text-color: var(--dds-state-hover-text-color);
+    --_popout-option-letter-spacing: var(--dds-text-control-letter-spacing);
+    --_popout-option-line-height: var(--dds-text-control-line-height);
+    --_popout-option-padding-block: var(--dds-space-2xs);
+    --_popout-option-padding-inline: var(--dds-space-sm);
+    --_popout-option-selected-bg-color: var(--dds-state-selected-bg-color);
+    --_popout-option-selected-text-color: var(--dds-state-selected-text-color);
+    --_popout-option-shortcut-font: var(--dds-text-code-font);
+    --_popout-option-shortcut-size: var(--dds-text-caption-size);
+    --_popout-option-shortcut-text-color: var(--dds-text-muted-color);
+    --_popout-option-text-color: var(--dds-state-interactive-text-color);
+    --_popout-option-transition-duration: var(--dds-state-entry-duration);
+    --_popout-option-transition-easing: var(--dds-state-entry-easing);
+    display: flex;
+    gap: var(--_popout-option-gap);
+    align-items: center;
+    justify-content: flex-start;
+    box-sizing: border-box;
+    inline-size: 100%;
+    margin: 0;
+    padding-block: var(--_popout-option-padding-block);
+    padding-inline: var(--_popout-option-padding-inline);
+    border: 0;
+    border-radius: var(--_popout-option-border-radius);
+    color: var(--_popout-option-text-color);
+    background-color: var(--_popout-option-bg-color);
+    font-family: var(--_popout-option-font);
+    font-size: var(--_popout-option-font-size);
+    font-weight: var(--_popout-option-font-weight);
+    line-height: var(--_popout-option-line-height);
+    letter-spacing: var(--_popout-option-letter-spacing);
+    text-align: start;
+    text-decoration: none;
+    white-space: nowrap;
+    appearance: none;
+    cursor: pointer;
+    transition-duration: var(--_popout-option-transition-duration);
+    transition-property: background-color, color;
+    transition-timing-function: var(--_popout-option-transition-easing);
+    user-select: none;
+
+    &:hover:not(:disabled):not([aria-disabled='true']) {
+      color: var(--_popout-option-hover-text-color);
+      background-color: var(--_popout-option-hover-bg-color);
+
+      & [data-part='shortcut'] {
+        color: inherit;
+      }
+    }
+
+    &:active:not(:disabled):not([aria-disabled='true']) {
+      color: var(--_popout-option-active-text-color);
+      background-color: var(--_popout-option-active-bg-color);
+    }
+
+    &:focus-visible {
+      outline-width: var(--_popout-option-focus-outline-width);
+      outline-style: var(--_popout-option-focus-outline-style);
+      outline-color: var(--_popout-option-focus-outline-color);
+      outline-offset: var(--_popout-option-focus-outline-offset);
+    }
+
+    &[aria-checked='true'] {
+      color: var(--_popout-option-selected-text-color);
+      background-color: var(--_popout-option-selected-bg-color);
+
+      & [data-part='shortcut'] {
+        color: inherit;
+      }
+
+      &:hover:not(:disabled):not([aria-disabled='true']) {
+        color: var(--_popout-option-hover-text-color);
+        background-color: var(--_popout-option-hover-bg-color);
+      }
+
+      &:active:not(:disabled):not([aria-disabled='true']) {
+        color: var(--_popout-option-active-text-color);
+        background-color: var(--_popout-option-active-bg-color);
+      }
+    }
+
+    &:disabled,
+    &[aria-disabled='true'] {
+      color: var(--_popout-option-disabled-text-color);
+      opacity: var(--_popout-option-disabled-opacity);
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    & [data-part='shortcut'] {
+      margin-inline-start: auto;
+      color: var(--_popout-option-shortcut-text-color);
+      font-family: var(--_popout-option-shortcut-font);
+      font-size: var(--_popout-option-shortcut-size);
+
+      & kbd {
+        font-family: inherit;
+        font-size: inherit;
+      }
+    }
+  }
+}

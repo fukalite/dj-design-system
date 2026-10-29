@@ -118,3 +118,19 @@ STATICFILES_DIRS = [
     BASE_DIR / "static/",
     BASE_DIR / "node_modules/",
 ]
+
+# Gallery theme configuration used by the internal dds component integration harness
+# (tests/e2e/test_package_components.py) to assess all built-in components across
+# both light and dark token sets.
+INTERNAL_COMPONENT_GALLERY_THEMES = {
+    "light": {
+        "label": "Light",
+        "html_attrs": {"html": {"class": "gallery-theme-light"}},
+        "canvas_background": "white",
+    },
+    "dark": {
+        "label": "Dark",
+        "html_attrs": {"html": {"class": "gallery-theme-dark"}},
+        "canvas_background": {"label": "Dark Surface", "color": "#1e1e2e"},
+    },
+}

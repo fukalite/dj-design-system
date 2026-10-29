@@ -1,0 +1,6 @@
+{% load design_components %}
+{% if is_link %}
+  <a class="dds-popout-option" role="{{ resolved_role }}" data-popout-option data-value="{{ resolved_value }}" href="{{ href }}"{% if is_checkable %} aria-checked="{{ aria_checked }}"{% endif %}{% if disabled %} aria-disabled="true" tabindex="-1"{% endif %}>{% if has_icon %}{% dds__icon name=icon size="sm" %}{% endif %}<span>{{ label }}</span>{% if has_shortcut %}<span class="dds-popout-option-shortcut" data-part="shortcut"><kbd>{{ shortcut }}</kbd></span>{% endif %}</a>
+{% else %}
+  <button type="button" class="dds-popout-option" role="{{ resolved_role }}" data-popout-option data-value="{{ resolved_value }}"{% if is_checkable %} aria-checked="{{ aria_checked }}"{% endif %}{% if disabled %} disabled{% endif %}>{% if has_icon %}{% dds__icon name=icon size="sm" %}{% endif %}<span>{{ label }}</span>{% if has_shortcut %}<span class="dds-popout-option-shortcut" data-part="shortcut"><kbd>{{ shortcut }}</kbd></span>{% endif %}</button>
+{% endif %}

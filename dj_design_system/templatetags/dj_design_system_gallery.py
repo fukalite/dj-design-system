@@ -1,4 +1,4 @@
-"""Template tags and filters for the gallery UI."""
+"""Template tags for the gallery UI."""
 
 from __future__ import annotations
 
@@ -6,63 +6,101 @@ import html
 
 from django import template
 
-from dj_design_system.data import NavNode
-from dj_design_system.gallery import Variant
-from dj_design_system.services import navigation as navigation_service
+from dj_design_system.services import media as media_service
 from dj_design_system.services.canvas_renderer import build_canvas_srcdoc
 from dj_design_system.services.control_params import (
     SANDBOX_SUBMISSION_PARAM,
     get_control_param,
 )
-from dj_design_system.settings import get_default_theme, get_theme
+from dj_design_system.services.registry import component_registry
+from dj_design_system.settings import dds_settings, get_default_theme, get_theme
 from dj_design_system.types import Theme
 
 
 register = template.Library()
 
-BASE_INDENT_PX = 0
-INDENT_PER_LEVEL_PX = 16
 
-
-@register.filter
-def add_indent(depth: int) -> int:
-    """Convert a tree depth to a left-padding value in pixels."""
-    try:
-        depth = int(depth)
-    except (TypeError, ValueError):
-        depth = 0
-    return BASE_INDENT_PX + (depth * INDENT_PER_LEVEL_PX)
+@register.simple_tag
+def builtin_component_stylesheets() -> str:
+    """Output ``<link>`` tags for all built-in ``dds`` component stylesheets."""
+    media = component_registry.get_builtin_media()
+    return media_service.build_link_tags(css_paths=media.css)
 
 
 @register.simple_tag
-def nav_link_is_active(
-    node: NavNode, active_path: str, active_variant: Variant | str | None
-) -> bool:
-    """Return whether a leaf nav link is the current page.
-
-    ``active_variant`` is either a ``Variant`` (component pages) or a plain
-    slug string (raw ``?variant=`` query value); both are accepted.
-    """
-    if not node.is_variant:
-        return active_path == node.active_path and not active_variant
-    if active_path != node.base_active_path:
-        return False
-    active_slug = getattr(active_variant, "name", active_variant)
-    return active_slug == node.slug
+def gallery_extra_stylesheets() -> str:
+    """Output ``<link>`` tags for user-configured gallery extra stylesheets."""
+    extra_paths = dds_settings.GALLERY_EXTRA_CSS or []
+    return media_service.build_link_tags(css_paths=extra_paths)
 
 
-@register.simple_tag
-def nav_folder_is_open(node: NavNode, active_path: str) -> bool:
-    """Return whether a folder nav node is expanded on initial render.
+@register.simple_tag(takes_context=True)
+def gallery_ui_theme_stylesheets(
+    context: template.Context | dict | None = None,
+) -> str:
+    """Output ``<link>`` tags for active gallery UI theme stylesheets."""
+    if not context:
+        return ""
+    active_ui_theme = context.get("active_ui_theme")
+    if not active_ui_theme or not isinstance(active_ui_theme, Theme):
+        return ""
+    css_paths = list(active_ui_theme.css)
+    bundles = list(active_ui_theme.css_bundles)
+    gallery_theme = context.get("gallery_theme")
+    if (
+        gallery_theme == "dark"
+        and active_ui_theme.supports_dark_mode
+        and active_ui_theme.dark_mode
+    ):
+        css_paths.extend(active_ui_theme.dark_mode.css)
+        bundles.extend(active_ui_theme.dark_mode.css_bundles)
 
-    Args:
-        node: The folder or expandable navigation node to check.
-        active_path: The active gallery route path for the current request.
+    bundle_urls = media_service.get_bundle_urls(bundles, "css")
+    all_css = bundle_urls + css_paths
+    return media_service.build_link_tags(css_paths=all_css)
 
-    Returns:
-        True when the current page is the folder itself or one of its descendants.
-    """
-    return navigation_service.is_nav_folder_open(node=node, active_path=active_path)
+
+@register.simple_tag(takes_context=True)
+def gallery_ui_theme_scripts(
+    context: template.Context | dict | None = None,
+) -> str:
+    """Output ``<script>`` tags for active gallery UI theme scripts."""
+    if not context:
+        return ""
+    active_ui_theme = context.get("active_ui_theme")
+    if not active_ui_theme or not isinstance(active_ui_theme, Theme):
+        return ""
+    js_paths = list(active_ui_theme.js)
+    bundles = list(active_ui_theme.js_bundles)
+    gallery_theme = context.get("gallery_theme")
+    if (
+        gallery_theme == "dark"
+        and active_ui_theme.supports_dark_mode
+        and active_ui_theme.dark_mode
+    ):
+        js_paths.extend(active_ui_theme.dark_mode.js)
+        bundles.extend(active_ui_theme.dark_mode.js_bundles)
+
+    bundle_urls = media_service.get_bundle_urls(bundles, "js")
+    all_js = bundle_urls + js_paths
+    request = (
+        context.get("request")
+        if isinstance(context, dict) or hasattr(context, "get")
+        else None
+    )
+    nonce = getattr(request, "csp_nonce", None) if request else None
+    return media_service.build_script_tags(all_js, nonce=nonce)
+
+
+@register.simple_tag(takes_context=True)
+def builtin_component_scripts(
+    context: template.Context | dict | None = None,
+) -> str:
+    """Output ``<script type="module">`` tags for all built-in ``dds`` component scripts."""
+    media = component_registry.get_builtin_media()
+    request = context.get("request") if context else None
+    nonce = getattr(request, "csp_nonce", None) if request else None
+    return media_service.build_script_tags(media.js, nonce=nonce, is_module=True)
 
 
 class CanvasNode(template.Node):
@@ -96,6 +134,8 @@ class CanvasNode(template.Node):
         theme_dict = self._resolve_theme(context)
         component_info = context.get("component_info")
         app_label = component_info.app_label if component_info else None
+        request = context.get("request")
+        nonce = getattr(request, "csp_nonce", None) if request else None
 
         iframe_doc = build_canvas_srcdoc(
             rendered_html=rendered_component,
@@ -105,6 +145,7 @@ class CanvasNode(template.Node):
             app_label=app_label,
             bg_class=bg_class,
             mode_class=mode_class,
+            csp_nonce=nonce,
         )
 
         escaped_doc = html.escape(iframe_doc)
@@ -120,3 +161,4 @@ def do_canvas(parser: template.Parser, token: template.Token) -> CanvasNode:
     nodelist = parser.parse(("endcanvas",))
     parser.delete_first_token()
     return CanvasNode(nodelist)
+

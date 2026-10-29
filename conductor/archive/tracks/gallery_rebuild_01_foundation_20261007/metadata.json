@@ -1,0 +1,10 @@
+{
+  "id": "gallery_rebuild_01_foundation_20261007",
+  "type": "feature",
+  "status": "complete",
+  "created_at": "2026-10-07T23:50:00Z",
+  "updated_at": "2026-10-07T23:50:00Z",
+  "initiative": "gallery_rebuild",
+  "phase": 1,
+  "depends_on": []
+}

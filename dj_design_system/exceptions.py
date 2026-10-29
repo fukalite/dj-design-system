@@ -36,6 +36,10 @@ class InvalidTagType(DJDesignSystemError):
     """Raised when a component class is not a TagComponent or BlockComponent."""
 
 
+class SlotParameterCollisionError(DJDesignSystemError):
+    """Raised when a component defines slots and parameters with the same name."""
+
+
 __all__ = [
     "ComponentDoesNotExist",
     "ComponentNotFoundError",
@@ -43,5 +47,6 @@ __all__ = [
     "DJDesignSystemError",
     "InvalidTagType",
     "MultipleComponentsFound",
+    "SlotParameterCollisionError",
     "VariantNotFoundError",
 ]

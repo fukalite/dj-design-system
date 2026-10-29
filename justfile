@@ -1,6 +1,12 @@
 # dj-design-system — task runner
 # Requires: just (https://just.systems), uv (https://docs.astral.sh/uv/)
 
+# Playwright version for the gallery visual regression suite. Baselines are
+# rendered in mcr.microsoft.com/playwright/python:v<version>-noble, and CI's
+# visual-regression job must use the same tag (tests/test_visual_config.py).
+playwright_version := "1.63.0"
+visual_pytest := "pytest tests/e2e/visual/ -m visual"
+
 # Show available recipes
 default:
     @just --list
@@ -23,15 +29,64 @@ install-hooks:
 
 # Run unit tests (excluding e2e)
 test:
+    @just build-ts
+    @just test-ts
     uv run --no-sync pytest tests/ -m "not e2e"
+
+# Run native TypeScript DOM unit tests (Vitest)
+test-ts:
+    npx vitest run
 
 # Run a single test by keyword pattern
 test-one pattern:
     uv run --no-sync pytest tests/ -k "{{pattern}}" -m "not e2e"
 
-# Run end-to-end Playwright tests
+# Compile built-in component TypeScript (.ts) files to sibling ES2022 (.js) modules
+build-ts:
+    #!/usr/bin/env sh
+    set -e
+    if command -v tsc >/dev/null 2>&1; then
+        tsc -p tsconfig.json
+    else
+        npx --yes --package=typescript tsc -p tsconfig.json
+    fi
+
+# Run end-to-end Playwright tests (the visual suite runs separately via `just visual`)
 e2e:
-    uv run --no-sync pytest tests/e2e/ -m e2e
+    @just build-ts
+    uv run --no-sync pytest tests/e2e/ -m "e2e and not visual"
+
+# Run the built-in dds component accessibility and HTML validation assessment harness
+test-components:
+    @just build-ts
+    uv run --no-sync pytest tests/e2e/test_package_components.py -m e2e
+
+# Run the gallery visual regression suite directly (used by CI inside the pinned container)
+visual-run *args:
+    @just build-ts
+    uv run --no-sync {{visual_pytest}} {{args}}
+
+# Compare gallery screenshots to the baselines in the pinned Playwright container (requires Docker)
+visual *args:
+    @just _visual-docker 0 {{args}}
+
+# Regenerate all gallery screenshot baselines in the pinned Playwright container (requires Docker)
+update-visual-baselines:
+    @just _visual-docker 1
+
+# Run the visual suite inside mcr.microsoft.com/playwright/python on linux/amd64,
+# matching GitHub's runners, with a throwaway venv so the host .venv is untouched.
+_visual-docker update *args:
+    @just build-ts
+    docker run --rm --init --ipc=host --platform linux/amd64 \
+        -v "{{justfile_directory()}}":/work -w /work \
+        -v dds-visual-uv-cache:/root/.cache/uv \
+        -e UPDATE_VISUAL_BASELINES={{update}} \
+        mcr.microsoft.com/playwright/python:v{{playwright_version}}-noble \
+        bash -euc 'pip install -q --root-user-action=ignore uv \
+            && uv venv -q /tmp/venv \
+            && VIRTUAL_ENV=/tmp/venv uv pip install -q -e ".[dev]" "playwright=={{playwright_version}}" \
+            && /tmp/venv/bin/{{visual_pytest}} {{args}}'
 
 # Run the example project's component assessment tests
 test-demo:
@@ -45,12 +100,22 @@ update-snapshots:
 check:
     uv run --no-sync ruff check .
     uv run --no-sync djlint dj_design_system/templates --check
+    npx stylelint "dj_design_system/**/*.css"
 
 # Auto-fix all fixable lint and formatting issues (run by pre-commit hook)
 fix:
     uv run --no-sync ruff check --fix .
     uv run --no-sync ruff format .
     uv run --no-sync djlint dj_design_system/templates --reformat || true
+    npx stylelint "dj_design_system/**/*.css" --fix || true
+
+# Check CSS formatting with stylelint
+check-css:
+    npx stylelint "dj_design_system/**/*.css"
+
+# Auto-fix CSS formatting with stylelint
+fix-css:
+    npx stylelint "dj_design_system/**/*.css" --fix
 
 # Alias for fix
 fmt: fix
@@ -81,19 +146,27 @@ install-playwright:
 
 # Build the distribution packages
 build:
+    @just build-ts
     uv build
 
-# Start the example project gallery and open it in the browser
-demo:
+# Start the example project gallery and open it in the browser (target: "demo" or "dds")
+demo target="demo":
     #!/usr/bin/env sh
-    uv run --no-sync python example_project/manage.py migrate --run-syncdb
-    uv run --no-sync python example_project/manage.py runserver 8000 &
-    SERVER_PID=$!
-    echo "Starting example project (PID $SERVER_PID) at http://localhost:8000/ ..."
-    sleep 2
-    xdg-open "http://localhost:8000/" 2>/dev/null || open "http://localhost:8000/" 2>/dev/null || echo "Open http://localhost:8000/ in your browser"
-    echo "Press Ctrl+C to stop the server"
-    wait $SERVER_PID
+    just build-ts
+    if [ "{{target}}" = "dds" ] || [ "{{target}}" = "settings_dds" ]; then
+        SETTINGS="example_project.settings_dds_gallery"
+        echo "Starting DDS internal component gallery with $SETTINGS..."
+    else
+        SETTINGS="example_project.settings"
+        echo "Starting example project gallery with $SETTINGS..."
+    fi
+    uv run --no-sync python example_project/manage.py migrate --run-syncdb --settings="$SETTINGS"
+    echo "Starting example project at http://localhost:8000/ (Press Ctrl+C to stop) ..."
+    (
+        sleep 2
+        xdg-open "http://localhost:8000/" 2>/dev/null || open "http://localhost:8000/" 2>/dev/null || echo "Open http://localhost:8000/ in your browser"
+    ) &
+    exec uv run --no-sync python example_project/manage.py runserver 0.0.0.0:8000 --settings="$SETTINGS"
 
 # Fetch, parse, and display unresolved PR comments
 comments pr_number="":

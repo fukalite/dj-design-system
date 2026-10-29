@@ -1,0 +1,38 @@
+{% load design_components %}
+<dds-nav-tree class="dds-nav-tree" {{ attrs }}>
+  <nav class="dds-nav-tree-nav" aria-label="{{ aria_label }}">
+    {% if has_nodes %}
+      {% for entry in tree_events %}
+        {% if entry.event == "app_open" %}
+          <div data-nav-group>
+            <a href="{{ entry.node.url }}" data-nav-group-label data-nav-link data-depth="{{ entry.node.depth }}"{% if entry.node.is_active %} aria-current="page" data-active="true"{% endif %}>
+              <span>{{ entry.node.label }}</span>
+            </a>
+        {% elif entry.event == "app_close" %}
+          </div>
+        {% elif entry.event == "folder_open" %}
+          <div data-nav-folder data-state="{{ entry.node.folder_state }}" data-folder-id="{{ entry.node.folder_id }}">
+            <div data-nav-row>
+              <a href="{{ entry.node.url }}" data-nav-link data-depth="{{ entry.node.depth }}"{% if entry.node.is_active %} aria-current="page" data-active="true"{% endif %}>
+                {% dds__icon name=entry.node.resolved_icon size="sm" %}
+                <span>{{ entry.node.label }}</span>
+              </a>
+              <button type="button" data-nav-toggle aria-expanded="{{ entry.node.aria_expanded }}" aria-controls="{{ entry.node.children_dom_id }}" aria-label="Toggle {{ entry.node.label }}">
+                {% dds__icon name="chevron-right" size="xs" %}
+              </button>
+            </div>
+            <div id="{{ entry.node.children_dom_id }}" data-nav-children{% if not entry.node.is_open %} hidden{% endif %}>
+        {% elif entry.event == "folder_close" %}
+            </div>
+          </div>
+        {% elif entry.event == "leaf" %}
+          <a href="{{ entry.node.url }}" data-nav-link data-depth="{{ entry.node.depth }}"{% if entry.node.is_variant %} data-variant-link="true"{% endif %}{% if entry.node.is_active %} aria-current="page" data-active="true"{% endif %}>
+            {% dds__icon name=entry.node.resolved_icon size="sm" %}
+            <span>{{ entry.node.label }}</span>
+          </a>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  </nav>
+</dds-nav-tree>
+

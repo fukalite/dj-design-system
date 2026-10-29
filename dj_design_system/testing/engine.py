@@ -23,9 +23,10 @@ class IterationEngine:
         components: Optional[list[ComponentInfo]] = None,
         themes: Optional[list[str]] = None,
         variants: Optional[list[str]] = None,
-    ):
+    ) -> None:
         self.components = components or []
         self.themes = themes or ["light", "dark"]
+        self._explicit_variants = variants is not None
         self.variants = variants or ["basic", "maximal"]
         self._filters: list[Callable[[ComponentInfo, str, str], bool]] = []
 
@@ -35,10 +36,29 @@ class IterationEngine:
         """Add a filter hook to customize the loop."""
         self._filters.append(filter_func)
 
+    def _get_component_variants(self, comp: ComponentInfo) -> list[str]:
+        """Return the ordered, deduplicated variant names to assess for *comp*."""
+        comp_variants = list(self.variants)
+        if self._explicit_variants:
+            return comp_variants
+
+        cfg = getattr(comp, "gallery_config", None)
+        cfg_variants = getattr(cfg, "variants", None) if cfg is not None else None
+        if isinstance(cfg_variants, (list, tuple)):
+            for variant_obj in cfg_variants:
+                variant_name = getattr(variant_obj, "name", None)
+                if (
+                    isinstance(variant_name, str)
+                    and variant_name
+                    and variant_name not in comp_variants
+                ):
+                    comp_variants.append(variant_name)
+        return comp_variants
+
     def get_combinations(self) -> Iterable[tuple[ComponentInfo, str, str]]:
         """Yield (component, variant, theme) combinations that pass filters."""
         for comp in self.components:
-            for variant in self.variants:
+            for variant in self._get_component_variants(comp):
                 for theme in self.themes:
                     if self._passes_filters(comp, variant, theme):
                         yield (comp, variant, theme)

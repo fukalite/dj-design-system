@@ -1,12 +1,11 @@
 """Gallery view and general navigation / document rendering."""
 
-from pathlib import Path
-
 from django.conf import settings
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import render
 
 from dj_design_system.services import markdown as markdown_service
+from dj_design_system.services import visibility as visibility_service
 from dj_design_system.services.control_params import (
     SANDBOX_SUBMISSION_PARAM,
     get_control_param,
@@ -16,15 +15,19 @@ from dj_design_system.services.navigation import (
     build_navigation,
     build_search_index,
     find_node,
+    normalize_folder_items,
 )
 from dj_design_system.services.registry import component_registry
 from dj_design_system.settings import (
     dds_settings,
+    get_default_gallery_ui_theme,
     get_default_theme,
+    get_gallery_ui_theme,
+    get_gallery_ui_themes,
     get_theme,
     get_themes,
 )
-from dj_design_system.views.component import _render_component
+from dj_design_system.views.component import render_component_node
 from dj_design_system.views.decorators import gallery_access_required
 
 
@@ -49,6 +52,52 @@ def get_base_context(
         active_variant = (
             get_control_param(request.GET, "variant", bare_fallback=bare_fallback) or ""
         ).strip() or None
+        raw_gallery_theme = (
+            request.GET.get("_dds_gallery_theme")
+            or request.COOKIES.get("dds_gallery_theme")
+            or ""
+        )
+        if raw_gallery_theme in ("dark", "light"):
+            gallery_theme = raw_gallery_theme
+        else:
+            gallery_theme = ""
+        raw_gallery_ui_theme = (
+            request.GET.get("_dds_gallery_ui_theme")
+            or request.COOKIES.get("dds_gallery_ui_theme")
+            or ""
+        )
+        ui_theme_obj = get_gallery_ui_theme(identifier=raw_gallery_ui_theme)
+        if ui_theme_obj is None:
+            ui_theme_obj = get_default_gallery_ui_theme()
+        raw_color_scheme = (
+            get_control_param(request.GET, "color_scheme", bare_fallback=bare_fallback)
+            or request.COOKIES.get("dds_color_scheme")
+            or ""
+        )
+    else:
+        gallery_theme = ""
+        ui_theme_obj = get_default_gallery_ui_theme()
+        raw_color_scheme = ""
+
+    gallery_ui_theme = ui_theme_obj.value
+    gallery_ui_theme_supports_dark_mode = ui_theme_obj.supports_dark_mode
+    if not gallery_ui_theme_supports_dark_mode:
+        gallery_theme = ""
+
+    theme_obj = get_theme(active_theme)
+    if theme_obj is not None:
+        active_theme = theme_obj.value
+        active_theme_supports_dark_mode = theme_obj.supports_dark_mode
+    else:
+        default_theme = get_default_theme()
+        active_theme_supports_dark_mode = (
+            default_theme.supports_dark_mode if default_theme else False
+        )
+    if active_theme_supports_dark_mode and raw_color_scheme in ("dark", "light"):
+        active_color_scheme = raw_color_scheme
+    else:
+        active_color_scheme = "light"
+
     return {
         "nav_tree": nav_tree,
         "search_index": [] if is_htmx else build_search_index(nav_tree),
@@ -56,19 +105,33 @@ def get_base_context(
         "active_app": active_app,
         "active_path": active_path,
         "active_variant": active_variant,
+        "breadcrumbs": [],
         "available_themes": get_themes(),
+        "available_ui_themes": get_gallery_ui_themes(),
         "active_theme": active_theme,
+        "active_ui_theme": ui_theme_obj,
+        "global_active_theme": active_theme,
+        "active_color_scheme": active_color_scheme,
+        "active_theme_supports_dark_mode": active_theme_supports_dark_mode,
+        "gallery_theme": gallery_theme,
+        "gallery_ui_theme": gallery_ui_theme,
+        "gallery_ui_theme_supports_dark_mode": gallery_ui_theme_supports_dark_mode,
+        "gallery_ui_theme_disabled_label": (
+            f"{ui_theme_obj.label} theme does not support dark mode"
+        ),
+        "component_tabs": [
+            {"id": "docs", "label": "Documentation"},
+            {"id": "sandbox", "label": "Sandbox"},
+        ],
+        "declared_slots": [],
+        "params": [],
+        "param_rows": [],
+        "canvas_backgrounds": [],
+        "gallery_variants": [],
     }
 
 
-def _render_markdown(file_path: Path, app_label: str = "", theme_dict=None) -> str:
-    """Render a markdown file to HTML (deprecated internal helper; use services.markdown.render_markdown_doc)."""
-    return markdown_service.render_markdown_doc(
-        file_path=file_path, app_label=app_label, theme_dict=theme_dict
-    )
-
-
-def _render_folder(request, context, node, app_label, path_parts):
+def render_folder_node(request, context, node, app_label, path_parts):
     """Render a folder node — index.md if present, otherwise a listing."""
     context["node"] = node
     context["breadcrumbs"] = build_breadcrumbs(
@@ -83,6 +146,7 @@ def _render_folder(request, context, node, app_label, path_parts):
             file_path=node.index_doc_path,
             app_label=doc_app_label,
             theme_dict=theme_dict,
+            color_scheme=context.get("active_color_scheme", "light"),
         )
         return render(
             request,
@@ -92,12 +156,15 @@ def _render_folder(request, context, node, app_label, path_parts):
 
     context["folder_label"] = node.label
     context["children"] = node.children
+    context["folder_items"] = normalize_folder_items(items=node.children)
     context["is_debug"] = settings.DEBUG
     return render(request, "dj_design_system/gallery/folder.html", context)
 
 
-def _render_document(request, context, node, app_label, path_parts):
+def render_document_node(request, context, node, app_label, path_parts):
     """Render a standalone markdown document."""
+    if not node.doc_path or not node.doc_path.is_file():
+        raise Http404(f"Document {node.label} not found")
     active_theme = str(context.get("active_theme") or "")
     theme_dict = get_theme(identifier=active_theme) or get_default_theme()
     doc_app_label = node.app_label or app_label
@@ -105,6 +172,7 @@ def _render_document(request, context, node, app_label, path_parts):
         file_path=node.doc_path,
         app_label=doc_app_label,
         theme_dict=theme_dict,
+        color_scheme=context.get("active_color_scheme", "light"),
     )
     context["doc_label"] = node.label
     context["breadcrumbs"] = build_breadcrumbs(
@@ -117,7 +185,15 @@ def _render_document(request, context, node, app_label, path_parts):
 def gallery_index(request: HttpRequest) -> HttpResponse:
     """Gallery home — lists all registered components in the sidebar."""
     context = get_base_context(request)
-    context["total_components"] = len(component_registry.list_all())
+    total_components = len(
+        visibility_service.get_gallery_components(registry=component_registry)
+    )
+    context["total_components"] = total_components
+    context["total_components_label"] = (
+        f"{total_components} component registered."
+        if total_components == 1
+        else f"{total_components} components registered."
+    )
     return render(request, "dj_design_system/gallery/index.html", context)
 
 
@@ -138,9 +214,10 @@ def gallery_node(
     context["active_path"] = node.active_path
 
     if node.is_component:
-        return _render_component(request, context, node, app_label, path_parts)
+        return render_component_node(request, context, node, app_label, path_parts)
 
     if node.is_document:
-        return _render_document(request, context, node, app_label, path_parts)
+        return render_document_node(request, context, node, app_label, path_parts)
 
-    return _render_folder(request, context, node, app_label, path_parts)
+    return render_folder_node(request, context, node, app_label, path_parts)
+

@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from collections import OrderedDict
+from collections.abc import Sequence
+from dataclasses import dataclass
 from functools import lru_cache
 from html.parser import HTMLParser
 from pathlib import Path
@@ -11,13 +13,161 @@ from urllib.parse import urlencode
 
 import markdown as markdown_lib
 from django.apps import apps
+from django.conf import settings
 from django.urls import reverse
 
+from dj_design_system.constants import (
+    BUILTIN_APP_LABEL,
+    BUILTIN_GALLERY_SUBFOLDER,
+)
 from dj_design_system.data import NavNode
 from dj_design_system.services import component_dirs as component_dirs_service
+from dj_design_system.services import visibility as visibility_service
 from dj_design_system.services.registry import component_registry
 from dj_design_system.settings import dds_settings
 from dj_design_system.types import NodeType
+
+
+def _get_field(raw: Any, key: str, default: Any = None) -> Any:
+    """Read *key* from a mapping or attribute from an object."""
+    if isinstance(raw, dict):
+        return raw.get(key, default)
+    return getattr(raw, key, default)
+
+
+@dataclass(frozen=True)
+class NavItemInputData:
+    """Normalized navigation node input fields for ``normalize_folder_items``."""
+
+    label: str
+    slug: str
+    node_type: str
+    url: str
+    active_path: str
+    base_active_path: str
+    children: list[Any]
+    icon: str
+    is_component: bool | None
+    is_document: bool | None
+    is_variant: bool | None
+    has_children: bool | None
+    has_index_doc: bool
+    child_count: int | None
+
+    @classmethod
+    def from_raw(
+        cls,
+        raw_node: Any,
+        *,
+        default_label_from_name: bool = False,
+        default_url: str = "#",
+    ) -> NavItemInputData:
+        """Extract normalized attributes from a ``NavNode``, dict, or duck-typed object."""
+        raw_label = _get_field(raw_node, "label")
+        if raw_label is None:
+            if default_label_from_name:
+                raw_label = _get_field(
+                    raw_node,
+                    "name",
+                    "" if isinstance(raw_node, dict) else str(raw_node),
+                )
+            else:
+                raw_label = ""
+        raw_slug = _get_field(raw_node, "slug", "")
+        raw_type = (
+            _get_field(raw_node, "node_type")
+            or _get_field(raw_node, "type")
+            or _get_field(raw_node, "node_kind")
+            or ""
+        )
+        raw_url = _get_field(raw_node, "url") or _get_field(raw_node, "href")
+        raw_active = _get_field(raw_node, "active_path", "")
+        raw_base_active = _get_field(raw_node, "base_active_path", "")
+        raw_children_val = _get_field(raw_node, "children")
+        raw_icon = _get_field(raw_node, "icon")
+        raw_is_component = _get_field(raw_node, "is_component")
+        raw_is_document = _get_field(raw_node, "is_document")
+        raw_is_variant = _get_field(raw_node, "is_variant")
+        raw_has_children = _get_field(raw_node, "has_children")
+        raw_has_index_doc = _get_field(raw_node, "has_index_doc")
+        if raw_has_index_doc is None:
+            raw_has_index_doc = _get_field(raw_node, "index_doc_path") is not None
+        raw_child_count = _get_field(raw_node, "child_count")
+
+        node_type_val = getattr(raw_type, "value", raw_type)
+        node_type = str(node_type_val).lower() if node_type_val else ""
+
+        children = (
+            list(raw_children_val)
+            if isinstance(raw_children_val, (list, tuple, set))
+            else (list(raw_children_val) if raw_children_val is not None else [])
+        )
+        child_count = (
+            max(0, raw_child_count)
+            if isinstance(raw_child_count, int)
+            and not isinstance(raw_child_count, bool)
+            else None
+        )
+        return cls(
+            label=str(raw_label) if raw_label is not None else "",
+            slug=str(raw_slug) if raw_slug is not None else "",
+            node_type=node_type,
+            url=str(raw_url) if raw_url else default_url,
+            active_path=str(raw_active) if raw_active else "",
+            base_active_path=str(raw_base_active) if raw_base_active else "",
+            children=children,
+            icon=str(raw_icon) if raw_icon else "",
+            is_component=bool(raw_is_component)
+            if raw_is_component is not None
+            else None,
+            is_document=bool(raw_is_document) if raw_is_document is not None else None,
+            is_variant=bool(raw_is_variant) if raw_is_variant is not None else None,
+            has_children=bool(raw_has_children)
+            if raw_has_children is not None
+            else None,
+            has_index_doc=bool(raw_has_index_doc),
+            child_count=child_count,
+        )
+
+
+FOLDER_ORDER_MAP: dict[str, int] = {
+    "about": -10,
+    "areas": -5,
+    "areas_and_panes": -5,
+    "docs": 1,
+    "sandbox": 2,
+    "templates": 3,
+}
+
+FOLDER_LABEL_OVERRIDES: dict[str, str] = {
+    "areas": "Areas",
+    "areas_and_panes": "Areas & Panes",
+    "elevations_and_surfaces": "Elevations & Surfaces",
+    "index_pane": "Index",
+}
+
+DOC_ORDER_MAP: dict[str, int] = {
+    # About / Foundations
+    "semantic_tokens": 1,
+    "typography_and_spacing": 2,
+    "layout_primitives": 3,
+    "elevations_and_surfaces": 4,
+    # Areas & Panes root documents
+    "topbar": 1,
+    "sidebar": 2,
+    "tabs": 3,
+    # Docs sub-panes
+    "header": 1,
+    "usage": 2,
+    "params": 3,
+    "further": 4,
+    # Sandbox sub-panes
+    "toolbar": 1,
+    "canvas": 2,
+    # Templates sub-templates
+    "folder": 1,
+    "index_pane": 2,
+}
 
 
 _SEARCH_INDEX_CACHE_MAXSIZE = 32
@@ -62,12 +212,23 @@ def to_display_label(
                 if "verbose_name" in type(cfg).__dict__:
                     return str(cfg.verbose_name)
 
+    if (
+        app_label is None or app_label == BUILTIN_APP_LABEL
+    ) and name in FOLDER_LABEL_OVERRIDES:
+        return FOLDER_LABEL_OVERRIDES[name]
+
     return name.replace("_", " ").replace("-", " ").capitalize()
 
 
 def _effective_path_parts(info: ComponentInfo) -> list[str]:
     """Return directory segments for a component, applying the collapsing rule."""
     parts = info.relative_path.split(".") if info.relative_path else []
+    if (
+        info.app_label == BUILTIN_APP_LABEL
+        and parts
+        and parts[0] == BUILTIN_GALLERY_SUBFOLDER
+    ):
+        parts = parts[1:]
     if parts and parts[-1] == info.name:
         parts = parts[:-1]
     return parts
@@ -85,6 +246,7 @@ class _AppTreeBuilder:
     ) -> NavNode:
         """Return the node at *path_parts*, creating intermediate folders as needed."""
         current = self.root
+        is_builtin = self.root.slug == BUILTIN_APP_LABEL
         for depth in range(len(path_parts)):
             path_key = "/".join(path_parts[: depth + 1])
             if path_key not in self._nodes_by_path:
@@ -97,10 +259,16 @@ class _AppTreeBuilder:
                         path=".".join(path_parts[: depth + 1]),
                     )
                 )
+                order = (
+                    FOLDER_ORDER_MAP.get(path_parts[depth], 0)
+                    if is_builtin
+                    else 0
+                )
                 node = NavNode(
                     label=label,
                     slug=path_parts[depth],
                     node_type=NodeType.FOLDER,
+                    order=order,
                 )
                 current.children.append(node)
                 self._nodes_by_path[path_key] = node
@@ -128,25 +296,36 @@ class _AppTreeBuilder:
 
         collapsed_parts = _effective_path_parts(info)
         raw_parts = info.relative_path.split(".") if info.relative_path else []
+        if (
+            info.app_label == BUILTIN_APP_LABEL
+            and raw_parts
+            and raw_parts[0] == BUILTIN_GALLERY_SUBFOLDER
+        ):
+            raw_parts = raw_parts[1:]
         is_collapsed = len(raw_parts) > len(collapsed_parts)
 
         labels_by_depth: dict[int, str] = {}
         target_parts = list(collapsed_parts)
 
+        has_custom_group = False
         if info.gallery_config.group:
             group_segments = [
                 s.strip() for s in info.gallery_config.group.split("/") if s.strip()
             ]
             for seg in group_segments:
+                seg_slug = seg.lower().replace(" ", "_")
+                if seg_slug in target_parts:
+                    continue
                 depth = len(target_parts)
                 labels_by_depth[depth] = seg
-                target_parts.append(seg.lower().replace(" ", "_"))
+                target_parts.append(seg_slug)
+                has_custom_group = True
 
         parent = self.get_or_create_folder(
             target_parts, labels_by_depth=labels_by_depth
         )
 
-        if is_collapsed and not info.gallery_config.group:
+        if is_collapsed and not has_custom_group:
             raw_path = "/".join(raw_parts)
             if raw_path in self._nodes_by_path:
                 existing = self._nodes_by_path[raw_path]
@@ -167,7 +346,7 @@ class _AppTreeBuilder:
         self._attach_variants(node, info)
         parent.children.append(node)
 
-        if is_collapsed and not info.gallery_config.group:
+        if is_collapsed and not has_custom_group:
             self._nodes_by_path["/".join(raw_parts)] = node
 
     def add_markdown(self, dir_parts: list[str], md_path: Path) -> None:
@@ -178,11 +357,14 @@ class _AppTreeBuilder:
             parent.index_doc_path = md_path
         else:
             stem = md_path.stem
+            is_builtin = self.root.slug == BUILTIN_APP_LABEL
+            order = DOC_ORDER_MAP.get(stem, 0) if is_builtin else 0
             node = NavNode(
-                label=to_display_label(stem),
+                label=to_display_label(stem, app_label=self.root.slug),
                 slug=stem,
                 node_type=NodeType.DOCUMENT,
                 doc_path=md_path,
+                order=order,
             )
             parent.children.append(node)
 
@@ -310,6 +492,8 @@ def _cached_build_navigation() -> list[NavNode]:
 
 def build_navigation() -> list[NavNode]:
     """Build the full gallery navigation tree from the component registry and markdown files (cached)."""
+    if settings.DEBUG:
+        clear_navigation_cache()
     return _cached_build_navigation()
 
 
@@ -337,10 +521,13 @@ def _build_navigation(
 
     apps: dict[str, list[ComponentInfo]] = {}
     for info in components:
-        apps.setdefault(info.app_label, []).append(info)
+        if visibility_service.is_app_visible(app_label=info.app_label):
+            apps.setdefault(info.app_label, []).append(info)
 
     for app_label, _path in app_component_paths.items():
-        if app_label not in apps:
+        if app_label not in apps and visibility_service.is_app_visible(
+            app_label=app_label
+        ):
             apps[app_label] = []
 
     result: list[NavNode] = []
@@ -360,6 +547,12 @@ def _build_navigation(
             for dir_parts, md_path in _discover_markdown_files(
                 app_component_paths[app_label]
             ):
+                if (
+                    app_label == BUILTIN_APP_LABEL
+                    and dir_parts
+                    and dir_parts[0] == BUILTIN_GALLERY_SUBFOLDER
+                ):
+                    dir_parts = dir_parts[1:]
                 builder.add_markdown(dir_parts, md_path)
 
         _sort_children(app_node)
@@ -565,3 +758,68 @@ def build_breadcrumbs(
 
     crumbs.append({"label": current_label})
     return crumbs
+
+
+def normalize_folder_items(
+    *, items: Sequence[NavNode | dict[str, Any] | Any]
+) -> list[dict[str, Any]]:
+    """Normalise child navigation nodes into card view models for folder listing."""
+    normalized: list[dict[str, Any]] = []
+    for raw_item in items:
+        parsed = NavItemInputData.from_raw(
+            raw_item,
+            default_label_from_name=True,
+            default_url="#",
+        )
+
+        if parsed.is_component or parsed.node_type == "component":
+            node_kind = "component"
+            icon = "component-variants" if parsed.has_children else "component"
+            badge_label = "Component"
+            badge_variant = "info"
+        elif parsed.is_document or parsed.node_type in ("document", "doc"):
+            node_kind = "document"
+            icon = "doc"
+            badge_label = "Document"
+            badge_variant = "neutral"
+        elif parsed.is_variant or parsed.node_type == "variant":
+            node_kind = "variant"
+            icon = "variant"
+            badge_label = "Variant"
+            badge_variant = "code"
+        else:
+            node_kind = "folder"
+            icon = "folder"
+            badge_label = "Folder"
+            badge_variant = "neutral"
+
+        if parsed.icon:
+            icon = parsed.icon
+
+        if parsed.child_count is not None:
+            child_count = parsed.child_count
+        elif parsed.has_children is False:
+            child_count = 0
+        else:
+            child_count = len(parsed.children)
+
+        if child_count == 1:
+            child_count_label = "1 item"
+        elif child_count > 1:
+            child_count_label = f"{child_count} items"
+        else:
+            child_count_label = ""
+
+        normalized.append(
+            {
+                "label": parsed.label,
+                "url": parsed.url,
+                "node_kind": node_kind,
+                "icon": icon,
+                "badge_label": badge_label,
+                "badge_variant": badge_variant,
+                "child_count_label": child_count_label,
+                "has_child_count": bool(child_count_label),
+            }
+        )
+    return normalized

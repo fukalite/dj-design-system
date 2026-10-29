@@ -1,0 +1,172 @@
+@layer reset, tokens, global, composition, blocks, utilities;
+
+@layer blocks {
+  .dds-sidebar {
+    --_sidebar-bg-blur: var(--dds-surface-sidebar-bg-blur);
+    --_sidebar-bg-color: var(--dds-surface-sidebar-bg-color);
+    --_sidebar-border-color: var(--dds-surface-sidebar-border-color);
+    --_sidebar-border-radius: var(--dds-control-border-radius);
+    --_sidebar-border-style: var(--dds-surface-sidebar-border-style);
+    --_sidebar-border-width: var(--dds-surface-sidebar-border-width);
+    --_sidebar-brand-color: var(--dds-text-prominent-color);
+    --_sidebar-brand-font: var(--dds-text-subheading-font);
+    --_sidebar-brand-font-size: var(--dds-text-subheading-size);
+    --_sidebar-brand-font-weight: var(--dds-text-subheading-weight);
+    --_sidebar-brand-letter-spacing: var(--dds-text-subheading-letter-spacing);
+    --_sidebar-brand-line-height: var(--dds-text-subheading-line-height);
+    --_sidebar-control-bg-color: var(--dds-control-bg-color);
+    --_sidebar-control-border-color: var(--dds-control-border-color);
+    --_sidebar-control-border-style: var(--dds-control-border-style);
+    --_sidebar-control-border-width: var(--dds-control-border-width);
+    --_sidebar-control-font: var(--dds-text-control-font);
+    --_sidebar-control-font-size: var(--dds-text-control-size);
+    --_sidebar-control-font-weight: var(--dds-text-control-weight);
+    --_sidebar-control-padding-block: var(--dds-space-3xs);
+    --_sidebar-control-padding-inline: var(--dds-space-xs);
+    --_sidebar-focus-outline-color: var(--dds-state-focus-outline-color);
+    --_sidebar-focus-outline-offset: var(--dds-state-focus-outline-offset);
+    --_sidebar-focus-outline-style: var(--dds-state-focus-outline-style);
+    --_sidebar-focus-outline-width: var(--dds-state-focus-outline-width);
+    --_sidebar-font: var(--dds-text-body-font);
+    --_sidebar-font-size: var(--dds-text-body-size);
+    --_sidebar-font-weight: var(--dds-text-body-weight);
+    --_sidebar-footer-controls-gap: var(--dds-space-xs);
+    --_sidebar-gap: var(--dds-space-gap-default);
+    --_sidebar-hover-text-color: var(--dds-state-hover-text-color);
+    --_sidebar-letter-spacing: var(--dds-text-body-letter-spacing);
+    --_sidebar-line-height: var(--dds-text-body-line-height);
+    --_sidebar-muted-color: var(--dds-text-muted-color);
+    --_sidebar-option-bg-color: var(--dds-surface-sidebar-bg-color);
+    --_sidebar-option-text-color: var(--dds-surface-sidebar-text-default-color);
+    --_sidebar-padding-block: var(--dds-space-md);
+    --_sidebar-padding-inline: var(--dds-space-lg);
+    --_sidebar-shadow-color: var(--dds-surface-sidebar-shadow-color);
+    --_sidebar-shadow-shape: var(--dds-surface-sidebar-shadow-shape);
+    --_sidebar-text-color: var(--dds-text-default-color);
+    --_sidebar-transition-duration: var(--dds-state-entry-duration);
+    --_sidebar-transition-easing: var(--dds-state-entry-easing);
+    --_sidebar-width: var(--dds-layout-sidebar-width);
+    --_sidebar-z-index: var(--dds-surface-sidebar-z-index);
+    z-index: var(--_sidebar-z-index);
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    inline-size: var(--_sidebar-width);
+    block-size: 100%;
+    min-block-size: 0;
+    margin: 0;
+    color: var(--_sidebar-text-color);
+    background-color: var(--_sidebar-bg-color);
+    box-shadow: var(--_sidebar-shadow-shape) var(--_sidebar-shadow-color);
+    backdrop-filter: blur(var(--_sidebar-bg-blur));
+    font-family: var(--_sidebar-font);
+    font-size: var(--_sidebar-font-size);
+    font-weight: var(--_sidebar-font-weight);
+    line-height: var(--_sidebar-line-height);
+    letter-spacing: var(--_sidebar-letter-spacing);
+    border-inline-end-color: var(--_sidebar-border-color);
+    border-inline-end-style: var(--_sidebar-border-style);
+    border-inline-end-width: var(--_sidebar-border-width);
+
+    & [data-sidebar-header] {
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0;
+      padding-block: var(--_sidebar-padding-block);
+      padding-inline: var(--_sidebar-padding-inline);
+      border-block-end-color: var(--_sidebar-border-color);
+      border-block-end-style: var(--_sidebar-border-style);
+      border-block-end-width: var(--_sidebar-border-width);
+    }
+
+    & [data-sidebar-brand] {
+      margin: 0;
+      border-radius: var(--_sidebar-border-radius);
+      color: var(--_sidebar-brand-color);
+      font-family: var(--_sidebar-brand-font);
+      font-size: var(--_sidebar-brand-font-size);
+      font-weight: var(--_sidebar-brand-font-weight);
+      line-height: var(--_sidebar-brand-line-height);
+      letter-spacing: var(--_sidebar-brand-letter-spacing);
+      text-decoration: none;
+      transition-duration: var(--_sidebar-transition-duration);
+      transition-property: background-color, color;
+      transition-timing-function: var(--_sidebar-transition-easing);
+
+      &:hover {
+        color: var(--_sidebar-hover-text-color);
+      }
+
+      &:focus-visible {
+        outline-width: var(--_sidebar-focus-outline-width);
+        outline-style: var(--_sidebar-focus-outline-style);
+        outline-color: var(--_sidebar-focus-outline-color);
+        outline-offset: var(--_sidebar-focus-outline-offset);
+      }
+    }
+
+    & [data-sidebar-body] {
+      display: flex;
+      flex: 1 1 0;
+      flex-direction: column;
+      gap: var(--_sidebar-gap);
+      min-block-size: 0;
+      margin: 0;
+      padding-block: var(--_sidebar-padding-block);
+      padding-inline: var(--_sidebar-padding-inline);
+
+      & > * {
+        display: flex;
+        flex: 1 1 0;
+        flex-direction: column;
+        min-block-size: 0;
+      }
+    }
+
+    & [data-sidebar-footer] {
+      flex-shrink: 0;
+      margin: 0;
+      padding-block: var(--_sidebar-padding-block);
+      padding-inline: var(--_sidebar-padding-inline);
+      color: var(--_sidebar-muted-color);
+      border-block-start-color: var(--_sidebar-border-color);
+      border-block-start-style: var(--_sidebar-border-style);
+      border-block-start-width: var(--_sidebar-border-width);
+    }
+
+    & [data-sidebar-footer-controls] {
+      --cluster-gap: var(--_sidebar-footer-controls-gap);
+      --cluster-justify: space-between;
+      inline-size: 100%;
+    }
+
+    & [data-ui-theme-select] {
+      flex: 1 1 auto;
+      min-inline-size: 0;
+      padding-block: var(--_sidebar-control-padding-block);
+      padding-inline: var(--_sidebar-control-padding-inline);
+      border-width: var(--_sidebar-control-border-width);
+      border-style: var(--_sidebar-control-border-style);
+      border-color: var(--_sidebar-control-border-color);
+      border-radius: var(--_sidebar-border-radius);
+      color: var(--_sidebar-text-color);
+      background-color: var(--_sidebar-control-bg-color);
+      font-family: var(--_sidebar-control-font);
+      font-size: var(--_sidebar-control-font-size);
+      font-weight: var(--_sidebar-control-font-weight);
+
+      & option {
+        color: var(--_sidebar-option-text-color);
+        background-color: var(--_sidebar-option-bg-color);
+      }
+    }
+  }
+
+  @media (min-width: 48.0625rem) {
+    [data-shell-sidebar] .dds-sidebar [data-sidebar-header] {
+      display: none;
+    }
+  }
+}

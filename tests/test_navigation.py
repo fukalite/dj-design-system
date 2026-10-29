@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from django.test import override_settings
 
+from dj_design_system.components.gallery.composites.nav_tree.nav_tree import NavTree
 from dj_design_system.data import ComponentInfo, NavNode
 from dj_design_system.services.navigation import (
     NodeType,
@@ -989,8 +990,6 @@ def test_is_nav_folder_open_matches_only_self_or_descendants() -> None:
 
 
 def test_leaf_index_doc_folder_renders_doc_icon(tmp_path) -> None:
-    from django.template.loader import render_to_string
-
     index_md = tmp_path / "index.md"
     index_md.write_text("# Quote One-Up", encoding="utf-8")
     node = NavNode(
@@ -1002,9 +1001,299 @@ def test_leaf_index_doc_folder_renders_doc_icon(tmp_path) -> None:
         active_path="demo_nav/elements/quote_oneup",
         base_active_path="demo_nav/elements/quote_oneup",
     )
-    html = render_to_string(
-        "dj_design_system/gallery/navtree.html",
-        context={"node": node, "depth": 2, "active_path": "", "active_variant": ""},
+    parent = NavNode(
+        label="Elements",
+        slug="elements",
+        node_type=NodeType.FOLDER,
+        url="/gallery/demo_nav/elements/",
+        active_path="demo_nav/elements",
+        base_active_path="demo_nav/elements",
+        children=[node],
     )
-    assert "gallery-nav__icon--doc" in html
+    app_node = NavNode(
+        label="Demo Nav",
+        slug="demo_nav",
+        node_type=NodeType.APP,
+        url="/gallery/demo_nav/",
+        active_path="demo_nav",
+        base_active_path="demo_nav",
+        children=[parent],
+    )
+    html = NavTree(nodes=[app_node], active_path="", active_variant="").render()
+    assert 'data-icon="doc"' in html
     assert 'data-depth="2"' in html
+
+
+def test_builtin_gallery_subfolder_omitted_from_navigation_tree():
+    """Verify that internal built-in components under components/gallery/ omit 'gallery' in nav tree."""
+    from django.urls import reverse
+
+    from dj_design_system.services.navigation import _build_navigation, find_node
+
+    with override_settings(
+        DJ_DESIGN_SYSTEM={
+            "GALLERY_INCLUDE_APPS": ["dj_design_system"],
+        }
+    ):
+        tree = _build_navigation()
+        dds_app = next((n for n in tree if n.slug == "dj_design_system"), None)
+        assert dds_app is not None
+        child_slugs = [c.slug for c in dds_app.children]
+        assert "gallery" not in child_slugs
+        assert "composites" in child_slugs
+        assert "elements" in child_slugs
+
+        elements_node = next(c for c in dds_app.children if c.slug == "elements")
+        elements_child_slugs = [c.slug for c in elements_node.children]
+        assert "elements" not in elements_child_slugs
+        button_node = next(
+            (c for c in elements_node.children if c.slug == "button"), None
+        )
+        assert button_node is not None
+        assert button_node.node_type == NodeType.COMPONENT
+        assert button_node.has_index_doc is True
+        expected_url = reverse(
+            "gallery-node",
+            kwargs={"app_label": "dj_design_system", "path": "elements/button"},
+        )
+        assert button_node.url == expected_url
+
+        composites_node = next(c for c in dds_app.children if c.slug == "composites")
+        composites_child_slugs = [c.slug for c in composites_node.children]
+        assert "composites" not in composites_child_slugs
+        canvas_node = next(
+            (c for c in composites_node.children if c.slug == "canvas_widget"), None
+        )
+        assert canvas_node is not None
+        assert canvas_node.node_type == NodeType.COMPONENT
+        assert canvas_node.has_index_doc is True
+
+        found = find_node(tree, "dj_design_system", ["elements", "button"])
+        assert found is button_node
+
+
+def test_areas_navigation():
+    """Verify Areas folder hierarchy, labels, and doc paths in navigation."""
+    from django.test import override_settings
+
+    from dj_design_system.services.navigation import (
+        _build_navigation,
+        find_node,
+        to_display_label,
+    )
+
+    assert to_display_label("areas") == "Areas"
+    assert to_display_label("index_pane") == "Index"
+
+    with override_settings(
+        DJ_DESIGN_SYSTEM={
+            "GALLERY_INCLUDE_APPS": ["dj_design_system"],
+        }
+    ):
+        tree = _build_navigation()
+        dds_app = next((n for n in tree if n.slug == "dj_design_system"), None)
+        assert dds_app is not None
+
+        areas_node = next((c for c in dds_app.children if c.slug == "areas"), None)
+        assert areas_node is not None
+        assert areas_node.label == "Areas"
+        assert areas_node.node_type == NodeType.FOLDER
+        assert areas_node.has_index_doc is True
+
+        # Check areas folders and documents
+        child_slugs = [c.slug for c in areas_node.children]
+        assert child_slugs == [
+            "docs",
+            "sandbox",
+            "templates",
+            "topbar",
+            "sidebar",
+            "tabs",
+        ]
+
+        # Verify folder nodes have index docs
+        docs_node = next(c for c in areas_node.children if c.slug == "docs")
+        assert docs_node.node_type == NodeType.FOLDER
+        assert docs_node.has_index_doc is True
+
+        sandbox_node = next(c for c in areas_node.children if c.slug == "sandbox")
+        assert sandbox_node.node_type == NodeType.FOLDER
+        assert sandbox_node.has_index_doc is True
+
+        templates_node = next(c for c in areas_node.children if c.slug == "templates")
+        assert templates_node.node_type == NodeType.FOLDER
+        assert templates_node.has_index_doc is True
+
+        # Find node verification
+        found_topbar = find_node(tree, "dj_design_system", ["areas", "topbar"])
+        assert found_topbar is not None
+        assert found_topbar.node_type == NodeType.DOCUMENT
+
+        found_docs_header = find_node(
+            tree, "dj_design_system", ["areas", "docs", "header"]
+        )
+        assert found_docs_header is not None
+        assert found_docs_header.node_type == NodeType.DOCUMENT
+
+        found_sandbox_toolbar = find_node(
+            tree, "dj_design_system", ["areas", "sandbox", "toolbar"]
+        )
+        assert found_sandbox_toolbar is not None
+        assert found_sandbox_toolbar.node_type == NodeType.DOCUMENT
+
+        found_index_pane = find_node(
+            tree, "dj_design_system", ["areas", "templates", "index_pane"]
+        )
+        assert found_index_pane is not None
+        assert found_index_pane.label == "Index"
+
+
+def test_areas_views_render(client):
+    """Verify that all Areas documentation pages render with HTTP 200."""
+    from django.test import override_settings
+    from django.urls import reverse
+
+    paths = [
+        "areas",
+        "areas/topbar",
+        "areas/sidebar",
+        "areas/tabs",
+        "areas/docs",
+        "areas/docs/header",
+        "areas/docs/usage",
+        "areas/docs/params",
+        "areas/docs/further",
+        "areas/sandbox",
+        "areas/sandbox/toolbar",
+        "areas/sandbox/canvas",
+        "areas/sandbox/params",
+        "areas/templates",
+        "areas/templates/folder",
+        "areas/templates/index_pane",
+    ]
+
+    with override_settings(
+        DJ_DESIGN_SYSTEM={
+            "GALLERY_INCLUDE_APPS": ["dj_design_system"],
+        }
+    ):
+        for path in paths:
+            url = reverse(
+                "gallery-node", kwargs={"app_label": "dj_design_system", "path": path}
+            )
+            response = client.get(url)
+            assert response.status_code == 200, (
+                f"Failed on path: {path} (status {response.status_code})"
+            )
+            assert b"gallery-canvas-error" not in response.content, (
+                f"Canvas error on path: {path}"
+            )
+
+
+def test_foundations_navigation():
+    """Verify Foundations folder hierarchy, labels, and doc paths in navigation."""
+    from django.test import override_settings
+
+    from dj_design_system.services.navigation import (
+        _build_navigation,
+        find_node,
+        to_display_label,
+    )
+
+    assert to_display_label("elevations_and_surfaces") == "Elevations & Surfaces"
+
+    with override_settings(
+        DJ_DESIGN_SYSTEM={
+            "GALLERY_INCLUDE_APPS": ["dj_design_system"],
+        }
+    ):
+        tree = _build_navigation()
+        dds_app = next((n for n in tree if n.slug == "dj_design_system"), None)
+        assert dds_app is not None
+
+        foundations_node = next(
+            (c for c in dds_app.children if c.slug == "foundations"), None
+        )
+        assert foundations_node is not None
+        assert foundations_node.label == "Foundations"
+        assert foundations_node.node_type == NodeType.FOLDER
+        assert foundations_node.has_index_doc is True
+
+        child_slugs = [c.slug for c in foundations_node.children]
+        assert child_slugs == [
+            "semantic_tokens",
+            "typography_and_spacing",
+            "layout_primitives",
+            "elevations_and_surfaces",
+        ]
+
+        found_elevations = find_node(
+            tree, "dj_design_system", ["foundations", "elevations_and_surfaces"]
+        )
+        assert found_elevations is not None
+        assert found_elevations.label == "Elevations & Surfaces"
+        assert found_elevations.node_type == NodeType.DOCUMENT
+
+
+def test_foundations_views_render(client):
+    """Verify that all Foundations documentation pages render with HTTP 200."""
+    from django.test import override_settings
+    from django.urls import reverse
+
+    paths = [
+        "foundations",
+        "foundations/semantic_tokens",
+        "foundations/typography_and_spacing",
+        "foundations/layout_primitives",
+        "foundations/elevations_and_surfaces",
+    ]
+
+    with override_settings(
+        DJ_DESIGN_SYSTEM={
+            "GALLERY_INCLUDE_APPS": ["dj_design_system"],
+        }
+    ):
+        for path in paths:
+            url = reverse(
+                "gallery-node", kwargs={"app_label": "dj_design_system", "path": path}
+            )
+            response = client.get(url)
+            assert response.status_code == 200, (
+                f"Failed on path: {path} (status {response.status_code})"
+            )
+            assert b"gallery-canvas-error" not in response.content, (
+                f"Canvas error on path: {path}"
+            )
+
+
+def test_consumer_app_ignores_builtin_folder_and_doc_maps(tmp_path):
+    """Verify FOLDER_ORDER_MAP, FOLDER_LABEL_OVERRIDES, and DOC_ORDER_MAP only apply to dj_design_system."""
+    from dj_design_system.data import NavNode
+    from dj_design_system.services.navigation import (
+        _AppTreeBuilder,
+        to_display_label,
+    )
+
+    assert (
+        to_display_label("areas_and_panes", app_label="consumer_app")
+        == "Areas and panes"
+    )
+    assert (
+        to_display_label("areas_and_panes", app_label="dj_design_system")
+        == "Areas & Panes"
+    )
+
+    consumer_root = NavNode(
+        label="Consumer",
+        slug="consumer_app",
+        node_type=NodeType.APP,
+    )
+    builder = _AppTreeBuilder(consumer_root)
+    about_folder = builder.get_or_create_folder(["about"])
+    assert about_folder.order == 0
+
+    md_file = tmp_path / "semantic_tokens.md"
+    md_file.write_text("# Tokens", encoding="utf-8")
+    builder.add_markdown(["about"], md_file)
+    assert about_folder.children[0].order == 0
+

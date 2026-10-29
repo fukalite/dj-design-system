@@ -1,6 +1,6 @@
 ---
 name: complete-work
-description: "Orchestrates completing a piece of work: enforces main branch safety, detects existing PRs vs new/stacked PRs, prompts for base and draft preferences, commits work, executes /code-review, iterates with local gemini-reviewer, opens/updates PR, monitors CI, and resolves remote review comments until all green."
+description: "Orchestrates completing a piece of work: enforces main branch safety, detects existing PRs vs new/stacked PRs, prompts for base and draft preferences, commits work, executes /code-review, opens/updates PR, monitors CI, and resolves remote review comments until all green."
 ---
 
 # Complete Work Skill
@@ -32,7 +32,7 @@ If `gh pr view` returns an open PR matching the current branch:
 1. **Identify Existing PR**: Note PR number, base branch (`baseRefName`), and draft status.
 2. **Set Base Reference**: Set `BASE_REF = baseRefName` (usually `main`, or a parent branch if already stacked).
 3. **No Duplicate Prompts**: Do **not** ask whether to create a draft PR (the PR already exists).
-4. **Proceed Directly**: Move to [Section 3: Initial Commit](#3-step-1-initial-commit). When pushing later in Section 6, you will update this existing PR.
+4. **Proceed Directly**: Move to [Section 3: Initial Commit](#3-step-1-initial-commit). When pushing later in Section 5, you will update this existing PR.
 
 ---
 
@@ -94,7 +94,7 @@ Record `IS_DRAFT = true/false`.
 
 ## 4. Step 2: Code Review Skill Execution (`/code-review`)
 
-Run the `/code-review` workflow to audit code against project styleguides and apply standard refactorings:
+Run the `/code-review` workflow in-process to audit code (`origin/${BASE_REF}...HEAD`) against project styleguides and apply standard refactorings:
 1. Inspect touched files against:
    - [layered-architecture.md](file:///home/marcel/projects/dj-design-system/conductor/code_styleguides/layered-architecture.md)
    - [dds-components.md](file:///home/marcel/projects/dj-design-system/conductor/code_styleguides/dds-components.md)
@@ -103,7 +103,7 @@ Run the `/code-review` workflow to audit code against project styleguides and ap
    - [html-css.md](file:///home/marcel/projects/dj-design-system/conductor/code_styleguides/html-css.md)
    - [javascript.md](file:///home/marcel/projects/dj-design-system/conductor/code_styleguides/javascript.md)
 2. Apply immediate refactorings to fix compliance issues, dead code, or token tier violations.
-3. Verify with `just check` and `just test`.
+3. Verify with `just check`, `just test`, and `just typecheck`.
 4. If changes were made, commit them:
    ```bash
    git commit -m "style(review): apply code-review refactors"
@@ -113,36 +113,7 @@ Run the `/code-review` workflow to audit code against project styleguides and ap
 
 ---
 
-## 5. Step 3: Local `gemini-reviewer` Subagent Loop
-
-Harness the [gemini-reviewer](file:///home/marcel/projects/dj-design-system/.agents/agents/gemini-reviewer.md) subagent to perform an independent, non-destructive audit mirroring CI:
-
-1. Invoke the subagent with the resolved `BASE_REF`:
-   ```python
-   invoke_subagent(
-       Subagents=[{
-           "TypeName": "gemini-reviewer",
-           "Role": "Local Gemini Reviewer",
-           "Prompt": f"Review the changeset against origin/{BASE_REF}...HEAD following CI review criteria."
-       }]
-   )
-   ```
-   *(Scoping to `origin/{BASE_REF}...HEAD` ensures stacked PRs are only audited for their own commits, ignoring upstream parent commits).*
-
-2. When the subagent reports back:
-   - If findings are present (`[CRITICAL]`, `[HIGH]`, or `[MEDIUM]`):
-     - Apply the recommended fixes using IDE edit tools (`replace_file_content`).
-     - Run `just check` and `just test`.
-     - Commit the fixes:
-       ```bash
-       git commit -m "fix(review): address local gemini-reviewer findings"
-       ```
-     - Re-invoke `gemini-reviewer` to re-audit.
-   - Repeat until `gemini-reviewer` issues an **all clear response** (`APPROVE` verdict with zero blocking issues).
-
----
-
-## 6. Step 4: Open or Update Pull Request
+## 5. Step 3: Open or Update Pull Request
 
 1. **Push Branch**:
    Push with explicit refspecs so `push.default = upstream` never misdirects to `main`:
@@ -168,7 +139,7 @@ Harness the [gemini-reviewer](file:///home/marcel/projects/dj-design-system/.age
 
 ---
 
-## 7. Step 5: CI Checks & Automated Remote Review
+## 6. Step 4: CI Checks & Automated Remote Review
 
 1. Monitor CI checks until all workflows complete:
    ```bash
@@ -182,7 +153,7 @@ Harness the [gemini-reviewer](file:///home/marcel/projects/dj-design-system/.age
 
 ---
 
-## 8. Step 6: Remote Feedback Resolution Loop
+## 7. Step 5: Remote Feedback Resolution Loop
 
 1. Inspect unresolved comments:
    ```bash
@@ -206,3 +177,4 @@ Harness the [gemini-reviewer](file:///home/marcel/projects/dj-design-system/.age
    - All CI checks pass cleanly (`ci-complete` passed).
    - No unresolved comments from Gemini remain.
 4. Report completion to the user with the PR URL.
+

@@ -1,0 +1,516 @@
+"""Unit tests for the built-in ``dds__tabs`` element component."""
+
+import dataclasses
+import pathlib
+import re
+
+import pytest
+from django import template
+from django.utils import safestring
+
+from dj_design_system import data, gallery
+from dj_design_system.components import base as components_base
+from dj_design_system.components.gallery.elements import tabs as tabs_package
+from dj_design_system.components.gallery.elements.tabs import tabs as tabs_module
+from dj_design_system.services import canvas as canvas_service
+from dj_design_system.services import registry as registry_service
+from tests import conftest
+
+
+APP_LABEL = "dj_design_system"
+COMPONENT_NAME = "tabs"
+QUALIFIED_NAME = "dds__tabs"
+RELATIVE_PATH = "gallery.elements.tabs"
+TEMPLATE_PATH = "dj_design_system/components/gallery/elements/tabs/tabs.html"
+CSS_MEDIA_PATH = "dj_design_system/components/gallery/elements/tabs/tabs.css"
+JS_MEDIA_PATH = "dj_design_system/components/gallery/elements/tabs/tabs.js"
+
+TABS_DIR = (
+    pathlib.Path(__file__).resolve().parent.parent.parent
+    / "dj_design_system"
+    / "components"
+    / "gallery"
+    / "elements"
+    / "tabs"
+)
+TABS_PY_PATH = TABS_DIR / "tabs.py"
+TABS_HTML_PATH = TABS_DIR / "tabs.html"
+TABS_CSS_PATH = TABS_DIR / "tabs.css"
+TABS_TS_PATH = TABS_DIR / "tabs.ts"
+TABS_INDEX_MD_PATH = TABS_DIR / "index.md"
+
+
+@dataclasses.dataclass(frozen=True)
+class TabItemStub:
+    """Typed tab item stub used to verify object attribute normalization."""
+
+    id: str
+    label: str
+    icon: str | None = None
+    badge: str | None = None
+    content: str | None = None
+
+
+def _make_registry() -> registry_service.ComponentRegistry:
+    """Create a ComponentRegistry populated with built-in dj_design_system components."""
+    reg = registry_service.ComponentRegistry()
+    conftest.discover_app_into_registry(
+        reg=reg,
+        app_name=APP_LABEL,
+        app_label=APP_LABEL,
+    )
+    return reg
+
+
+def _render_template(source: str, context: dict[str, object] | None = None) -> str:
+    """Render a Django template string with built-in dds component tags registered."""
+    reg = _make_registry()
+    engine = template.engines["django"].engine
+    lib = template.Library()
+    reg.register_templatetags(library=lib)
+    previous = engine.template_libraries.get("design_components")
+    engine.template_libraries["design_components"] = lib
+    try:
+        compiled = template.Template(
+            template_string="{% load design_components %}" + source
+        )
+        return compiled.render(context=template.Context(dict_=context or {}))
+    finally:
+        if previous is None:
+            engine.template_libraries.pop("design_components", None)
+        else:
+            engine.template_libraries["design_components"] = previous
+
+
+def _read_text(path: pathlib.Path) -> str:
+    """Read UTF-8 text from a file path."""
+    return path.read_text(encoding="utf-8")
+
+
+def _extract_rule_blocks(css_text: str, selector: str) -> list[str]:
+    """Extract CSS declaration blocks for a specific selector."""
+    return conftest.extract_css_rule_blocks(css_text=css_text, selector=selector)
+
+
+def _extract_defined_properties(block_text: str) -> dict[str, str]:
+    """Extract custom property definitions from a CSS block string."""
+    matches = re.findall(
+        pattern=r"(--[a-z0-9_-]+)\s*:\s*([^;]+);",
+        string=block_text,
+    )
+    return {name: value.strip() for name, value in matches}
+
+
+class TestTabsDiscoveryAndMetadata:
+    """Verify Tabs class exports, metadata, media, and registry discovery."""
+
+    def test_exported_from_package_init(self) -> None:
+        """Verify Tabs, TabItem, and constants are exported in tabs package."""
+        assert tabs_package.Tabs is tabs_module.Tabs
+        assert tabs_package.TabItem is tabs_module.TabItem
+        assert tabs_package.DEFAULT_VARIANT == "default"
+        assert tabs_package.VALID_VARIANTS == ["default", "switcher"]
+        assert issubclass(tabs_module.Tabs, components_base.BlockComponent)
+
+    def test_template_media_and_positional_args(self) -> None:
+        """Verify Tabs relies on co-located template_name, Media.css, Media.js, and positional_args."""
+        reg = _make_registry()
+        info = reg.get_by_name(name=COMPONENT_NAME, app_label=APP_LABEL)
+        assert info.template_name == TEMPLATE_PATH
+        assert info.media.css == [CSS_MEDIA_PATH]
+        assert info.media.js == [JS_MEDIA_PATH]
+        assert tabs_module.Tabs.get_positional_args() == ["tabs"]
+
+    def test_discovered_as_dds_tabs_in_registry(self) -> None:
+        """Verify ComponentRegistry discovers Tabs as internal dds__tabs."""
+        reg = _make_registry()
+        info = reg.get_by_name(name=COMPONENT_NAME, app_label=APP_LABEL)
+        assert info.component_class is tabs_module.Tabs
+        assert info.qualified_name == QUALIFIED_NAME
+        assert info.relative_path == RELATIVE_PATH
+        assert info.is_builtin is True
+        assert info.template_name == TEMPLATE_PATH
+        assert info.media.css == [CSS_MEDIA_PATH]
+        assert info.media.js == [JS_MEDIA_PATH]
+
+
+class TestTabsParametersAndContext:
+    """Verify parameter validation and get_context() normalization."""
+
+    def test_default_parameters_and_empty_context(self) -> None:
+        """Verify default parameters produce empty normalized_tabs and resolved_active=''."""
+        comp = tabs_module.Tabs()
+        ctx = comp.get_context()
+        assert comp.tabs is None
+        assert comp.active_tab == ""
+        assert comp.variant == "default"
+        assert ctx["variant"] == "default"
+        assert ctx["aria_label"] == "Tabs"
+        assert ctx["resolved_active"] == ""
+        assert ctx["normalized_tabs"] == []
+        assert ctx["has_inline_panels"] is False
+        assert ctx["has_slot_content"] is False
+
+    def test_variant_validation_and_assignment(self) -> None:
+        """Verify variant accepts valid choices and rejects invalid values."""
+        assert tabs_module.Tabs(variant="switcher").variant == "switcher"
+        assert tabs_module.Tabs(variant="default").variant == "default"
+        with pytest.raises(expected_exception=ValueError, match="Expected one of"):
+            tabs_module.Tabs(variant="unsupported")
+
+    def test_normalizes_dict_items_and_defaults_to_first_tab(self) -> None:
+        """Verify dict items normalize all fields and default resolved_active to first tab."""
+        comp = tabs_module.Tabs(
+            tabs=[
+                {
+                    "id": "overview",
+                    "label": "Overview",
+                    "icon": "eye",
+                    "content": "Overview panel",
+                },
+                {
+                    "id": "code",
+                    "label": "Code",
+                    "badge": "HTML",
+                    "content": "Code panel",
+                },
+            ]
+        )
+        ctx = comp.get_context()
+        assert ctx["resolved_active"] == "overview"
+        assert ctx["has_inline_panels"] is True
+        assert ctx["has_slot_content"] is False
+        assert ctx["normalized_tabs"] == [
+            {
+                "id": "overview",
+                "label": "Overview",
+                "icon": "eye",
+                "has_icon": True,
+                "badge": "",
+                "has_badge": False,
+                "content": "Overview panel",
+                "has_content": True,
+                "has_panel": True,
+                "tab_dom_id": "dds-tab-overview",
+                "panel_dom_id": "dds-panel-overview",
+                "is_active": True,
+                "aria_selected": "true",
+                "tabindex": "0",
+            },
+            {
+                "id": "code",
+                "label": "Code",
+                "icon": "",
+                "has_icon": False,
+                "badge": "HTML",
+                "has_badge": True,
+                "content": "Code panel",
+                "has_content": True,
+                "has_panel": True,
+                "tab_dom_id": "dds-tab-code",
+                "panel_dom_id": "dds-panel-code",
+                "is_active": False,
+                "aria_selected": "false",
+                "tabindex": "-1",
+            },
+        ]
+
+    def test_normalizes_typed_tab_item_dataclass(self) -> None:
+        """Verify official TabItem dataclass instances normalize correctly."""
+        comp = tabs_module.Tabs(
+            tabs=[
+                tabs_module.TabItem(
+                    id="preview",
+                    label="Preview",
+                    icon="eye",
+                    content="Preview text",
+                ),
+                tabs_module.TabItem(
+                    id="code",
+                    label="Source",
+                    badge="HTML",
+                ),
+            ]
+        )
+        ctx = comp.get_context()
+        assert ctx["normalized_tabs"][0]["has_panel"] is True
+        assert ctx["normalized_tabs"][1]["has_panel"] is False
+
+    def test_normalizes_object_items_and_honours_matching_active_tab(self) -> None:
+        """Verify object items normalize and matching active_tab selects that tab."""
+        comp = tabs_module.Tabs(
+            tabs=[
+                TabItemStub(id="first", label="First"),
+                TabItemStub(
+                    id="second",
+                    label="Second",
+                    icon="doc",
+                    badge="New",
+                ),
+            ],
+            active_tab="second",
+            aria_label="Custom tabs",
+            content=safestring.mark_safe(s="  <div role='tabpanel'>Slot</div>  "),
+        )
+        ctx = comp.get_context()
+        assert ctx["aria_label"] == "Custom tabs"
+        assert ctx["resolved_active"] == "second"
+        assert ctx["has_inline_panels"] is False
+        assert ctx["has_slot_content"] is True
+        assert ctx["normalized_tabs"][0]["is_active"] is False
+        assert ctx["normalized_tabs"][0]["aria_selected"] == "false"
+        assert ctx["normalized_tabs"][0]["tabindex"] == "-1"
+        assert ctx["normalized_tabs"][1]["is_active"] is True
+        assert ctx["normalized_tabs"][1]["aria_selected"] == "true"
+        assert ctx["normalized_tabs"][1]["tabindex"] == "0"
+        assert ctx["normalized_tabs"][1]["has_icon"] is True
+        assert ctx["normalized_tabs"][1]["has_badge"] is True
+
+    def test_unknown_active_tab_falls_back_to_first_tab(self) -> None:
+        """Verify an unrecognized active_tab falls back to the first tab's ID."""
+        comp = tabs_module.Tabs(
+            tabs=[
+                {"id": "alpha", "label": "Alpha"},
+                {"id": "beta", "label": "Beta"},
+            ],
+            active_tab="nonexistent",
+        )
+        ctx = comp.get_context()
+        assert ctx["resolved_active"] == "alpha"
+        assert ctx["normalized_tabs"][0]["is_active"] is True
+        assert ctx["normalized_tabs"][1]["is_active"] is False
+
+    def test_custom_id_prefix_scopes_tab_and_panel_dom_ids(self) -> None:
+        """Verify id_prefix scopes tab_dom_id and panel_dom_id to prevent DOM ID collisions."""
+        comp = tabs_module.Tabs(
+            tabs=[
+                {"id": "docs", "label": "Documentation", "content": "Docs"},
+                {"id": "sandbox", "label": "Sandbox", "content": "Sandbox"},
+            ],
+            id_prefix="component-view",
+        )
+        ctx = comp.get_context()
+        assert ctx["id_prefix"] == "component-view"
+        assert ctx["normalized_tabs"][0]["tab_dom_id"] == "component-view-tab-docs"
+        assert ctx["normalized_tabs"][0]["panel_dom_id"] == "component-view-panel-docs"
+        assert ctx["normalized_tabs"][1]["tab_dom_id"] == "component-view-tab-sandbox"
+        assert (
+            ctx["normalized_tabs"][1]["panel_dom_id"] == "component-view-panel-sandbox"
+        )
+
+    def test_invalid_tabs_type_raises_type_error(self) -> None:
+        """Verify passing a non-list to tabs raises TypeError."""
+        with pytest.raises(expected_exception=TypeError, match="Expected list"):
+            tabs_module.Tabs(tabs="invalid")
+
+    def test_python_module_contains_no_html_building_or_child_instantiation(
+        self,
+    ) -> None:
+        """Verify tabs.py contains no HTML string building or child component imports."""
+        py_text = _read_text(path=TABS_PY_PATH)
+        assert "format_html" not in py_text
+        assert "mark_safe" not in py_text
+        assert "Icon(" not in py_text
+        assert "Badge(" not in py_text
+
+
+class TestTabsRenderingAndTemplate:
+    """Verify template tag rendering, child composition, panel branching, and purity."""
+
+    def test_renders_tablist_triggers_and_inline_panels(self) -> None:
+        """Verify <dds-tabs>, tablist, tab triggers, icons, badges, and inline panels render."""
+        items = [
+            {
+                "id": "preview",
+                "label": "Preview",
+                "icon": "eye",
+                "content": "Preview body",
+            },
+            {
+                "id": "code",
+                "label": "Source",
+                "badge": "2",
+                "content": "Source body",
+            },
+        ]
+        html = _render_template(
+            source='{% dds__tabs tabs active_tab="code" aria_label="View modes" %}{% enddds__tabs %}',
+            context={"tabs": items},
+        )
+        assert (
+            '<dds-tabs class="dds-tabs" data-variant="default" data-active-tab="code">'
+        ) in html
+        assert '<div role="tablist" aria-label="View modes" class="l-cluster">' in html
+        assert (
+            '<button type="button" role="tab" id="dds-tab-preview" '
+            'data-tab-trigger="preview" aria-selected="false" '
+            'aria-controls="dds-panel-preview" tabindex="-1">'
+        ) in html
+        assert (
+            '<button type="button" role="tab" id="dds-tab-code" '
+            'data-tab-trigger="code" aria-selected="true" '
+            'aria-controls="dds-panel-code" tabindex="0">'
+        ) in html
+        assert 'data-icon="eye"' in html
+        assert 'data-size="sm"' in html
+        assert 'class="dds-badge"' in html
+        assert (
+            '<div role="tabpanel" id="dds-panel-preview" '
+            'data-tab-panel="preview" aria-labelledby="dds-tab-preview" hidden>'
+            "Preview body</div>"
+        ) in html
+        assert (
+            '<div role="tabpanel" id="dds-panel-code" '
+            'data-tab-panel="code" aria-labelledby="dds-tab-code">'
+            "Source body</div>"
+        ) in html
+
+    def test_renders_standalone_switcher_without_aria_controls(self) -> None:
+        """Verify panel-less switcher mode renders data-variant='switcher' and no aria-controls."""
+        items = [
+            {"id": "docs", "label": "Docs"},
+            {"id": "sandbox", "label": "Sandbox"},
+        ]
+        html = _render_template(
+            source=(
+                '{% dds__tabs tabs=items variant="switcher" '
+                'aria_label="View switcher" %}{% enddds__tabs %}'
+            ),
+            context={"items": items},
+        )
+        assert (
+            '<dds-tabs class="dds-tabs" data-variant="switcher" data-active-tab="docs">'
+        ) in html
+        assert "aria-controls=" not in html
+
+    def test_renders_slotted_custom_panels(self) -> None:
+        """Verify block body content renders when supplied by the caller."""
+        items = [
+            {"id": "one", "label": "One"},
+            {"id": "two", "label": "Two"},
+        ]
+        html = _render_template(
+            source=(
+                "{% dds__tabs tabs=items %}"
+                '<div role="tabpanel" id="dds-panel-one" data-tab-panel="one">Custom 1</div>'
+                "{% enddds__tabs %}"
+            ),
+            context={"items": items},
+        )
+        assert (
+            '<div role="tabpanel" id="dds-panel-one" data-tab-panel="one">Custom 1</div>'
+            in html
+        )
+
+    def test_escapes_untrusted_labels_and_inline_content(self) -> None:
+        """Verify untrusted HTML in tab labels and string content is escaped."""
+        items = [
+            {
+                "id": "xss",
+                "label": "<script>alert(1)</script>",
+                "content": "<img src=x onerror=alert(1)>",
+            }
+        ]
+        html = _render_template(
+            source="{% dds__tabs tabs=items %}{% enddds__tabs %}",
+            context={"items": items},
+        )
+        assert "<script>" not in html
+        assert "&lt;script&gt;alert(1)&lt;/script&gt;" in html
+        assert "&lt;img src=x onerror=alert(1)&gt;" in html
+
+    def test_template_contains_no_filters_or_bem(self) -> None:
+        """Verify tabs.html loads design_components and has zero filters or BEM classes."""
+        template_text = _read_text(path=TABS_HTML_PATH)
+        assert template_text.startswith("{% load design_components %}")
+        assert "|" not in template_text
+        bem_matches = re.findall(
+            pattern=r"\.[a-z0-9-]+(?:__|--)[a-z0-9-]+",
+            string=template_text,
+        )
+        assert not bem_matches
+
+
+class TestTabsStylesheet:
+    """Verify CUBE CSS @layer blocks, Tier 3 tokens, and formatting in tabs.css."""
+
+    def test_wrapped_in_layer_blocks_and_sets_block_display_and_zero_margin(
+        self,
+    ) -> None:
+        """Verify tabs.css wraps rules in @layer blocks and sets display: block; margin: 0."""
+        css_text = _read_text(path=TABS_CSS_PATH)
+        assert css_text.startswith("@layer blocks {")
+        root_blocks = _extract_rule_blocks(css_text=css_text, selector="dds-tabs")
+        assert root_blocks
+        assert "display: block;" in root_blocks[0]
+        assert "margin: 0;" in root_blocks[0]
+
+    def test_tier_3_tokens_map_exclusively_from_tier_2_tokens(self) -> None:
+        """Verify all --_tabs-* tokens map exclusively from Tier 2 --dds-* tokens."""
+        css_text = _read_text(path=TABS_CSS_PATH)
+        assert "--_dds-" not in css_text
+        root_blocks = _extract_rule_blocks(css_text=css_text, selector="dds-tabs")
+        root_props = _extract_defined_properties(block_text="\n".join(root_blocks))
+        assert root_props
+        for name, value in root_props.items():
+            assert name.startswith("--_tabs-")
+            assert value.startswith("var(--dds-")
+
+        for required_domain in (
+            "var(--dds-surface-",
+            "var(--dds-control-",
+            "var(--dds-state-",
+            "var(--dds-text-",
+            "var(--dds-space-",
+        ):
+            assert required_domain in css_text
+
+    def test_styles_role_tab_and_boundary_encapsulation(
+        self,
+    ) -> None:
+        """Verify [role='tab'] and [role='tab'][aria-selected='true'] rules and child component boundary encapsulation."""
+        css_text = _read_text(path=TABS_CSS_PATH)
+        assert _extract_rule_blocks(css_text=css_text, selector="dds-tabs [role='tab']")
+        assert _extract_rule_blocks(
+            css_text=css_text,
+            selector="dds-tabs [role='tab'][aria-selected='true']",
+        )
+        assert ".dds-icon" not in css_text
+        assert ".dds-badge" not in css_text
+        assert "data-variant='switcher'" in css_text
+        assert "--_tabs-switcher-border-color" in css_text
+
+
+class TestTabsGalleryAndDocs:
+    """Verify co-located gallery.py and index.md for dds__tabs."""
+
+    def test_gallery_config_variants_render(self) -> None:
+        """Verify gallery.py exports a valid GalleryConfig whose variants all render."""
+        reg = _make_registry()
+        cfg = gallery.load_gallery_config(
+            source_dir=TABS_DIR,
+            component_name=COMPONENT_NAME,
+        )
+        assert isinstance(cfg, gallery.GalleryConfig)
+        assert len(cfg.variants) == 2
+        for variant in cfg.variants:
+            spec = data.CanvasSpec(
+                component_name=QUALIFIED_NAME,
+                variant=variant.name,
+            )
+            rendered = canvas_service.render_component(
+                spec=spec,
+                registry=reg,
+                raise_errors=True,
+            )
+            assert '<dds-tabs class="dds-tabs"' in rendered
+
+    def test_index_md_exists_and_documents_component(self) -> None:
+        """Verify index.md exists and documents dds__tabs, <dds-tabs>, and parameters."""
+        doc_text = _read_text(path=TABS_INDEX_MD_PATH)
+        assert "dds__tabs" in doc_text
+        assert "<dds-tabs>" in doc_text
+        assert "tabs" in doc_text
+        assert "active_tab" in doc_text
+        assert "aria_label" in doc_text
+        assert "dds:tab-change" in doc_text

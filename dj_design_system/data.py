@@ -89,6 +89,27 @@ class ComponentInfo:
     namespace_remaining_parts: tuple[str, ...] | None = None
     flatten_strategy: FlattenStrategy = FlattenStrategy.NONE
 
+    @cached_property
+    def is_builtin(self) -> bool:
+        """Return True for built-in framework components.
+
+        Built-in components are registered only under their qualified name,
+        ignored by short-name lookups, and excluded from ``get_media()``.
+        """
+        from dj_design_system.services.component import is_builtin
+
+        return is_builtin(self.component_class, app_label=self.app_label)
+
+    @property
+    def class_name(self) -> str:
+        """Return the Python component class name."""
+        return self.component_class.__name__
+
+    @property
+    def available_themes(self) -> list[str]:
+        """Return the list of theme values supported by this component."""
+        return self.component_class.get_available_themes()
+
     @property
     def gallery_basic_kwargs(self) -> dict[str, Any]:
         warnings.warn(
@@ -229,7 +250,10 @@ class ComponentInfo:
                     template_base_name = candidate[: -len(ext)]
                     target.append(
                         build_static_url(
-                            self.app_label, self.relative_path, template_base_name, ext
+                            app_label=self.app_label,
+                            relative_path=self.relative_path,
+                            name=template_base_name,
+                            ext=ext,
                         )
                     )
                     break
@@ -353,4 +377,83 @@ class NavNode:
 
     @property
     def has_index_doc(self) -> bool:
-        return self.index_doc_path is not None
+        return self.index_doc_path is not None and self.index_doc_path.is_file()
+
+
+def format_param_type_name(param_type: Any, fallback: str = "any") -> str:
+    """Format a Python type, tuple of types, or string into a human-readable type label."""
+    if isinstance(param_type, str) and param_type:
+        return param_type
+    if isinstance(param_type, tuple) and param_type:
+        return " | ".join(getattr(t, "__name__", str(t)) for t in param_type)
+    if getattr(param_type, "__name__", None):
+        return str(getattr(param_type, "__name__"))
+    if param_type is not None:
+        return str(param_type)
+    return fallback
+
+
+@dataclass(frozen=True)
+class ParamSpecData:
+    """Immutable view of a component parameter specification."""
+
+    description: str
+    required: bool
+    type_name: str
+    default: Any = None
+    choices: list[Any] | tuple[Any, ...] | None = None
+
+    @classmethod
+    def from_param(cls, spec_param: Any) -> ParamSpecData:
+        """Create a ``ParamSpecData`` from a ``BaseParam``, dict, or existing instance."""
+        if isinstance(spec_param, cls):
+            return spec_param
+        if isinstance(spec_param, dict):
+            param_type = spec_param.get("type")
+            raw_type_name = spec_param.get("type_name")
+            return cls(
+                description=str(spec_param.get("description") or ""),
+                required=bool(spec_param.get("required", False)),
+                type_name=(
+                    str(raw_type_name)
+                    if raw_type_name
+                    else format_param_type_name(param_type)
+                ),
+                default=spec_param.get("default"),
+                choices=spec_param.get("choices"),
+            )
+        param_type = getattr(spec_param, "type", type(spec_param))
+        raw_type_name = getattr(spec_param, "type_name", None)
+        return cls(
+            description=str(getattr(spec_param, "description", "") or ""),
+            required=bool(getattr(spec_param, "required", False)),
+            type_name=(
+                str(raw_type_name)
+                if raw_type_name
+                else format_param_type_name(param_type)
+            ),
+            default=getattr(spec_param, "default", None),
+            choices=getattr(spec_param, "choices", None),
+        )
+
+
+@dataclass(frozen=True)
+class ParamRowData:
+    """Immutable parameter row combining a parameter name, spec, and bound form field."""
+
+    name: str
+    spec: ParamSpecData
+    field: Any = None
+
+    def __getitem__(self, key: str) -> Any:
+        if key in ("name", "spec", "field"):
+            return getattr(self, key)
+        raise KeyError(key)
+
+    def __contains__(self, key: object) -> bool:
+        return key in ("name", "spec", "field")
+
+    def get(self, key: str, default: Any = None) -> Any:
+        if key in ("name", "spec", "field"):
+            return getattr(self, key)
+        return default

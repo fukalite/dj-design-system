@@ -1,0 +1,15 @@
+<l-stack data-docs-stack>
+{% if active_variant %}
+    {% include "dj_design_system/gallery/panes/docs/header.html" %}
+{% else %}
+    {% include "dj_design_system/gallery/panes/docs/header.html" %}
+    <hr data-docs-divider>
+    {% include "dj_design_system/gallery/panes/docs/usage.html" %}
+{% endif %}
+<hr data-docs-divider>
+{% include "dj_design_system/gallery/panes/docs/params.html" %}
+{% if doc_html %}
+    <hr data-docs-divider>
+    {% include "dj_design_system/gallery/panes/docs/further.html" %}
+{% endif %}
+</l-stack>

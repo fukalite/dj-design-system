@@ -1,5 +1,21 @@
-# Code stylguides
-There are clear styleguides to follow, you can find them in `conductor/code_styleguides`. For Python/Django code, follow `layered-architecture.md`.
+# Code Styleguides
+All contributions must strictly follow the domain styleguides in `conductor/code_styleguides/`:
+- [html-css.md](../conductor/code_styleguides/html-css.md): HTML5 semantics, CUBE CSS layers, native nesting (`&`), zero-leakage component encapsulation, Stylelint rules, and 5-group property ordering.
+- [dds-components.md](../conductor/code_styleguides/dds-components.md): Built-in `dds` gallery components (`elements/` & `composites/`), 100% co-location, Every Layout (`<l-*>`), 3-tier token hierarchy (`--dds-*`), Light DOM Web Components, and Page Mediators.
+- [layered-architecture.md](../conductor/code_styleguides/layered-architecture.md): Service and business logic layering, keyword-only signatures (`*`), precise typing (`Sequence[...]` over `list[Any]`).
+- [python.md](../conductor/code_styleguides/python.md): Python conventions, keyword call sites, dataclasses, pytest assertions.
+- [javascript.md](../conductor/code_styleguides/javascript.md): Strict TypeScript (`.ts`) compilation, Light DOM Web Components, Page Mediators, and Vitest (`happy-dom`) behavioural testing (`tests/ts/`).
+- [general.md](../conductor/code_styleguides/general.md): General engineering best practices, outcome-oriented naming, guard clauses, relative links.
+- [example-project.md](../conductor/code_styleguides/example-project.md): Showcase and consumer integration testing standards.
+
+## Authoritative Front-End Foundations & Gallery Architecture
+For detailed design system foundations, layout primitives, design tokens, and gallery chrome/viewport architecture, refer to the user-facing documents:
+- [Design System Foundations](../dj_design_system/components/gallery/foundations/index.md): Core architectural pillars, CUBE CSS cascade layers, and static file organisation.
+  - [Semantic Tokens & Naming Scheme](../dj_design_system/components/gallery/foundations/semantic_tokens.md): 3-tier hierarchy, token grammar, semantic domains, and live specimens.
+  - [Typography & Spacing System](../dj_design_system/components/gallery/foundations/typography_and_spacing.md): Font purposes, text roles, modular spacing scale (`3xs` to `3xl`), gaps, and insets.
+  - [Layout Primitives (Every Layout)](../dj_design_system/components/gallery/foundations/layout_primitives.md): The 11 intrinsic `<l-*>` composition elements, control variables, and examples.
+  - [Elevations & Surfaces](../dj_design_system/components/gallery/foundations/elevations_and_surfaces.md): Stacking layers (`z-index`), shadow geometry, and contextual `[data-surface]` delegation.
+- [Areas & Panes](../dj_design_system/components/gallery/areas/index.md): Structural chrome areas (`topbar`, `sidebar`, `tabs`), content panes (`docs`, `sandbox`, `folder`, `index`, `prose`), shell layout orchestration, and template overrides.
 
 # Agent Behaviours & Persona
 

@@ -77,12 +77,16 @@ def submit_feedback(*, sender: User, recipient: User, message: str) -> Feedback:
         feedback = feedback_service.create_feedback(
             sender=sender, recipient=recipient, message=message
         )
-        transaction.on_commit(lambda: notification_service.send_notification(
-            recipient=recipient, message="You have new feedback."
-        ))
-        transaction.on_commit(lambda: notification_service.send_notification(
-            recipient=sender, message="Thanks, we've received your feedback."
-        ))
+        transaction.on_commit(
+            lambda: notification_service.send_notification(
+                recipient=recipient, message="You have new feedback."
+            )
+        )
+        transaction.on_commit(
+            lambda: notification_service.send_notification(
+                recipient=sender, message="Thanks, we've received your feedback."
+            )
+        )
     return feedback
 ```
 
@@ -111,7 +115,9 @@ def submit_feedback(request: HttpRequest, pk: int) -> HttpResponse:
 
     try:
         feedback_logic.submit_feedback(
-            sender=request.user, recipient=recipient, message=form.cleaned_data["message"]
+            sender=request.user,
+            recipient=recipient,
+            message=form.cleaned_data["message"],
         )
     except FeedbackNotAllowed:
         raise PermissionDenied

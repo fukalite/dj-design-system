@@ -1,0 +1,295 @@
+/**
+ * @fileoverview Light DOM `<dds-canvas-widget>` custom element for switching
+ * preview/code/HTML panels and handling iframe `postMessage` auto-resizing.
+ */
+
+import type { DDSCustomElement } from '../../types.js';
+
+/** Structure of resize messages posted by the isolated preview iframe. */
+interface CanvasResizeMessage {
+  /** Message discriminator (`'canvas-resize'`). */
+  readonly type?: string;
+  /** Optional canvas identifier matching `data-canvas-id`. */
+  readonly id?: string;
+  /** Reported document height in pixels. */
+  readonly height?: number | string;
+}
+
+/** Stage configuration state for the interactive sandbox canvas. */
+export interface CanvasStageState {
+  background?: string;
+  viewport?: string;
+  zoom?: string;
+  outline?: boolean;
+  measure?: boolean;
+  rtl?: boolean;
+}
+
+/**
+ * Light DOM custom element enhancing `<dds-canvas-widget>` with mode panel
+ * toggling, iframe `postMessage` resize handling, and stage preset helpers.
+ */
+export class DDSCanvasWidgetElement
+  extends HTMLElement
+  implements DDSCustomElement {
+  /** Instance AbortController used to clean up listeners on disconnect. */
+  private abortController: AbortController | null = null;
+
+  /** Whether box-model outline overlay is active in the stage iframe. */
+  private outlineActive = false;
+
+  /** Whether measurement grid overlay is active in the stage iframe. */
+  private measureActive = false;
+
+  /** Whether right-to-left direction is active in the stage iframe. */
+  private rtlActive = false;
+
+  /**
+   * Attaches idempotent mode button and `window` message listeners.
+   */
+  connectedCallback(): void {
+    this.abortController?.abort();
+    this.abortController = new AbortController();
+    const { signal } = this.abortController;
+
+    if (this.dataset.viewport) {
+      this.setViewport(this.dataset.viewport);
+    }
+
+    const buttons = this.querySelectorAll<HTMLButtonElement>(
+      '[data-canvas-mode]',
+    );
+    for (const button of buttons) {
+      button.addEventListener(
+        'click',
+        () => {
+          const mode = button.dataset.canvasMode;
+          if (mode) {
+            this.handleModeClick(mode);
+          }
+        },
+        { signal },
+      );
+    }
+
+    window.addEventListener(
+      'message',
+      (event: MessageEvent) => {
+        this.handleMessage(event);
+      },
+      { signal },
+    );
+
+    const iframe = this.querySelector<HTMLIFrameElement>(
+      '[data-canvas-iframe]',
+    );
+    if (iframe) {
+      iframe.addEventListener(
+        'load',
+        () => {
+          this.postStageState();
+        },
+        { signal },
+      );
+      this.postStageState();
+    }
+
+    this.dispatchEvent(new CustomEvent('dds:canvas-ready', { bubbles: true }));
+  }
+
+  /**
+   * Aborts active event listeners when disconnected from the DOM.
+   */
+  disconnectedCallback(): void {
+    this.abortController?.abort();
+    this.abortController = null;
+  }
+
+  /**
+   * Updates `data-viewport` and `--_canvas-widget-viewport-width`.
+   *
+   * @param {string} viewport Target viewport preset (`'responsive'` or px).
+   */
+  setViewport(viewport: string): void {
+    this.dataset.viewport = viewport;
+    const width = viewport === 'responsive' ? '100%' : `${viewport}px`;
+    this.style.setProperty('--_canvas-widget-viewport-width', width);
+  }
+
+  /**
+   * Updates `data-background` and posts the updated stage state to the iframe.
+   *
+   * @param {string} background Target background preset identifier.
+   */
+  setBackground(background: string): void {
+    this.dataset.background = background;
+    this.postStageState();
+  }
+
+  /**
+   * Updates `data-zoom` and posts the updated stage state to the iframe.
+   *
+   * @param {string} zoom Target zoom percentage string.
+   */
+  setZoom(zoom: string): void {
+    this.dataset.zoom = zoom;
+    this.postStageState();
+  }
+
+  /**
+   * Applies a complete or partial stage state snapshot and posts it to the
+   * preview iframe via `postMessage`.
+   *
+   * @param {!CanvasStageState} state Stage state snapshot to apply.
+   */
+  setStageState(state: CanvasStageState): void {
+    if (state.viewport) {
+      this.setViewport(state.viewport);
+    }
+    if (state.background) {
+      this.dataset.background = state.background;
+    }
+    if (state.zoom) {
+      this.dataset.zoom = state.zoom;
+    }
+    if (state.outline !== undefined) {
+      this.outlineActive = Boolean(state.outline);
+    }
+    if (state.measure !== undefined) {
+      this.measureActive = Boolean(state.measure);
+    }
+    if (state.rtl !== undefined) {
+      this.rtlActive = Boolean(state.rtl);
+    }
+    this.postStageState();
+  }
+
+  /**
+   * Posts the current stage configuration (`dds:canvas-stage`) to the preview
+   * iframe's `contentWindow`.
+   */
+  postStageState(): void {
+    const iframe = this.querySelector<HTMLIFrameElement>(
+      '[data-canvas-iframe]',
+    );
+    if (!iframe || !iframe.contentWindow) {
+      return;
+    }
+    iframe.contentWindow.postMessage(
+      {
+        type: 'dds:canvas-stage',
+        background: this.dataset.background ?? '',
+        zoom: this.dataset.zoom ?? '',
+        outline: this.outlineActive,
+        measure: this.measureActive,
+        rtl: this.rtlActive,
+      },
+      '*',
+    );
+  }
+
+  /**
+   * Switches the active panel mode, updates `aria-pressed` and `hidden`
+   * states, and dispatches `dds:canvas-mode-change`.
+   *
+   * @param {string} mode Selected mode (`'preview'`, `'code'`, or `'html'`).
+   */
+  private handleModeClick(mode: string): void {
+    this.dataset.mode = mode;
+    const buttons = this.querySelectorAll<HTMLButtonElement>(
+      '[data-canvas-mode]',
+    );
+    for (const button of buttons) {
+      const isPressed = button.dataset.canvasMode === mode;
+      button.setAttribute('aria-pressed', isPressed ? 'true' : 'false');
+    }
+
+    const stage = this.querySelector<HTMLElement>('[data-canvas-stage]');
+    if (stage) {
+      stage.hidden = mode !== 'preview';
+    }
+    const codePanel = this.querySelector<HTMLElement>(
+      `[data-canvas-panel='code']`,
+    );
+    if (codePanel) {
+      codePanel.hidden = mode !== 'code';
+    }
+    const htmlPanel = this.querySelector<HTMLElement>(
+      `[data-canvas-panel='html']`,
+    );
+    if (htmlPanel) {
+      htmlPanel.hidden = mode !== 'html';
+    }
+
+    const canvasId = this.dataset.canvasId ?? 'canvas';
+    this.dispatchEvent(
+      new CustomEvent('dds:canvas-mode-change', {
+        bubbles: true,
+        detail: { canvasId, mode },
+      }),
+    );
+  }
+
+  /**
+   * Handles `{ type: 'canvas-resize', id?, height }` `postMessage` events from
+   * the preview iframe, clamping height to at least 24px.
+   *
+   * @param {MessageEvent} event Window `message` event.
+   */
+  private handleMessage(event: MessageEvent): void {
+    if (!event.data || typeof event.data !== 'object') {
+      return;
+    }
+    const data = event.data as CanvasResizeMessage;
+    if (data.type !== 'canvas-resize') {
+      return;
+    }
+    const iframe = this.querySelector<HTMLIFrameElement>(
+      '[data-canvas-iframe]',
+    );
+    if (!iframe) {
+      return;
+    }
+    const matchesId = data.id === this.dataset.canvasId;
+    const matchesSource =
+      iframe.contentWindow !== null &&
+      event.source === iframe.contentWindow;
+    if (!matchesId && !matchesSource) {
+      return;
+    }
+
+    const clampedHeight = Math.max(24, Number(data.height));
+    if (Number.isNaN(clampedHeight)) {
+      return;
+    }
+    this.applyIframeHeight(iframe, clampedHeight);
+  }
+
+  /**
+   * Applies a clamped pixel height to the iframe, CSS variable, and event.
+   *
+   * @param {HTMLIFrameElement} iframe Target preview iframe element.
+   * @param {number} clampedHeight Clamped height in pixels (>= 24).
+   */
+  private applyIframeHeight(
+    iframe: HTMLIFrameElement,
+    clampedHeight: number,
+  ): void {
+    iframe.style.height = `${clampedHeight}px`;
+    this.style.setProperty(
+      '--_canvas-widget-iframe-height',
+      `${clampedHeight}px`,
+    );
+    const canvasId = this.dataset.canvasId ?? 'canvas';
+    this.dispatchEvent(
+      new CustomEvent('dds:canvas-resize', {
+        bubbles: true,
+        detail: { canvasId, height: clampedHeight },
+      }),
+    );
+  }
+}
+
+if (!customElements.get('dds-canvas-widget')) {
+  customElements.define('dds-canvas-widget', DDSCanvasWidgetElement);
+}
