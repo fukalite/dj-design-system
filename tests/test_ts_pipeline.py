@@ -25,6 +25,7 @@ PYPROJECT_PATH = ROOT_DIR / "pyproject.toml"
 PUBLISH_WORKFLOW_PATH = ROOT_DIR / ".github" / "workflows" / "publish.yml"
 PUBLISH_TEST_WORKFLOW_PATH = ROOT_DIR / ".github" / "workflows" / "publish-test.yml"
 DOCS_WORKFLOW_PATH = ROOT_DIR / ".github" / "workflows" / "docs.yml"
+PR_LABELS_WORKFLOW_PATH = ROOT_DIR / ".github" / "workflows" / "pr-labels.yml"
 DOCS_DIR = ROOT_DIR / "docs"
 COMPONENTS_DIR = ROOT_DIR / "dj_design_system" / "components"
 SHARED_TYPES_PATH = COMPONENTS_DIR / "gallery" / "types.ts"
@@ -283,3 +284,10 @@ class TestPackageArtifactsAndReleaseWorkflows:
                 assert resolved.exists(), (
                     f"{md_file.relative_to(ROOT_DIR)} links to missing file {target!r}"
                 )
+
+    def test_pr_labels_workflow_auto_labels_dependabot_prs(self) -> None:
+        """Verify pr-labels.yml grants write permission and auto-labels Dependabot PRs."""
+        content = PR_LABELS_WORKFLOW_PATH.read_text(encoding="utf-8")
+        assert "pull-requests: write" in content
+        assert "Auto-label Dependabot PRs" in content
+        assert "labels[]=dependencies" in content
