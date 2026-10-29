@@ -119,6 +119,13 @@ def get_base_context(
         "gallery_ui_theme_disabled_label": (
             f"{ui_theme_obj.label} theme does not support dark mode"
         ),
+        "component_available_themes": None,
+        "component_available_themes_csv": "",
+        "available_theme_labels": [],
+        "available_theme_labels_str": "",
+        "is_theme_restricted": False,
+        "is_theme_overridden": False,
+        "theme_override_message": "",
         "component_tabs": [
             {"id": "docs", "label": "Documentation"},
             {"id": "sandbox", "label": "Sandbox"},
@@ -220,4 +227,3 @@ def gallery_node(
         return render_document_node(request, context, node, app_label, path_parts)
 
     return render_folder_node(request, context, node, app_label, path_parts)
-

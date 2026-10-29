@@ -70,9 +70,11 @@ def _build_widget_html(
         "unique_id": unique_id,
         "source_html": source,
         "rendered_output_html": rendered_html.strip(),
+        "iframe_src": "",
         "iframe_srcdoc": srcdoc,
         "iframe_srcdoc_light": srcdoc_light,
         "iframe_srcdoc_dark": srcdoc_dark,
+        "sandbox_attrs": "",
         "background": background,
     }
     return render_to_string("dj_design_system/canvas_widget.html", context)

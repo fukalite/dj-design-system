@@ -334,6 +334,48 @@ class TestNavTreeParametersAndContext:
 
         assert nodes[2]["resolved_icon"] == "component"
 
+    def test_component_with_only_document_children_has_variants_false_and_component_icon(
+        self,
+    ) -> None:
+        """Verify a component whose only child is a document gets has_variants=False and resolved_icon='component'."""
+        doc_node = data.NavNode(
+            label="Overview",
+            slug="overview",
+            node_type=types.NodeType.DOCUMENT,
+            doc_path=pathlib.Path("overview.md"),
+        )
+        comp_node = data.NavNode(
+            label="Button",
+            slug="button",
+            node_type=types.NodeType.COMPONENT,
+            component=conftest.make_info("button"),
+            children=[doc_node],
+            url="/gallery/app/button/",
+            active_path="app/button",
+        )
+        assert comp_node.has_variants is False
+
+        parsed = nav_tree_module.NavTreeNode.from_raw(comp_node)
+        assert parsed.has_variants is False
+
+        tree = [comp_node]
+        comp = nav_tree_module.NavTree(nodes=tree)
+        ctx = comp.get_context()
+        normalized = ctx["normalized_nodes"][0]
+
+        assert normalized["resolved_icon"] == "component"
+        assert normalized["node_kind"] == "folder"
+
+        html = comp.render()
+        assert 'data-icon="component-variants"' not in html
+        assert 'data-icon="component"' in html
+
+        from dj_design_system.services.navigation import normalize_folder_items
+
+        folder_items = normalize_folder_items(items=[comp_node])
+        assert folder_items[0]["icon"] == "component"
+        assert folder_items[0]["node_kind"] == "component"
+
     def test_invalid_nodes_type_raises_type_error(self) -> None:
         """Verify passing a non-list to nodes raises TypeError."""
         with pytest.raises(expected_exception=TypeError, match="Expected list"):
@@ -582,6 +624,27 @@ class TestNavTreeStylesheet:
         )
         assert "& [data-nav-link]" in css_text
         assert "dds-nav-tree [" not in css_text
+
+    def test_sidebar_scroll_container_padding_at_panel_edge(self) -> None:
+        """Verify sidebar body sets padding: 0; and delegates padding to child nav."""
+        sidebar_css_path = (
+            pathlib.Path(__file__).resolve().parent.parent.parent
+            / "dj_design_system"
+            / "static"
+            / "dj_design_system"
+            / "areas"
+            / "sidebar.css"
+        )
+        css_text = _read_text(path=sidebar_css_path)
+        body_rule_index = css_text.find("& [data-sidebar-body] {")
+        footer_rule_index = css_text.find("& [data-sidebar-footer] {")
+        assert body_rule_index != -1
+        assert footer_rule_index > body_rule_index
+        body_block = css_text[body_rule_index:footer_rule_index]
+        assert "padding: 0;" in body_block
+        assert "& nav {" in body_block
+        assert "padding-block: var(--_sidebar-padding-block);" in body_block
+        assert "padding-inline: var(--_sidebar-padding-inline);" in body_block
 
 
 class TestNavTreeGalleryAndDocs:

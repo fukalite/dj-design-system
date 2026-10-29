@@ -2,38 +2,26 @@
 <section data-docs-section="usage">
     <l-stack>
     <h2 data-docs-heading>Usage</h2>
-    <section class="dds-usage-example">
-        <l-stack>
-        <h4 data-usage-title>Minimal example</h4>
-        <div data-usage-preview data-surface="stage">
-            <iframe src="{{ minimal_preview_url }}"
-                    name="minimal"
-                    data-canvas-id="minimal"
-                    title="Minimal example preview"></iframe>
-            <div data-usage-sandbox-link>
-                {% dds__button label="Open in sandbox" icon="external-link" icon_only=True variant="ghost" size="sm" href=minimal_preview_url %}
-            </div>
-        </div>
-        {% dds__code_block code=tag_signature.minimal language="django" %}
-        </l-stack>
-    </section>
-    {% if tag_signature.maximal != tag_signature.minimal %}
+    {% for example in usage_examples %}
         <section class="dds-usage-example">
             <l-stack>
-            <h4 data-usage-title>All parameters</h4>
+            <h4 data-usage-title>{{ example.label }}</h4>
+            {% if example.description %}
+                <div data-usage-description>{{ example.description }}</div>
+            {% endif %}
             <div data-usage-preview data-surface="stage">
-                <iframe src="{{ maximal_preview_url }}"
-                        name="maximal"
-                        data-canvas-id="maximal"
-                        title="All parameters preview"></iframe>
+                <iframe src="{{ example.preview_url }}"
+                        name="{{ example.canvas_id }}"
+                        data-canvas-id="{{ example.canvas_id }}"
+                        title="{{ example.label }} preview"></iframe>
                 <div data-usage-sandbox-link>
-                    {% dds__button label="Open in sandbox" icon="external-link" icon_only=True variant="ghost" size="sm" href=maximal_preview_url %}
+                    {% dds__button label="Open in sandbox" icon="external-link" icon_only=True variant="ghost" size="sm" href=example.preview_url %}
                 </div>
             </div>
-            {% dds__code_block code=tag_signature.maximal language="django" %}
+            {% dds__code_block code=example.code language="django" %}
             </l-stack>
         </section>
-    {% endif %}
+    {% endfor %}
     {% if component_info.qualified_name != component_info.name and not component_info.is_builtin %}
         <section class="dds-usage-example">
             <l-stack>

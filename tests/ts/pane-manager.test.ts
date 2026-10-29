@@ -86,7 +86,6 @@ describe('PaneManager', () => {
 
     controller.abort();
   });
-
   it('restores dds-nav-expanded-state from localStorage on connect()', () => {
     window.localStorage.setItem(
       'dds-nav-expanded-state',
@@ -207,6 +206,89 @@ describe('PaneManager', () => {
     );
     expect(saved).toEqual({
       'folder-1': 'open',
+    });
+
+    controller.abort();
+  });
+
+  it('scrolls [data-gallery-pane-body] via scrollBy when receiving canvas-scroll message', () => {
+    const host = document.createElement('div');
+    host.innerHTML = `
+      <div data-gallery-pane-body>
+        <iframe data-canvas-id="doc-canvas-1" src="about:blank"></iframe>
+      </div>
+    `;
+    document.body.appendChild(host);
+
+    const paneBody = host.querySelector<HTMLElement>('[data-gallery-pane-body]')!;
+    const scrollBySpy = vi.fn();
+    paneBody.scrollBy = scrollBySpy;
+
+    const manager = new PaneManager(host);
+    const controller = new AbortController();
+    manager.connect(controller.signal);
+
+    const iframe = host.querySelector<HTMLIFrameElement>('iframe')!;
+
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        data: {
+          type: 'canvas-scroll',
+          id: 'doc-canvas-1',
+          deltaX: 0,
+          deltaY: 120,
+          deltaMode: 0,
+        },
+        source: iframe.contentWindow,
+      }),
+    );
+
+    expect(scrollBySpy).toHaveBeenCalledTimes(1);
+    expect(scrollBySpy).toHaveBeenLastCalledWith({
+      left: 0,
+      top: 120,
+    });
+
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        data: {
+          type: 'canvas-scroll',
+          id: 'doc-canvas-1',
+          deltaX: 2,
+          deltaY: -3,
+          deltaMode: 1,
+        },
+        source: iframe.contentWindow,
+      }),
+    );
+
+    expect(scrollBySpy).toHaveBeenCalledTimes(2);
+    expect(scrollBySpy).toHaveBeenLastCalledWith({
+      left: 32,
+      top: -48,
+    });
+
+    Object.defineProperty(paneBody, 'clientHeight', {
+      value: 600,
+      configurable: true,
+    });
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        data: {
+          type: 'canvas-scroll',
+          id: 'doc-canvas-1',
+          deltaX: 1,
+          deltaY: 1,
+          deltaMode: 2,
+        },
+        source: iframe.contentWindow,
+      }),
+    );
+
+    expect(scrollBySpy).toHaveBeenCalledTimes(3);
+    expect(scrollBySpy).toHaveBeenLastCalledWith({
+      left: 600,
+      top: 600,
     });
 
     controller.abort();

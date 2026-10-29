@@ -6,22 +6,55 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, labeled, unlabeled]
 
+concurrency:
+  group: pr-labels-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 permissions:
-  pull-requests: read
+  pull-requests: write
 
 jobs:
   require-label:
     name: Require release label
     runs-on: ubuntu-latest
     steps:
+      - name: Auto-label Dependabot PRs
+        if: >-
+          contains(github.actor, 'dependabot') ||
+          contains(github.event.pull_request.user.login, 'dependabot') ||
+          startsWith(github.event.pull_request.head.ref, 'dependabot/')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          IFS=, read -ra have <<< "$LABELS"
+          for l in "${have[@]}"; do
+            [ "$l" = "dependencies" ] && exit 0
+          done
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/labels" -f "labels[]=dependencies"
+
       - name: Check labels
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
           LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+          IS_DEPENDABOT: ${{ contains(github.actor, 'dependabot') || contains(github.event.pull_request.user.login, 'dependabot') || startsWith(github.event.pull_request.head.ref, 'dependabot/') }}
           REQUIRED: breaking,enhancement,bug,security,documentation,maintenance,dependencies,skip-changelog
         run: |
+          if [ "$IS_DEPENDABOT" = "true" ]; then
+            exit 0
+          fi
           IFS=, read -ra have <<< "$LABELS"
           IFS=, read -ra want <<< "$REQUIRED"
           for l in "${have[@]}"; do
+            for w in "${want[@]}"; do
+              [ "$l" = "$w" ] && exit 0
+            done
+          done
+          LIVE_LABELS=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/labels" --jq '[.[].name] | join(",")' 2>/dev/null || true)
+          IFS=, read -ra live_have <<< "$LIVE_LABELS"
+          for l in "${live_have[@]}"; do
             for w in "${want[@]}"; do
               [ "$l" = "$w" ] && exit 0
             done

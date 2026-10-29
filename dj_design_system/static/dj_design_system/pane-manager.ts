@@ -350,7 +350,8 @@ export class PaneManager {
   }
 
   /**
-   * Resizes standalone documentation preview iframes on `canvas-resize`.
+   * Resizes standalone documentation preview iframes on `canvas-resize` and
+   * forwards unhandled wheel scrolling from preview iframes on `canvas-scroll`.
    *
    * @param {!MessageEvent} event Window `message` event.
    */
@@ -362,7 +363,38 @@ export class PaneManager {
       type?: string;
       id?: string;
       height?: number | string;
+      deltaX?: number;
+      deltaY?: number;
+      deltaMode?: number;
     };
+    if (data.type === 'canvas-scroll') {
+      const iframes = this.host.querySelectorAll<HTMLIFrameElement>('iframe');
+      for (const iframe of iframes) {
+        const matchesSource =
+          iframe.contentWindow !== null &&
+          event.source === iframe.contentWindow;
+        const matchesId =
+          Boolean(data.id) && iframe.dataset.canvasId === String(data.id);
+        if (matchesSource || matchesId) {
+          const scrollContainer =
+            iframe.closest<HTMLElement>(
+              '[data-gallery-pane-body], [data-shell-main]',
+            ) ?? (document.scrollingElement as HTMLElement | null);
+          const scale =
+            data.deltaMode === 1
+              ? 16
+              : data.deltaMode === 2
+                ? scrollContainer?.clientHeight || 800
+                : 1;
+          scrollContainer?.scrollBy({
+            left: (Number(data.deltaX) || 0) * scale,
+            top: (Number(data.deltaY) || 0) * scale,
+          });
+          break;
+        }
+      }
+      return;
+    }
     if (data.type !== 'canvas-resize') {
       return;
     }
