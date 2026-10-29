@@ -29,7 +29,7 @@ jobs:
       - name: Install dev dependencies
         run: uv pip install -e ".[dev]"
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "22"
           cache: "npm"
@@ -115,7 +115,7 @@ jobs:
           python-version: "${{ matrix.python-version }}"
           activate-environment: true
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "22"
 
@@ -157,7 +157,7 @@ jobs:
           python-version: "3.13"
           activate-environment: true
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "22"
 
@@ -181,7 +181,7 @@ jobs:
 
       - uses: extractions/setup-just@v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "22"
           cache: "npm"
