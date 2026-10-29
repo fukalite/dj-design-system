@@ -8,6 +8,7 @@ from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.parameters import (
     BoolCSSClassParam,
     BoolParam,
+    DictParam,
     StrCSSClassParam,
     StrParam,
 )
@@ -153,6 +154,15 @@ class SimpleBlockComponent(BlockComponent):
     """A simple block component with no positional args."""
 
     heading = StrParam("Heading", required=False)
+
+    template_format_str = "<div><h3>{heading}</h3>{content}</div>"
+
+
+class BlockDictParamComponent(BlockComponent):
+    """Block component with a dict parameter alongside other keyword params."""
+
+    heading = StrParam("Heading", required=False, default="Hello")
+    attrs = DictParam("Extra attributes", required=False, default={"a": 1, "b": 2})
 
     template_format_str = "<div><h3>{heading}</h3>{content}</div>"
 
@@ -337,6 +347,33 @@ class TestTagSignatureEdgeCases:
         assert "{% block_multi_kwarg" in sig.maximal
         assert "heading" in sig.maximal
         assert "level" in sig.maximal
+
+    def test_block_dict_param_multiline(self):
+        """A dict param's closing brace must not end the opening tag early."""
+        sig = generate_tag_signature(BlockDictParamComponent)
+        assert sig.maximal == (
+            "{% block_dict_param\n"
+            '  heading="Hello"\n'
+            "  attrs={'a': 1, 'b': 2}\n"
+            "%}\n"
+            f"{BLOCK_CONTENT_PLACEHOLDER}\n"
+            "{% endblock_dict_param %}"
+        )
+
+    def test_block_dict_param_current_multiline(self):
+        """Current signature for a block with a dict param keeps the dict intact."""
+        sig = generate_current_tag_signature(
+            BlockDictParamComponent,
+            {"attrs": {"a": 1}, "heading": "Hi", "content": "Body"},
+        )
+        assert sig.minimal == (
+            "{% block_dict_param\n"
+            "  attrs={'a': 1}\n"
+            '  heading="Hi"\n'
+            "%}\n"
+            "Body\n"
+            "{% endblock_dict_param %}"
+        )
 
     def test_required_kwarg_included_in_signatures(self):
         """Required non-positional params are included in minimal and maximal signatures."""
