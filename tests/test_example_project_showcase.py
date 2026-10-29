@@ -3,11 +3,12 @@
 import pathlib
 import re
 import types
+from collections import abc
 
 import pytest
 from django import template, test, urls
 
-from dj_design_system import components, parameters
+from dj_design_system import components, data, parameters
 from dj_design_system import settings as dds_settings_mod
 from dj_design_system import types as dds_types
 from dj_design_system.services import canvas as canvas_service
@@ -35,7 +36,9 @@ def _render_template(*, library: template.Library, source: str) -> str:
     return compiled.render(context=template.Context())
 
 
-def _assert_nodes_render(*, client: test.Client, nodes: list) -> None:
+def _assert_nodes_render(
+    *, client: test.Client, nodes: abc.Sequence[data.NavNode]
+) -> None:
     """Assert that every navigation node and its children return HTTP 200."""
     for node in nodes:
         resp = client.get(path=node.url)
