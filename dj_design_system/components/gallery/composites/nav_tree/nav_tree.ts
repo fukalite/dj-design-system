@@ -1,15 +1,18 @@
 /**
  * @fileoverview Light DOM `<dds-nav-tree>` custom element for collapsible
- * folder toggling and `dds:nav-toggle` event dispatching.
+ * folder and group toggling and nav events.
  */
 
 import type { DDSCustomElement } from '../../types.js';
 
 /**
  * Light DOM custom element enhancing `<dds-nav-tree>` with delegated folder
- * toggle interactions, ARIA/state synchronisation, and `dds:nav-toggle` events.
+ * and group toggle interactions, ARIA/state synchronisation, and
+ * `dds:nav-toggle` events.
  */
-export class DDSNavTreeElement extends HTMLElement implements DDSCustomElement {
+export class DDSNavTreeElement
+  extends HTMLElement
+  implements DDSCustomElement {
   /**
    * Instance AbortController used to clean up event listeners on disconnect.
    */
@@ -41,39 +44,96 @@ export class DDSNavTreeElement extends HTMLElement implements DDSCustomElement {
   }
 
   /**
-   * Handles delegated clicks on `[data-nav-toggle]` folder buttons.
+   * Applies persisted or external open/closed state to matching nav folders
+   * and groups, skipping nodes containing the currently active nav item.
    *
-   * @param {!MouseEvent} event The click event within `<dds-nav-tree>`.
+   * @param {!Record<string, 'open' | 'closed'>} stateMap Map of node IDs to
+   *     their target expanded states.
    */
-  private handleClick(event: MouseEvent): void {
+  applyExpandedState(stateMap: Record<string, 'open' | 'closed'>): void {
+    const items = this.querySelectorAll<HTMLElement>(
+      '[data-nav-folder], [data-nav-group]',
+    );
+    for (const el of items) {
+      const id = el.dataset.folderId || el.dataset.groupId;
+      if (!id || !(id in stateMap)) {
+        continue;
+      }
+
+      if (
+        el.querySelector('[aria-current="page"], [data-active="true"]')
+      ) {
+        continue;
+      }
+
+      const state = stateMap[id];
+      const isOpen = state === 'open';
+      el.dataset.state = state;
+
+      const trigger = el.querySelector<HTMLElement>(
+        '[data-nav-trigger], [data-nav-toggle]',
+      );
+      if (trigger) {
+        trigger.setAttribute('aria-expanded', String(isOpen));
+      }
+
+      const childrenEl = el.querySelector<HTMLElement>(
+        ':scope > [data-nav-children]',
+      );
+      if (childrenEl) {
+        childrenEl.hidden = !isOpen;
+      }
+    }
+  }
+
+  /**
+   * Handles delegated clicks on nav toggle trigger buttons.
+   *
+   * @param {!Event} event The click event within `<dds-nav-tree>`.
+   */
+  private handleClick(event: Event): void {
     if (!(event.target instanceof Element)) {
       return;
     }
-    const toggle = event.target.closest<HTMLButtonElement>('[data-nav-toggle]');
-    if (!toggle || !this.contains(toggle)) {
+    const trigger = event.target.closest<HTMLButtonElement>(
+      '[data-nav-trigger], [data-nav-toggle]',
+    );
+    if (!trigger || !this.contains(trigger)) {
       return;
     }
 
-    const folder = toggle.closest<HTMLElement>('[data-nav-folder]');
-    if (!folder || !this.contains(folder)) {
+    const container = trigger.closest<HTMLElement>(
+      '[data-nav-folder], [data-nav-group]',
+    );
+    if (!container || !this.contains(container)) {
       return;
     }
 
-    const childrenEl = folder.querySelector<HTMLElement>(
+    const childrenEl = container.querySelector<HTMLElement>(
       ':scope > [data-nav-children]',
     );
-    const expanded = toggle.getAttribute('aria-expanded') !== 'true';
+    const expanded = trigger.getAttribute('aria-expanded') !== 'true';
 
-    toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-    folder.dataset.state = expanded ? 'open' : 'closed';
+    container.dataset.state = expanded ? 'open' : 'closed';
+    trigger.setAttribute('aria-expanded', String(expanded));
     if (childrenEl) {
       childrenEl.hidden = !expanded;
     }
 
+    const id =
+      container.dataset.folderId || container.dataset.groupId || '';
+
     this.dispatchEvent(
       new CustomEvent('dds:nav-toggle', {
         bubbles: true,
-        detail: { folderId: folder.dataset.folderId ?? '', expanded },
+        composed: true,
+        detail: {
+          folderId: id,
+          expanded,
+          ...(container.dataset.groupId
+            ? { groupId: container.dataset.groupId }
+            : {}),
+        },
       }),
     );
   }

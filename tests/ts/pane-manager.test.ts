@@ -2,21 +2,30 @@
  * @fileoverview Behavioural DOM tests for `PaneManager`.
  */
 
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import '../../dj_design_system/components/gallery/elements/tabs/tabs.js';
 import '../../dj_design_system/components/gallery/composites/search_box/search_box.js';
-import { PaneManager } from '../../dj_design_system/static/dj_design_system/pane-manager.js';
+import {
+  PaneManager,
+} from '../../dj_design_system/static/dj_design_system/pane-manager.js';
 
 describe('PaneManager', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
   afterEach(() => {
     document.body.innerHTML = '';
     window.location.hash = '';
+    window.localStorage.clear();
   });
 
-  it('manages mobile drawer, tab/view hash routing, search shortcut, and snapshot notice', () => {
+  it('manages mobile drawer, tab hash routing, and snapshot notice', () => {
     const host = document.createElement('div');
     host.innerHTML = `
-      <button type="button" data-drawer-toggle aria-expanded="false">Menu</button>
+      <button type="button" data-drawer-toggle aria-expanded="false">
+        Menu
+      </button>
       <div data-shell-backdrop hidden></div>
       <div id="static-snapshot-notice" hidden>Static Snapshot</div>
       <dds-search-box>
@@ -25,8 +34,12 @@ describe('PaneManager', () => {
       </dds-search-box>
       <div data-component-tabs>
         <dds-tabs>
-          <button role="tab" data-tab-trigger="docs" aria-selected="true">Docs</button>
-          <button role="tab" data-tab-trigger="sandbox" aria-selected="false">Sandbox</button>
+          <button role="tab" data-tab-trigger="docs" aria-selected="true">
+            Docs
+          </button>
+          <button role="tab" data-tab-trigger="sandbox" aria-selected="false">
+            Sandbox
+          </button>
         </dds-tabs>
       </div>
       <dds-split-pane data-active-pane="docs"></dds-split-pane>
@@ -70,6 +83,130 @@ describe('PaneManager', () => {
       new KeyboardEvent('keydown', { key: '/', bubbles: true }),
     );
     expect(focusSpy).toHaveBeenCalledTimes(1);
+
+    controller.abort();
+  });
+  it('restores dds-nav-expanded-state from localStorage on connect()', () => {
+    window.localStorage.setItem(
+      'dds-nav-expanded-state',
+      JSON.stringify({
+        'group-1': 'closed',
+        'folder-1': 'open',
+      }),
+    );
+
+    const host = document.createElement('div');
+    const navTree = document.createElement('dds-nav-tree') as HTMLElement & {
+      applyExpandedState: (
+        stateMap: Record<string, 'open' | 'closed'>,
+      ) => void;
+    };
+    navTree.applyExpandedState = vi.fn();
+    host.appendChild(navTree);
+    document.body.appendChild(host);
+
+    const manager = new PaneManager(host);
+    const controller = new AbortController();
+    manager.connect(controller.signal);
+
+    expect(navTree.applyExpandedState).toHaveBeenCalledWith({
+      'group-1': 'closed',
+      'folder-1': 'open',
+    });
+
+    controller.abort();
+  });
+
+  it('persists updated state to localStorage on dds:nav-toggle', () => {
+    window.localStorage.setItem(
+      'dds-nav-expanded-state',
+      JSON.stringify({
+        'existing-item': 'open',
+      }),
+    );
+
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+
+    const manager = new PaneManager(host);
+    const controller = new AbortController();
+    manager.connect(controller.signal);
+
+    host.dispatchEvent(
+      new CustomEvent('dds:nav-toggle', {
+        bubbles: true,
+        detail: {
+          folderId: 'folder-1',
+          expanded: false,
+        },
+      }),
+    );
+
+    let saved = JSON.parse(
+      window.localStorage.getItem('dds-nav-expanded-state') ?? '{}',
+    );
+    expect(saved).toEqual({
+      'existing-item': 'open',
+      'folder-1': 'closed',
+    });
+
+    host.dispatchEvent(
+      new CustomEvent('dds:nav-toggle', {
+        bubbles: true,
+        detail: {
+          groupId: 'group-1',
+          expanded: true,
+        },
+      }),
+    );
+
+    saved = JSON.parse(
+      window.localStorage.getItem('dds-nav-expanded-state') ?? '{}',
+    );
+    expect(saved).toEqual({
+      'existing-item': 'open',
+      'folder-1': 'closed',
+      'group-1': 'open',
+    });
+
+    controller.abort();
+  });
+
+  it('gracefully handles invalid JSON in localStorage', () => {
+    window.localStorage.setItem('dds-nav-expanded-state', 'invalid-json');
+
+    const host = document.createElement('div');
+    const navTree = document.createElement('dds-nav-tree') as HTMLElement & {
+      applyExpandedState: (
+        stateMap: Record<string, 'open' | 'closed'>,
+      ) => void;
+    };
+    navTree.applyExpandedState = vi.fn();
+    host.appendChild(navTree);
+    document.body.appendChild(host);
+
+    const manager = new PaneManager(host);
+    const controller = new AbortController();
+    manager.connect(controller.signal);
+
+    expect(navTree.applyExpandedState).not.toHaveBeenCalled();
+
+    host.dispatchEvent(
+      new CustomEvent('dds:nav-toggle', {
+        bubbles: true,
+        detail: {
+          folderId: 'folder-1',
+          expanded: true,
+        },
+      }),
+    );
+
+    const saved = JSON.parse(
+      window.localStorage.getItem('dds-nav-expanded-state') ?? '{}',
+    );
+    expect(saved).toEqual({
+      'folder-1': 'open',
+    });
 
     controller.abort();
   });

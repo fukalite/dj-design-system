@@ -326,6 +326,7 @@ class NavTree(components.TagComponent):
                 "children_dom_id": children_dom_id,
                 "resolved_icon": resolved_icon,
                 "children": child_dicts,
+                "has_children": has_children,
             }
             target_list.append(node_dict)
             post_order.append((node_dict, has_children, folder_path))
@@ -335,7 +336,9 @@ class NavTree(components.TagComponent):
                 work_stack.append((raw_child, depth + 1, child_dicts, next_parent_path))
 
         for node_dict, has_children, folder_path in reversed(post_order):
-            if has_children:
+            if node_dict["node_kind"] == NODE_KIND_APP:
+                is_open = True
+            elif has_children:
                 path_open = bool(
                     raw_active_path
                     and folder_path

@@ -6,6 +6,7 @@ import dataclasses
 import json
 import logging
 import re
+from collections import abc
 from functools import lru_cache
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlencode
@@ -57,6 +58,8 @@ from dj_design_system.types import CanvasMode, ColorScheme, Theme
 
 __all__ = [
     "resolve_from_get_params",
+    "resolve_param_value",
+    "resolve_param_values",
     "render_component",
     "merge_variant_params",
     "get_component_media",
@@ -96,7 +99,7 @@ def _get_trusted_block_strings(
     trusted: set[str] = set()
 
     def _add(val: Any) -> None:
-        resolved = _resolve_param_value(val)
+        resolved = resolve_param_value(val=val)
         if isinstance(resolved, str):
             trusted.add(resolved)
             trusted.add(resolved.replace("\r\n", "\n"))
@@ -193,7 +196,7 @@ def resolve_from_get_params(
     )
 
 
-def _resolve_param_value(val: Any) -> Any:
+def resolve_param_value(*, val: Any) -> Any:
     """Unwrap GalleryParameter and evaluate callables dynamically."""
     if isinstance(val, GalleryParameter):
         val = val.value
@@ -202,6 +205,11 @@ def _resolve_param_value(val: Any) -> Any:
     if isinstance(val, GalleryParameter):
         val = val.value
     return val
+
+
+def resolve_param_values(*, params: abc.Mapping[str, Any]) -> dict[str, Any]:
+    """Return a dictionary with all GalleryParameter and callable values resolved."""
+    return {k: resolve_param_value(val=v) for k, v in params.items()}
 
 
 def merge_variant_params(
@@ -252,7 +260,7 @@ def merge_variant_params(
                     merged[pos_arg_names[i]] = val
 
     if resolve_values:
-        return {k: _resolve_param_value(v) for k, v in merged.items()}
+        return resolve_param_values(params=merged)
 
     return merged
 
@@ -334,7 +342,7 @@ def _resolve_extra_context(
     merged_extra: dict[str, Any] = dict(config.extra_context)
     if variant and variant.extra_context:
         merged_extra.update(variant.extra_context)
-    return {k: _resolve_param_value(v) for k, v in merged_extra.items()}
+    return resolve_param_values(params=merged_extra)
 
 
 def _render_with_canvas_template(
@@ -351,7 +359,7 @@ def _render_with_canvas_template(
         component_class.get_params() if hasattr(component_class, "get_params") else {}
     )
     param_defaults = {
-        name: _resolve_param_value(getattr(spec, "default", None))
+        name: resolve_param_value(val=getattr(spec, "default", None))
         for name, spec in param_specs.items()
     }
     template_kwargs = {**param_defaults, **resolved_kwargs}
