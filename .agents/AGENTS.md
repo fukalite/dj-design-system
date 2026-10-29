@@ -24,6 +24,7 @@ For detailed design system foundations, layout primitives, design tokens, and ga
 - **Blockers**: If you are blocked from working this way (e.g., security restrictions, environment issues), raise the issue immediately so it can be fixed together with the user.
 - **No Unilateral API Changes**: Never unilaterally modify component APIs, parameter definitions, method signatures, or public interfaces. Always discuss and obtain explicit confirmation before altering existing component contracts.
 - **Strict Main Branch Protection**: Never commit or push directly to `main` at all costs. Work must always be performed on an isolated feature branch or stacked branch, and pushed to remote with explicit refspecs (`git push -u origin <branch>:<branch>`). If on `main`, immediately branch off before committing.
+- **Visual PR Screenshots**: Whenever a Pull Request introduces visual or UI changes (templates, CSS, components, layouts, or theming), capture deterministic **Before (`main`)** and **After (`<branch>`)** screenshots via Playwright, upload them to the orphan `pr-assets` branch using `just pr-screenshots <pr_number> <files...>` (never commit temporary screenshot binaries onto the feature branch), and embed a `### Before & After Screenshots` comparison table in the PR description.
 
 ## Conductor Phase Gating & Track Commit
 - **Strict Phase Checkpoints**: When executing Conductor tracks, complete the active phase and HALT immediately. Present a concise phase summary. Never begin work on a subsequent phase without direct, explicit permission.

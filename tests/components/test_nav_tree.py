@@ -224,10 +224,7 @@ class TestNavTreeParametersAndContext:
         assert app_node["folder_state"] == "open"
         assert app_node["aria_expanded"] == "true"
         assert app_node["folder_id"] == "dj_design_system"
-        assert (
-            app_node["children_dom_id"]
-            == "dds-nav-children-dj_design_system"
-        )
+        assert app_node["children_dom_id"] == "dds-nav-children-dj_design_system"
         assert app_node["has_children"] is True
 
         folder_node = app_node["children"][0]
@@ -413,16 +410,13 @@ class TestNavTreeRenderingAndTemplate:
             '<div data-nav-group data-state="open" '
             'data-group-id="dj_design_system">' in html
         )
-        assert '<div data-nav-row data-nav-group-row>' in html
+        assert "<div data-nav-row data-nav-group-row>" in html
         assert (
             '<button type="button" data-nav-toggle aria-expanded="true" '
             'aria-controls="dds-nav-children-dj_design_system" '
             'aria-label="Toggle Design System">' in html
         )
-        assert (
-            '<div id="dds-nav-children-dj_design_system" data-nav-children>'
-            in html
-        )
+        assert '<div id="dds-nav-children-dj_design_system" data-nav-children>' in html
         assert (
             '<div data-nav-folder data-state="open" '
             'data-folder-id="dj_design_system-elements">' in html
@@ -476,10 +470,9 @@ class TestNavTreeRenderingAndTemplate:
             },
         )
         assert (
-            '<div data-nav-group data-state="open" '
-            'data-group-id="standalone">' in html
+            '<div data-nav-group data-state="open" data-group-id="standalone">' in html
         )
-        assert '<div data-nav-row data-nav-group-row>' in html
+        assert "<div data-nav-row data-nav-group-row>" in html
         assert "<span>Standalone App</span>" in html
         assert "data-nav-toggle" not in html
         assert "data-nav-children" not in html
@@ -615,8 +608,7 @@ class TestNavTreeStylesheet:
         assert "& [data-nav-group]" in css_text
         assert "& [data-nav-group-row]" in css_text
         assert (
-            "& [data-nav-group][data-state='closed'] > [data-nav-children]"
-            in css_text
+            "& [data-nav-group][data-state='closed'] > [data-nav-children]" in css_text
         )
         assert (
             "& [data-nav-group][data-state='open'] > [data-nav-row] [data-nav-toggle]"
@@ -684,4 +676,3 @@ class TestNavTreeGalleryAndDocs:
         assert "<dds-nav-tree" in doc_text
         assert "Behaviour & Accessibility" in doc_text
         assert "aria-current" in doc_text
-

@@ -1419,5 +1419,3 @@ class TestComponentVariantIconResolution:
         html = NavTree(nodes=tree, active_path="", active_variant="").render()
         assert 'data-icon="component-variants"' not in html
         assert 'data-icon="component"' in html
-
-

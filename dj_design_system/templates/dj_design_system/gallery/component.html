@@ -6,21 +6,21 @@
 {% block content %}
     {% include "dj_design_system/gallery/areas/tabs.html" %}
     {% dds__split_pane orientation="horizontal" initial_ratio=55 %}
-    {% slot "primary" %}
-    <div id="pane-docs" data-docs-pane data-surface="docs">
-        <header data-gallery-pane-header>
-            Documentation
-        </header>
-        <div id="dds-panel-docs" data-gallery-pane-body>{% include "dj_design_system/gallery/panes/docs.html" %}</div>
-    </div>
-{% endslot %}
-{% slot "secondary" %}
-<div id="pane-sandbox" data-surface="sandbox" data-sandbox-pane>
-    <header data-gallery-pane-header>
-        Sandbox
-    </header>
-    <div id="dds-panel-sandbox" data-gallery-sandbox-body>{% include "dj_design_system/gallery/panes/sandbox.html" %}</div>
-</div>
-{% endslot %}
-{% enddds__split_pane %}
+        {% slot "primary" %}
+            <div id="pane-docs" data-docs-pane data-surface="docs">
+                <header data-gallery-pane-header>
+                    Documentation
+                </header>
+                <div id="dds-panel-docs" data-gallery-pane-body>{% include "dj_design_system/gallery/panes/docs.html" %}</div>
+            </div>
+        {% endslot %}
+        {% slot "secondary" %}
+            <div id="pane-sandbox" data-surface="sandbox" data-sandbox-pane>
+                <header data-gallery-pane-header>
+                    Sandbox
+                </header>
+                <div id="dds-panel-sandbox" data-gallery-sandbox-body>{% include "dj_design_system/gallery/panes/sandbox.html" %}</div>
+            </div>
+        {% endslot %}
+    {% enddds__split_pane %}
 {% endblock %}
