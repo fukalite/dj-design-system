@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any
 
 from django.urls import reverse
@@ -265,11 +265,23 @@ def get_form_and_sandbox_spec(
             variant=active_variant,
             resolve_values=True,
         )
+        tag_signature_service.validate_explicit_variant(
+            component_class=component_class,
+            variant=active_variant,
+            merged_kwargs=initial_data,
+            config=config,
+        )
     else:
         for i, val in enumerate(tag_signature.maximal_spec.positional_args):
             if i < len(pos_args):
                 initial_data[pos_args[i]] = val
         initial_data.update(tag_signature.maximal_spec.params)
+
+    if issubclass(component_class, BlockComponent) and component_class.has_slots():
+        for slot_name, slot in component_class.get_slots().items():
+            slot_key = f"{SLOT_PARAM_PREFIX}{slot_name}"
+            if slot_key not in initial_data and not slot.required:
+                initial_data[slot_key] = slot.default or ""
 
     form = (
         form_class(data=query_params)
@@ -568,6 +580,31 @@ def build_component_page_context(
     )
 
     canvas_base_url = reverse("gallery-canvas-iframe")
+    raw_usage_examples = tag_signature_service.generate_usage_examples(
+        component_class=component_class,
+        canvas_component_name=info.qualified_name,
+        tag_name=effective_tag_name,
+    )
+    usage_examples = [
+        replace(
+            example,
+            description=(
+                docstring_service.render_docstring(docstring=example.description)
+                if example.description
+                else None
+            ),
+            preview_url=canvas_service.build_canvas_url(
+                spec=example.spec,
+                base_url=canvas_base_url,
+                mode="basic",
+                theme=active_theme,
+                color_scheme=active_color_scheme,
+            ),
+        )
+        for example in raw_usage_examples
+    ]
+    context["usage_examples"] = usage_examples
+
     if active_variant:
         variant_spec = CanvasSpec(
             component_name=info.qualified_name,

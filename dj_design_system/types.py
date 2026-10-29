@@ -1,8 +1,44 @@
 from __future__ import annotations
 
 import enum
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
+
+
+class DocVariantStrategy(str, enum.Enum):
+    """Built-in parameter and slot generation strategies for standard documentation variants."""
+
+    MINIMAL = "minimal"
+    MAXIMAL = "maximal"
+    DEFAULTS = "defaults"
+    ALL_SLOTS = "all_slots"
+    CUSTOM = "custom"
+
+
+@dataclass(frozen=True)
+class DocVariantConfig:
+    """Normalized configuration for a standard documentation variant.
+
+    Attributes:
+        key: Identifier key in ``GALLERY_DOC_VARIANTS`` (e.g. ``"minimal"``, ``"maximal"``).
+        name: Variant slug matched against ``GalleryConfig.variants`` (e.g. ``"basic"``, ``"maximal"``).
+        label: Heading label displayed in the Usage documentation section.
+        strategy: Built-in generation strategy used when the variant is not overridden in ``gallery.py``.
+        show_in_docs: Whether this variant is included in component documentation by default.
+        kwargs: Optional static parameter overrides for custom global variants.
+        param_factory: Reserved hook for custom parameter value factory callables.
+        slot_factory: Reserved hook for custom slot content factory callables.
+    """
+
+    key: str
+    name: str
+    label: str
+    strategy: DocVariantStrategy = DocVariantStrategy.MINIMAL
+    show_in_docs: bool = True
+    kwargs: dict[str, Any] = field(default_factory=dict)
+    param_factory: Callable[..., Any] | None = None
+    slot_factory: Callable[..., Any] | None = None
 
 
 class NodeType(str, enum.Enum):

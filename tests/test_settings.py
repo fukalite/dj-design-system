@@ -158,3 +158,108 @@ class TestGalleryUIThemeSettings:
 
         default_ui = get_default_gallery_ui_theme()
         assert default_ui.value == "nord"
+
+
+class TestGalleryDocVariantsSettings:
+    """Tests for GALLERY_DOC_VARIANTS normalization and helpers."""
+
+    def test_default_doc_variants(self):
+        from dj_design_system.settings import get_doc_variant_by_key, get_doc_variants
+        from dj_design_system.types import DocVariantStrategy
+
+        variants = get_doc_variants()
+        assert [v.key for v in variants] == [
+            "minimal",
+            "maximal",
+            "defaults",
+            "all_slots",
+        ]
+        min_v = get_doc_variant_by_key(key="minimal")
+        assert min_v is not None
+        assert min_v.name == "basic"
+        assert min_v.label == "Minimal example"
+        assert min_v.strategy == DocVariantStrategy.MINIMAL
+        assert min_v.show_in_docs is True
+
+        max_v = get_doc_variant_by_key(key="maximal")
+        assert max_v is not None
+        assert max_v.name == "maximal"
+        assert max_v.label == "All parameters"
+        assert max_v.strategy == DocVariantStrategy.MAXIMAL
+        assert max_v.show_in_docs is True
+
+        defaults_v = get_doc_variant_by_key(key="defaults")
+        assert defaults_v is not None
+        assert defaults_v.show_in_docs is False
+
+        all_slots_v = get_doc_variant_by_key(key="all_slots")
+        assert all_slots_v is not None
+        assert all_slots_v.show_in_docs is False
+
+        assert get_doc_variant_by_key(key="nonexistent") is None
+
+    def test_dict_overrides_rename_disable_and_enable(self, settings):
+        from dj_design_system.settings import get_doc_variant_by_key, get_doc_variants
+
+        settings.DJ_DESIGN_SYSTEM = {
+            "GALLERY_DOC_VARIANTS": {
+                "minimal": {"name": "simple", "label": "Quick start"},
+                "maximal": {"show_in_docs": False},
+                "defaults": {"show_in_docs": True},
+                "all_slots": True,
+                "compact": {
+                    "name": "compact",
+                    "label": "Compact preview",
+                    "kwargs": {"size": "sm"},
+                },
+            }
+        }
+        variants = get_doc_variants()
+        min_v = get_doc_variant_by_key(key="minimal")
+        assert min_v is not None
+        assert min_v.name == "simple"
+        assert min_v.label == "Quick start"
+        assert min_v.show_in_docs is True
+
+        max_v = get_doc_variant_by_key(key="maximal")
+        assert max_v is not None
+        assert max_v.show_in_docs is False
+
+        def_v = get_doc_variant_by_key(key="defaults")
+        assert def_v is not None
+        assert def_v.show_in_docs is True
+
+        slots_v = get_doc_variant_by_key(key="all_slots")
+        assert slots_v is not None
+        assert slots_v.show_in_docs is True
+
+        compact_v = get_doc_variant_by_key(key="compact")
+        assert compact_v is not None
+        assert compact_v.name == "compact"
+        assert compact_v.label == "Compact preview"
+        assert compact_v.kwargs == {"size": "sm"}
+        assert compact_v.show_in_docs is True
+        assert len(variants) == 5
+
+    def test_dict_disable_via_none_false_or_empty_dict(self, settings):
+        from dj_design_system.settings import get_doc_variant_by_key
+
+        settings.DJ_DESIGN_SYSTEM = {
+            "GALLERY_DOC_VARIANTS": {
+                "minimal": None,
+                "maximal": {},
+                "defaults": False,
+            }
+        }
+        assert get_doc_variant_by_key(key="minimal").show_in_docs is False
+        assert get_doc_variant_by_key(key="maximal").show_in_docs is False
+        assert get_doc_variant_by_key(key="defaults").show_in_docs is False
+
+    def test_sequence_format(self, settings):
+        from dj_design_system.settings import get_doc_variants
+
+        settings.DJ_DESIGN_SYSTEM = {
+            "GALLERY_DOC_VARIANTS": ["basic", "defaults", "custom_doc"]
+        }
+        enabled = [v for v in get_doc_variants() if v.show_in_docs]
+        assert [v.name for v in enabled] == ["basic", "defaults", "custom_doc"]

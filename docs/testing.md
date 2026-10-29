@@ -78,7 +78,7 @@ engine.run_plugins([a11y_plugin])
 
 ### Step 4: Running the Test
 Run `pytest`.
-- The `IterationEngine` automatically loops through every valid component combination.
+- The `IterationEngine` automatically loops through every valid component combination — including all enabled documentation variants (`GALLERY_DOC_VARIANTS` and component-level `GalleryConfig.doc_variants`) as well as every explicit `Variant` in `GalleryConfig.variants` shown in documentation or navigation.
 - The `AccessibilityPlugin` renders the component in isolation and runs Axe-core against the HTML.
 - If you have missing `aria-labels` or poor color contrast, the test fails, and you get detailed Axe-core output indicating exactly which component variant failed.
 

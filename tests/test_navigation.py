@@ -1296,3 +1296,126 @@ def test_consumer_app_ignores_builtin_folder_and_doc_maps(tmp_path):
     md_file.write_text("# Tokens", encoding="utf-8")
     builder.add_markdown(["about"], md_file)
     assert about_folder.children[0].order == 0
+
+
+class TestComponentVariantIconResolution:
+    """Tests for issue #252: Component with document children shouldn't show variant icon."""
+
+    def test_nav_node_has_variants(self):
+        """Verify NavNode.has_variants is True only when an immediate child is a variant."""
+        from pathlib import Path
+
+        from dj_design_system.gallery import Variant
+
+        doc_child = NavNode(
+            label="Overview",
+            slug="overview",
+            node_type=NodeType.DOCUMENT,
+            doc_path=Path("overview.md"),
+        )
+        variant_child = NavNode(
+            label="Primary",
+            slug="primary",
+            node_type=NodeType.VARIANT,
+            variant=Variant(name="primary"),
+        )
+        comp_with_doc = NavNode(
+            label="Button",
+            slug="button",
+            node_type=NodeType.COMPONENT,
+            component=make_info("button"),
+            children=[doc_child],
+        )
+        assert comp_with_doc.has_children is True
+        assert comp_with_doc.has_variants is False
+
+        comp_with_variant = NavNode(
+            label="Button",
+            slug="button",
+            node_type=NodeType.COMPONENT,
+            component=make_info("button"),
+            children=[doc_child, variant_child],
+        )
+        assert comp_with_variant.has_children is True
+        assert comp_with_variant.has_variants is True
+
+    def test_normalize_folder_items_with_document_child(self):
+        """Verify normalize_folder_items assigns 'component' icon when only child is a document."""
+        from pathlib import Path
+
+        from dj_design_system.services.navigation import normalize_folder_items
+
+        doc_child = NavNode(
+            label="Overview",
+            slug="overview",
+            node_type=NodeType.DOCUMENT,
+            doc_path=Path("overview.md"),
+        )
+        comp_node = NavNode(
+            label="Button",
+            slug="button",
+            node_type=NodeType.COMPONENT,
+            component=make_info("button"),
+            children=[doc_child],
+        )
+        items = normalize_folder_items(items=[comp_node])
+        assert len(items) == 1
+        assert items[0]["icon"] == "component"
+        assert items[0]["node_kind"] == "component"
+
+    def test_normalize_folder_items_with_variant_child(self):
+        """Verify normalize_folder_items assigns 'component-variants' icon when a child is a variant."""
+        from dj_design_system.gallery import Variant
+        from dj_design_system.services.navigation import normalize_folder_items
+
+        variant_child = NavNode(
+            label="Primary",
+            slug="primary",
+            node_type=NodeType.VARIANT,
+            variant=Variant(name="primary"),
+        )
+        comp_node = NavNode(
+            label="Button",
+            slug="button",
+            node_type=NodeType.COMPONENT,
+            component=make_info("button"),
+            children=[variant_child],
+        )
+        items = normalize_folder_items(items=[comp_node])
+        assert len(items) == 1
+        assert items[0]["icon"] == "component-variants"
+        assert items[0]["node_kind"] == "component"
+
+    def test_nav_tree_renders_component_icon_when_only_document_child(self):
+        """Verify NavTree renders 'component' icon (not 'component-variants') when only child is a document."""
+        from pathlib import Path
+
+        doc_child = NavNode(
+            label="Overview",
+            slug="overview",
+            node_type=NodeType.DOCUMENT,
+            doc_path=Path("overview.md"),
+            url="/gallery/app/button/overview/",
+            active_path="app/button/overview",
+        )
+        comp_node = NavNode(
+            label="Button",
+            slug="button",
+            node_type=NodeType.COMPONENT,
+            component=make_info("button"),
+            children=[doc_child],
+            url="/gallery/app/button/",
+            active_path="app/button",
+        )
+        app_node = NavNode(
+            label="App",
+            slug="app",
+            node_type=NodeType.APP,
+            children=[comp_node],
+            url="/gallery/app/",
+            active_path="app",
+        )
+        tree = [app_node]
+        html = NavTree(nodes=tree, active_path="", active_variant="").render()
+        assert 'data-icon="component-variants"' not in html
+        assert 'data-icon="component"' in html

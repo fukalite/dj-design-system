@@ -24,6 +24,9 @@ JUSTFILE_PATH = ROOT_DIR / "justfile"
 PYPROJECT_PATH = ROOT_DIR / "pyproject.toml"
 PUBLISH_WORKFLOW_PATH = ROOT_DIR / ".github" / "workflows" / "publish.yml"
 PUBLISH_TEST_WORKFLOW_PATH = ROOT_DIR / ".github" / "workflows" / "publish-test.yml"
+DOCS_WORKFLOW_PATH = ROOT_DIR / ".github" / "workflows" / "docs.yml"
+PR_LABELS_WORKFLOW_PATH = ROOT_DIR / ".github" / "workflows" / "pr-labels.yml"
+DOCS_DIR = ROOT_DIR / "docs"
 COMPONENTS_DIR = ROOT_DIR / "dj_design_system" / "components"
 SHARED_TYPES_PATH = COMPONENTS_DIR / "gallery" / "types.ts"
 
@@ -249,3 +252,42 @@ class TestPackageArtifactsAndReleaseWorkflows:
         assert tsc_pos < build_pos, (
             f"{workflow_path.name} must compile TypeScript before uv build"
         )
+
+    def test_docs_workflow_compiles_typescript_before_collectstatic(self) -> None:
+        """Verify docs.yml compiles TypeScript before collectstatic in build-gallery."""
+        content = DOCS_WORKFLOW_PATH.read_text(encoding="utf-8")
+        assert "actions/setup-node" in content
+        assert "npm ci" in content
+        tsc_pos = content.find("tsc -p tsconfig.json")
+        collect_pos = content.find("collectstatic")
+        assert tsc_pos != -1, "docs.yml must run tsc -p tsconfig.json"
+        assert collect_pos != -1, "docs.yml must run collectstatic"
+        assert tsc_pos < collect_pos, (
+            "docs.yml must compile TypeScript before collectstatic"
+        )
+
+    def test_docs_markdown_relative_links_resolve_within_docs_dir(self) -> None:
+        """Verify relative links in docs/*.md do not escape docs/ or point to missing files."""
+        link_re = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
+        fenced_re = re.compile(r"```.*?```", re.DOTALL)
+        for md_file in DOCS_DIR.rglob("*.md"):
+            text = fenced_re.sub("", md_file.read_text(encoding="utf-8"))
+            for match in link_re.finditer(text):
+                target = match.group(1).strip().split("#", 1)[0]
+                if not target or target.startswith(("http://", "https://", "mailto:")):
+                    continue
+                resolved = (md_file.parent / target).resolve()
+                assert resolved.is_relative_to(DOCS_DIR), (
+                    f"{md_file.relative_to(ROOT_DIR)} links to {target!r}, "
+                    "which escapes docs/ and breaks 'mkdocs build --strict'"
+                )
+                assert resolved.exists(), (
+                    f"{md_file.relative_to(ROOT_DIR)} links to missing file {target!r}"
+                )
+
+    def test_pr_labels_workflow_auto_labels_dependabot_prs(self) -> None:
+        """Verify pr-labels.yml grants write permission and auto-labels Dependabot PRs."""
+        content = PR_LABELS_WORKFLOW_PATH.read_text(encoding="utf-8")
+        assert "pull-requests: write" in content
+        assert "Auto-label Dependabot PRs" in content
+        assert "labels[]=dependencies" in content

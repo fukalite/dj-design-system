@@ -1,5 +1,6 @@
 """Tests for the gallery views."""
 
+import copy
 import inspect
 from urllib.parse import parse_qs, urlsplit
 
@@ -952,6 +953,31 @@ class TestParamsTable:
 class TestSmokeAllPages:
     """Walk the entire navigation tree and assert every page renders."""
 
+    MULTI_THEME_SETTINGS = {
+        "GALLERY_THEMES": {
+            "theme_a": {
+                "label": "Theme A",
+                "canvas_background": "white",
+                "html_attrs": {"html": {"class": "theme-a"}},
+                "dark_mode": {
+                    "canvas_background": {"color": "rgb(18, 19, 23)"},
+                    "html_attrs": {"html": {"class": "theme-a is-dark"}},
+                },
+            },
+            "dark": {
+                "label": "Dark Theme",
+                "canvas_background": {"color": "#f9f6f0"},
+                "html_attrs": {"html": {"class": "theme-b"}},
+            },
+        },
+        "GALLERY_DEFAULT_THEME": "theme_a",
+        "GALLERY_UI_THEMES": {
+            "desert": {"label": "Desert", "dark_mode": {}},
+            "classic": {"label": "Classic"},
+        },
+        "GALLERY_DEFAULT_UI_THEME": "desert",
+    }
+
     def test_every_nav_node_returns_200(self, client):
         """Every node in the nav tree should have a resolvable URL that returns 200."""
         nav_tree = _get_nav_tree()
@@ -968,6 +994,49 @@ class TestSmokeAllPages:
                 errors.append(f"{url} -> {response.status_code} ({node.label})")
 
         assert errors == [], "Pages that failed:\n" + "\n".join(errors)
+
+    def test_every_page_returns_200_with_multiple_themes(self, client, settings):
+        """Every gallery page (index, folder, doc, component) renders when 2+ themes are configured (#268)."""
+        settings.DJ_DESIGN_SYSTEM = self.MULTI_THEME_SETTINGS
+        index_response = client.get(reverse("gallery"))
+        assert index_response.status_code == 200
+        assert b"gallery-global-theme-select" in index_response.content
+
+        nav_tree = _get_nav_tree()
+        all_nodes = _collect_all_nodes(nav_tree)
+        errors = []
+        for node in all_nodes:
+            response = client.get(node.url)
+            if response.status_code != 200:
+                errors.append(f"{node.url} -> {response.status_code} ({node.label})")
+        assert errors == [], "Pages that failed under multi-theme:\n" + "\n".join(
+            errors
+        )
+
+    def test_no_undefined_template_variables_across_gallery_views(
+        self, client, settings
+    ):
+        """Ensure gallery views do not reference undefined template context variables (#268)."""
+        templates_cfg = copy.deepcopy(settings.TEMPLATES)
+        templates_cfg[0]["OPTIONS"]["string_if_invalid"] = "__UNDEFINED_VAR:%s__"
+        settings.TEMPLATES = templates_cfg
+        settings.DJ_DESIGN_SYSTEM = self.MULTI_THEME_SETTINGS
+
+        urls_to_check = [
+            reverse("gallery"),
+            "/dds/demo_components/card/",
+            "/dds/demo_nav/elements/",
+            "/dds/demo_nav/design_guidelines/",
+            "/dds/demo_components/alert/",
+            "/dds/demo_components/badge/?variant=status",
+        ]
+        for url in urls_to_check:
+            response = client.get(path=url)
+            assert response.status_code == 200
+            html = response.content.decode("utf-8")
+            assert "__UNDEFINED_VAR:" not in html, (
+                f"Undefined template variable rendered on {url}"
+            )
 
     def test_index_page_renders(self, client):
         response = client.get(reverse("gallery"))
@@ -1365,3 +1434,30 @@ class TestComponentThemeOverride:
         assert normalized[1]["is_supported"] is True
         assert normalized[1]["label"] == "Dark Theme"
         assert normalized[1]["raw_label"] == "Dark Theme"
+
+    def test_non_component_views_render_with_multiple_themes(self, client, settings):
+        """Regression test for #268: gallery_index, folder, and document views render with 2+ themes."""
+        settings.DJ_DESIGN_SYSTEM = self.TWO_THEMES_SETTINGS
+
+        index_resp = client.get(reverse("gallery"))
+        assert index_resp.status_code == 200
+        assert index_resp.context["component_available_themes"] is None
+        assert index_resp.context["is_theme_restricted"] is False
+        index_html = index_resp.content.decode("utf-8")
+        assert "gallery-global-theme-select" in index_html
+        assert "data-theme-override-note" not in index_html
+        assert "(unsupported)" not in index_html
+
+        folder_resp = client.get("/dds/demo_components/card/")
+        assert folder_resp.status_code == 200
+        assert "gallery-global-theme-select" in folder_resp.content.decode("utf-8")
+
+        index_doc_folder_resp = client.get("/dds/demo_nav/elements/")
+        assert index_doc_folder_resp.status_code == 200
+        assert "gallery-global-theme-select" in index_doc_folder_resp.content.decode(
+            "utf-8"
+        )
+
+        doc_resp = client.get("/dds/demo_nav/design_guidelines/")
+        assert doc_resp.status_code == 200
+        assert "gallery-global-theme-select" in doc_resp.content.decode("utf-8")
