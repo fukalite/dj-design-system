@@ -570,6 +570,27 @@ class TestNavTreeStylesheet:
         assert "& [data-nav-link]" in css_text
         assert "dds-nav-tree [" not in css_text
 
+    def test_sidebar_scroll_container_padding_at_panel_edge(self) -> None:
+        """Verify sidebar body sets padding: 0; and delegates padding to child nav."""
+        sidebar_css_path = (
+            pathlib.Path(__file__).resolve().parent.parent.parent
+            / "dj_design_system"
+            / "static"
+            / "dj_design_system"
+            / "areas"
+            / "sidebar.css"
+        )
+        css_text = _read_text(path=sidebar_css_path)
+        body_rule_index = css_text.find("& [data-sidebar-body] {")
+        footer_rule_index = css_text.find("& [data-sidebar-footer] {")
+        assert body_rule_index != -1
+        assert footer_rule_index > body_rule_index
+        body_block = css_text[body_rule_index:footer_rule_index]
+        assert "padding: 0;" in body_block
+        assert "& nav {" in body_block
+        assert "padding-block: var(--_sidebar-padding-block);" in body_block
+        assert "padding-inline: var(--_sidebar-padding-inline);" in body_block
+
 
 class TestNavTreeGalleryAndDocs:
     """Verify co-located gallery.py and index.md for dds__nav_tree."""
