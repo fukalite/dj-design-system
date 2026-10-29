@@ -385,7 +385,9 @@ You can also pass a sequence of keys or names to enable and order specific docum
 config = GalleryConfig(
     doc_variants={"maximal": False, "all_slots": True},
     variants=[
-        Variant(name="basic", kwargs={"title": "Welcome", "slot__body": "<p>Hello</p>"}),
+        Variant(
+            name="basic", kwargs={"title": "Welcome", "slot__body": "<p>Hello</p>"}
+        ),
     ],
 )
 
