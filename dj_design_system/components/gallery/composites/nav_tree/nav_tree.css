@@ -71,11 +71,13 @@
       margin: 0;
     }
 
-    & [data-nav-children][hidden] {
+    & [data-nav-children][hidden],
+    & [data-nav-group][data-state='closed'] > [data-nav-children] {
       display: none;
     }
 
-    & [data-nav-row] {
+    & [data-nav-row],
+    & [data-nav-group-row] {
       display: flex;
       gap: var(--_nav-tree-gap);
       align-items: stretch;
@@ -189,7 +191,8 @@
       }
     }
 
-    & [data-nav-folder][data-state='open'] > [data-nav-row] [data-nav-toggle] {
+    & [data-nav-folder][data-state='open'] > [data-nav-row] [data-nav-toggle],
+    & [data-nav-group][data-state='open'] > [data-nav-row] [data-nav-toggle] {
       transform: rotate(90deg);
     }
   }

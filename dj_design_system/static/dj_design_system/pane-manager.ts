@@ -4,6 +4,8 @@
  * notice visibility.
  */
 
+const NAV_STATE_STORAGE_KEY = 'dds-nav-expanded-state';
+
 /** Interface for `<dds-tabs>` hosts supporting programmatic activation. */
 interface TabsHostElement extends HTMLElement {
   activateTab?: (tabId: string) => void;
@@ -12,6 +14,13 @@ interface TabsHostElement extends HTMLElement {
 /** Interface for `<dds-search-box>` hosts supporting programmatic focus. */
 interface SearchBoxHostElement extends HTMLElement {
   focusInput?: () => void;
+}
+
+/** Interface for `<dds-nav-tree>` hosts supporting state synchronisation. */
+interface NavTreeHostElement extends HTMLElement {
+  applyExpandedState?: (
+    stateMap: Record<string, 'open' | 'closed'>,
+  ) => void;
 }
 
 /**
@@ -93,6 +102,14 @@ export class PaneManager {
     );
 
     this.host.addEventListener(
+      'dds:nav-toggle',
+      (event: Event) => {
+        this.handleNavToggle(event);
+      },
+      { signal },
+    );
+
+    this.host.addEventListener(
       'click',
       (event: MouseEvent) => {
         this.handleShellClick(event);
@@ -119,6 +136,7 @@ export class PaneManager {
     this.initTabHashSync();
     this.syncStaticSnapshotNotice();
     this.syncDocPreviewIframes(signal);
+    this.syncNavTreeState();
   }
 
   /**
@@ -427,6 +445,78 @@ export class PaneManager {
         { signal },
       );
       syncIframe(iframe);
+    }
+  }
+
+  /**
+   * Synchronises persisted nav tree expanded state to all `<dds-nav-tree>`
+   * instances inside the host shell.
+   */
+  private syncNavTreeState(): void {
+    const stateMap = this.readNavTreeState();
+    if (Object.keys(stateMap).length === 0) {
+      return;
+    }
+    const trees =
+      this.host.querySelectorAll<NavTreeHostElement>('dds-nav-tree');
+    for (const tree of trees) {
+      tree.applyExpandedState?.(stateMap);
+    }
+  }
+
+  /**
+   * Persists navigation tree expand/collapse toggles to localStorage.
+   *
+   * @param {!Event} event Bubbling `dds:nav-toggle` custom event.
+   */
+  private handleNavToggle(event: Event): void {
+    const detail = (
+      event as CustomEvent<{
+        folderId?: string;
+        groupId?: string;
+        expanded?: boolean;
+      }>
+    ).detail;
+    const id = detail?.folderId || detail?.groupId;
+    if (!id || typeof detail?.expanded !== 'boolean') {
+      return;
+    }
+    try {
+      const stateMap = this.readNavTreeState();
+      stateMap[id] = detail.expanded ? 'open' : 'closed';
+      window.localStorage.setItem(
+        NAV_STATE_STORAGE_KEY,
+        JSON.stringify(stateMap),
+      );
+    } catch {
+      // Ignore storage errors in restricted environments.
+    }
+  }
+
+  /**
+   * Reads and sanitises persisted nav tree expanded states from localStorage.
+   *
+   * @return Sanity-checked map of node IDs to 'open' | 'closed'.
+   */
+  private readNavTreeState(): Record<string, 'open' | 'closed'> {
+    try {
+      const raw = window.localStorage.getItem(NAV_STATE_STORAGE_KEY);
+      if (!raw) {
+        return {};
+      }
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        return {};
+      }
+      const stateMap: Record<string, 'open' | 'closed'> = {};
+      for (const [key, value] of Object.entries(parsed)) {
+        if (value === 'open' || value === 'closed') {
+          stateMap[key] = value;
+        }
+      }
+      return stateMap;
+    } catch {
+      return {};
     }
   }
 }
