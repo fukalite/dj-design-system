@@ -437,8 +437,8 @@ class TestTagSignatureEdgeCases:
         )
 
         user = get_user_model().objects.create(username="Cam's account")
-        assert _format_param_for_tag("author", user) == "author=author"
-        assert _format_positional_arg("author", user) == "author"
+        assert _format_param_for_tag(param_name="author", value=user) == "author=author"
+        assert _format_positional_arg(param_name="author", value=user) == "author"
 
 
 # ---------------------------------------------------------------------------
@@ -525,21 +525,23 @@ class TestGalleryParameterFormatting:
         from dj_design_system.services.tag_signature import _format_param_for_tag
 
         param = GalleryParameter(value="raw_value", code="my_var")
-        assert _format_param_for_tag("user", param) == "user=my_var"
+        assert _format_param_for_tag(param_name="user", value=param) == "user=my_var"
 
     def test_format_param_for_tag_without_code(self):
         from dj_design_system.data import GalleryParameter
         from dj_design_system.services.tag_signature import _format_param_for_tag
 
         param = GalleryParameter(value="raw_value")
-        assert _format_param_for_tag("user", param) == 'user="raw_value"'
+        assert (
+            _format_param_for_tag(param_name="user", value=param) == 'user="raw_value"'
+        )
 
     def test_format_positional_arg_with_code(self):
         from dj_design_system.data import GalleryParameter
         from dj_design_system.services.tag_signature import _format_positional_arg
 
         param = GalleryParameter(value="raw_value", code="my_var")
-        assert _format_positional_arg("user", param) == "my_var"
+        assert _format_positional_arg(param_name="user", value=param) == "my_var"
 
     def test_unwrap_example(self):
         from dj_design_system.data import GalleryParameter
