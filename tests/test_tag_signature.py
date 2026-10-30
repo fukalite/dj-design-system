@@ -421,7 +421,24 @@ class TestTagSignatureEdgeCases:
 
         sig = generate_tag_signature(_ModelParamComponent)
         # It orders by -pk, so user2 should be the fallback value.
-        assert f"user={str(user2)}" in sig.maximal
+        assert sig.maximal_spec.params["user"] == user2
+        # The snippet names a context variable rather than the instance's str().
+        assert "user=user" in sig.maximal
+        assert str(user2) not in sig.maximal
+
+    @pytest.mark.django_db
+    def test_model_instance_formats_as_param_name(self):
+        """Model instances render as a variable named after the parameter, keyword or positional."""
+        from django.contrib.auth import get_user_model
+
+        from dj_design_system.services.tag_signature import (
+            _format_param_for_tag,
+            _format_positional_arg,
+        )
+
+        user = get_user_model().objects.create(username="Cam's account")
+        assert _format_param_for_tag("author", user) == "author=author"
+        assert _format_positional_arg("author", user) == "author"
 
 
 # ---------------------------------------------------------------------------
@@ -522,7 +539,7 @@ class TestGalleryParameterFormatting:
         from dj_design_system.services.tag_signature import _format_positional_arg
 
         param = GalleryParameter(value="raw_value", code="my_var")
-        assert _format_positional_arg(param) == "my_var"
+        assert _format_positional_arg("user", param) == "my_var"
 
     def test_unwrap_example(self):
         from dj_design_system.data import GalleryParameter

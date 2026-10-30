@@ -7,6 +7,8 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, NamedTuple, cast
 
+from django.db.models import Model
+
 from dj_design_system.components import BaseComponent, BlockComponent
 from dj_design_system.components.base import get_own_meta
 from dj_design_system.data import BLOCK_CONTENT_PLACEHOLDER, CanvasSpec
@@ -103,25 +105,15 @@ def _generate_example_value(
 
 def _format_param_for_tag(param_name: str, value: Any) -> str:
     """Format a parameter and value for template tag syntax."""
-    from dj_design_system.data import GalleryParameter
-
-    if isinstance(value, GalleryParameter):
-        if value.code is not None:
-            return f"{param_name}={value.code}"
-        value = value.value
-
-    if isinstance(value, bool):
-        value_str = str(value)
-    elif isinstance(value, str):
-        value_str = f'"{value}"'
-    else:
-        value_str = str(value)
-
-    return f"{param_name}={value_str}"
+    return f"{param_name}={_format_positional_arg(param_name, value)}"
 
 
-def _format_positional_arg(value: Any) -> str:
-    """Format a positional argument value (without parameter name)."""
+def _format_positional_arg(param_name: str, value: Any) -> str:
+    """Format a positional argument value (without parameter name).
+
+    Model instances can't be written literally in a template, so they are
+    shown as a context variable named after the parameter.
+    """
     from dj_design_system.data import GalleryParameter
 
     if isinstance(value, GalleryParameter):
@@ -133,6 +125,8 @@ def _format_positional_arg(value: Any) -> str:
         return str(value)
     elif isinstance(value, str):
         return f'"{value}"'
+    elif isinstance(value, Model):
+        return param_name
     else:
         return str(value)
 
@@ -383,7 +377,7 @@ def generate_current_tag_signature(
     block_class = cast(type[BlockComponent], component_class) if is_block else None
 
     positional = [
-        _format_positional_arg(kwargs[name])
+        _format_positional_arg(name, kwargs[name])
         for name in positional_args
         if name in kwargs
     ]
@@ -519,7 +513,7 @@ def _build_minimal_positional_values(
     for arg_name in positional_args:
         if arg_name in overrides:
             value = overrides[arg_name]
-            minimal_positional.append(_format_positional_arg(value))
+            minimal_positional.append(_format_positional_arg(arg_name, value))
             minimal_positional_values.append(_unwrap_example(value))
             continue
 
@@ -531,7 +525,7 @@ def _build_minimal_positional_values(
                 )
                 if isinstance(spec, StrParam):
                     str_index += 1
-                minimal_positional.append(_format_positional_arg(value))
+                minimal_positional.append(_format_positional_arg(arg_name, value))
                 minimal_positional_values.append(_unwrap_example(value))
     return minimal_positional, minimal_positional_values, str_index
 
@@ -549,7 +543,7 @@ def _build_maximal_positional_values(
     for arg_name in positional_args:
         if arg_name in overrides:
             value = overrides[arg_name]
-            maximal_positional.append(_format_positional_arg(value))
+            maximal_positional.append(_format_positional_arg(arg_name, value))
             maximal_positional_values.append(_unwrap_example(value))
             continue
 
@@ -561,7 +555,7 @@ def _build_maximal_positional_values(
             if isinstance(spec, StrParam):
                 str_index += 1
             if value is not None:
-                maximal_positional.append(_format_positional_arg(value))
+                maximal_positional.append(_format_positional_arg(arg_name, value))
                 maximal_positional_values.append(_unwrap_example(value))
     return maximal_positional, maximal_positional_values, str_index
 
@@ -579,7 +573,7 @@ def _build_defaults_positional_values(
     for arg_name in positional_args:
         if arg_name in overrides:
             value = overrides[arg_name]
-            defaults_positional.append(_format_positional_arg(value))
+            defaults_positional.append(_format_positional_arg(arg_name, value))
             defaults_positional_values.append(_unwrap_example(value))
             continue
 
@@ -587,7 +581,7 @@ def _build_defaults_positional_values(
             spec = params[arg_name]
             if spec.default is not None and spec.default != "":
                 value = spec.default
-                defaults_positional.append(_format_positional_arg(value))
+                defaults_positional.append(_format_positional_arg(arg_name, value))
                 defaults_positional_values.append(_unwrap_example(value))
             elif spec.required:
                 value = _generate_example_value(
@@ -596,7 +590,7 @@ def _build_defaults_positional_values(
                 if isinstance(spec, StrParam):
                     str_index += 1
                 if value is not None:
-                    defaults_positional.append(_format_positional_arg(value))
+                    defaults_positional.append(_format_positional_arg(arg_name, value))
                     defaults_positional_values.append(_unwrap_example(value))
     return defaults_positional, defaults_positional_values, str_index
 
@@ -795,7 +789,7 @@ def _build_example_signature(
         for arg_name in positional_args:
             if arg_name in merged_kwargs:
                 val = merged_kwargs[arg_name]
-                pos_fmt.append(_format_positional_arg(val))
+                pos_fmt.append(_format_positional_arg(arg_name, val))
                 pos_vals.append(_unwrap_example(val))
 
         kw_fmt: list[str] = []
