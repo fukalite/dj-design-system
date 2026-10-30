@@ -374,6 +374,7 @@ def generate_current_tag_signature(
     tag_name: str | None = None,
 ) -> TagSignature:
     """Generate a tag usage signature reflecting the currently-active parameter values."""
+    kwargs = _evaluate_callables(values=kwargs)
     component_name = (
         tag_name or get_meta_name(component_class) or derive_name(component_class)
     )
@@ -497,10 +498,10 @@ def _evaluate_callables(*, values: dict[str, Any]) -> dict[str, Any]:
 
     evaluated: dict[str, Any] = {}
     for key, value in values.items():
+        if callable(value):
+            value = value()
         if isinstance(value, GalleryParameter) and callable(value.value):
             value = GalleryParameter(value=value.value(), code=value.code)
-        elif callable(value):
-            value = value()
         evaluated[key] = value
     return evaluated
 

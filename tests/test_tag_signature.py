@@ -1023,6 +1023,42 @@ class TestCallableVariantKwargs:
         assert "heading=page.title" in sig.minimal
         assert sig.minimal_spec.params["heading"] == "Resolved"
 
+    def test_callable_returning_gallery_parameter_is_evaluated(
+        self, register_gallery_component
+    ):
+        from dj_design_system.data import GalleryParameter
+
+        register_gallery_component(
+            OptionalParamsComponent,
+            "optional_params",
+            GalleryConfig(
+                variants=[
+                    Variant(
+                        name="basic",
+                        kwargs={
+                            "label": "L",
+                            "heading": lambda: GalleryParameter(
+                                value=lambda: "Resolved", code="page.title"
+                            ),
+                        },
+                    ),
+                ],
+            ),
+        )
+
+        sig = generate_tag_signature(OptionalParamsComponent)
+
+        assert "heading=page.title" in sig.minimal
+        assert sig.minimal_spec.params["heading"] == "Resolved"
+
+    def test_current_signature_evaluates_callables(self):
+        sig = generate_current_tag_signature(
+            OptionalParamsComponent,
+            {"label": lambda: "Live", "heading": "H"},
+        )
+
+        assert sig.minimal == '{% optional_params "Live" heading="H" %}'
+
     @pytest.mark.django_db
     def test_callable_returning_model_instance_serialises_pk_in_canvas_url(
         self, register_gallery_component
