@@ -374,6 +374,7 @@ def generate_current_tag_signature(
     tag_name: str | None = None,
 ) -> TagSignature:
     """Generate a tag usage signature reflecting the currently-active parameter values."""
+    kwargs = _evaluate_callables(values=kwargs)
     component_name = (
         tag_name or get_meta_name(component_class) or derive_name(component_class)
     )
@@ -486,6 +487,23 @@ def _build_sig_raw(
             opening += f" {args_str}"
         opening += " %}"
         return _format_multiline_example(opening, is_block, component_name)
+
+
+def _evaluate_callables(*, values: dict[str, Any]) -> dict[str, Any]:
+    """Call any callable values so examples show and render what they return.
+
+    ``GalleryParameter`` wrappers are kept so their ``code`` still drives the snippet.
+    """
+    from dj_design_system.data import GalleryParameter
+
+    evaluated: dict[str, Any] = {}
+    for key, value in values.items():
+        if callable(value):
+            value = value()
+        if isinstance(value, GalleryParameter) and callable(value.value):
+            value = GalleryParameter(value=value.value(), code=value.code)
+        evaluated[key] = value
+    return evaluated
 
 
 def _unwrap_example(value: Any) -> Any:
@@ -774,8 +792,8 @@ def _build_example_signature(
     block_class = cast(type[BlockComponent], component_class) if is_block else None
 
     if variant is not None:
-        merged_kwargs = merge_variant_params(
-            component_class, config=config, variant=variant
+        merged_kwargs = _evaluate_callables(
+            values=merge_variant_params(component_class, config=config, variant=variant)
         )
         validate_explicit_variant(
             component_class=component_class,
@@ -856,6 +874,7 @@ def _build_example_signature(
     base_kwargs = merge_variant_params(component_class, config=config, variant=None)
     if doc_variant is not None and doc_variant.kwargs:
         base_kwargs.update(doc_variant.kwargs)
+    base_kwargs = _evaluate_callables(values=base_kwargs)
 
     slot_overrides = {
         k: base_kwargs.pop(k)
