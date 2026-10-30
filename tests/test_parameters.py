@@ -8,6 +8,7 @@ from django.core.files import File
 from django.core.files.images import ImageFile
 
 from dj_design_system.components import TagComponent
+from dj_design_system.data import ParamSpecData
 from dj_design_system.parameters.base import (
     DateParam,
     DateTimeParam,
@@ -26,6 +27,7 @@ from dj_design_system.parameters.base import (
 )
 from dj_design_system.parameters.field import FieldParam
 from dj_design_system.parameters.model import ModelParam
+from dj_design_system.services.gallery_context import ParamTableRowData
 
 
 # ---------------------------------------------------------------------------
@@ -171,9 +173,6 @@ class TestModelResolution:
 
     def test_type_labels_name_the_model(self):
         """Params table and API type labels show the model class, not ``any``."""
-        from dj_design_system.data import ParamSpecData
-        from dj_design_system.services.gallery_context import ParamTableRowData
-
         param = FakeUserParam("A user")
         param.__set_name__(None, "user")
         row = ParamTableRowData.from_raw(("user", param))
