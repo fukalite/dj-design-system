@@ -163,7 +163,7 @@ describe('canvas-resize stage message receiver', () => {
     );
   });
 
-  it('reports extended-mode wrapper height to the parent and sizes it to its content', async () => {
+  it('reports and autosizes an embedded extended-mode wrapper', async () => {
     vi.resetModules();
 
     const postMessageSpy = vi.fn();
