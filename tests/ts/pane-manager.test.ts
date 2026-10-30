@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import '../../dj_design_system/components/gallery/elements/tabs/tabs.js';
 import '../../dj_design_system/components/gallery/composites/nav_tree/nav_tree.js';
 import '../../dj_design_system/components/gallery/composites/search_box/search_box.js';
-import {
+import type {
   DDSNavTreeElement,
 } from '../../dj_design_system/components/gallery/composites/nav_tree/nav_tree.js';
 import {

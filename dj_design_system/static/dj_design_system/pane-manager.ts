@@ -467,7 +467,11 @@ export class PaneManager {
     if (Object.keys(stateMap).length === 0) {
       return;
     }
-    if (target instanceof HTMLElement && this.host.contains(target)) {
+    if (
+      target instanceof HTMLElement &&
+      target.matches('dds-nav-tree') &&
+      this.host.contains(target)
+    ) {
       (target as NavTreeHostElement).applyExpandedState?.(stateMap);
       return;
     }
