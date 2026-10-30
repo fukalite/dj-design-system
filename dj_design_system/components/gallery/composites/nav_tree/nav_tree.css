@@ -72,6 +72,7 @@
     }
 
     & [data-nav-children][hidden],
+    & [data-nav-folder][data-state='closed'] > [data-nav-children],
     & [data-nav-group][data-state='closed'] > [data-nav-children] {
       display: none;
     }

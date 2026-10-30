@@ -4,7 +4,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import '../../dj_design_system/components/gallery/elements/tabs/tabs.js';
+import '../../dj_design_system/components/gallery/composites/nav_tree/nav_tree.js';
 import '../../dj_design_system/components/gallery/composites/search_box/search_box.js';
+import {
+  DDSNavTreeElement,
+} from '../../dj_design_system/components/gallery/composites/nav_tree/nav_tree.js';
 import {
   PaneManager,
 } from '../../dj_design_system/static/dj_design_system/pane-manager.js';
@@ -96,12 +100,10 @@ describe('PaneManager', () => {
     );
 
     const host = document.createElement('div');
-    const navTree = document.createElement('dds-nav-tree') as HTMLElement & {
-      applyExpandedState: (
-        stateMap: Record<string, 'open' | 'closed'>,
-      ) => void;
-    };
-    navTree.applyExpandedState = vi.fn();
+    const navTree = document.createElement(
+      'dds-nav-tree',
+    ) as DDSNavTreeElement;
+    const applySpy = vi.spyOn(navTree, 'applyExpandedState');
     host.appendChild(navTree);
     document.body.appendChild(host);
 
@@ -109,10 +111,82 @@ describe('PaneManager', () => {
     const controller = new AbortController();
     manager.connect(controller.signal);
 
-    expect(navTree.applyExpandedState).toHaveBeenCalledWith({
+    expect(applySpy).toHaveBeenCalledWith({
       'group-1': 'closed',
       'folder-1': 'open',
     });
+
+    controller.abort();
+  });
+
+  it('restores state when dds-nav-tree connects after PaneManager', () => {
+    window.localStorage.setItem(
+      'dds-nav-expanded-state',
+      JSON.stringify({
+        'group-1': 'closed',
+        'folder-1': 'open',
+      }),
+    );
+
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+
+    const manager = new PaneManager(host);
+    const controller = new AbortController();
+    manager.connect(controller.signal);
+
+    const navTree = document.createElement('dds-nav-tree');
+    navTree.innerHTML = `
+      <div data-nav-group data-group-id="group-1" data-state="open">
+        <div data-nav-row data-nav-group-row>
+          <a href="/group-1" data-nav-link>Group 1</a>
+          <button type="button" data-nav-toggle aria-expanded="true">
+            Toggle
+          </button>
+        </div>
+        <div data-nav-children>
+          <a href="/group-1/a" data-nav-link>A</a>
+        </div>
+      </div>
+      <div data-nav-folder data-folder-id="folder-1" data-state="closed">
+        <div data-nav-row>
+          <a href="/folder-1" data-nav-link>Folder 1</a>
+          <button type="button" data-nav-toggle aria-expanded="false">
+            Toggle
+          </button>
+        </div>
+        <div data-nav-children hidden>
+          <a href="/folder-1/b" data-nav-link>B</a>
+        </div>
+      </div>
+    `;
+    host.appendChild(navTree);
+
+    const groupEl =
+      navTree.querySelector<HTMLElement>('[data-group-id="group-1"]')!;
+    const folderEl =
+      navTree.querySelector<HTMLElement>('[data-folder-id="folder-1"]')!;
+    expect(groupEl.dataset.state).toBe('closed');
+    expect(
+      groupEl
+        .querySelector('[data-nav-toggle]')
+        ?.getAttribute('aria-expanded'),
+    ).toBe('false');
+    expect(
+      groupEl.querySelector<HTMLElement>(':scope > [data-nav-children]')
+        ?.hidden,
+    ).toBe(true);
+
+    expect(folderEl.dataset.state).toBe('open');
+    expect(
+      folderEl
+        .querySelector('[data-nav-toggle]')
+        ?.getAttribute('aria-expanded'),
+    ).toBe('true');
+    expect(
+      folderEl.querySelector<HTMLElement>(':scope > [data-nav-children]')
+        ?.hidden,
+    ).toBe(false);
 
     controller.abort();
   });
@@ -176,12 +250,10 @@ describe('PaneManager', () => {
     window.localStorage.setItem('dds-nav-expanded-state', 'invalid-json');
 
     const host = document.createElement('div');
-    const navTree = document.createElement('dds-nav-tree') as HTMLElement & {
-      applyExpandedState: (
-        stateMap: Record<string, 'open' | 'closed'>,
-      ) => void;
-    };
-    navTree.applyExpandedState = vi.fn();
+    const navTree = document.createElement(
+      'dds-nav-tree',
+    ) as DDSNavTreeElement;
+    const applySpy = vi.spyOn(navTree, 'applyExpandedState');
     host.appendChild(navTree);
     document.body.appendChild(host);
 
@@ -189,7 +261,7 @@ describe('PaneManager', () => {
     const controller = new AbortController();
     manager.connect(controller.signal);
 
-    expect(navTree.applyExpandedState).not.toHaveBeenCalled();
+    expect(applySpy).not.toHaveBeenCalled();
 
     host.dispatchEvent(
       new CustomEvent('dds:nav-toggle', {

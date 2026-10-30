@@ -243,4 +243,66 @@ describe('DDSNavTreeElement', () => {
     expect(folderToggle.getAttribute('aria-expanded')).toBe('true');
     expect(folderChildren.hidden).toBe(false);
   });
+
+  it('dispatches bubbling dds:nav-tree-ready on connect', () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+
+    let readyCount = 0;
+    host.addEventListener('dds:nav-tree-ready', () => {
+      readyCount += 1;
+    });
+
+    const tree = document.createElement('dds-nav-tree');
+    host.appendChild(tree);
+
+    expect(readyCount).toBe(1);
+  });
+
+  it('allows collapsing a group or folder whose own row link is active', () => {
+    const tree = document.createElement('dds-nav-tree') as DDSNavTreeElement;
+    tree.innerHTML = `
+      <div data-nav-group data-group-id="app-root" data-state="open">
+        <div data-nav-row data-nav-group-row>
+          <a href="/app" data-nav-group-label data-nav-link
+             aria-current="page" data-active="true">
+            App Root
+          </a>
+          <button type="button" data-nav-toggle aria-expanded="true">
+            Toggle
+          </button>
+        </div>
+        <div data-nav-children>
+          <div data-nav-folder data-folder-id="folder-self" data-state="open">
+            <div data-nav-row>
+              <a href="/app/folder" data-nav-link>Folder</a>
+              <button type="button" data-nav-toggle aria-expanded="true">
+                Toggle
+              </button>
+            </div>
+            <div data-nav-children>
+              <a href="/app/folder/item" data-nav-link>Item</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(tree);
+
+    tree.applyExpandedState({
+      'app-root': 'closed',
+      'folder-self': 'closed',
+    });
+
+    const group =
+      tree.querySelector<HTMLElement>('[data-group-id="app-root"]')!;
+    const groupToggle =
+      group.querySelector<HTMLButtonElement>('[data-nav-toggle]')!;
+    const groupChildren = group.querySelector<HTMLElement>(
+      ':scope > [data-nav-children]',
+    )!;
+    expect(group.dataset.state).toBe('closed');
+    expect(groupToggle.getAttribute('aria-expanded')).toBe('false');
+    expect(groupChildren.hidden).toBe(true);
+  });
 });
