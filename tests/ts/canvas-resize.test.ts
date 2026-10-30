@@ -162,4 +162,49 @@ describe('canvas-resize stage message receiver', () => {
       '*',
     );
   });
+
+  it('reports extended-mode wrapper height to the parent and sizes it to its content', async () => {
+    vi.resetModules();
+
+    const postMessageSpy = vi.fn();
+    Object.defineProperty(window, 'parent', {
+      value: { postMessage: postMessageSpy },
+      configurable: true,
+      writable: true,
+    });
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'canvas-wrapper canvas-wrapper--extended';
+    wrapper.dataset.canvasId = 'sandbox';
+    Object.defineProperty(wrapper, 'scrollHeight', {
+      value: 329,
+      configurable: true,
+    });
+    document.body.appendChild(wrapper);
+
+    await import('../../dj_design_system/static/dj_design_system/canvas-resize.js');
+
+    expect(wrapper.hasAttribute('data-canvas-autosize')).toBe(true);
+
+    window.dispatchEvent(
+      new MessageEvent('message', { data: { type: 'dds:canvas-stage' } }),
+    );
+
+    expect(postMessageSpy).toHaveBeenCalledWith(
+      { type: 'canvas-resize', id: 'sandbox', height: 329 },
+      '*',
+    );
+  });
+
+  it('leaves the wrapper filling the viewport when not embedded', async () => {
+    vi.resetModules();
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'canvas-wrapper canvas-wrapper--extended';
+    document.body.appendChild(wrapper);
+
+    await import('../../dj_design_system/static/dj_design_system/canvas-resize.js');
+
+    expect(wrapper.hasAttribute('data-canvas-autosize')).toBe(false);
+  });
 });
