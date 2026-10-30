@@ -165,6 +165,21 @@ class TestModelResolution:
         resolved = param._resolve_model()
         assert resolved.__name__ == "User"
 
+    def test_type_is_resolved_model(self):
+        param = FakeUserParam("A user")
+        assert param.type is FakeUser
+
+    def test_type_labels_name_the_model(self):
+        """Params table and API type labels show the model class, not ``any``."""
+        from dj_design_system.data import ParamSpecData
+        from dj_design_system.services.gallery_context import ParamTableRowData
+
+        param = FakeUserParam("A user")
+        param.__set_name__(None, "user")
+        row = ParamTableRowData.from_raw(("user", param))
+        assert row.type_name == "FakeUser"
+        assert ParamSpecData.from_param(param).type_name == "FakeUser"
+
 
 # ---------------------------------------------------------------------------
 # Validation
