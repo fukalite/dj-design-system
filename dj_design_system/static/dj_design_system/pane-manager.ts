@@ -110,6 +110,14 @@ export class PaneManager {
     );
 
     this.host.addEventListener(
+      'dds:nav-tree-ready',
+      (event: Event) => {
+        this.syncNavTreeState(event.target);
+      },
+      { signal },
+    );
+
+    this.host.addEventListener(
       'click',
       (event: MouseEvent) => {
         this.handleShellClick(event);
@@ -449,12 +457,22 @@ export class PaneManager {
   }
 
   /**
-   * Synchronises persisted nav tree expanded state to all `<dds-nav-tree>`
+   * Synchronises persisted nav tree expanded state to `<dds-nav-tree>`
    * instances inside the host shell.
+   *
+   * @param {?EventTarget=} target Optional ready `<dds-nav-tree>` element.
    */
-  private syncNavTreeState(): void {
+  private syncNavTreeState(target?: EventTarget | null): void {
     const stateMap = this.readNavTreeState();
     if (Object.keys(stateMap).length === 0) {
+      return;
+    }
+    if (
+      target instanceof HTMLElement &&
+      target.matches('dds-nav-tree') &&
+      this.host.contains(target)
+    ) {
+      (target as NavTreeHostElement).applyExpandedState?.(stateMap);
       return;
     }
     const trees =
