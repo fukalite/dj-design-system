@@ -1,5 +1,5 @@
 /**
- * @fileoverview Iframe script for reporting basic-mode `.canvas-wrapper` height
+ * @fileoverview Iframe script for reporting embedded `.canvas-wrapper` height
  * changes via `postMessage` and applying `dds:canvas-stage` stage attributes.
  */
 
@@ -19,7 +19,6 @@ interface CanvasStageMessage {
   }
 
   let lastHeight = -1;
-  const isBasicWrapper = wrapper.classList.contains('canvas-wrapper--basic');
   const hasParentWindow =
     Boolean(window.parent) && window.parent !== window;
 
@@ -73,10 +72,13 @@ interface CanvasStageMessage {
    * @param {unknown=} force Pass `true` to emit even if height has not changed.
    */
   function sendResize(force?: unknown): void {
-    if (!wrapper || !isBasicWrapper || !hasParentWindow) {
+    if (!wrapper || !hasParentWindow) {
       return;
     }
-    const height = Math.max(wrapper.scrollHeight, wrapper.offsetHeight);
+    // Layout sizes ignore the stage zoom set on the wrapper, so scale by it.
+    const layoutHeight = Math.max(wrapper.scrollHeight, wrapper.offsetHeight);
+    const zoom = Number(wrapper.style.zoom) || 1;
+    const height = Math.ceil(layoutHeight * zoom);
     if (force === true || height !== lastHeight) {
       lastHeight = height;
       window.parent.postMessage(
@@ -157,7 +159,11 @@ interface CanvasStageMessage {
     }
   });
 
-  if (isBasicWrapper && hasParentWindow) {
+  if (hasParentWindow) {
+    // Size the wrapper to its content rather than the iframe viewport, so the
+    // reported height can shrink as well as grow (#111, #276).
+    wrapper.setAttribute('data-canvas-autosize', '');
+
     const ro = new ResizeObserver(sendResize);
     ro.observe(wrapper);
 

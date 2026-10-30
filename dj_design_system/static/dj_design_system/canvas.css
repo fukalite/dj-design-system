@@ -69,6 +69,12 @@ body {
   padding: 16px;
 }
 
+/* Embedded canvases report their height to the parent (canvas-resize.js), so
+   the wrapper must size to its content, not the iframe viewport. */
+.canvas-wrapper[data-canvas-autosize] {
+  min-height: 0;
+}
+
 /* Stage inspection helpers activated via dds:canvas-stage postMessage */
 .canvas-wrapper[data-canvas-outline] * {
   outline: 1px dashed rgb(99 102 241 / 60%);

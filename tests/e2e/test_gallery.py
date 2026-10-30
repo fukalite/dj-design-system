@@ -332,3 +332,21 @@ class TestBasicCanvasAutoHeight:
         assert result["content"] > 60
         assert len(set(result["heights"])) == 1
         assert result["viewport"] == result["content"]
+
+
+class TestSandboxCanvasAutoHeight:
+    """The extended-mode sandbox preview sizes to its content (#276)."""
+
+    def test_sandbox_iframe_fits_component(self, page, live_server):
+        selector = "dds-canvas-widget[data-canvas-id='sandbox'] iframe"
+        page.goto(f"{live_server.url}/dds/demo_components/user_card/#pane-sandbox")
+        page.wait_for_function(
+            f"document.querySelector(\"{selector}\").style.height !== ''"
+        )
+
+        result = page.evaluate(_MEASURE_PREVIEW_JS, selector)
+
+        # Taller than the 10rem fallback the iframe was stuck at.
+        assert result["content"] > 160
+        assert len(set(result["heights"])) == 1
+        assert result["viewport"] == result["content"]
