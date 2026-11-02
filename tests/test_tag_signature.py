@@ -957,3 +957,144 @@ class TestGenerateUsageExamples:
         }
         examples = generate_usage_examples(component_class=OptionalParamsComponent)
         assert [ex.name for ex in examples] == ["basic"]
+
+
+class TestCallableVariantKwargs:
+    """Callable kwargs are evaluated for docs examples (#275)."""
+
+    def test_callable_in_custom_doc_variant_is_evaluated(
+        self, register_gallery_component
+    ):
+        register_gallery_component(
+            OptionalParamsComponent,
+            "optional_params",
+            GalleryConfig(
+                doc_variants=["counter"],
+                variants=[
+                    Variant(
+                        name="counter",
+                        kwargs={"label": lambda: "Pending (42)", "heading": "H"},
+                    ),
+                ],
+            ),
+        )
+
+        examples = generate_usage_examples(component_class=OptionalParamsComponent)
+
+        assert [ex.name for ex in examples] == ["counter"]
+        assert examples[0].code == '{% optional_params "Pending (42)" heading="H" %}'
+        assert examples[0].spec.positional_args == ("Pending (42)",)
+
+    def test_callable_param_default_is_evaluated(self, register_gallery_component):
+        register_gallery_component(
+            OptionalParamsComponent,
+            "optional_params",
+            GalleryConfig(param_defaults={"heading": lambda: "Dynamic"}),
+        )
+
+        sig = generate_tag_signature(OptionalParamsComponent)
+
+        assert 'heading="Dynamic"' in sig.minimal
+        assert sig.minimal_spec.params["heading"] == "Dynamic"
+
+    def test_callable_gallery_parameter_keeps_code(self, register_gallery_component):
+        from dj_design_system.data import GalleryParameter
+
+        register_gallery_component(
+            OptionalParamsComponent,
+            "optional_params",
+            GalleryConfig(
+                variants=[
+                    Variant(
+                        name="basic",
+                        kwargs={
+                            "label": "L",
+                            "heading": GalleryParameter(
+                                value=lambda: "Resolved", code="page.title"
+                            ),
+                        },
+                    ),
+                ],
+            ),
+        )
+
+        sig = generate_tag_signature(OptionalParamsComponent)
+
+        assert "heading=page.title" in sig.minimal
+        assert sig.minimal_spec.params["heading"] == "Resolved"
+
+    def test_callable_returning_gallery_parameter_is_evaluated(
+        self, register_gallery_component
+    ):
+        from dj_design_system.data import GalleryParameter
+
+        register_gallery_component(
+            OptionalParamsComponent,
+            "optional_params",
+            GalleryConfig(
+                variants=[
+                    Variant(
+                        name="basic",
+                        kwargs={
+                            "label": "L",
+                            "heading": lambda: GalleryParameter(
+                                value=lambda: "Resolved", code="page.title"
+                            ),
+                        },
+                    ),
+                ],
+            ),
+        )
+
+        sig = generate_tag_signature(OptionalParamsComponent)
+
+        assert "heading=page.title" in sig.minimal
+        assert sig.minimal_spec.params["heading"] == "Resolved"
+
+    def test_current_signature_evaluates_callables(self):
+        sig = generate_current_tag_signature(
+            OptionalParamsComponent,
+            {"label": lambda: "Live", "heading": "H"},
+        )
+
+        assert sig.minimal == '{% optional_params "Live" heading="H" %}'
+
+    @pytest.mark.django_db
+    def test_callable_returning_model_instance_serialises_pk_in_canvas_url(
+        self, register_gallery_component
+    ):
+        from django.contrib.auth import get_user_model
+
+        from dj_design_system.parameters.model import ModelParam
+        from dj_design_system.services.canvas import build_canvas_url
+
+        user = get_user_model().objects.create(username="callable_variant_user")
+
+        class UserParam(ModelParam):
+            class Meta:
+                model = "auth.User"
+                fields = ["username"]
+
+        class UserBadge(TagComponent):
+            template_format_str = "<span></span>"
+            user = UserParam("A user", required=False)
+
+        register_gallery_component(
+            UserBadge,
+            "user_badge",
+            GalleryConfig(
+                doc_variants=["active_user"],
+                variants=[
+                    Variant(
+                        name="active_user",
+                        kwargs={"user": lambda: get_user_model().objects.last()},
+                    ),
+                ],
+            ),
+        )
+
+        examples = generate_usage_examples(component_class=UserBadge)
+
+        assert examples[0].spec.params["user"] == user
+        assert "<function" not in examples[0].code
+        assert f"user={user.pk}" in build_canvas_url(examples[0].spec, "/_canvas/")
