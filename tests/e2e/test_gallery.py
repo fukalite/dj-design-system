@@ -210,6 +210,52 @@ class TestAppNavigation:
         assert toggle.get_attribute("aria-expanded") == "false"
         assert not variants.is_visible()
 
+    def test_sidebar_expanded_state_persists_across_reloads_and_respects_active_child(
+        self, page, gallery_url, live_server
+    ):
+        """Collapsed/expanded sidebar state persists across reloads unless an active child overrides."""
+        page.goto(gallery_url)
+
+        demo_group_toggle = page.locator(
+            "[data-nav-group][data-group-id='demo_components']"
+            " > [data-nav-row] [data-nav-toggle]"
+        )
+        elements_folder_toggle = page.locator(
+            "[data-nav-folder][data-folder-id='demo_nav-elements']"
+            " > [data-nav-row] [data-nav-toggle]"
+        )
+        demo_group_children = page.locator(
+            "[data-nav-group][data-group-id='demo_components'] > [data-nav-children]"
+        )
+        elements_folder_children = page.locator(
+            "[data-nav-folder][data-folder-id='demo_nav-elements'] > [data-nav-children]"
+        )
+
+        assert demo_group_toggle.get_attribute("aria-expanded") == "true"
+        assert elements_folder_toggle.get_attribute("aria-expanded") == "false"
+
+        demo_group_toggle.click()
+        elements_folder_toggle.click()
+        assert demo_group_toggle.get_attribute("aria-expanded") == "false"
+        assert elements_folder_toggle.get_attribute("aria-expanded") == "true"
+
+        page.reload(wait_until="networkidle")
+        assert demo_group_toggle.get_attribute("aria-expanded") == "false"
+        assert not demo_group_children.is_visible()
+        assert elements_folder_toggle.get_attribute("aria-expanded") == "true"
+        assert elements_folder_children.is_visible()
+
+        page.goto(
+            f"{live_server.url}/dds/demo_components/rich_button/",
+            wait_until="networkidle",
+        )
+        assert demo_group_toggle.get_attribute("aria-expanded") == "true"
+        assert demo_group_children.is_visible()
+
+        page.goto(gallery_url, wait_until="networkidle")
+        assert demo_group_toggle.get_attribute("aria-expanded") == "false"
+        assert not demo_group_children.is_visible()
+
 
 # ---------------------------------------------------------------------------
 # Markdown documentation pages

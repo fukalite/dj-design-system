@@ -19,7 +19,8 @@ export class DDSNavTreeElement
   private abortController: AbortController | null = null;
 
   /**
-   * Attaches an idempotent delegated click listener scoped to this element.
+   * Attaches an idempotent delegated click listener scoped to this element
+   * and announces readiness so page mediators can restore persisted state.
    */
   connectedCallback(): void {
     this.abortController?.abort();
@@ -33,6 +34,10 @@ export class DDSNavTreeElement
       },
       { signal },
     );
+
+    this.dispatchEvent(
+      new CustomEvent('dds:nav-tree-ready', { bubbles: true }),
+    );
   }
 
   /**
@@ -45,7 +50,8 @@ export class DDSNavTreeElement
 
   /**
    * Applies persisted or external open/closed state to matching nav folders
-   * and groups, skipping nodes containing the currently active nav item.
+   * and groups, forcing ancestors of an active child open so the active item
+   * remains visible.
    *
    * @param {!Record<string, 'open' | 'closed'>} stateMap Map of node IDs to
    *     their target expanded states.
@@ -60,26 +66,29 @@ export class DDSNavTreeElement
         continue;
       }
 
-      if (
-        el.querySelector('[aria-current="page"], [data-active="true"]')
-      ) {
-        continue;
-      }
-
-      const state = stateMap[id];
+      const childrenEl = el.querySelector<HTMLElement>(
+        ':scope > [data-nav-children]',
+      );
+      const hasActiveChild = Boolean(
+        childrenEl?.querySelector(
+          '[aria-current="page"], [data-active="true"]',
+        ),
+      );
+      const state: 'open' | 'closed' = hasActiveChild ? 'open' : stateMap[id];
       const isOpen = state === 'open';
       el.dataset.state = state;
 
-      const trigger = el.querySelector<HTMLElement>(
-        '[data-nav-trigger], [data-nav-toggle]',
+      const trigger = Array.from(
+        el.querySelectorAll<HTMLElement>(
+          '[data-nav-trigger], [data-nav-toggle]',
+        ),
+      ).find(
+        (btn) => btn.closest('[data-nav-folder], [data-nav-group]') === el,
       );
       if (trigger) {
         trigger.setAttribute('aria-expanded', String(isOpen));
       }
 
-      const childrenEl = el.querySelector<HTMLElement>(
-        ':scope > [data-nav-children]',
-      );
       if (childrenEl) {
         childrenEl.hidden = !isOpen;
       }
