@@ -1,3 +1,6 @@
+---
+order: 1
+---
 # Semantic Tokens & Naming Scheme
 
 This document details the Three-Tier Design Token System, explains the naming grammar, breaks down each semantic domain, and provides live rendered visual demonstrations.

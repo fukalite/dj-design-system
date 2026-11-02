@@ -1,3 +1,7 @@
+---
+order: 0
+label: Foundations
+---
 # About the Design System
 
 This section details the design system's front-end architecture, establishing the invariants, styling layers, design tokens, layout primitives, and template hierarchy that govern the gallery and built-in components.

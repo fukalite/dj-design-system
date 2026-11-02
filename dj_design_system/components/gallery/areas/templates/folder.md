@@ -1,3 +1,6 @@
+---
+order: 1
+---
 # Folder Template
 
 - **Template Path**: `dj_design_system/templates/dj_design_system/gallery/panes/folder.html`

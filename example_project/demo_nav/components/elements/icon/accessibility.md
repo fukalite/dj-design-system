@@ -1,3 +1,7 @@
+---
+order: 1
+label: Accessibility
+---
 # Icon Accessibility
 
 ## Screen readers

@@ -1,3 +1,7 @@
+---
+order: 4
+label: Elevations & Surfaces
+---
 # Elevations & Surfaces
 
 This document details the depth architecture, stacking layers, shadow geometry, and contextual surface delegation system that govern spatial hierarchy across the design system.

@@ -1,3 +1,6 @@
+---
+order: 3
+---
 # Layout Primitives (Every Layout)
 
 This document details the 11 intrinsic **Every Layout** composition primitives in `@layer composition`. These primitives govern all layout, flow, and spatial rhythm across the gallery and components.

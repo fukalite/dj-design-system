@@ -1,3 +1,7 @@
+---
+order: 1
+title: Design guidelines
+---
 # Design Guidelines
 
 These guidelines apply to all components in this library.

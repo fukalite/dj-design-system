@@ -1,3 +1,6 @@
+---
+order: 4
+---
 # Documentation Further Area
 
 - **Template Path**: `dj_design_system/templates/dj_design_system/gallery/panes/docs/further.html`

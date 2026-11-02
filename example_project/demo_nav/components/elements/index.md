@@ -1,3 +1,7 @@
+---
+order: 0
+label: Elements
+---
 # Elements
 
 Atomic UI elements — the smallest building blocks of the design system.

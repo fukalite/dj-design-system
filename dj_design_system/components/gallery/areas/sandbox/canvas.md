@@ -1,3 +1,6 @@
+---
+order: 2
+---
 # Sandbox Canvas Area
 
 - **Template Path**: `dj_design_system/components/gallery/composites/canvas_widget/canvas_widget.html`

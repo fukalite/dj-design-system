@@ -1,3 +1,6 @@
+---
+order: 1
+---
 # Sandbox Toolbar Area
 
 - **Template Path**: `dj_design_system/components/gallery/composites/sandbox_toolbar/sandbox_toolbar.html`
