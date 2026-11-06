@@ -11,7 +11,9 @@
                 <header data-gallery-pane-header>
                     Documentation
                 </header>
-                <div id="dds-panel-docs" data-gallery-pane-body>{% include "dj_design_system/gallery/panes/docs.html" %}</div>
+                <div id="dds-panel-docs" data-gallery-pane-body>
+                    {% include "dj_design_system/gallery/panes/docs.html" %}
+                </div>
             </div>
         {% endslot %}
         {% slot "secondary" %}
@@ -19,7 +21,9 @@
                 <header data-gallery-pane-header>
                     Sandbox
                 </header>
-                <div id="dds-panel-sandbox" data-gallery-sandbox-body>{% include "dj_design_system/gallery/panes/sandbox.html" %}</div>
+                <div id="dds-panel-sandbox" data-gallery-sandbox-body>
+                    {% include "dj_design_system/gallery/panes/sandbox.html" %}
+                </div>
             </div>
         {% endslot %}
     {% enddds__split_pane %}
