@@ -365,4 +365,65 @@ describe('PaneManager', () => {
 
     controller.abort();
   });
+
+  it(
+    'prefers overflowing [data-canvas-stage] and resizes .gallery-canvas',
+    () => {
+    const host = document.createElement('div');
+    host.innerHTML = `
+      <div data-gallery-sandbox-body>
+        <div data-canvas-stage>
+          <iframe data-canvas-iframe data-canvas-id="sandbox"></iframe>
+        </div>
+        <iframe class="gallery-canvas" src="about:blank"></iframe>
+      </div>
+    `;
+    document.body.appendChild(host);
+
+    const stage = host.querySelector<HTMLElement>('[data-canvas-stage]')!;
+    Object.defineProperty(stage, 'clientHeight', {
+      value: 250,
+      configurable: true,
+    });
+    Object.defineProperty(stage, 'scrollHeight', {
+      value: 520,
+      configurable: true,
+    });
+    const stageScrollSpy = vi.fn();
+    stage.scrollBy = stageScrollSpy;
+
+    const manager = new PaneManager(host);
+    const controller = new AbortController();
+    manager.connect(controller.signal);
+
+    const sandboxIframe = host.querySelector<HTMLIFrameElement>(
+      '[data-canvas-iframe]',
+    )!;
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        data: {
+          type: 'canvas-scroll',
+          id: 'sandbox',
+          deltaX: 0,
+          deltaY: 90,
+          deltaMode: 0,
+        },
+        source: sandboxIframe.contentWindow,
+      }),
+    );
+    expect(stageScrollSpy).toHaveBeenCalledWith({ left: 0, top: 90 });
+
+    const standaloneIframe = host.querySelector<HTMLIFrameElement>(
+      'iframe.gallery-canvas',
+    )!;
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        data: { type: 'canvas-resize', height: 184 },
+        source: standaloneIframe.contentWindow,
+      }),
+    );
+    expect(standaloneIframe.style.height).toBe('184px');
+
+    controller.abort();
+  });
 });

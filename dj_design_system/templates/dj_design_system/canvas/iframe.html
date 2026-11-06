@@ -24,7 +24,7 @@
         {# Global, theme, app and component JS #}
         {{ component_js|safe }}
 
-        {# Notify parent frame of content height changes (basic mode only) #}
+        {# Notify parent frame of content height changes #}
         <script src="{% static 'dj_design_system/canvas-resize.js' %}"
                 {% if request.csp_nonce %}nonce="{{ request.csp_nonce }}"{% endif %}></script>
     </body>

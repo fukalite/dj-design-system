@@ -47,7 +47,9 @@ async () => {
     }
     const converged = f => {
         const doc = f.contentDocument;
-        const wrapper = doc && doc.querySelector(".canvas-wrapper--basic");
+        const wrapper = doc && doc.querySelector(
+            ".canvas-wrapper[data-canvas-autosize], .canvas-wrapper--basic"
+        );
         if (!f.getClientRects().length || !wrapper) return true;
         if (reports) {
             if (!reports.has(f.contentWindow)) return false;  // first report not sent yet
@@ -58,7 +60,22 @@ async () => {
             return true;
         }
         const border = Math.max(0, f.offsetHeight - f.clientHeight);
-        const wrapperHeight = Math.max(wrapper.scrollHeight, wrapper.offsetHeight);
+        const reported = reports && reports.get(f.contentWindow);
+        if (reported && Number.isFinite(Number(reported.height))) {
+            const h = Math.max(24, Number(reported.height));
+            return (
+                f.style.height === (h + border) + "px" ||
+                f.style.height === h + "px"
+            );
+        }
+        if (wrapper.hasAttribute("data-canvas-viewport-sized")) {
+            return Boolean(f.style.height);
+        }
+        const zoom = Number(wrapper.style.zoom) || 1;
+        const wrapperHeight = Math.max(
+            24,
+            Math.ceil(Math.max(wrapper.scrollHeight, wrapper.offsetHeight) * zoom)
+        );
         return (
             f.style.height === (wrapperHeight + border) + "px" ||
             f.style.height === wrapperHeight + "px"

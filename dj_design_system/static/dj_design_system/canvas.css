@@ -16,9 +16,32 @@ body {
   padding: 0;
 }
 
-/* Wrapper: fills the canvas. It leaves the component's layout alone, so a
-   component that fills its container gets the full width. */
+/* Embedded canvases size to their content rather than the iframe viewport
+   (#111, #276, #283), outranking unlayered html/body resets via :has() specificity. */
+html:has(.canvas-wrapper--basic),
+html:has(.canvas-wrapper--basic) body,
+html:has(.canvas-wrapper[data-canvas-autosize]),
+html:has(.canvas-wrapper[data-canvas-autosize]) body {
+  height: auto;
+  min-height: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* Viewport-coupled components (100vh / dvh / <l-cover>) render flush inside a
+   bounded stage without wrapper-padding feedback loops (#283). */
+html:has(.canvas-wrapper--basic[data-canvas-viewport-sized]),
+html:has(.canvas-wrapper--basic[data-canvas-viewport-sized]) body,
+html:has(.canvas-wrapper[data-canvas-autosize][data-canvas-viewport-sized]),
+html:has(.canvas-wrapper[data-canvas-autosize][data-canvas-viewport-sized]) body {
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* Wrapper: fills the canvas in standalone tabs while containing child margins
+   and floats via a block formatting context without altering block width (#156). */
 .canvas-wrapper {
+  display: flow-root;
   min-height: 100%;
 }
 
@@ -65,8 +88,19 @@ body {
 }
 
 .canvas-wrapper--basic {
+  position: relative;
   min-height: 0;
   padding: 16px;
+}
+
+.canvas-wrapper[data-canvas-autosize] {
+  position: relative;
+  min-height: 0;
+}
+
+.canvas-wrapper[data-canvas-viewport-sized] {
+  min-height: 100vh;
+  padding: 0;
 }
 
 /* Stage inspection helpers activated via dds:canvas-stage postMessage */
@@ -74,7 +108,8 @@ body {
   outline: 1px dashed rgb(99 102 241 / 60%);
 }
 
-.canvas-wrapper[data-canvas-measure] {
+.canvas-wrapper[data-canvas-measure],
+body:has(.canvas-wrapper[data-canvas-measure]) {
   background-image:
     linear-gradient(to right, rgb(99 102 241 / 12%) 1px, transparent 1px),
     linear-gradient(to bottom, rgb(99 102 241 / 12%) 1px, transparent 1px);

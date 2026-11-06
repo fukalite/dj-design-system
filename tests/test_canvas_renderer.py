@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 from django.test import override_settings
 
@@ -50,16 +52,32 @@ class TestCanvasRenderer:
         assert "canvas-wrapper--basic" in srcdoc
         assert "canvas-bg-" in srcdoc
 
-    def test_basic_mode_injects_resizing_css(self):
+    def test_basic_mode_links_canvas_css_without_inline_important_overrides(self):
         rendered_html = "<p>basic mode</p>"
         srcdoc = build_canvas_srcdoc(
             rendered_html=rendered_html,
             mode_class="canvas-wrapper--basic",
         )
-        assert "<style>" in srcdoc
-        assert "min-height: 0 !important" in srcdoc
-        assert "height: auto !important" in srcdoc
-        assert "overflow: hidden !important" in srcdoc
+        assert "canvas.css" in srcdoc
+        assert "overflow: hidden !important" not in srcdoc
+        assert "height: auto !important" not in srcdoc
+
+    def test_canvas_css_defines_autosize_and_viewport_sized_rules(self):
+        """canvas.css handles embedded autosizing and viewport-coupled stages (#276, #283)."""
+        css_path = (
+            Path(__file__).resolve().parents[1]
+            / "dj_design_system"
+            / "static"
+            / "dj_design_system"
+            / "canvas.css"
+        )
+        css_text = css_path.read_text(encoding="utf-8")
+        assert "html:has(.canvas-wrapper--basic)" in css_text
+        assert "html:has(.canvas-wrapper[data-canvas-autosize])" in css_text
+        assert ".canvas-wrapper[data-canvas-viewport-sized]" in css_text
+        assert "display: flow-root;" in css_text
+        assert "body:has(.canvas-wrapper[data-canvas-measure])" in css_text
+        assert "!important" not in css_text
 
     def test_basic_mode_leaves_component_layout_alone(self):
         """The wrapper must not be a flex container (#156)."""
