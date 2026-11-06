@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import html
-
 from django import template
+from django.template.loader import render_to_string
 
 from dj_design_system.services import media as media_service
 from dj_design_system.services.canvas_renderer import build_canvas_srcdoc
@@ -16,6 +15,9 @@ from dj_design_system.services.registry import component_registry
 from dj_design_system.settings import dds_settings, get_default_theme, get_theme
 from dj_design_system.types import Theme
 
+
+CANVAS_TAG_IFRAME_TEMPLATE = "dj_design_system/canvas/tag_iframe.html"
+CANVAS_TAG_SEQ_KEY = "_dds_canvas_tag_seq"
 
 register = template.Library()
 
@@ -137,6 +139,10 @@ class CanvasNode(template.Node):
         request = context.get("request")
         nonce = getattr(request, "csp_nonce", None) if request else None
 
+        counter = int(context.render_context.get(CANVAS_TAG_SEQ_KEY, 0)) + 1
+        context.render_context[CANVAS_TAG_SEQ_KEY] = counter
+        canvas_id = str(context.get("_canvas_id") or f"canvas-tag-{counter}")
+
         iframe_doc = build_canvas_srcdoc(
             rendered_html=rendered_component,
             component_css=component_css,
@@ -145,14 +151,17 @@ class CanvasNode(template.Node):
             app_label=app_label,
             bg_class=bg_class,
             mode_class=mode_class,
+            iframe_id=canvas_id,
             csp_nonce=nonce,
         )
 
-        escaped_doc = html.escape(iframe_doc)
-        return (
-            f'<iframe class="gallery-canvas" srcdoc="{escaped_doc}" '
-            f'title="Component preview"></iframe>'
-        )
+        return render_to_string(
+            template_name=CANVAS_TAG_IFRAME_TEMPLATE,
+            context={
+                "canvas_id": canvas_id,
+                "iframe_srcdoc": iframe_doc,
+            },
+        ).strip()
 
 
 @register.tag("canvas")

@@ -114,13 +114,14 @@
 
     & [data-canvas-stage] {
       display: flex;
+      flex: 1 1 auto;
       flex-direction: column;
       align-items: stretch;
       box-sizing: border-box;
-      min-block-size: 14rem;
+      min-block-size: 0;
       margin: 0;
       padding: 0;
-      overflow-x: auto;
+      overflow: auto;
       background-color: var(--_canvas-widget-stage-bg-color);
     }
 
@@ -138,7 +139,7 @@
 
     & [data-canvas-viewport] {
       display: flex;
-      flex: 1 1 auto;
+      flex: 1 0 auto;
       flex-direction: column;
       box-sizing: border-box;
       inline-size: var(--_canvas-widget-viewport-width, 100%);
@@ -151,6 +152,7 @@
 
     & [data-canvas-iframe] {
       display: block;
+      flex: 1 0 auto;
       inline-size: 100%;
       block-size: var(--_canvas-widget-iframe-height, 10rem);
       margin: 0;
@@ -159,6 +161,7 @@
 
     & [data-canvas-panel] {
       flex: 1 1 auto;
+      min-block-size: 0;
       margin: 0;
       overflow-y: auto;
       color: var(--_canvas-widget-code-text-color);

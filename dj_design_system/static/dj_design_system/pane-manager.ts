@@ -384,10 +384,7 @@ export class PaneManager {
         const matchesId =
           Boolean(data.id) && iframe.dataset.canvasId === String(data.id);
         if (matchesSource || matchesId) {
-          const scrollContainer =
-            iframe.closest<HTMLElement>(
-              '[data-gallery-pane-body], [data-shell-main]',
-            ) ?? (document.scrollingElement as HTMLElement | null);
+          const scrollContainer = this.resolveScrollContainer(iframe);
           const scale =
             data.deltaMode === 1
               ? 16
@@ -411,7 +408,8 @@ export class PaneManager {
       return;
     }
     const iframes = this.host.querySelectorAll<HTMLIFrameElement>(
-      'iframe[data-canvas-id]:not([data-canvas-iframe])',
+      'iframe[data-canvas-id]:not([data-canvas-iframe]), ' +
+        'iframe.gallery-canvas:not([data-canvas-iframe])',
     );
     for (const iframe of iframes) {
       const matchesSource =
@@ -426,6 +424,32 @@ export class PaneManager {
   }
 
   /**
+   * Resolves the nearest scrollable ancestor for forwarded iframe wheel events,
+   * preferring an overflowing `[data-canvas-stage]` before outer pane bodies.
+   *
+   * @param {!HTMLIFrameElement} iframe Source preview iframe.
+   * @return {?HTMLElement} Target scrollable element.
+   */
+  private resolveScrollContainer(
+    iframe: HTMLIFrameElement,
+  ): HTMLElement | null {
+    const stage = iframe.closest<HTMLElement>('[data-canvas-stage]');
+    if (
+      stage &&
+      (stage.scrollHeight > stage.clientHeight + 1 ||
+        stage.scrollWidth > stage.clientWidth + 1)
+    ) {
+      return stage;
+    }
+    return (
+      iframe.closest<HTMLElement>(
+        '[data-gallery-pane-body], [data-gallery-sandbox-body], ' +
+          '[data-shell-main]',
+      ) ?? (document.scrollingElement as HTMLElement | null)
+    );
+  }
+
+  /**
    * Requests initial height via `postMessage` for standalone documentation
    * preview iframes that may have finished loading before module scripts
    * connected.
@@ -434,7 +458,8 @@ export class PaneManager {
    */
   private syncDocPreviewIframes(signal: AbortSignal): void {
     const iframes = this.host.querySelectorAll<HTMLIFrameElement>(
-      'iframe[data-canvas-id]:not([data-canvas-iframe])',
+      'iframe[data-canvas-id]:not([data-canvas-iframe]), ' +
+        'iframe.gallery-canvas:not([data-canvas-iframe])',
     );
     const syncIframe = (iframe: HTMLIFrameElement): void => {
       try {

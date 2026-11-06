@@ -378,3 +378,248 @@ class TestBasicCanvasAutoHeight:
         assert result["content"] > 60
         assert len(set(result["heights"])) == 1
         assert result["viewport"] == result["content"]
+
+    def test_viewport_unit_and_percent_heights_never_loop(self, page, live_server):
+        """100vh/100dvh/100lvh settle at 360px flush; 100% sizes to content (#283)."""
+        page.goto(f"{live_server.url}/dds/demo_components/alert/")
+        canvas_js = f"{live_server.url}/static/dj_design_system/canvas-resize.js"
+        canvas_css = f"{live_server.url}/static/dj_design_system/canvas.css"
+
+        metrics = page.evaluate(
+            """async ([cssHref, jsSrc]) => {
+                const container = document.querySelector("[data-gallery-pane-body]");
+                const mountCase = (id, innerHtml, extraCss = "") => {
+                    const f = document.createElement("iframe");
+                    f.dataset.canvasId = id;
+                    f.style.width = "100%";
+                    f.style.border = "0";
+                    f.srcdoc = `<!DOCTYPE html><html><head>
+                        <link rel="stylesheet" href="${cssHref}">
+                        <style>${extraCss}</style>
+                    </head><body>
+                        <div class="canvas-wrapper canvas-wrapper--basic" data-canvas-id="${id}">
+                            ${innerHtml}
+                        </div>
+                        <script src="${jsSrc}"></scr` + `ipt>
+                    </body></html>`;
+                    container.appendChild(f);
+                    return f;
+                };
+
+                const fVh = mountCase(
+                    "e2e-100vh",
+                    '<div style="min-height: 100vh; background: #eee;">Hero</div>'
+                );
+                const fDvh = mountCase(
+                    "e2e-100dvh",
+                    '<div style="height: 100dvh; background: #eee;">Dynamic</div>'
+                );
+                const fPct = mountCase(
+                    "e2e-100pct",
+                    '<div style="height: 100%;">Short copy</div>',
+                    "html, body { height: 100%; min-height: 100vh; }"
+                );
+                const fModal = mountCase(
+                    "e2e-modal",
+                    '<dialog open style="height: 220px; margin: 0; padding: 0; border: 0;">Modal</dialog>'
+                );
+
+                const all = [fVh, fDvh, fPct, fModal];
+                await Promise.all(all.map(f => new Promise(r => {
+                    if (f.contentDocument && f.contentDocument.readyState === "complete") return r();
+                    f.addEventListener("load", () => r(), { once: true });
+                })));
+
+                for (let i = 0; i < 10; i++) {
+                    await new Promise(r => requestAnimationFrame(r));
+                }
+
+                const sample = async (f) => {
+                    const heights = [];
+                    for (let i = 0; i < 20; i++) {
+                        await new Promise(r => requestAnimationFrame(r));
+                        heights.push(f.offsetHeight);
+                    }
+                    const w = f.contentDocument.querySelector(".canvas-wrapper");
+                    return {
+                        heights,
+                        viewport: f.clientHeight,
+                        wrapperHeight: w.offsetHeight,
+                        viewportSized: w.hasAttribute("data-canvas-viewport-sized"),
+                        paddingTop: getComputedStyle(w).paddingTop,
+                    };
+                };
+
+                return {
+                    vh: await sample(fVh),
+                    dvh: await sample(fDvh),
+                    pct: await sample(fPct),
+                    modal: await sample(fModal),
+                };
+            }""",
+            [canvas_css, canvas_js],
+        )
+
+        # 100vh and 100dvh lock into flush 360px stage with zero growth loop
+        for key in ("vh", "dvh"):
+            assert len(set(metrics[key]["heights"])) == 1
+            assert metrics[key]["viewport"] == 360
+            assert metrics[key]["wrapperHeight"] == 360
+            assert metrics[key]["viewportSized"] is True
+            assert metrics[key]["paddingTop"] == "0px"
+
+        # 100% height + consumer html/body reset stays compact at intrinsic content height
+        assert len(set(metrics["pct"]["heights"])) == 1
+        assert 30 < metrics["pct"]["viewport"] < 120
+        assert metrics["pct"]["viewport"] == metrics["pct"]["wrapperHeight"]
+        assert metrics["pct"]["viewportSized"] is False
+
+        # Open <dialog> expands iframe height to fit modal without looping
+        assert len(set(metrics["modal"]["heights"])) == 1
+        assert metrics["modal"]["viewport"] >= 236
+
+
+class TestSandboxWorkbenchSizing:
+    """Sandbox preview fills available gap, pins params to bottom, and resizes (#276, #281)."""
+
+    def test_sandbox_iframe_fits_component_and_pins_params_drawer(
+        self, page, live_server
+    ):
+        page.set_viewport_size({"width": 1280, "height": 900})
+        selector = "dds-canvas-widget[data-canvas-id='sandbox'] iframe"
+        page.goto(f"{live_server.url}/dds/demo_components/user_card/#pane-sandbox")
+        page.wait_for_function(
+            f'document.querySelector("{selector}").style.height !== ""'
+        )
+
+        result = page.evaluate(_MEASURE_PREVIEW_JS, selector)
+
+        # Taller than the old 10rem fallback, stable across 20 frames, and unclipped
+        assert result["content"] > 160
+        assert len(set(result["heights"])) == 1
+        assert result["viewport"] >= result["content"]
+
+        # Single-parameter drawer (82px < 96px) is pinned flush to the bottom
+        # without being artificially inflated to 96px
+        layout = page.evaluate(
+            """() => {
+                const body = document.querySelector("[data-gallery-sandbox-body]");
+                const stage = document.querySelector("dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-stage]");
+                const params = document.querySelector("dds-sandbox-params");
+                const form = params.querySelector("[data-params-form]");
+                const resizer = document.querySelector("[data-sandbox-resizer]");
+                return {
+                    bodyBottom: Math.round(body.getBoundingClientRect().bottom),
+                    paramsBottom: Math.round(params.getBoundingClientRect().bottom),
+                    paramsHeight: params.clientHeight,
+                    formHeight: form.scrollHeight,
+                    stageHeightBefore: Math.round(stage.getBoundingClientRect().height),
+                    hasResizer: Boolean(resizer),
+                };
+            }"""
+        )
+        assert layout["hasResizer"] is True
+        assert abs(layout["bodyBottom"] - layout["paramsBottom"]) <= 2
+        assert layout["paramsHeight"] == layout["formHeight"] < 96
+
+    def test_params_default_maxed_out_and_yield_priority_to_preview_down_to_min(
+        self, page, live_server
+    ):
+        """Params load maxed out when space permits, squash when preview needs space, and floor at 96px."""
+        selector = "dds-canvas-widget[data-canvas-id='sandbox'] iframe"
+        page.set_viewport_size({"width": 1280, "height": 1400})
+        page.goto(f"{live_server.url}/dds/demo_components/callout/#pane-sandbox")
+        page.wait_for_function(
+            f'document.querySelector("{selector}").style.height !== ""'
+        )
+
+        # 1. Plenty of vertical space -> params drawer loads 100% maxed out (no clipping)
+        roomy = page.evaluate(
+            """() => {
+                const body = document.querySelector("[data-gallery-sandbox-body]");
+                const canvas = document.querySelector("dds-canvas-widget[data-canvas-id='sandbox']");
+                const stage = canvas.querySelector("[data-canvas-stage]");
+                const iframe = canvas.querySelector("iframe");
+                const params = document.querySelector("dds-sandbox-params");
+                const form = params.querySelector("[data-params-form]");
+                return {
+                    viewportTopChrome: Math.round(canvas.getBoundingClientRect().top),
+                    togglesHeight: Math.round(canvas.getBoundingClientRect().height - stage.getBoundingClientRect().height),
+                    previewHeight: parseInt(iframe.style.height, 10),
+                    paramsClient: params.clientHeight,
+                    paramsScroll: params.scrollHeight,
+                    formHeight: form.scrollHeight,
+                    sizedAttr: body.hasAttribute("data-params-sized"),
+                };
+            }"""
+        )
+        assert roomy["sizedAttr"] is False
+        assert roomy["formHeight"] > 250
+        assert roomy["paramsScroll"] <= roomy["paramsClient"] + 1
+
+        # 2. Tighter viewport where preview + 96 < available < preview + fullParams:
+        #    preview keeps full height and squashes params drawer
+        mid_height = (
+            roomy["viewportTopChrome"]
+            + roomy["togglesHeight"]
+            + roomy["previewHeight"]
+            + max(120, roomy["formHeight"] // 2)
+        )
+        page.set_viewport_size({"width": 1280, "height": mid_height})
+        mid = page.evaluate(
+            """() => {
+                const stage = document.querySelector("dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-stage]");
+                const params = document.querySelector("dds-sandbox-params");
+                return {
+                    stageClient: stage.clientHeight,
+                    paramsClient: params.clientHeight,
+                    paramsScroll: params.scrollHeight,
+                };
+            }"""
+        )
+        assert mid["stageClient"] >= roomy["previewHeight"] - 2
+        assert 96 < mid["paramsClient"] < roomy["formHeight"] - 10
+        assert mid["paramsScroll"] > mid["paramsClient"]
+
+        # 3. Preview grows tall enough to consume pane -> params stops squashing at 96px floor
+        page.evaluate(
+            """() => {
+                const iframe = document.querySelector("dds-canvas-widget[data-canvas-id='sandbox'] iframe");
+                const tall = iframe.contentDocument.createElement("div");
+                tall.style.height = "900px";
+                iframe.contentDocument.querySelector(".canvas-wrapper").appendChild(tall);
+            }"""
+        )
+        page.wait_for_function(
+            f'parseInt(document.querySelector("{selector}").style.height, 10) >= 900'
+        )
+        floored = page.evaluate(
+            """() => {
+                const stage = document.querySelector("dds-canvas-widget[data-canvas-id='sandbox'] [data-canvas-stage]");
+                const params = document.querySelector("dds-sandbox-params");
+                return {
+                    paramsClient: params.clientHeight,
+                    stageClient: stage.clientHeight,
+                    stageScroll: stage.scrollHeight,
+                };
+            }"""
+        )
+        assert abs(floored["paramsClient"] - 96) <= 2
+        assert floored["stageScroll"] > floored["stageClient"] + 50
+
+        # 4. Manual keyboard resize on [data-sandbox-resizer] overrides up to bounds.maxPx
+        resizer = page.locator("[data-sandbox-resizer]")
+        resizer.focus()
+        page.keyboard.press("End")
+        expanded = page.evaluate(
+            """() => {
+                const body = document.querySelector("[data-gallery-sandbox-body]");
+                const params = document.querySelector("dds-sandbox-params");
+                return {
+                    sizedAttr: body.getAttribute("data-params-sized"),
+                    paramsClient: params.clientHeight,
+                };
+            }"""
+        )
+        assert expanded["sizedAttr"] == "true"
+        assert expanded["paramsClient"] > 150

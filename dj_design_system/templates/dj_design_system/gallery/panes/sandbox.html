@@ -20,6 +20,16 @@
         </div>
     {% endif %}
     {% dds__canvas_widget canvas_id="sandbox" iframe_src=canvas_iframe_url source_code=source_html rendered_html=rendered_output_html background=active_bg_value title="Component preview" %}
+    {% if param_rows %}
+        <div data-sandbox-resizer
+             role="separator"
+             tabindex="0"
+             aria-orientation="horizontal"
+             aria-label="Resize parameters drawer"
+             aria-valuemin="96"
+             aria-valuemax="600"
+             aria-valuenow="240"></div>
+    {% endif %}
     {% dds__sandbox_params param_rows=param_rows action_url=request.path hx_target="[data-gallery-sandbox-body]" %}
         {% slot "extra_inputs" %}
             <input type="hidden" name="_iss" value="1">
