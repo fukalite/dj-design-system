@@ -311,12 +311,17 @@ def get_form_and_sandbox_spec(
                     form_kwargs[name] = fallback
 
         positional_args = component_class.get_positional_args()
+        # Split a copy so form_kwargs keeps positional values for the
+        # sandbox's template source.
+        keyword_kwargs = dict(form_kwargs)
         positional_values = tuple(
-            form_kwargs.pop(name) for name in positional_args if name in form_kwargs
+            keyword_kwargs.pop(name)
+            for name in positional_args
+            if name in keyword_kwargs
         )
         sandbox_spec = CanvasSpec(
             component_name=tag_signature.maximal_spec.component_name,
-            params=form_kwargs,
+            params=keyword_kwargs,
             positional_args=positional_values,
             variant=variant_name,
         )

@@ -780,6 +780,40 @@ class TestGalleryComponentFormIntegration:
         assert form_kwargs.get("title") == "CustomTitle"
         assert form_kwargs.get("user") == fake_instance
 
+    def test_positional_values_kept_for_template_source(self):
+        """Positional values go to the spec's positional_args but stay in form_kwargs for the template source."""
+        from django.test import RequestFactory
+
+        from dj_design_system.components import TagComponent
+        from dj_design_system.parameters import StrParam
+        from dj_design_system.services.gallery_context import (
+            get_form_and_sandbox_spec,
+        )
+        from dj_design_system.services.tag_signature import (
+            generate_current_tag_signature,
+            generate_tag_signature,
+        )
+
+        class PositionalComponent(TagComponent):
+            template_format_str = "<p>{label}</p>"
+            label = StrParam("Label")
+
+            class Meta:
+                positional_args = ["label"]
+
+        request = RequestFactory().get("/?label=Chosen")
+        form, form_kwargs, sandbox_spec = get_form_and_sandbox_spec(
+            request,
+            PositionalComponent,
+            generate_tag_signature(PositionalComponent),
+        )
+
+        assert form_kwargs == {"label": "Chosen"}
+        assert sandbox_spec.positional_args == ("Chosen",)
+        assert "label" not in sandbox_spec.params
+        current = generate_current_tag_signature(PositionalComponent, form_kwargs)
+        assert '"Chosen"' in current.minimal
+
     def test_is_sandbox_form_submission(self):
         """is_sandbox_form_submission returns True if and only if _iss is in GET."""
         from django.test import RequestFactory
