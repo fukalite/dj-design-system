@@ -11,8 +11,8 @@ The Sandbox area coordinates the interactive workbench for testing components in
 ### Styling Responsibilities & Encapsulation
 
 - **File**: `panes/sandbox.css` encapsulated within `@layer blocks`.
-- **Workbench Layout**: Scoped to `[data-sandbox-pane]`. Organises the vertical flex stack hosting `dds__sandbox_toolbar`, `dds__canvas_widget`, and `dds__sandbox_params`.
-- **Scrolling & Viewport**: Enforces independent vertical scrolling (`overflow-y: auto`) within the workbench pane while preserving the pinned sandbox toolbar at the top.
+- **Workbench Layout**: Scoped to `[data-sandbox-pane]`. Organises the full-height vertical flex stack pinning `dds__sandbox_toolbar` at the top, flexing `dds__canvas_widget` above an accessible `[data-sandbox-resizer]` separator handle, and pinning `dds__sandbox_params` to the bottom. By default, `dds__sandbox_params` expands to fit all controls when space permits, while taller previews take priority and compress the drawer down to its minimum height (`6rem`) before stage scrolling engages.
+- **Scrolling & Viewport**: `dds__canvas_widget` and `dds__sandbox_params` manage independent internal overflow scrolling while preserving pinned top controls and bottom parameter drawers.
 - **Component Boundary**: Layout controls the outer box rhythm; internal stage rendering, iframe measurements, and HTMX input fields remain fully encapsulated within their respective component stylesheets.
 
 ```canvas
