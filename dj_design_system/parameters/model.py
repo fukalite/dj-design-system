@@ -84,6 +84,11 @@ class ModelParam(BaseParam):
                 self._resolved_model = model
         return self._resolved_model
 
+    @property
+    def type(self) -> type:  # type: ignore[override]
+        """Return the resolved model class so type labels name the model."""
+        return self._resolve_model()
+
     # ------------------------------------------------------------------
     # Fields
     # ------------------------------------------------------------------
