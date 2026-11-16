@@ -1,0 +1,34 @@
+{% load i18n %}
+{% if not is_hidden %}
+  <nav class="paginator{% if classes %} {{ classes }}{% endif %}" aria-label="{{ label }}">
+    {% if show_links %}
+      <ul>
+        {% if previous_url %}
+          <li>
+            <a role="button" href="{{ previous_url }}" rel="prev">‹ {% translate "Previous" %}</a>
+          </li>
+        {% endif %}
+        {% for item in items %}
+          <li>
+            {% if item.is_ellipsis %}
+              {{ item.label }}
+            {% elif item.is_current %}
+              <a role="button" href="" aria-current="page">{{ item.number }}</a>
+            {% else %}
+              <a role="button" href="{{ item.url }}">{{ item.number }}</a>
+            {% endif %}
+          </li>
+        {% endfor %}
+        {% if next_url %}
+          <li>
+            <a role="button" href="{{ next_url }}" rel="next">{% translate "Next" %} ›</a>
+          </li>
+        {% endif %}
+      </ul>
+    {% endif %}
+    {{ summary }}
+    {% if show_all_url %}
+      <a href="{{ show_all_url }}" class="showall">{% translate "Show all" %}</a>
+    {% endif %}
+  </nav>
+{% endif %}

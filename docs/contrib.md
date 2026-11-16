@@ -71,3 +71,44 @@ class MyPagination(PaginationComponent):
 ```
 
 Remember that `Meta` is not inherited, so set `Meta.name` again if you need one.
+
+## Django admin
+
+`dj_design_system.contrib.django_admin` (tags `{% dds_admin__... %}`) holds admin-styled versions of the generic components, in a "Django plus" look: it uses the admin's own markup and CSS classes and adds small refinements, such as Previous and Next links on the paginator. Use the components to build custom admin pages, or let an admin site use them for its shared partials.
+
+```python
+INSTALLED_APPS = [
+    "dj_design_system.contrib.django_admin",  # above django.contrib.admin
+    "django.contrib.admin",
+    # ...
+    "dj_design_system",
+    "dj_design_system.contrib.navigation",
+]
+```
+
+It must come before `django.contrib.admin` (check `dj_design_system.E008`) and needs `dj_design_system.contrib.navigation` (check `E007`).
+
+### Turning it on per admin site
+
+Installing the app changes nothing on its own. An admin site opts in by using `DesignSystemAdminSite` (or `DesignSystemAdminSiteMixin` on your own `AdminSite` subclass):
+
+```python
+from dj_design_system.contrib.django_admin.sites import DesignSystemAdminSite
+
+site = DesignSystemAdminSite(name="dds_admin")
+site.register(Book, BookAdmin)
+
+urlpatterns = [path("admin/", site.urls)]
+```
+
+Every other site, including Django's default `admin.site`, keeps Django's templates, so you can run both side by side and compare. Django's admin views, page templates, JavaScript and CSS are always kept. Only shared partials are swapped, through small shim templates in `templates/admin/`. A project or per-model override of the same template still wins.
+
+Partials swapped so far:
+
+| Template                | Component               |
+| ----------------------- | ----------------------- |
+| `admin/pagination.html` | `dds_admin__pagination` |
+
+### `dds_admin__pagination`
+
+Subclass of `dds_navigation__pagination`. Extra parameters: `cl` (the `ChangeList`, so links keep its filters, search and ordering), `summary` (such as `"120 books"`), `show_all_url` and `show_links`. It shows the summary even for a single page, as the stock admin does.

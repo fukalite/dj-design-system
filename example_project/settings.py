@@ -12,6 +12,8 @@ DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
+    # Above django.contrib.admin so its admin template shims are found first.
+    "dj_design_system.contrib.django_admin",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
