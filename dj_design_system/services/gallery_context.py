@@ -537,7 +537,9 @@ def build_component_page_context(
                 f"Variant '{variant_param}' not found for component '{info.name}'."
             )
 
-    effective_tag_name = info.qualified_name if info.is_builtin else info.name
+    effective_tag_name = (
+        info.qualified_name if info.is_builtin or info.qualified_only else info.name
+    )
     tag_signature = tag_signature_service.generate_tag_signature(
         component_class,
         canvas_component_name=info.qualified_name,

@@ -17,3 +17,6 @@ COMPONENTS_TEMPLATE_LOADER: str = "dj_design_system.loaders.ComponentsTemplateLo
 
 COMPONENTS_STATIC_FINDER: str = "dj_design_system.finders.ComponentsStaticFinder"
 """Static finder path for co-located component assets."""
+
+PREFIX_ATTRIBUTE: str = "dds_component_prefix"
+"""AppConfig attribute an app sets to declare its component tag prefix."""

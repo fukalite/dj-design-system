@@ -9,6 +9,7 @@ from dj_design_system import settings
 from dj_design_system.constants import (
     BUILTIN_APP_LABEL,
     BUILTIN_PREFIX,
+    PREFIX_ATTRIBUTE,
 )
 from dj_design_system.data import ComponentInfo, ComponentMedia
 from dj_design_system.exceptions import (
@@ -24,7 +25,7 @@ from dj_design_system.services.component import (
 from dj_design_system.types import FlattenStrategy, TagType
 
 
-__all__ = ["ComponentRegistry", "component_registry"]
+__all__ = ["ComponentRegistry", "component_registry", "get_declared_prefix"]
 
 
 class ComponentRegistry:
@@ -84,12 +85,17 @@ class ComponentRegistry:
                     f"Error importing components from '{module_path}': {exc}"
                 ) from exc
 
-            self._discover_module(module, app_config.label, relative_path="")
+            prefix = get_declared_prefix(app_config)
+            self._discover_module(
+                module, app_config.label, relative_path="", declared_prefix=prefix
+            )
 
             for submodule, relative_path in self._iter_app_submodules(
                 module, module_path
             ):
-                self._discover_module(submodule, app_config.label, relative_path)
+                self._discover_module(
+                    submodule, app_config.label, relative_path, declared_prefix=prefix
+                )
 
     def _iter_app_submodules(self, module, module_path: str):
         """
@@ -112,12 +118,21 @@ class ComponentRegistry:
 
             yield submodule, derive_relative_path(modname, module_path)
 
-    def _discover_module(self, module, app_label: str, relative_path: str) -> None:
+    def _discover_module(
+        self,
+        module,
+        app_label: str,
+        relative_path: str,
+        declared_prefix: str | None = None,
+    ) -> None:
         """
         Inspect a module for BaseComponent subclasses and register them.
 
         Skips abstract components, imported classes (not defined in this
         module), and the base classes themselves.
+
+        ``declared_prefix`` is the app's ``dds_component_prefix``, if any.
+        It takes precedence over ``COMPONENT_DIRECTORIES``.
         """
         from dj_design_system.components import (
             BlockComponent,
@@ -132,7 +147,14 @@ class ComponentRegistry:
             and obj.__module__ == module.__name__
         )
 
-        prefix_info = self._resolve_namespace_prefix(app_label, relative_path)
+        if declared_prefix:
+            prefix_info: tuple[str, tuple[str, ...], FlattenStrategy] | None = (
+                declared_prefix,
+                tuple(relative_path.split(".")) if relative_path else (),
+                FlattenStrategy.ALL,
+            )
+        else:
+            prefix_info = self._resolve_namespace_prefix(app_label, relative_path)
         namespace_prefix = prefix_info[0] if prefix_info else None
         namespace_remaining_parts = prefix_info[1] if prefix_info else None
         flatten_strategy = prefix_info[2] if prefix_info else FlattenStrategy.NONE
@@ -148,6 +170,7 @@ class ComponentRegistry:
                 namespace_prefix=namespace_prefix,
                 namespace_remaining_parts=namespace_remaining_parts,
                 flatten_strategy=flatten_strategy,
+                qualified_only=bool(declared_prefix),
             )
             self._bind_template(info)
             self._components.append(info)
@@ -366,7 +389,8 @@ class ComponentRegistry:
         Look up a component by its name.
 
         If ``app_label`` is provided, the search is scoped to that app.
-        Without it, built-in components are ignored: pass their
+        Without it, built-in components and components from apps with a
+        declared prefix are ignored: pass their
         ``app_label``, or look them up by qualified name with
         :func:`dj_design_system.services.canvas.resolve_component`.
         Raises ``ComponentDoesNotExist`` if no match is found, and
@@ -375,7 +399,9 @@ class ComponentRegistry:
         if app_label is not None:
             candidates = self.list_by_app(app_label)
         else:
-            candidates = [c for c in self._components if not c.is_builtin]
+            candidates = [
+                c for c in self._components if not c.is_builtin and not c.qualified_only
+            ]
 
         matches = [c for c in candidates if c.name == name]
 
@@ -432,6 +458,7 @@ class ComponentRegistry:
           discovered wins** — i.e. the one from the app that appears latest in
           ``INSTALLED_APPS``. Built-in components never get a short name, so
           they can neither shadow nor be shadowed by another app's short tags.
+          The same goes for apps that declare ``dds_component_prefix``.
 
         Args:
             library: A ``django.template.Library`` instance to register on.
@@ -446,7 +473,7 @@ class ComponentRegistry:
             self._register_tag(library, info.qualified_name, info)
 
             # Register short names — last discovered wins
-            if not info.is_builtin:
+            if not info.is_builtin and not info.qualified_only:
                 short_names[info.name] = info
 
         for name, info in short_names.items():
@@ -473,6 +500,23 @@ class ComponentRegistry:
             return
 
         library.simple_tag(name=tag_name)(tag_func)
+
+
+def get_declared_prefix(app_config: Any) -> str | None:
+    """Return the tag prefix an app declares on its AppConfig, if any.
+
+    An app opts in by setting ``dds_component_prefix``::
+
+        class FormsConfig(AppConfig):
+            name = "dj_design_system.contrib.forms"
+            label = "dds_forms"
+            dds_component_prefix = "dds_forms"
+
+    Its components then register only as ``{% dds_forms__<name> %}``,
+    whatever folder they sit in, with no short tag name.
+    """
+    prefix = getattr(app_config, PREFIX_ATTRIBUTE, None)
+    return prefix or None
 
 
 # Module-level singleton
