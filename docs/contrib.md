@@ -30,6 +30,28 @@ Install only the apps you need. Each one requires `dj_design_system`; system che
 
 The contrib apps declare a tag prefix (see [Declaring a tag prefix](registry.md#declaring-a-tag-prefix)), so their tags always carry it, for example `{% dds_navigation__pagination %}`. They never register a short name, so they cannot clash with your own components.
 
+## Components
+
+### `dds_navigation__pagination`
+
+Previous, next and numbered links for a Django `Page`, with ellipses for long ranges.
+
+```django
+{% dds_navigation__pagination page_obj query=request.GET %}
+```
+
+| Parameter          | Default        | Description                                                   |
+| ------------------ | -------------- | ------------------------------------------------------------- |
+| `page`             | required       | The `Page` to paginate (positional)                           |
+| `query`            | `None`         | `QueryDict` or `dict` of parameters to keep in every link     |
+| `page_param`       | `"page"`       | Name of the page-number query parameter                       |
+| `on_each_side`     | `2`            | Links either side of the current page                         |
+| `on_ends`          | `1`            | Links at the start and end of the range                       |
+| `hide_single_page` | `True`         | Render nothing when there is only one page                    |
+| `label`            | `"Pagination"` | Accessible name of the `<nav>` landmark                       |
+
+It renders a `<nav>` with a `<ul>` of links, `aria-current="page"` on the current page, `rel="prev"`/`rel="next"` on the arrows, and a disabled `<span>` when there is no previous or next page.
+
 ## Styling
 
 The components are unstyled for now. They render plain, semantic HTML and accept CSS classes and attributes like any other component, so you can style them from your own stylesheet.

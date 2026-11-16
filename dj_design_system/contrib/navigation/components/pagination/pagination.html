@@ -1,0 +1,32 @@
+{% load i18n %}
+{% if not is_hidden %}
+    <nav aria-label="{{ label }}"{% if classes %} class="{{ classes }}"{% endif %}>
+        <ul>
+            <li>
+                {% if previous_url %}
+                    <a href="{{ previous_url }}" rel="prev">{% translate "Previous" %}</a>
+                {% else %}
+                    <span aria-disabled="true">{% translate "Previous" %}</span>
+                {% endif %}
+            </li>
+            {% for item in items %}
+                <li>
+                    {% if item.is_ellipsis %}
+                        <span>{{ item.label }}</span>
+                    {% elif item.is_current %}
+                        <a href="{{ item.url }}" aria-current="page">{{ item.number }}</a>
+                    {% else %}
+                        <a href="{{ item.url }}">{{ item.number }}</a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+            <li>
+                {% if next_url %}
+                    <a href="{{ next_url }}" rel="next">{% translate "Next" %}</a>
+                {% else %}
+                    <span aria-disabled="true">{% translate "Next" %}</span>
+                {% endif %}
+            </li>
+        </ul>
+    </nav>
+{% endif %}
