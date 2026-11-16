@@ -18,6 +18,7 @@ from dj_design_system.parameters import (
     BoolParam,
     StrParam,
 )
+from dj_design_system.parameters.instance import instance_param_names
 from dj_design_system.parameters.model import ModelParam
 from dj_design_system.services.component import derive_name, get_meta_name
 from dj_design_system.services.registry import component_registry
@@ -859,7 +860,15 @@ def _build_example_signature(
             component_name=canvas_name,
             params={**kw_vals, **slot_params},
             positional_args=tuple(pos_vals),
-            variant=variant.name if variant.canvas_template or variant.theme else None,
+            # InstanceParam values cannot go in the canvas URL, so name the
+            # variant and let the canvas take them from its kwargs.
+            variant=(
+                variant.name
+                if variant.canvas_template
+                or variant.theme
+                or instance_param_names(component_class)
+                else None
+            ),
         )
         return code, code_html, spec
 

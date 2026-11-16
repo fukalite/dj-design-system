@@ -34,6 +34,7 @@ from dj_design_system.exceptions import (
 )
 from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.parameters.base import DictParam, JSONParam, ListParam
+from dj_design_system.parameters.instance import instance_param_names
 from dj_design_system.parameters.model import ModelParam
 from dj_design_system.services import canvas_renderer as canvas_renderer_service
 from dj_design_system.services import media as media_service
@@ -485,11 +486,16 @@ def build_canvas_url(
     query: dict[str, Any] = {}
 
     positional_arg_names: list[str] = []
+    # InstanceParam values are live objects; the canvas reads them from the
+    # variant instead of the URL.
+    skipped: set[str] = set()
     try:
         target_registry = registry if registry is not None else component_registry
         info = resolve_component(spec.component_name, target_registry)
         if hasattr(info.component_class, "get_positional_args"):
             positional_arg_names = info.component_class.get_positional_args()
+        if hasattr(info.component_class, "get_params"):
+            skipped = instance_param_names(info.component_class)
     except Exception as exc:
         logger.debug(
             "Could not resolve component '%s' or its positional args: %s",
@@ -500,11 +506,19 @@ def build_canvas_url(
     for i, value in enumerate(spec.positional_args):
         if i < len(positional_arg_names):
             name = positional_arg_names[i]
-            if name not in RESERVED_CANVAS_PARAMS and name not in extra_query:
+            if (
+                name not in RESERVED_CANVAS_PARAMS
+                and name not in extra_query
+                and name not in skipped
+            ):
                 query[name] = _serialise_value(value)
 
     for key, value in spec.params.items():
-        if key not in RESERVED_CANVAS_PARAMS and key not in extra_query:
+        if (
+            key not in RESERVED_CANVAS_PARAMS
+            and key not in extra_query
+            and key not in skipped
+        ):
             query[key] = _serialise_value(value)
 
     # Core canvas control parameters take priority to avoid parameter shadowing

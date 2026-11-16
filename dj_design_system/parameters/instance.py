@@ -70,3 +70,16 @@ class InstanceParam(BaseParam):
 
     def __str__(self) -> str:
         return f"<InstanceParam {self.name} of type {_get_type_name(self.type)}>"
+
+
+def instance_param_names(component_class: Any) -> set[str]:
+    """Return the names of a component's ``InstanceParam`` parameters.
+
+    These values are live Python objects. They cannot travel in a canvas URL
+    or a sandbox form, so the gallery takes them from the variant instead.
+    """
+    return {
+        name
+        for name, spec in component_class.get_params().items()
+        if isinstance(spec, InstanceParam)
+    }

@@ -19,6 +19,7 @@ from dj_design_system.parameters.base import (
     ListParam,
     UUIDParam,
 )
+from dj_design_system.parameters.instance import InstanceParam
 from dj_design_system.parameters.model import ModelParam
 from dj_design_system.slots import SLOT_PARAM_PREFIX
 
@@ -111,6 +112,14 @@ def _build_field(name: str, spec) -> forms.Field:
             empty_value=None,
             **common,
         )
+
+    # InstanceParam → read-only: a form field cannot build a live object, so
+    # the sandbox takes the value from the active variant.
+    if isinstance(spec, InstanceParam):
+        common["help_text"] = (
+            f"{common['help_text']} Set by the gallery variant.".strip()
+        )
+        return forms.CharField(disabled=True, **common)
 
     # ModelParam subclasses → model select, limited to 10 most-recent rows.
     # A sliced queryset cannot be filtered, which breaks ModelChoiceField's

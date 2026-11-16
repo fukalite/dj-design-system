@@ -20,6 +20,7 @@ from dj_design_system.data import (
 from dj_design_system.exceptions import VariantNotFoundError
 from dj_design_system.forms import build_component_form
 from dj_design_system.gallery import GalleryConfig, Variant
+from dj_design_system.parameters.instance import instance_param_names
 from dj_design_system.parameters.model import ModelParam
 from dj_design_system.services import canvas as canvas_service
 from dj_design_system.services import control_params as control_params_service
@@ -292,10 +293,11 @@ def get_form_and_sandbox_spec(
     variant_name = active_variant.name if active_variant else None
 
     if form.is_bound and form.is_valid():
+        live_params = instance_param_names(component_class)
         form_kwargs = {
             name: value
             for name, value in form.cleaned_data.items()
-            if value is not None and value != ""
+            if value is not None and value != "" and name not in live_params
         }
         params = component_class.get_params()
         for name, spec in params.items():
@@ -323,7 +325,14 @@ def get_form_and_sandbox_spec(
             component_name=tag_signature.maximal_spec.component_name,
             params=keyword_kwargs,
             positional_args=positional_values,
-            variant=variant_name,
+            # Without an active variant, InstanceParam values come from the
+            # maximal example's variant.
+            variant=variant_name
+            or (
+                tag_signature.maximal_spec.variant
+                if instance_param_names(component_class)
+                else None
+            ),
         )
     else:
         form_kwargs = {}
