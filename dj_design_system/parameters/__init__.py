@@ -16,6 +16,7 @@ from dj_design_system.parameters.base import (
     StrParam,
     UUIDParam,
 )
+from dj_design_system.parameters.instance import InstanceParam
 from dj_design_system.parameters.model import ModelParam
 from dj_design_system.parameters.user import UserParam
 
@@ -37,6 +38,7 @@ __all__ = [
     "JSONParam",
     "StrCSSClassParam",
     "BoolCSSClassParam",
+    "InstanceParam",
     "ModelParam",
     "UserParam",
 ]
