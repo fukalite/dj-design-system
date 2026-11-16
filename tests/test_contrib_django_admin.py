@@ -137,12 +137,16 @@ class TestPerSiteToggle:
                 continue
             assert "is_staff__exact=0" in href and "o=1" in href
 
-    def test_page_numbers_match_the_stock_site(self, admin_client):
-        stock = self.get(admin_client, "stock-admin", "?p=2")
-        dds = self.get(admin_client, "dds-admin", "?p=2")
+    @pytest.mark.parametrize("number", [1, 2, 3])
+    def test_page_numbers_match_the_stock_site(self, admin_client, number):
+        for i in range(5, 30):
+            User.objects.create_user(username=f"user{i}")
+        stock = self.get(admin_client, "stock-admin", f"?p={number}")
+        dds = self.get(admin_client, "dds-admin", f"?p={number}")
         stock_pages = [h for h in links(stock) if h and "all=" not in h]
         dds_pages = [h for h in links(dds) if h and "all=" not in h]
-        assert set(stock_pages) <= set(dds_pages)
+        # Same numbered links; ours adds Previous/Next, which repeat a number.
+        assert set(dds_pages) == set(stock_pages)
 
     def test_show_all_hides_the_links(self, admin_client):
         html = self.get(admin_client, "dds-admin", "?all=")

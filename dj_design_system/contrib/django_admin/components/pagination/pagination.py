@@ -14,7 +14,8 @@ class AdminPaginationComponent(PaginationComponent):
     """Pagination for admin change lists, in the "Django plus" look.
 
     Uses Django admin's own ``paginator`` markup and classes, so it picks up
-    the admin's CSS, and adds Previous and Next links. Pass ``cl`` (the admin
+    the admin's CSS, and adds Previous and Next links. The range defaults
+    match the stock admin (3 links either side, 2 at each end). Pass ``cl`` (the admin
     ``ChangeList``) to build links with ``cl.get_query_string``, keeping the
     list's filters, search and ordering.
 
@@ -42,6 +43,16 @@ class AdminPaginationComponent(PaginationComponent):
         "Show the page links. The admin hides them when showing all rows.",
         required=False,
         default=True,
+    )
+    on_each_side = parameters.IntParam(
+        "Page links to show either side of the current page.",
+        required=False,
+        default=3,
+    )
+    on_ends = parameters.IntParam(
+        "Page links to show at the start and end of the range.",
+        required=False,
+        default=2,
     )
     hide_single_page = parameters.BoolParam(
         "Render nothing when there is only one page.",
