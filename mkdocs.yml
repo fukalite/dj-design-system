@@ -59,6 +59,7 @@ nav:
   - REST API: rest-api.md
   - Integration Testing: testing.md
   - Organisation: organisation.md
+  - Contrib Apps: contrib.md
   - Changelog: changelog.md
   - API Reference:
       - Gallery Configuration: api/gallery.md
