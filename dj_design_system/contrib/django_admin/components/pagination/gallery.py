@@ -1,12 +1,14 @@
 """Gallery variants for dds_admin__pagination."""
 
-from django.core.paginator import Paginator
+from collections.abc import Callable
+
+from django.core.paginator import Page, Paginator
 
 from dj_design_system import gallery
 from dj_design_system.data import GalleryParameter
 
 
-def page_of(count: int, number: int):
+def page_of(count: int, number: int) -> Callable[[], Page]:
     """Return page ``number`` of ``count`` rows, 100 per page like the admin."""
     return lambda: Paginator(range(count), 100).page(number)
 

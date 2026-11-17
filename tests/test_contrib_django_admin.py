@@ -78,7 +78,7 @@ class TestAdminPaginationComponent:
     def test_uses_admin_markup_with_previous_and_next(self):
         html = AdminPaginationComponent(page=self.page(), summary="500 books").render()
         assert '<nav class="paginator" aria-label="Pagination">' in html
-        assert '<a role="button" href="" aria-current="page">3</a>' in html
+        assert '<a role="button" href="?page=3" aria-current="page">3</a>' in html
         assert 'href="?page=2" rel="prev"' in html
         assert 'href="?page=4" rel="next"' in html
         assert "500 books" in html
@@ -99,7 +99,8 @@ def links(html: str) -> list[str]:
     # Django 5.2 wraps the stock paginator in <p>, 6.0+ in <nav>.
     nav = re.search(r'<(nav|p) class="paginator".*?</\1>', html, re.S)
     assert nav, "no paginator in page"
-    return re.findall(r'href="([^"]*)"', nav.group(0))
+    # The current page links to itself: stock uses href="", ours its own URL.
+    return re.findall(r'href="([^"]*)"(?![^>]*aria-current)', nav.group(0))
 
 
 @pytest.mark.django_db
@@ -149,6 +150,9 @@ class TestPerSiteToggle:
         dds_pages = [h for h in links(dds) if h and "all=" not in h]
         # Same numbered links; ours adds Previous/Next, which repeat a number.
         assert set(dds_pages) == set(stock_pages)
+        paginator = re.search(r'<nav class="paginator".*?</nav>', dds, re.S).group(0)
+        current = re.search(r'href="([^"]*)" aria-current="page"', paginator)
+        assert current and f"p={number}" in current.group(1)
 
     def test_show_all_hides_the_links(self, admin_client):
         html = self.get(admin_client, "dds-admin", "?all=")

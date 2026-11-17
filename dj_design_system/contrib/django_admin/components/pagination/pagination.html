@@ -13,7 +13,7 @@
             {% if item.is_ellipsis %}
               {{ item.label }}
             {% elif item.is_current %}
-              <a role="button" href="" aria-current="page">{{ item.number }}</a>
+              <a role="button" href="{{ item.url }}" aria-current="page">{{ item.number }}</a>
             {% else %}
               <a role="button" href="{{ item.url }}">{{ item.number }}</a>
             {% endif %}
