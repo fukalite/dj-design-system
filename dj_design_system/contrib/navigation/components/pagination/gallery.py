@@ -1,13 +1,15 @@
 """Gallery variants for dds_navigation__pagination."""
 
-from django.core.paginator import Paginator
+from collections.abc import Callable
+
+from django.core.paginator import Page, Paginator
 from django.http import QueryDict
 
 from dj_design_system import gallery
 from dj_design_system.data import GalleryParameter
 
 
-def page_of(count: int, number: int):
+def page_of(count: int, number: int) -> Callable[[], Page]:
     """Return page ``number`` of ``count`` items, ten per page."""
     return lambda: Paginator(range(count), 10).page(number)
 
