@@ -3,7 +3,9 @@ import pkgutil
 from collections.abc import Iterable
 from importlib import import_module
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Type
+from typing import Any, Type
+
+from django.apps import AppConfig
 
 from dj_design_system import settings
 from dj_design_system.constants import (
@@ -23,10 +25,6 @@ from dj_design_system.services.component import (
     is_abstract,
 )
 from dj_design_system.types import FlattenStrategy, TagType
-
-
-if TYPE_CHECKING:
-    from django.apps import AppConfig
 
 
 __all__ = ["ComponentRegistry", "component_registry", "get_declared_prefix"]
@@ -506,7 +504,7 @@ class ComponentRegistry:
         library.simple_tag(name=tag_name)(tag_func)
 
 
-def get_declared_prefix(*, app_config: "AppConfig") -> str | None:
+def get_declared_prefix(*, app_config: AppConfig) -> str | None:
     """Return the tag prefix an app declares on its AppConfig, if any.
 
     An app opts in by setting ``dds_component_prefix``::
