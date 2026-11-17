@@ -4,7 +4,6 @@ import pytest
 from django.core.paginator import Paginator
 from django.http import QueryDict
 from django.template import Context, Template
-from django.test import Client
 
 from dj_design_system import component_registry
 from dj_design_system.contrib.navigation.components.pagination.pagination import (
@@ -124,10 +123,6 @@ class TestTemplateTag:
 
 @pytest.mark.django_db
 class TestGallery:
-    @pytest.fixture()
-    def client(self):
-        return Client()
-
     def test_component_page_renders(self, client):
         response = client.get("/dds/dds_navigation/pagination/")
         assert response.status_code == 200
