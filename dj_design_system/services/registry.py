@@ -6,6 +6,8 @@ from importlib import import_module
 from pathlib import Path
 from typing import Any, Type
 
+from django.template.base import Node, Parser, Token
+
 from dj_design_system import settings
 from dj_design_system.constants import (
     BUILTIN_APP_LABEL,
@@ -495,7 +497,7 @@ def _expose_block_nodelist(compile_func: Callable, tag_func: Callable) -> Callab
     """
 
     @functools.wraps(compile_func)
-    def compile_with_children(parser, token):
+    def compile_with_children(parser: Parser, token: Token) -> Node:
         node = compile_func(parser, token)
         node.child_nodelists = ("nodelist",)
         return node
