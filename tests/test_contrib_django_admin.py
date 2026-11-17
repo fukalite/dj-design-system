@@ -96,7 +96,8 @@ class TestAdminPaginationComponent:
 
 
 def links(html: str) -> list[str]:
-    nav = re.search(r'<nav class="paginator".*?</nav>', html, re.S)
+    # Django 5.2 wraps the stock paginator in <p>, 6.0+ in <nav>.
+    nav = re.search(r'<(nav|p) class="paginator".*?</\1>', html, re.S)
     assert nav, "no paginator in page"
     return re.findall(r'href="([^"]*)"', nav.group(0))
 
@@ -119,7 +120,8 @@ class TestPerSiteToggle:
 
     def test_stock_site_renders_django_pagination(self, admin_client):
         html = self.get(admin_client, "stock-admin")
-        assert 'aria-labelledby="pagination"' in html  # Django's own markup
+        assert 'class="paginator"' in html  # Django's own template
+        assert 'aria-label="Pagination users"' not in html
         assert 'rel="next"' not in html
 
     def test_design_system_site_renders_the_component(self, admin_client):
