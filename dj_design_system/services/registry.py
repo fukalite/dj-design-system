@@ -1,6 +1,7 @@
+import functools
 import inspect
 import pkgutil
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from importlib import import_module
 from pathlib import Path
 from typing import Any, Type
@@ -470,9 +471,39 @@ class ComponentRegistry:
         tag_func = info.component_class.as_tag()
         if info.tag_type is TagType.BLOCK:
             library.simple_block_tag(name=tag_name)(tag_func)
+            library.tag(
+                tag_name, _expose_block_nodelist(library.tags[tag_name], tag_func)
+            )
             return
 
         library.simple_tag(name=tag_name)(tag_func)
+
+
+def _expose_block_nodelist(compile_func: Callable, tag_func: Callable) -> Callable:
+    """Make nodes from a ``simple_block_tag`` visible to template inheritance.
+
+    Django's ``SimpleBlockNode`` keeps its contents in ``nodelist`` but
+    inherits ``child_nodelists = ()`` from ``SimpleNode``, so
+    ``Node.get_nodes_by_type()`` never descends into it. Template inheritance
+    uses that traversal to find ``{% block %}`` overrides, so a block nested
+    inside a block component would silently render the parent template's
+    block instead of the child's (see issue #289).
+
+    This wraps the tag's compilation function and sets ``child_nodelists`` on
+    each node it returns. Only nodes from this library's tags are affected;
+    Django's classes are not patched.
+    """
+
+    @functools.wraps(compile_func)
+    def compile_with_children(parser, token):
+        node = compile_func(parser, token)
+        node.child_nodelists = ("nodelist",)
+        return node
+
+    # Keep ``__wrapped__`` pointing at the component's tag function, as
+    # Django's own compilation function does.
+    compile_with_children.__wrapped__ = tag_func
+    return compile_with_children
 
 
 # Module-level singleton
