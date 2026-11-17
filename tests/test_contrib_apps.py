@@ -55,3 +55,10 @@ class TestContribRequirementsCheck:
             return_value=[plain],
         ):
             assert check_contrib_requirements() == []
+
+
+def test_check_only_looks_at_the_app_configs_it_is_given():
+    config = apps.get_app_config("dds_forms")
+    with mock.patch.object(config, "requires", ("not.installed",)):
+        assert check_contrib_requirements(app_configs=[]) == []
+        assert len(check_contrib_requirements(app_configs=[config])) == 1

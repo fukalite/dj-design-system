@@ -29,14 +29,17 @@ def prefixed_registry():
 class TestGetDeclaredPrefix:
     def test_returns_the_declared_prefix(self):
         config = SimpleNamespace(dds_component_prefix="dds_forms")
-        assert get_declared_prefix(config) == "dds_forms"
+        assert get_declared_prefix(app_config=config) == "dds_forms"
 
     @pytest.mark.parametrize("value", [None, ""])
     def test_returns_none_when_unset_or_empty(self, value):
-        assert get_declared_prefix(SimpleNamespace(dds_component_prefix=value)) is None
+        assert (
+            get_declared_prefix(app_config=SimpleNamespace(dds_component_prefix=value))
+            is None
+        )
 
     def test_returns_none_without_the_attribute(self):
-        assert get_declared_prefix(SimpleNamespace()) is None
+        assert get_declared_prefix(app_config=SimpleNamespace()) is None
 
 
 class TestPrefixedDiscovery:

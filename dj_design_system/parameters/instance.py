@@ -63,6 +63,10 @@ class InstanceParam(BaseParam):
     def _resolve(item: builtins.type | str) -> builtins.type:
         if isinstance(item, builtins.type):
             return item
+        if not isinstance(item, str):
+            raise TypeError(
+                f"InstanceParam expects a class or a dotted import path, got {item!r}."
+            )
         resolved = import_string(item)
         if not isinstance(resolved, builtins.type):
             raise TypeError(f"InstanceParam path {item!r} is not a class.")

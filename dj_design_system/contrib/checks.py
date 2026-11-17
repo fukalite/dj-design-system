@@ -17,7 +17,8 @@ def check_contrib_requirements(
     """Report contrib apps whose required apps are not installed."""
     messages: list[checks.CheckMessage] = []
 
-    for app_config in apps.get_app_configs():
+    configs = apps.get_app_configs() if app_configs is None else app_configs
+    for app_config in configs:
         if not isinstance(app_config, ContribAppConfig):
             continue
         for required in app_config.requires:
