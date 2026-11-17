@@ -29,6 +29,11 @@ class TestInstanceParamConstruction:
         with pytest.raises(TypeError, match="InstanceParam expects"):
             InstanceParam(bad)
 
+    def test_tuple_item_that_is_not_a_class_or_path_raises(self):
+        param = InstanceParam((int, 3))
+        with pytest.raises(TypeError, match="got 3"):
+            param.type
+
     def test_path_to_a_non_class_raises(self):
         param = InstanceParam("django.core.paginator.Paginator.page")
         with pytest.raises((TypeError, ImportError)):
