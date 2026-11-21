@@ -189,6 +189,19 @@ def registry_with_demo_components():
 
 
 @pytest.fixture()
+def prefixed_registry():
+    """demo_components discovered as if its AppConfig declared ``demo_x``."""
+    reg = ComponentRegistry()
+    discover_app_into_registry(
+        reg,
+        "example_project.demo_components",
+        "demo_components",
+        declared_prefix="demo_x",
+    )
+    return reg
+
+
+@pytest.fixture()
 def registry_with_two_apps(registry_with_demo_components):
     """Extend the demo_components registry with demo_extra to test duplicate names."""
     reg = registry_with_demo_components
