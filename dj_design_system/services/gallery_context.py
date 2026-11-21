@@ -22,21 +22,15 @@ from dj_design_system.forms import build_component_form
 from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.parameters.model import ModelParam
 from dj_design_system.services import canvas as canvas_service
+from dj_design_system.services import config as config_service
 from dj_design_system.services import control_params as control_params_service
 from dj_design_system.services import docstring as docstring_service
 from dj_design_system.services import markdown as markdown_service
 from dj_design_system.services import navigation as navigation_service
 from dj_design_system.services import registry as registry_service
 from dj_design_system.services import tag_signature as tag_signature_service
-from dj_design_system.settings import (
-    get_backgrounds,
-    get_default_background,
-    get_default_theme,
-    get_theme,
-    get_themes,
-)
 from dj_design_system.slots import SLOT_PARAM_PREFIX
-from dj_design_system.types import Theme
+from dj_design_system.types import CanvasBackground, Theme
 
 
 def _get_field(raw: Any, key: str, default: Any = None) -> Any:
@@ -351,7 +345,7 @@ def resolve_sandbox_theme(
     available_theme_values = component_class.get_available_themes()
     available_themes: list[Theme] = []
     for t in available_theme_values:
-        theme_dict = get_theme(t)
+        theme_dict = config_service.get_theme(identifier=t)
         if theme_dict is not None:
             available_themes.append(theme_dict)
     theme_from_get = control_params_service.get_control_param(
@@ -369,7 +363,7 @@ def resolve_sandbox_theme(
             active_theme = config.theme
 
     if active_theme not in available_theme_values:
-        default_theme_val = get_default_theme().value
+        default_theme_val = config_service.get_default_theme().value
         active_theme = (
             default_theme_val
             if default_theme_val in available_theme_values
@@ -537,7 +531,9 @@ def build_component_page_context(
                 f"Variant '{variant_param}' not found for component '{info.name}'."
             )
 
-    effective_tag_name = info.qualified_name if info.is_builtin else info.name
+    effective_tag_name = (
+        info.qualified_name if (info.is_builtin or info.qualified_only) else info.name
+    )
     tag_signature = tag_signature_service.generate_tag_signature(
         component_class,
         canvas_component_name=info.qualified_name,
@@ -563,7 +559,10 @@ def build_component_page_context(
         active_variant=active_variant,
         cookies=cookies,
     )
-    active_theme_obj = get_theme(active_theme) or get_default_theme()
+    active_theme_obj = (
+        config_service.get_theme(identifier=active_theme)
+        or config_service.get_default_theme()
+    )
     raw_color_scheme = (
         control_params_service.get_control_param(
             query_params,
@@ -662,13 +661,28 @@ def build_component_page_context(
         form, form_kwargs, params, component_class, info, tag_name=info.qualified_name
     )
 
-    backgrounds = get_backgrounds()
+    backgrounds = [
+        {"value": slug, "label": bg.label, "color": bg.color}
+        for slug, bg in config_service.get_backgrounds().items()
+    ]
     active_bg_value = None
     if active_theme:
-        theme_dict = get_theme(active_theme)
+        theme_dict = config_service.get_theme(identifier=active_theme)
         if theme_dict and theme_dict.canvas_background:
             if isinstance(theme_dict.canvas_background, str):
                 active_bg_value = theme_dict.canvas_background
+            elif isinstance(theme_dict.canvas_background, CanvasBackground):
+                active_bg_value = f"theme-{theme_dict.value}"
+                backgrounds.append(
+                    {
+                        "value": active_bg_value,
+                        "label": (
+                            theme_dict.canvas_background.label
+                            or f"{theme_dict.label} Default"
+                        ),
+                        "color": theme_dict.canvas_background.color,
+                    }
+                )
             elif isinstance(theme_dict.canvas_background, dict):
                 active_bg_value = f"theme-{theme_dict.value}"
                 backgrounds.append(
@@ -681,7 +695,7 @@ def build_component_page_context(
                     }
                 )
     if not active_bg_value:
-        active_bg_value = get_default_background()["value"]
+        active_bg_value = config_service.get_default_background_slug()
 
     context["component_info"] = info
     raw_doc = component_class.__doc__ or ""
@@ -751,7 +765,7 @@ def build_component_page_context(
         source_html = ""
 
     component_available_themes = component_class.get_available_themes()
-    all_configured_themes = get_themes()
+    all_configured_themes = list(config_service.get_themes().values())
     all_configured_theme_values = {t.value for t in all_configured_themes}
 
     theme_from_get = control_params_service.get_control_param(
@@ -765,16 +779,16 @@ def build_component_page_context(
         theme_from_get
         or cookies.get("dds_theme")
         or base_context.get("global_active_theme")
-        or get_default_theme().value
+        or config_service.get_default_theme().value
     )
-    global_theme_obj = get_theme(requested_global_theme)
+    global_theme_obj = config_service.get_theme(identifier=requested_global_theme)
     if global_theme_obj is not None:
         global_active_theme = global_theme_obj.value
     elif requested_global_theme in component_available_themes:
         global_active_theme = requested_global_theme
         global_theme_obj = active_theme_obj
     else:
-        global_theme_obj = get_default_theme()
+        global_theme_obj = config_service.get_default_theme()
         global_active_theme = global_theme_obj.value
 
     is_theme_restricted = bool(
@@ -786,7 +800,7 @@ def build_component_page_context(
     )
     available_theme_labels: list[str] = []
     for t_val in component_available_themes:
-        t_obj = get_theme(t_val)
+        t_obj = config_service.get_theme(identifier=t_val)
         available_theme_labels.append(t_obj.label if t_obj else t_val.capitalize())
 
     if len(available_theme_labels) == 1:

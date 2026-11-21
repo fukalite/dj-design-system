@@ -88,6 +88,7 @@ class ComponentInfo:
     namespace_prefix: str | None = None
     namespace_remaining_parts: tuple[str, ...] | None = None
     flatten_strategy: FlattenStrategy = FlattenStrategy.NONE
+    qualified_only: bool = False
 
     @cached_property
     def is_builtin(self) -> bool:

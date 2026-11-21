@@ -5,7 +5,6 @@ from importlib import import_module
 from pathlib import Path
 from typing import Any, Type
 
-from dj_design_system import settings
 from dj_design_system.constants import (
     BUILTIN_APP_LABEL,
     BUILTIN_PREFIX,
@@ -15,6 +14,7 @@ from dj_design_system.exceptions import (
     ComponentDoesNotExist,
     MultipleComponentsFound,
 )
+from dj_design_system.services import config as config_service
 from dj_design_system.services.component import (
     derive_name,
     derive_relative_path,
@@ -132,6 +132,8 @@ class ComponentRegistry:
             and obj.__module__ == module.__name__
         )
 
+        app_settings = config_service.get_app_settings(app_label=app_label)
+        qualified_only = not app_settings.short_names
         prefix_info = self._resolve_namespace_prefix(app_label, relative_path)
         namespace_prefix = prefix_info[0] if prefix_info else None
         namespace_remaining_parts = prefix_info[1] if prefix_info else None
@@ -148,6 +150,7 @@ class ComponentRegistry:
                 namespace_prefix=namespace_prefix,
                 namespace_remaining_parts=namespace_remaining_parts,
                 flatten_strategy=flatten_strategy,
+                qualified_only=qualified_only,
             )
             self._bind_template(info)
             self._components.append(info)
@@ -201,41 +204,32 @@ class ComponentRegistry:
             builtin_parts = tuple(relative_path.split(".")) if relative_path else ()
             return (BUILTIN_PREFIX, builtin_parts, FlattenStrategy.ALL)
 
-        directories = (settings.dds_settings.COMPONENT_DIRECTORIES or {}).get(app_label)
-        if directories is None:
-            # Fallback to legacy COMPONENT_NAMESPACES
-            directories = (settings.dds_settings.COMPONENT_NAMESPACES or {}).get(
-                app_label
-            )
-
-        if directories is None:
-            return None
-
+        app_settings = config_service.get_app_settings(app_label=app_label)
+        directories = app_settings.directories
         parts = relative_path.split(".") if relative_path else []
 
-        for length in range(len(parts), -1, -1):
+        for length in range(len(parts), 0, -1):
             candidate_key = ".".join(parts[:length])
-            if candidate_key in directories:
-                alias_config = directories[candidate_key]
-                prefix, flatten = self._parse_alias_config(alias_config)
-                remaining_parts = tuple(parts[length:])
+            dir_cfg = directories.get(candidate_key)
+            if dir_cfg is None:
+                continue
+            if dir_cfg.prefix is None and dir_cfg.flatten is None:
+                continue
+            prefix = (
+                dir_cfg.prefix
+                if dir_cfg.prefix is not None
+                else candidate_key.split(".")[-1]
+            )
+            flatten = (
+                dir_cfg.flatten if dir_cfg.flatten is not None else FlattenStrategy.NONE
+            )
+            return (prefix, tuple(parts[length:]), flatten)
 
-                # If prefix is None but there was a config (like only label or promote_to_app),
-                # we don't apply a namespace override, so we just return None
-                if prefix is None and not (
-                    isinstance(alias_config, dict)
-                    and (
-                        "prefix" in alias_config
-                        or "namespace" in alias_config
-                        or "flatten" in alias_config
-                    )
-                ):
-                    continue
+        if app_settings.prefix is not None:
+            return (app_settings.prefix, tuple(parts), app_settings.flatten)
 
-                if prefix is None:
-                    prefix = candidate_key.split(".")[-1] if candidate_key else ""
-
-                return (prefix, remaining_parts, flatten)
+        if app_settings.flatten != FlattenStrategy.NONE:
+            return (app_label, tuple(parts), app_settings.flatten)
 
         return None
 
@@ -375,7 +369,9 @@ class ComponentRegistry:
         if app_label is not None:
             candidates = self.list_by_app(app_label)
         else:
-            candidates = [c for c in self._components if not c.is_builtin]
+            candidates = [
+                c for c in self._components if not c.is_builtin and not c.qualified_only
+            ]
 
         matches = [c for c in candidates if c.name == name]
 
@@ -446,7 +442,7 @@ class ComponentRegistry:
             self._register_tag(library, info.qualified_name, info)
 
             # Register short names — last discovered wins
-            if not info.is_builtin:
+            if not info.is_builtin and not info.qualified_only:
                 short_names[info.name] = info
 
         for name, info in short_names.items():
