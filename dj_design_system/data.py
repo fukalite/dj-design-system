@@ -7,7 +7,7 @@ from functools import cached_property
 from pathlib import Path
 from typing import Any, Type
 
-from dj_design_system.exceptions import InvalidTagType
+from dj_design_system.exceptions import InvalidTagType, RemovedInDjDS10Warning
 from dj_design_system.gallery import GalleryConfig, Variant, load_gallery_config
 from dj_design_system.types import FlattenStrategy, NodeType, TagType
 
@@ -115,8 +115,8 @@ class ComponentInfo:
     def gallery_basic_kwargs(self) -> dict[str, Any]:
         warnings.warn(
             f"ComponentInfo.gallery_basic_kwargs for '{self.name}' is deprecated and will be removed "
-            "in a future release. Use ComponentInfo.gallery_config.get_variant('basic').kwargs instead.",
-            DeprecationWarning,
+            "in 1.0.0. Use ComponentInfo.gallery_config.get_variant('basic').kwargs instead.",
+            RemovedInDjDS10Warning,
             stacklevel=2,
         )
         return self._gallery_kwargs[0]
@@ -125,8 +125,8 @@ class ComponentInfo:
     def gallery_maximal_kwargs(self) -> dict[str, Any]:
         warnings.warn(
             f"ComponentInfo.gallery_maximal_kwargs for '{self.name}' is deprecated and will be removed "
-            "in a future release. Use ComponentInfo.gallery_config.get_variant('maximal').kwargs instead.",
-            DeprecationWarning,
+            "in 1.0.0. Use ComponentInfo.gallery_config.get_variant('maximal').kwargs instead.",
+            RemovedInDjDS10Warning,
             stacklevel=2,
         )
         return self._gallery_kwargs[1]

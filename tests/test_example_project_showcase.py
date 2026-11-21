@@ -95,12 +95,18 @@ class TestExampleProjectPedagogicalBreadth:
 
     def test_exercises_directory_strategies_media_variants_and_docs(self) -> None:
         """Verify FlattenStrategy, promote_to_app, broken_components, and docs."""
-        dirs_config = base_settings.DJ_DESIGN_SYSTEM["COMPONENT_DIRECTORIES"]
-        demo_dirs = dirs_config["demo_components"]
-        assert demo_dirs["card"]["flatten"] == dds_types.FlattenStrategy.NONE
-        assert demo_dirs["icon"]["flatten"] == dds_types.FlattenStrategy.ALL
-        assert demo_dirs["promoted"]["promote_to_app"] is True
-        assert "broken_components" in dirs_config
+        from example_project.broken_components.apps import BrokenComponentsConfig
+        from example_project.demo_components.apps import DemoComponentsConfig
+
+        assert DemoComponentsConfig.design_system.css == (
+            "example_project/app-demo.css",
+        )
+        demo_dirs = base_settings.DJ_DESIGN_SYSTEM.apps["demo_components"].directories
+        assert demo_dirs is not None
+        assert demo_dirs["card"].flatten == dds_types.FlattenStrategy.NONE
+        assert demo_dirs["svg_icon"].flatten == dds_types.FlattenStrategy.ALL
+        assert demo_dirs["promoted"].promote_to_app is True
+        assert BrokenComponentsConfig.design_system.prefix == "broken"
 
         demo_infos = registry_service.component_registry.list_by_app(
             app_label="demo_components"
@@ -111,6 +117,28 @@ class TestExampleProjectPedagogicalBreadth:
         md_files = list(EXAMPLE_PROJECT_DIR.rglob(pattern="index.md"))
         assert md_files
         assert any("```canvas" in md.read_text(encoding="utf-8") for md in md_files)
+
+    @pytest.mark.django_db
+    def test_example_project_passes_system_checks_and_migration_check(self) -> None:
+        """Migrated example_project produces zero system check issues and passes --check."""
+        from django.core.management import call_command
+
+        from dj_design_system.checks import (
+            check_design_system_settings,
+            check_gallery_settings,
+        )
+
+        with test.override_settings(DJ_DESIGN_SYSTEM=base_settings.DJ_DESIGN_SYSTEM):
+            assert check_gallery_settings() == []
+            assert check_design_system_settings() == []
+            call_command("migrate_dds_settings", "--check")
+
+        with test.override_settings(
+            DJ_DESIGN_SYSTEM=settings_dds_gallery.DJ_DESIGN_SYSTEM
+        ):
+            assert check_gallery_settings() == []
+            assert check_design_system_settings() == []
+            call_command("migrate_dds_settings", "--check")
 
     @pytest.mark.django_db
     def test_example_project_settings_render_all_gallery_views(
@@ -139,9 +167,9 @@ class TestSettingsDdsGallery:
     def test_settings_dds_gallery_configuration(self) -> None:
         """Verify DJ_DESIGN_SYSTEM overrides in settings_dds_gallery."""
         dds_cfg = settings_dds_gallery.DJ_DESIGN_SYSTEM
-        assert dds_cfg["DESIGN_SYSTEM_NAME"] == "Built-in Component Library"
-        assert dds_cfg["GALLERY_INCLUDE_APPS"] == ["dj_design_system"]
-        assert dds_cfg["GLOBAL_CSS"] == ["example_project/theme-dds-consumer.css"]
+        assert dds_cfg.name == "Built-in Component Library"
+        assert dds_cfg.gallery.include_apps == ("dj_design_system",)
+        assert dds_cfg.css == ("example_project/theme-dds-consumer.css",)
 
     def test_navigation_and_views_expose_only_builtin_dds_components(
         self, client: test.Client

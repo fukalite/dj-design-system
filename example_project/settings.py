@@ -1,6 +1,13 @@
 from pathlib import Path
 
-from dj_design_system.types import FlattenStrategy
+from dj_design_system.config import (
+    AppSettings,
+    DesignSystemSettings,
+    DirectorySettings,
+    FlattenStrategy,
+    GallerySettings,
+    Theme,
+)
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -92,51 +99,44 @@ STATICFILES_FINDERS = [
     "dj_design_system.finders.ComponentsStaticFinder",
 ]
 
-DJ_DESIGN_SYSTEM = {
-    "DESIGN_SYSTEM_NAME": "Example Component Library",
-    "GALLERY_IS_PUBLIC": True,
-    "GLOBAL_CSS": ["example_project/demo.css"],
-    "GALLERY_THEMES": {
-        "default": {
-            "label": "Default Theme",
-            "html_attrs": {"html": {"data-theme": "default"}},
-            "css": ["example_project/theme-default.css"],
-        },
-        "dark": {
-            "label": "Dark Theme",
-            "html_attrs": {"html": {"data-theme": "dark"}},
-            "css": ["example_project/theme-dark.css"],
-            "canvas_background": "dark",
-        },
+DJ_DESIGN_SYSTEM = DesignSystemSettings(
+    name="Example Component Library",
+    css=("example_project/demo.css",),
+    themes={
+        "default": Theme(
+            label="Default Theme",
+            html_attrs={"html": {"data-theme": "default"}},
+            css=("example_project/theme-default.css",),
+        ),
+        "dark": Theme(
+            label="Dark Theme",
+            html_attrs={"html": {"data-theme": "dark"}},
+            css=("example_project/theme-dark.css",),
+            canvas_background="dark-grey",
+        ),
     },
-    "GALLERY_DEFAULT_THEME": "default",
-    "APP_CSS": {
-        "demo_components": ["example_project/app-demo.css"],
-    },
-    "APP_CANVAS_HTML_ATTRS": {
-        "demo_components": {"body": {"class": "demo-components-body"}},
-    },
-    "COMPONENT_DIRECTORIES": {
-        "demo_components": {
-            "": "ui",  # All top-level components under 'ui'
-            "button": "btn",  # Button components under 'btn' (preserves subfolders by default)
-            "card": {
-                "prefix": "cards",
-                "flatten": FlattenStrategy.NONE,
-                "label": "Cards (No Flattening)",
-            },  # Card components preserve subfolders
-            "icon": {
-                "prefix": "icn",
-                "flatten": FlattenStrategy.ALL,
-                "label": "Icons (Flattened)",
-            },  # Icon components discard subfolders
-            "promoted": {
-                "promote_to_app": True,
-                "label": "Promoted App Demo",
+    default_theme="default",
+    gallery=GallerySettings(is_public=True),
+    apps={
+        "demo_components": AppSettings(
+            prefix="ui",
+            directories={
+                "button": DirectorySettings(prefix="btn"),
+                "card": DirectorySettings(
+                    prefix="cards",
+                    flatten=FlattenStrategy.NONE,
+                    label="Cards (No Flattening)",
+                ),
+                "svg_icon": DirectorySettings(
+                    prefix="icn",
+                    flatten=FlattenStrategy.ALL,
+                    label="Icons (Flattened)",
+                ),
+                "promoted": DirectorySettings(
+                    promote_to_app=True,
+                    label="Promoted App Demo",
+                ),
             },
-        },
-        "broken_components": {
-            "": "broken",
-        },
+        ),
     },
-}
+)

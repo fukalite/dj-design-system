@@ -317,6 +317,14 @@ def resolve_doc_variants(
     return base_list
 
 
+KNOWN_LEGACY_KEYS: frozenset[str] = _legacy_config.KNOWN_LEGACY_KEYS
+
+
+def find_new_style_keys(*, raw: Mapping[str, Any]) -> list[str]:
+    """Return sorted new-style ``DesignSystemSettings`` field names found in *raw*."""
+    return _legacy_config.find_new_style_keys(raw=raw)
+
+
 def adapt_legacy_settings(*, raw: Mapping[str, Any]) -> DesignSystemSettings:
     """Adapt a legacy flat ``DJ_DESIGN_SYSTEM`` dictionary into ``DesignSystemSettings``."""
     return _legacy_config.adapt_legacy_settings(
@@ -706,3 +714,4 @@ def clear_config_cache() -> None:
     """Invalidate configuration caches."""
     global _APP_SETTINGS_CACHE
     _APP_SETTINGS_CACHE = None
+    _legacy_config.clear_legacy_warning_cache()

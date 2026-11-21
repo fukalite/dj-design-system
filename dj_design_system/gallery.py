@@ -11,6 +11,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from dj_design_system.exceptions import RemovedInDjDS10Warning
+
 
 if TYPE_CHECKING:
     from dj_design_system.types import DocVariantConfig
@@ -318,8 +320,8 @@ def load_gallery_config(source_dir: Path, component_name: str) -> GalleryConfig:
         warnings.warn(
             f"Component '{component_name}' defines legacy 'basic_kwargs' or 'maximal_kwargs' "
             f"in '{gallery_path.name}'. Defining kwargs directly in gallery files is deprecated "
-            "and will be removed in a future release. Export 'config = GalleryConfig(...)' instead.",
-            DeprecationWarning,
+            "and will be removed in 1.0.0. Export 'config = GalleryConfig(...)' instead.",
+            RemovedInDjDS10Warning,
             stacklevel=2,
         )
         variants: list[Variant] = []

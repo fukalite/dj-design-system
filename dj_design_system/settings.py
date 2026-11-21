@@ -9,6 +9,7 @@ from typing import Any
 from django.conf import settings
 
 from dj_design_system.config import DesignSystemSettings
+from dj_design_system.exceptions import RemovedInDjDS10Warning
 from dj_design_system.services import config as config_service
 from dj_design_system.services.media import coerce_path_list
 from dj_design_system.types import (
@@ -288,9 +289,9 @@ class DjangoDesignSystemSettings:
                 value = raw.get("COMPONENT_NAMESPACES", {})
                 if value:
                     warnings.warn(
-                        "COMPONENT_NAMESPACES is deprecated and will be removed in a future release. "
-                        "Please migrate to COMPONENT_DIRECTORIES.",
-                        DeprecationWarning,
+                        "COMPONENT_NAMESPACES is deprecated and will be removed in 1.0.0. "
+                        "Please migrate to AppSettings(prefix=..., directories=...).",
+                        RemovedInDjDS10Warning,
                         stacklevel=2,
                     )
                 return value

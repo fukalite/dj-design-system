@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+import dataclasses
+import warnings
 from collections.abc import Mapping
 from typing import Any
+
+from django.core.exceptions import ImproperlyConfigured
 
 from dj_design_system.config import (
     DDS_DEFAULT_CANVAS_BACKGROUNDS,
@@ -17,7 +21,73 @@ from dj_design_system.config import (
     DirectorySettings,
     GallerySettings,
 )
+from dj_design_system.exceptions import RemovedInDjDS10Warning
 from dj_design_system.types import DocVariantConfig, FlattenStrategy, NodeType
+
+
+NEW_STYLE_KEYS: frozenset[str] = frozenset(
+    f.name for f in dataclasses.fields(DesignSystemSettings)
+)
+
+KNOWN_LEGACY_KEYS: frozenset[str] = frozenset(
+    {
+        "DESIGN_SYSTEM_NAME",
+        "ENABLE_GALLERY",
+        "GALLERY_IS_PUBLIC",
+        "GALLERY_NAV_ORDER",
+        "GLOBAL_CSS",
+        "GLOBAL_JS",
+        "GLOBAL_CSS_BUNDLES",
+        "GLOBAL_JS_BUNDLES",
+        "GALLERY_CANVAS_BACKGROUNDS",
+        "GALLERY_CANVAS_EXTRA_BACKGROUNDS",
+        "GALLERY_CANVAS_DEFAULT_BACKGROUND",
+        "GALLERY_CANVAS_HTML_ATTRS",
+        "GALLERY_CODEHILITE_STYLE",
+        "GALLERY_THEMES",
+        "GALLERY_DEFAULT_THEME",
+        "GALLERY_UI_THEMES",
+        "GALLERY_DEFAULT_UI_THEME",
+        "GALLERY_INCLUDE_APPS",
+        "GALLERY_EXCLUDE_APPS",
+        "GALLERY_EXTRA_CSS",
+        "GALLERY_DOC_VARIANTS",
+        "APP_THEMES",
+        "APP_CSS",
+        "APP_CSS_BUNDLES",
+        "APP_JS",
+        "APP_JS_BUNDLES",
+        "APP_CANVAS_HTML_ATTRS",
+        "COMPONENT_DIRECTORIES",
+        "COMPONENT_NAMESPACES",
+    }
+)
+
+_WARNED_LEGACY_SIGNATURES: set[frozenset[str]] = set()
+
+
+def clear_legacy_warning_cache() -> None:
+    """Clear deduplicated legacy warning signatures."""
+    _WARNED_LEGACY_SIGNATURES.clear()
+
+
+def find_new_style_keys(*, raw: Mapping[str, Any]) -> list[str]:
+    """Return sorted new-style ``DesignSystemSettings`` field names found in *raw*."""
+    return sorted(k for k in raw if isinstance(k, str) and k in NEW_STYLE_KEYS)
+
+
+def _emit_legacy_dict_warning(*, raw: Mapping[str, Any]) -> None:
+    signature = frozenset(str(k) for k in raw)
+    if signature in _WARNED_LEGACY_SIGNATURES:
+        return
+    _WARNED_LEGACY_SIGNATURES.add(signature)
+    warnings.warn(
+        "Configuring settings.DJ_DESIGN_SYSTEM as a flat dictionary is deprecated and will be "
+        "removed in dj-design-system 1.0.0. Migrate to DesignSystemSettings(...) "
+        "(run `python manage.py migrate_dds_settings`).",
+        RemovedInDjDS10Warning,
+        stacklevel=3,
+    )
 
 
 def _is_non_bool_int(value: Any) -> bool:
@@ -62,13 +132,18 @@ def _parse_legacy_directory_entry(raw_entry: Any) -> DirectorySettings:
     raw_order = raw_entry.get("order")
     order = raw_order if _is_non_bool_int(raw_order) else None
 
+    raw_nav_order = raw_entry.get("nav_order")
     return DirectorySettings(
         prefix=prefix,
         flatten=flatten,
         label=raw_entry.get("label"),
         promote_to_app=bool(raw_entry.get("promote_to_app", False)),
         order=order,
-        nav_order=raw_entry.get("nav_order"),
+        nav_order=(
+            _adapt_legacy_nav_order(raw_nav_order)
+            if raw_nav_order is not None
+            else None
+        ),
     )
 
 
@@ -166,6 +241,16 @@ def adapt_legacy_settings(
     resolve_doc_variants_fn: Any,
 ) -> DesignSystemSettings:
     """Adapt a legacy flat ``DJ_DESIGN_SYSTEM`` dictionary into ``DesignSystemSettings``."""
+    bad_keys = find_new_style_keys(raw=raw)
+    if bad_keys:
+        joined = ", ".join(repr(k) for k in bad_keys)
+        raise ImproperlyConfigured(
+            f"settings.DJ_DESIGN_SYSTEM is a dict containing DesignSystemSettings field name(s): "
+            f"{joined}. Assign a DesignSystemSettings(...) instance instead."
+        )
+
+    _emit_legacy_dict_warning(raw=raw)
+
     raw_bg_base = (
         raw["GALLERY_CANVAS_BACKGROUNDS"]
         if "GALLERY_CANVAS_BACKGROUNDS" in raw
