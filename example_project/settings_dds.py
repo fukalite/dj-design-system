@@ -3,8 +3,9 @@
 from example_project.settings import *  # noqa: F401, F403
 
 
-DJ_DESIGN_SYSTEM = {
-    **DJ_DESIGN_SYSTEM,  # noqa: F405
-    "DESIGN_SYSTEM_NAME": "dj-design-system (dds Built-in Gallery)",
-    "GALLERY_INCLUDE_APPS": ["dj_design_system"],
-}
+DJ_DESIGN_SYSTEM = DJ_DESIGN_SYSTEM.replace(  # noqa: F405
+    name="dj-design-system (dds Built-in Gallery)",
+    gallery=DJ_DESIGN_SYSTEM.gallery.replace(  # noqa: F405
+        include_apps=("dj_design_system",),
+    ),
+)

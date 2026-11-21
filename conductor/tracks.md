@@ -8,7 +8,7 @@
 - [x] **Track: Typed Schema, Import-Safety & 4-Tier Resolution**
   *Link: [./tracks/typed_settings_01_schema_and_resolution_20261121/index.md](./tracks/typed_settings_01_schema_and_resolution_20261121/index.md)*
 
-- [ ] **Track: Compatibility Adapter, Migration CLI & Example Project**
+- [x] **Track: Compatibility Adapter, Migration CLI & Example Project**
   *Link: [./tracks/typed_settings_02_compat_and_migration_20261121/index.md](./tracks/typed_settings_02_compat_and_migration_20261121/index.md)*
 
 - [ ] **Track: Documentation Overhaul & API Reference**

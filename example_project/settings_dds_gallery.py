@@ -1,5 +1,6 @@
 """Django settings module for inspecting the internal DDS component library."""
 
+from dj_design_system.config import DarkModeConfig, Theme
 from example_project import settings as base_settings
 
 
@@ -23,21 +24,22 @@ STATIC_ROOT = base_settings.STATIC_ROOT
 STATICFILES_DIRS = list(base_settings.STATICFILES_DIRS)
 STATICFILES_FINDERS = list(base_settings.STATICFILES_FINDERS)
 
-DJ_DESIGN_SYSTEM = {
-    **base_settings.DJ_DESIGN_SYSTEM,
-    "DESIGN_SYSTEM_NAME": "Built-in Component Library",
-    "GALLERY_INCLUDE_APPS": ["dj_design_system"],
-    "GLOBAL_CSS": ["example_project/theme-dds-consumer.css"],
-    "GALLERY_THEMES": {
-        "dds": {
-            "label": "Django Design System",
-            "html_attrs": {"html": {"class": "gallery-theme-light"}},
-            "canvas_background": "white",
-            "dark_mode": {
-                "html_attrs": {"html": {"class": "gallery-theme-dark"}},
-                "canvas_background": "dark-grey",
-            },
-        },
+DJ_DESIGN_SYSTEM = base_settings.DJ_DESIGN_SYSTEM.replace(
+    name="Built-in Component Library",
+    css=("example_project/theme-dds-consumer.css",),
+    themes={
+        "dds": Theme(
+            label="Django Design System",
+            html_attrs={"html": {"class": "gallery-theme-light"}},
+            canvas_background="white",
+            dark_mode=DarkModeConfig(
+                html_attrs={"html": {"class": "gallery-theme-dark"}},
+                canvas_background="dark-grey",
+            ),
+        ),
     },
-    "GALLERY_DEFAULT_THEME": "dds",
-}
+    default_theme="dds",
+    gallery=base_settings.DJ_DESIGN_SYSTEM.gallery.replace(
+        include_apps=("dj_design_system",),
+    ),
+)
