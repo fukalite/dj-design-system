@@ -13,6 +13,7 @@ from typing import Any, Callable
 from django import template
 from django.template import Context, Engine
 from django.utils.safestring import SafeString, mark_safe
+from django.utils.translation import gettext
 
 from dj_design_system.contrib.django_admin.sites import uses_design_system
 
@@ -62,7 +63,7 @@ def render_pagination(context: Context) -> SafeString:
         summary=f"{count} {noun}",
         show_all_url=context.get("show_all_url") or "",
         show_links=bool(context.get("pagination_required")),
-        label=f"Pagination {cl.opts.verbose_name_plural}",
+        label=gettext("Pagination %(name)s") % {"name": cl.opts.verbose_name_plural},
     )
     return mark_safe(component.render())
 

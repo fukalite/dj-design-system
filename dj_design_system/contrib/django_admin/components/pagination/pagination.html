@@ -11,7 +11,7 @@
         {% for item in items %}
           <li>
             {% if item.is_ellipsis %}
-              {{ item.label }}
+              <span aria-hidden="true">{{ item.label }}</span>
             {% elif item.is_current %}
               <a role="button" href="{{ item.url }}" aria-current="page">{{ item.number }}</a>
             {% else %}
