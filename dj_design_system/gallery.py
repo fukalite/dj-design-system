@@ -64,7 +64,7 @@ class Variant:
     )
 
     def __post_init__(self) -> None:
-        from dj_design_system.settings import get_doc_variants
+        from dj_design_system.services import config as config_service
 
         self._explicit_label = self.label
         if self.label is None:
@@ -73,7 +73,7 @@ class Variant:
         self._explicit_show_in_docs = self.show_in_docs
         self._explicit_show_in_nav = self.show_in_nav
 
-        doc_variants = get_doc_variants()
+        doc_variants = config_service.get_doc_variants()
         self.show_in_docs = self.is_shown_in_docs(doc_variants=doc_variants)
         self.show_in_nav = self.is_shown_in_nav(doc_variants=doc_variants)
 
@@ -89,10 +89,12 @@ class Variant:
         """Return whether this variant should be rendered in component documentation."""
         if self._explicit_show_in_docs is not None:
             return self._explicit_show_in_docs
-        from dj_design_system.settings import get_doc_variants
+        from dj_design_system.services import config as config_service
 
         resolved_doc_variants = (
-            doc_variants if doc_variants is not None else get_doc_variants()
+            doc_variants
+            if doc_variants is not None
+            else config_service.get_doc_variants()
         )
         enabled_doc_names = {dv.name for dv in resolved_doc_variants if dv.show_in_docs}
         return self.name in enabled_doc_names
@@ -105,17 +107,19 @@ class Variant:
         """Return whether this variant should be rendered in sidebar navigation."""
         if self._explicit_show_in_nav is not None:
             return self._explicit_show_in_nav
-        from dj_design_system.settings import get_doc_variants
+        from dj_design_system.services import config as config_service
         from dj_design_system.types import DocVariantStrategy
 
         resolved_doc_variants = (
-            doc_variants if doc_variants is not None else get_doc_variants()
+            doc_variants
+            if doc_variants is not None
+            else config_service.get_doc_variants()
         )
         standard_doc_names = {
             dv.name
             for dv in resolved_doc_variants
             if dv.strategy != DocVariantStrategy.CUSTOM
-        } | {dv.name for dv in get_doc_variants()}
+        } | {dv.name for dv in config_service.get_doc_variants()}
         return self.name not in standard_doc_names
 
     @classmethod
@@ -241,12 +245,12 @@ class GalleryConfig:
 
     def get_doc_variants(self) -> list[DocVariantConfig]:
         """Return resolved documentation variant configurations for this component."""
-        from dj_design_system.settings import get_doc_variants, resolve_doc_variants
+        from dj_design_system.services import config as config_service
 
-        global_variants = get_doc_variants()
+        global_variants = list(config_service.get_doc_variants())
         if self.doc_variants is None:
             return global_variants
-        return resolve_doc_variants(
+        return config_service.resolve_doc_variants(
             raw_setting=self.doc_variants,
             base_variants=global_variants,
         )

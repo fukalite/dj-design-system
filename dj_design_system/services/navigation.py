@@ -22,9 +22,9 @@ from dj_design_system.constants import (
 )
 from dj_design_system.data import NavNode
 from dj_design_system.services import component_dirs as component_dirs_service
+from dj_design_system.services import config as config_service
 from dj_design_system.services import visibility as visibility_service
 from dj_design_system.services.registry import component_registry
-from dj_design_system.settings import dds_settings
 from dj_design_system.types import NodeType
 
 
@@ -218,15 +218,14 @@ def to_display_label(
                 return vn
 
     if app_label is not None:
-        directories = (dds_settings.COMPONENT_DIRECTORIES or {}).get(app_label)
-        if directories is not None:
-            alias_config = (
-                directories.get(path) if path is not None else directories.get("")
-            )
-            if isinstance(alias_config, dict) and "label" in alias_config:
-                return str(alias_config["label"])
+        app_cfg = config_service.get_app_settings(app_label=app_label)
+        if path is not None:
+            dir_cfg = app_cfg.directories.get(path)
+            if dir_cfg is not None and dir_cfg.label is not None:
+                return dir_cfg.label
+        elif app_cfg.label is not None:
+            return app_cfg.label
 
-        # Only fall back to app's verbose_name if we are actually formatting the app label itself
         if path is None and name == app_label:
             try:
                 cfg = apps.get_app_config(app_label)
@@ -274,16 +273,24 @@ class _AppTreeBuilder:
         for depth in range(len(path_parts)):
             path_key = "/".join(path_parts[: depth + 1])
             if path_key not in self._nodes_by_path:
+                dot_path = ".".join(path_parts[: depth + 1])
                 label = (
                     labels_by_depth[depth]
                     if labels_by_depth and depth in labels_by_depth
                     else to_display_label(
                         path_parts[depth],
                         app_label=self.root.slug,
-                        path=".".join(path_parts[: depth + 1]),
+                        path=dot_path,
                     )
                 )
-                order = FOLDER_ORDER_MAP.get(path_parts[depth], 0) if is_builtin else 0
+                app_cfg = config_service.get_app_settings(app_label=self.root.slug)
+                dir_cfg = app_cfg.directories.get(dot_path)
+                if dir_cfg is not None and dir_cfg.order is not None:
+                    order = dir_cfg.order
+                else:
+                    order = (
+                        FOLDER_ORDER_MAP.get(path_parts[depth], 0) if is_builtin else 0
+                    )
                 node = NavNode(
                     label=label,
                     slug=path_parts[depth],
@@ -405,24 +412,73 @@ def _discover_markdown_files(components_root: Path) -> list[tuple[list[str], Pat
     return results
 
 
-def _sort_children(node: NavNode) -> None:
-    """Recursively sort children by the configured type order, then order, then alphabetically."""
-    nav_order = dds_settings.GALLERY_NAV_ORDER
+def _resolve_nav_order(
+    *,
+    app_label: str,
+    current_path: str,
+) -> Sequence[NodeType | str] | str:
+    if app_label:
+        app_cfg = config_service.get_app_settings(app_label=app_label)
+        if current_path:
+            dir_cfg = app_cfg.directories.get(current_path)
+            if dir_cfg is not None and dir_cfg.nav_order is not None:
+                return dir_cfg.nav_order
+            if isinstance(app_cfg.nav_order, (list, tuple)):
+                inherited_types = tuple(
+                    entry for entry in app_cfg.nav_order if isinstance(entry, NodeType)
+                )
+                return (
+                    inherited_types or config_service.get_gallery_settings().nav_order
+                )
+        return app_cfg.nav_order
+    return config_service.get_gallery_settings().nav_order
 
-    def _sort_key(child: NavNode) -> tuple[int, int, str]:
-        if not isinstance(nav_order, list):
+
+def _sort_children(
+    node: NavNode,
+    *,
+    app_label: str = "",
+    current_path: str = "",
+) -> None:
+    """Recursively sort children by configured slug pins, type order, numeric order, and label."""
+    if node.node_type == NodeType.COMPONENT:
+        return
+
+    effective_app = app_label or (
+        node.slug if node.node_type == NodeType.APP else node.app_label
+    )
+    nav_order = _resolve_nav_order(
+        app_label=effective_app,
+        current_path=current_path,
+    )
+
+    if isinstance(nav_order, (list, tuple)):
+        slug_rank: dict[str, int] = {}
+        type_rank: dict[NodeType, int] = {}
+        for idx, entry in enumerate(nav_order):
+            if isinstance(entry, NodeType):
+                type_rank.setdefault(entry, idx)
+            else:
+                slug_rank.setdefault(str(entry), idx)
+        fallback_rank = len(nav_order)
+
+        def _sort_key(child: NavNode) -> tuple[int, int, str]:
+            if child.slug in slug_rank:
+                return (slug_rank[child.slug], 0, "")
+            return (
+                type_rank.get(child.node_type, fallback_rank),
+                child.order,
+                child.label.lower(),
+            )
+    else:
+
+        def _sort_key(child: NavNode) -> tuple[int, int, str]:
             return (0, child.order, child.label.lower())
-
-        rank = {nt: i for i, nt in enumerate(nav_order)}
-        return (
-            rank.get(child.node_type, len(nav_order)),
-            child.order,
-            child.label.lower(),
-        )
 
     node.children.sort(key=_sort_key)
     for child in node.children:
-        _sort_children(child)
+        child_path = f"{current_path}.{child.slug}" if current_path else child.slug
+        _sort_children(child, app_label=effective_app, current_path=child_path)
 
 
 def resolve_node_url(node: NavNode) -> str:
@@ -553,10 +609,12 @@ def _build_navigation(
 
     result: list[NavNode] = []
     for app_label in sorted(apps):
+        app_cfg = config_service.get_app_settings(app_label=app_label)
         app_node = NavNode(
             label=to_display_label(app_label, app_label=app_label),
             slug=app_label,
             node_type=NodeType.APP,
+            order=app_cfg.order if app_cfg.order is not None else 0,
         )
 
         builder = _AppTreeBuilder(app_node)
@@ -576,10 +634,10 @@ def _build_navigation(
                     dir_parts = dir_parts[1:]
                 builder.add_markdown(dir_parts, md_path)
 
-        _sort_children(app_node)
+        _sort_children(app_node, app_label=app_label, current_path="")
         _annotate_paths(app_node)
 
-        directories = (dds_settings.COMPONENT_DIRECTORIES or {}).get(app_label, {})
+        directories = app_cfg.directories
         promoted_nodes: list[NavNode] = []
 
         def _extract_promoted(node: NavNode, current_path: str) -> None:
@@ -589,10 +647,8 @@ def _build_navigation(
                     f"{current_path}.{child.slug}" if current_path else child.slug
                 )
 
-                alias_config = directories.get(child_path)
-                if isinstance(alias_config, dict) and alias_config.get(
-                    "promote_to_app"
-                ):
+                dir_cfg = directories.get(child_path)
+                if dir_cfg is not None and dir_cfg.promote_to_app:
                     child.node_type = NodeType.APP
                     promoted_nodes.append(child)
                 else:
@@ -605,6 +661,16 @@ def _build_navigation(
         if app_node.children or app_node.index_doc_path or app_node.doc_path:
             result.append(app_node)
         result.extend(promoted_nodes)
+
+    app_order = config_service.get_gallery_settings().app_order
+    pinned_apps = {slug: idx for idx, slug in enumerate(app_order)}
+
+    def _root_sort_key(node: NavNode) -> tuple[int, int, int, str]:
+        if node.slug in pinned_apps:
+            return (0, pinned_apps[node.slug], 0, "")
+        return (1, 0, node.order, node.label.lower())
+
+    result.sort(key=_root_sort_key)
 
     for node in result:
         _annotate_paths(node)
@@ -750,16 +816,39 @@ def clear_search_index_cache() -> None:
 setattr(build_search_index, "cache_clear", clear_search_index_cache)
 
 
+def _find_promoted_directory_context(
+    *, slug: str
+) -> tuple[str, str, str | None] | None:
+    for owner_label, app_cfg in config_service.get_all_app_settings().items():
+        for dir_path, dir_cfg in app_cfg.directories.items():
+            if dir_cfg.promote_to_app and dir_path.split(".")[-1] == slug:
+                return (owner_label, dir_path, dir_cfg.label)
+    return None
+
+
 def build_breadcrumbs(
     app_label: str,
     path_parts: list[str],
     current_label: str,
 ) -> list[dict]:
     """Build breadcrumb trail for the current page."""
+    promoted = _find_promoted_directory_context(slug=app_label)
+    if promoted is not None:
+        owner_label, promoted_path, promoted_label = promoted
+        root_label = (
+            promoted_label
+            if promoted_label is not None
+            else to_display_label(app_label, app_label=owner_label, path=promoted_path)
+        )
+    else:
+        owner_label = app_label
+        promoted_path = ""
+        root_label = to_display_label(app_label, app_label=app_label)
+
     crumbs = [{"label": "Gallery", "url": reverse("gallery")}]
     crumbs.append(
         {
-            "label": to_display_label(app_label, app_label=app_label),
+            "label": root_label,
             "url": reverse("gallery-node-root", kwargs={"app_label": app_label}),
         }
     )
@@ -767,9 +856,14 @@ def build_breadcrumbs(
     accumulated = []
     for part in path_parts:
         accumulated.append(part)
+        dir_path = (
+            f"{promoted_path}.{'.'.join(accumulated)}"
+            if promoted_path
+            else ".".join(accumulated)
+        )
         crumbs.append(
             {
-                "label": to_display_label(part),
+                "label": to_display_label(part, app_label=owner_label, path=dir_path),
                 "url": reverse(
                     "gallery-node",
                     kwargs={"app_label": app_label, "path": "/".join(accumulated)},

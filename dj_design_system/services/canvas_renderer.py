@@ -1,4 +1,5 @@
 import html
+from collections.abc import Mapping
 from typing import TYPE_CHECKING, Optional
 
 from django.template import Context, Template
@@ -6,16 +7,10 @@ from django.templatetags.static import static
 from django.utils.html import format_html, format_html_join
 
 from dj_design_system.constants import BUILTIN_APP_LABEL, BUILTIN_GALLERY_CSS
+from dj_design_system.services import config as config_service
 from dj_design_system.services import media as media_service
 from dj_design_system.services.registry import component_registry
-from dj_design_system.settings import (
-    dds_settings,
-    get_app_html_attrs,
-    get_app_static,
-    get_backgrounds,
-    get_default_background,
-)
-from dj_design_system.types import ColorScheme, Theme
+from dj_design_system.types import CanvasBackground, ColorScheme, Theme
 
 
 if TYPE_CHECKING:
@@ -35,9 +30,10 @@ def render_canvas_block(source: str) -> str:
 
 def build_global_css_tags() -> str:
     """Build ``<link>`` tags for global CSS (webpack bundles + static)."""
-    all_hrefs = media_service.get_bundle_urls(
-        dds_settings.GLOBAL_CSS_BUNDLES, "css"
-    ) + [media_service.resolve_asset_url(path=path) for path in dds_settings.GLOBAL_CSS]
+    cfg = config_service.get_config()
+    all_hrefs = media_service.get_bundle_urls(cfg.css_bundles, "css") + [
+        media_service.resolve_asset_url(path=path) for path in cfg.css
+    ]
     return format_html_join(
         "", '<link rel="stylesheet" href="{}">', ((href,) for href in all_hrefs)
     )
@@ -45,8 +41,9 @@ def build_global_css_tags() -> str:
 
 def global_js_urls() -> list[str]:
     """Return the URLs of the global JS (webpack bundles + static)."""
-    return media_service.get_bundle_urls(dds_settings.GLOBAL_JS_BUNDLES, "js") + [
-        media_service.resolve_asset_url(path=path) for path in dds_settings.GLOBAL_JS
+    cfg = config_service.get_config()
+    return media_service.get_bundle_urls(cfg.js_bundles, "js") + [
+        media_service.resolve_asset_url(path=path) for path in cfg.js
     ]
 
 
@@ -94,13 +91,11 @@ def build_theme_app_media(
     app_css_bundles: list[str] = []
     app_js_bundles: list[str] = []
     if app_label:
-        app_css, app_js = get_app_static(app_label)
-        app_css_bundles = media_service.get_bundle_urls(
-            dds_settings.APP_CSS_BUNDLES.get(app_label, []), "css"
-        )
-        app_js_bundles = media_service.get_bundle_urls(
-            dds_settings.APP_JS_BUNDLES.get(app_label, []), "js"
-        )
+        app_cfg = config_service.get_app_settings(app_label=app_label)
+        app_css = list(app_cfg.css)
+        app_js = list(app_cfg.js)
+        app_css_bundles = media_service.get_bundle_urls(app_cfg.css_bundles, "css")
+        app_js_bundles = media_service.get_bundle_urls(app_cfg.js_bundles, "js")
 
     theme_css_urls = theme_css_bundles + [
         media_service.resolve_asset_url(path=p) for p in theme_css
@@ -159,6 +154,16 @@ def build_markdown_canvas_media(
     )
 
 
+def _extract_custom_bg_color(
+    bg: str | CanvasBackground | Mapping[str, object] | None,
+) -> str | None:
+    if isinstance(bg, CanvasBackground):
+        return bg.color or None
+    if isinstance(bg, Mapping) and "color" in bg:
+        return str(bg["color"])
+    return None
+
+
 def build_canvas_bg_styles(
     *,
     theme_dict: Optional[Theme] = None,
@@ -174,29 +179,31 @@ def build_canvas_bg_styles(
         A ``<style>`` HTML string defining background colour rules.
     """
     rules = []
-    for bg in get_backgrounds():
+    for slug, bg in config_service.get_backgrounds().items():
         rules.append(
-            f".canvas-bg-{bg['value']}, body:has(.canvas-bg-{bg['value']}) {{ background: {bg['color']}; }}"
+            f".canvas-bg-{slug}, body:has(.canvas-bg-{slug}) {{ background: {bg.color}; }}"
         )
 
-    if theme_dict and isinstance(theme_dict.canvas_background, dict):
-        bg = theme_dict.canvas_background
-        if "color" in bg:
-            rules.append(
-                f".canvas-bg-theme-{theme_dict.value}, body:has(.canvas-bg-theme-{theme_dict.value}) {{ background: {bg['color']}; }}"
-            )
+    if theme_dict and (
+        theme_color := _extract_custom_bg_color(theme_dict.canvas_background)
+    ):
+        rules.append(
+            f".canvas-bg-theme-{theme_dict.value}, body:has(.canvas-bg-theme-{theme_dict.value}) {{ background: {theme_color}; }}"
+        )
 
     if (
         theme_dict
         and theme_dict.supports_dark_mode
         and theme_dict.dark_mode
-        and isinstance(theme_dict.dark_mode.canvas_background, dict)
-    ):
-        bg_dark = theme_dict.dark_mode.canvas_background
-        if "color" in bg_dark:
-            rules.append(
-                f".canvas-bg-theme-{theme_dict.value}-dark, body:has(.canvas-bg-theme-{theme_dict.value}-dark) {{ background: {bg_dark['color']}; }}"
+        and (
+            dark_color := _extract_custom_bg_color(
+                theme_dict.dark_mode.canvas_background
             )
+        )
+    ):
+        rules.append(
+            f".canvas-bg-theme-{theme_dict.value}-dark, body:has(.canvas-bg-theme-{theme_dict.value}-dark) {{ background: {dark_color}; }}"
+        )
 
     nonce_attr = ""
     if csp_nonce:
@@ -217,11 +224,25 @@ def build_resize_script(
     return f'<script src="{script_url}"{nonce_attr}></script>'
 
 
+def _apply_attr_overrides(
+    target: dict[str, str],
+    overrides: Mapping[str, str | None] | None,
+) -> None:
+    if not overrides:
+        return
+    for key, value in overrides.items():
+        if value is None:
+            target.pop(key, None)
+        else:
+            target[key] = str(value)
+
+
 def _flatten_attrs(attrs: dict[str, str]) -> str:
     """Convert a dict of HTML attributes to a safe attribute string with leading space."""
-    if not attrs:
+    filtered = [(key, value) for key, value in attrs.items() if value is not None]
+    if not filtered:
         return ""
-    parts = format_html_join(" ", '{}="{}"', attrs.items())
+    parts = format_html_join(" ", '{}="{}"', filtered)
     return format_html(" {}", parts)
 
 
@@ -234,23 +255,32 @@ def build_html_attrs(
 
     Returns a tuple of (html_attrs_str, body_attrs_str).
     """
-    raw = dds_settings.GALLERY_CANVAS_HTML_ATTRS
-    html_dict = dict(raw.get("html", {}))
-    body_dict = dict(raw.get("body", {}))
+    raw = config_service.get_canvas_settings().html_attrs
+    html_dict: dict[str, str] = {}
+    body_dict: dict[str, str] = {}
+    _apply_attr_overrides(html_dict, raw.get("html"))
+    _apply_attr_overrides(body_dict, raw.get("body"))
 
     if theme_dict:
-        html_dict.update(theme_dict.html_attrs.get("html", {}))
-        body_dict.update(theme_dict.html_attrs.get("body", {}))
+        _apply_attr_overrides(html_dict, theme_dict.html_attrs.get("html"))
+        _apply_attr_overrides(body_dict, theme_dict.html_attrs.get("body"))
         if (
             color_scheme == ColorScheme.DARK
             and theme_dict.supports_dark_mode
             and theme_dict.dark_mode
         ):
-            html_dict.update(theme_dict.dark_mode.html_attrs.get("html", {}))
-            body_dict.update(theme_dict.dark_mode.html_attrs.get("body", {}))
+            _apply_attr_overrides(
+                html_dict, theme_dict.dark_mode.html_attrs.get("html")
+            )
+            _apply_attr_overrides(
+                body_dict, theme_dict.dark_mode.html_attrs.get("body")
+            )
     if app_label:
-        html_dict.update(get_app_html_attrs(app_label).get("html", {}))
-        body_dict.update(get_app_html_attrs(app_label).get("body", {}))
+        app_attrs = config_service.get_app_settings(
+            app_label=app_label
+        ).canvas_html_attrs
+        _apply_attr_overrides(html_dict, app_attrs.get("html"))
+        _apply_attr_overrides(body_dict, app_attrs.get("body"))
 
     return _flatten_attrs(html_dict), _flatten_attrs(body_dict)
 
@@ -297,15 +327,17 @@ def build_canvas_srcdoc(
         ):
             if isinstance(theme_dict.dark_mode.canvas_background, str):
                 bg_class = f"canvas-bg-{theme_dict.dark_mode.canvas_background}"
-            elif isinstance(theme_dict.dark_mode.canvas_background, dict):
+            elif isinstance(
+                theme_dict.dark_mode.canvas_background, (CanvasBackground, dict)
+            ):
                 bg_class = f"canvas-bg-theme-{theme_dict.value}-dark"
         elif theme_dict and theme_dict.canvas_background:
             if isinstance(theme_dict.canvas_background, str):
                 bg_class = f"canvas-bg-{theme_dict.canvas_background}"
-            elif isinstance(theme_dict.canvas_background, dict):
+            elif isinstance(theme_dict.canvas_background, (CanvasBackground, dict)):
                 bg_class = f"canvas-bg-theme-{theme_dict.value}"
         else:
-            bg_class = f"canvas-bg-{get_default_background()['value']}"
+            bg_class = f"canvas-bg-{config_service.get_default_background_slug()}"
 
     theme_app_css_tags, theme_app_js_tags = build_theme_app_media(
         theme_dict, app_label, color_scheme=color_scheme

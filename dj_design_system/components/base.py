@@ -13,7 +13,6 @@ from dj_design_system.services.component import (
     is_abstract,
 )
 from dj_design_system.services.slot_node import make_slotted_block_tag
-from dj_design_system.settings import dds_settings, get_themes
 from dj_design_system.slots import validate_slots
 
 
@@ -245,14 +244,15 @@ class BaseComponent:
         if available is not None:
             return list(available)
 
-        app_label = cls.get_app_label()
-        app_themes = (dds_settings.APP_THEMES or {}).get(app_label)
-        if isinstance(app_themes, str):
-            return [app_themes]
-        if app_themes is not None:
-            return list(app_themes)
+        from dj_design_system.services import config as config_service
 
-        return [t.value for t in get_themes()]
+        app_label = cls.get_app_label()
+        if app_label:
+            app_themes = config_service.get_app_settings(app_label=app_label).themes
+            if app_themes is not None:
+                return list(app_themes)
+
+        return list(config_service.get_themes().keys())
 
     @staticmethod
     def map_positional_args(

@@ -3,6 +3,11 @@ from django.conf import settings
 from dj_design_system.parameters.model import ModelParam
 
 
+def _get_auth_user_model() -> str:
+    """Return the configured ``AUTH_USER_MODEL`` lazily at resolution time."""
+    return str(settings.AUTH_USER_MODEL)
+
+
 class UserParam(ModelParam):
     """A ModelParam pre-configured for the project's User model.
 
@@ -11,6 +16,6 @@ class UserParam(ModelParam):
     """
 
     class Meta:
-        model = settings.AUTH_USER_MODEL
+        model = staticmethod(_get_auth_user_model)
         fields = ["first_name", "last_name", "email", "is_active"]
         bool_css_classes = [("is_active", "active")]

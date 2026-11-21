@@ -4,6 +4,7 @@ from django.conf import settings
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import render
 
+from dj_design_system.services import config as config_service
 from dj_design_system.services import markdown as markdown_service
 from dj_design_system.services import visibility as visibility_service
 from dj_design_system.services.control_params import (
@@ -18,15 +19,6 @@ from dj_design_system.services.navigation import (
     normalize_folder_items,
 )
 from dj_design_system.services.registry import component_registry
-from dj_design_system.settings import (
-    dds_settings,
-    get_default_gallery_ui_theme,
-    get_default_theme,
-    get_gallery_ui_theme,
-    get_gallery_ui_themes,
-    get_theme,
-    get_themes,
-)
 from dj_design_system.views.component import render_component_node
 from dj_design_system.views.decorators import gallery_access_required
 
@@ -39,10 +31,9 @@ def get_base_context(
     """Return context shared by all gallery views."""
     is_htmx = bool(request and getattr(request, "headers", {}).get("HX-Request"))
     nav_tree = build_navigation()
-    active_theme = get_default_theme().value
+    active_theme = config_service.get_default_theme().value
     active_variant = None
     if request:
-        # On a sandbox submission bare names are component values, not controls.
         bare_fallback = SANDBOX_SUBMISSION_PARAM not in request.GET
         active_theme = (
             get_control_param(request.GET, "theme", bare_fallback=bare_fallback)
@@ -66,9 +57,11 @@ def get_base_context(
             or request.COOKIES.get("dds_gallery_ui_theme")
             or ""
         )
-        ui_theme_obj = get_gallery_ui_theme(identifier=raw_gallery_ui_theme)
+        ui_theme_obj = config_service.get_gallery_ui_theme(
+            identifier=raw_gallery_ui_theme
+        )
         if ui_theme_obj is None:
-            ui_theme_obj = get_default_gallery_ui_theme()
+            ui_theme_obj = config_service.get_default_gallery_ui_theme()
         raw_color_scheme = (
             get_control_param(request.GET, "color_scheme", bare_fallback=bare_fallback)
             or request.COOKIES.get("dds_color_scheme")
@@ -76,7 +69,7 @@ def get_base_context(
         )
     else:
         gallery_theme = ""
-        ui_theme_obj = get_default_gallery_ui_theme()
+        ui_theme_obj = config_service.get_default_gallery_ui_theme()
         raw_color_scheme = ""
 
     gallery_ui_theme = ui_theme_obj.value
@@ -84,12 +77,12 @@ def get_base_context(
     if not gallery_ui_theme_supports_dark_mode:
         gallery_theme = ""
 
-    theme_obj = get_theme(active_theme)
+    theme_obj = config_service.get_theme(identifier=active_theme)
     if theme_obj is not None:
         active_theme = theme_obj.value
         active_theme_supports_dark_mode = theme_obj.supports_dark_mode
     else:
-        default_theme = get_default_theme()
+        default_theme = config_service.get_default_theme()
         active_theme_supports_dark_mode = (
             default_theme.supports_dark_mode if default_theme else False
         )
@@ -101,13 +94,13 @@ def get_base_context(
     return {
         "nav_tree": nav_tree,
         "search_index": [] if is_htmx else build_search_index(nav_tree),
-        "design_system_name": dds_settings.DESIGN_SYSTEM_NAME,
+        "design_system_name": config_service.get_config().name,
         "active_app": active_app,
         "active_path": active_path,
         "active_variant": active_variant,
         "breadcrumbs": [],
-        "available_themes": get_themes(),
-        "available_ui_themes": get_gallery_ui_themes(),
+        "available_themes": list(config_service.get_themes().values()),
+        "available_ui_themes": list(config_service.get_gallery_ui_themes().values()),
         "active_theme": active_theme,
         "active_ui_theme": ui_theme_obj,
         "global_active_theme": active_theme,
@@ -147,7 +140,10 @@ def render_folder_node(request, context, node, app_label, path_parts):
 
     if node.has_index_doc:
         active_theme = str(context.get("active_theme") or "")
-        theme_dict = get_theme(identifier=active_theme) or get_default_theme()
+        theme_dict = (
+            config_service.get_theme(identifier=active_theme)
+            or config_service.get_default_theme()
+        )
         doc_app_label = node.app_label or app_label
         context["doc_html"] = markdown_service.render_markdown_doc(
             file_path=node.index_doc_path,
@@ -173,7 +169,10 @@ def render_document_node(request, context, node, app_label, path_parts):
     if not node.doc_path or not node.doc_path.is_file():
         raise Http404(f"Document {node.label} not found")
     active_theme = str(context.get("active_theme") or "")
-    theme_dict = get_theme(identifier=active_theme) or get_default_theme()
+    theme_dict = (
+        config_service.get_theme(identifier=active_theme)
+        or config_service.get_default_theme()
+    )
     doc_app_label = node.app_label or app_label
     context["doc_html"] = markdown_service.render_markdown_doc(
         file_path=node.doc_path,

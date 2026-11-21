@@ -13,6 +13,7 @@ from dj_design_system.api.serializers import (
     ComponentRenderRequestSerializer,
 )
 from dj_design_system.exceptions import ComponentValidationError
+from dj_design_system.services import config as config_service
 from dj_design_system.services import media as media_service
 from dj_design_system.services import visibility as visibility_service
 from dj_design_system.services.canvas import (
@@ -21,12 +22,13 @@ from dj_design_system.services.canvas import (
     render_component,
 )
 from dj_design_system.services.registry import component_registry
-from dj_design_system.settings import dds_settings
+from dj_design_system.views.decorators import gallery_access_required
 
 
 logger = logging.getLogger(__name__)
 
 
+@method_decorator(gallery_access_required, name="dispatch")
 class ComponentRegistryView(View):
     """View to list all registered components."""
 
@@ -50,6 +52,7 @@ class ComponentRegistryView(View):
 
 
 @method_decorator(csrf_exempt, name="dispatch")
+@method_decorator(gallery_access_required, name="dispatch")
 class ComponentRenderView(View):
     """View to render a specific component to HTML."""
 
@@ -145,17 +148,12 @@ class ComponentRenderView(View):
             for path in media.js
         ]
 
-        global_css = media_service.get_bundle_urls(
-            dds_settings.GLOBAL_CSS_BUNDLES, "css"
-        ) + [
-            media_service.resolve_asset_url(path=path)
-            for path in dds_settings.GLOBAL_CSS
+        cfg = config_service.get_config()
+        global_css = media_service.get_bundle_urls(cfg.css_bundles, "css") + [
+            media_service.resolve_asset_url(path=path) for path in cfg.css
         ]
-        global_js = media_service.get_bundle_urls(
-            dds_settings.GLOBAL_JS_BUNDLES, "js"
-        ) + [
-            media_service.resolve_asset_url(path=path)
-            for path in dds_settings.GLOBAL_JS
+        global_js = media_service.get_bundle_urls(cfg.js_bundles, "js") + [
+            media_service.resolve_asset_url(path=path) for path in cfg.js
         ]
 
         absolute_global_css = [request.build_absolute_uri(url) for url in global_css]

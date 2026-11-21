@@ -66,8 +66,8 @@ class TestThemeSettings:
         theme = get_theme("custom")
         assert theme is not None
         assert theme.label == "Custom"
-        assert theme.css == ["css/custom.css"]
-        assert theme.js == ["js/custom.js"]
+        assert theme.css == ("css/custom.css",)
+        assert theme.js == ("js/custom.js",)
 
         default_theme = get_default_theme()
         assert default_theme.value == "custom"
@@ -141,10 +141,10 @@ class TestGalleryUIThemeSettings:
         assert len(themes) == 2
         assert themes[0].value == "nord"
         assert themes[0].label == "Nordic Frost"
-        assert themes[0].css == ["nord/theme.css"]
-        assert themes[0].js == ["nord/theme.js"]
+        assert themes[0].css == ("nord/theme.css",)
+        assert themes[0].js == ("nord/theme.js",)
         assert themes[0].supports_dark_mode is True
-        assert themes[0].dark_mode.css == ["nord/dark.css"]
+        assert themes[0].dark_mode.css == ("nord/dark.css",)
 
         assert themes[1].value == "solarized"
         assert themes[1].supports_dark_mode is False
