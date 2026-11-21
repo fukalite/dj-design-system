@@ -11,13 +11,13 @@ from django.core.files.images import ImageFile
 _MISSING = object()
 
 
-def _get_type_name(t: Any) -> str:
+def get_type_name(t: Any) -> str:
     import types
 
     if isinstance(t, tuple):
-        return " | ".join(_get_type_name(item) for item in t)
+        return " | ".join(get_type_name(item) for item in t)
     if isinstance(t, types.UnionType):
-        return " | ".join(_get_type_name(item) for item in t.__args__)
+        return " | ".join(get_type_name(item) for item in t.__args__)
     return getattr(t, "__name__", str(t))
 
 
@@ -87,7 +87,7 @@ class BaseParam:
             return
 
         if not isinstance(value, self.type):
-            type_name = _get_type_name(self.type)
+            type_name = get_type_name(self.type)
             raise TypeError(f"Expected {type_name} but got {type(value).__name__}.")
         if self.choices is not None and not self.choices:
             raise ValueError("Choices must not be empty")
@@ -97,7 +97,7 @@ class BaseParam:
     def docstring(self) -> str:
         docstr = self.name
 
-        type_name = _get_type_name(self.type)
+        type_name = get_type_name(self.type)
 
         if self.required:
             docstr += f": {type_name}"
@@ -163,7 +163,7 @@ class BaseParam:
         setattr(obj, self.private_name, value)
 
     def __str__(self):
-        type_name = _get_type_name(self.type)
+        type_name = get_type_name(self.type)
         return f"<BaseParam {self.name} of type {type_name}>"
 
 

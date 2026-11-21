@@ -5,7 +5,7 @@ from typing import Any, Optional, TypeAlias
 
 from django.utils.module_loading import import_string
 
-from dj_design_system.parameters.base import _MISSING, BaseParam, _get_type_name
+from dj_design_system.parameters.base import _MISSING, BaseParam, get_type_name
 
 
 TypeSpec: TypeAlias = "type | str | tuple[type | str, ...]"
@@ -39,7 +39,14 @@ class InstanceParam(BaseParam):
         required: Optional[bool] = True,
         default: Optional[Any] = _MISSING,
     ):
-        if not isinstance(of, (builtins.type, str, tuple)) or of == ():
+        if (
+            not isinstance(of, (builtins.type, str, tuple))
+            or of == ()
+            or (
+                isinstance(of, tuple)
+                and not all(isinstance(item, (builtins.type, str)) for item in of)
+            )
+        ):
             raise TypeError(
                 "InstanceParam expects a class, a dotted import path, "
                 f"or a tuple of them, got {of!r}."
@@ -73,7 +80,7 @@ class InstanceParam(BaseParam):
         return resolved
 
     def __str__(self) -> str:
-        return f"<InstanceParam {self.name} of type {_get_type_name(self.type)}>"
+        return f"<InstanceParam {self.name} of type {get_type_name(self.type)}>"
 
 
 def instance_param_names(component_class: Any) -> set[str]:
