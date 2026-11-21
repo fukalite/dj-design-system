@@ -7,7 +7,11 @@ from typing import Any
 from django.apps import apps
 from django.core import checks
 
-from dj_design_system.constants import BUILTIN_APP_LABEL
+from dj_design_system.constants import (
+    BUILTIN_APP_LABEL,
+    BUILTIN_PREFIX,
+    PREFIX_ATTRIBUTE,
+)
 from dj_design_system.settings import dds_settings
 
 
@@ -75,5 +79,64 @@ def check_gallery_settings(
                 id="dj_design_system.W002",
             )
         )
+
+    return messages
+
+
+@checks.register("dj_design_system")
+def check_component_prefixes(
+    app_configs: Any = None, **kwargs: Any
+) -> list[checks.CheckMessage]:
+    """Validate the tag prefixes apps declare with ``dds_component_prefix``."""
+    messages: list[checks.CheckMessage] = []
+    seen: dict[str, str] = {}
+
+    for app_config in apps.get_app_configs():
+        prefix = getattr(app_config, PREFIX_ATTRIBUTE, None)
+        if prefix is None or prefix == "":
+            continue
+
+        # E004: must be a usable tag-name segment
+        if not isinstance(prefix, str) or not prefix.isidentifier() or "__" in prefix:
+            messages.append(
+                checks.Error(
+                    f"App '{app_config.label}' declares an invalid "
+                    f"{PREFIX_ATTRIBUTE} {prefix!r}.",
+                    hint="Use a Python identifier without double underscores, "
+                    "such as 'dds_forms'.",
+                    obj=app_config,
+                    id="dj_design_system.E004",
+                )
+            )
+            continue
+
+        # E005: the built-in prefix is reserved
+        if prefix == BUILTIN_PREFIX:
+            messages.append(
+                checks.Error(
+                    f"App '{app_config.label}' declares the reserved "
+                    f"{PREFIX_ATTRIBUTE} '{BUILTIN_PREFIX}'.",
+                    hint=f"'{BUILTIN_PREFIX}' is reserved for dj_design_system's "
+                    "built-in components. Choose another prefix.",
+                    obj=app_config,
+                    id="dj_design_system.E005",
+                )
+            )
+            continue
+
+        # E006: two apps cannot share a prefix
+        if prefix in seen:
+            messages.append(
+                checks.Error(
+                    f"Apps '{seen[prefix]}' and '{app_config.label}' both declare "
+                    f"{PREFIX_ATTRIBUTE} '{prefix}'.",
+                    hint="Give each app its own prefix so their tags do not clash.",
+                    obj=app_config,
+                    id="dj_design_system.E006",
+                )
+            )
+            continue
+
+        seen[prefix] = app_config.label
 
     return messages

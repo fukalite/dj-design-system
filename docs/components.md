@@ -132,8 +132,7 @@ Parameters are declared as class attributes using descriptor classes from `dj_de
 | ------------------- | ------------------------------------------------------------------------- |
 | `StrParam`          | A string parameter                                                        |
 | `BoolParam`         | A boolean parameter                                                       |
-
-
+| `InstanceParam`     | A parameter that accepts an instance of any given class, e.g. a `Page`    |
 | `ModelParam`        | A parameter that accepts a Django model instance and exposes its fields   |
 | `UserParam`         | A pre-configured `ModelParam` for the project's `AUTH_USER_MODEL`         |
 
@@ -185,7 +184,29 @@ class ProfileParam(ModelParam):
         str_css_classes = ["role"]
 ```
 
-#### Meta Options
+##### InstanceParam
+
+`InstanceParam` accepts an instance of a class you name. Use it for components built on Django objects that are not model instances, such as a `Page`, a `Form` or a `BoundField`. Unlike `ModelParam`, it does not flatten attributes into the context: the template gets the object itself.
+
+```python
+from django.core.paginator import Page
+
+from dj_design_system.components import TagComponent
+from dj_design_system.parameters import InstanceParam
+
+
+class PaginationComponent(TagComponent):
+    page = InstanceParam(Page, "The page to paginate.")
+    form = InstanceParam("django.forms.BaseForm", required=False)
+    amount = InstanceParam((int, "decimal.Decimal"), required=False)
+```
+
+- The first argument is a class, a dotted import path (resolved the first time it is needed), or a tuple of either.
+- Subclasses are accepted, as with `isinstance`.
+- A wrong type raises `TypeError` naming the expected and actual types.
+- The gallery sandbox cannot build these objects from a form field, so give example values with `GalleryParameter` in the component's gallery config.
+
+## Meta Options
 
 - **`model`** (required): The Django model class, or a string in `"app_label.ModelName"` format (resolved lazily via the app registry).
 - **`fields`** (required): A list of attribute names to expose, or `"__all__"` for all concrete model fields. See the [security note on `__all__`](#security-fields-all) below.

@@ -29,12 +29,17 @@ DEMO_NAV_COMPONENTS = (
 
 
 def discover_app_into_registry(
-    reg: ComponentRegistry, app_name: str, app_label: str
+    reg: ComponentRegistry,
+    app_name: str,
+    app_label: str,
+    declared_prefix: str | None = None,
 ) -> None:
     """Simulate autodiscovery for a single app into an existing registry."""
     module_path = f"{app_name}.components"
     module = import_module(module_path)
-    reg._discover_module(module, app_label, relative_path="")
+    reg._discover_module(
+        module, app_label, relative_path="", declared_prefix=declared_prefix
+    )
 
     if hasattr(module, "__path__"):
         for _importer, modname, _ispkg in pkgutil.walk_packages(
@@ -42,7 +47,9 @@ def discover_app_into_registry(
         ):
             submodule = import_module(modname)
             relative_path = derive_relative_path(modname, module_path)
-            reg._discover_module(submodule, app_label, relative_path)
+            reg._discover_module(
+                submodule, app_label, relative_path, declared_prefix=declared_prefix
+            )
 
 
 def make_info(
@@ -177,6 +184,19 @@ def registry_with_demo_components():
     reg = ComponentRegistry()
     discover_app_into_registry(
         reg, "example_project.demo_components", "demo_components"
+    )
+    return reg
+
+
+@pytest.fixture()
+def prefixed_registry():
+    """demo_components discovered as if its AppConfig declared ``demo_x``."""
+    reg = ComponentRegistry()
+    discover_app_into_registry(
+        reg,
+        "example_project.demo_components",
+        "demo_components",
+        declared_prefix="demo_x",
     )
     return reg
 

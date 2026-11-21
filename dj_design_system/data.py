@@ -88,6 +88,13 @@ class ComponentInfo:
     namespace_prefix: str | None = None
     namespace_remaining_parts: tuple[str, ...] | None = None
     flatten_strategy: FlattenStrategy = FlattenStrategy.NONE
+    qualified_only: bool = False
+    """True when the component is only reachable by its ``qualified_name``.
+
+    Set for apps that declare ``dds_component_prefix`` on their AppConfig
+    (such as the ``dj_design_system.contrib`` apps), so their tags never
+    shadow, or are shadowed by, another app's short tag names.
+    """
 
     @cached_property
     def is_builtin(self) -> bool:

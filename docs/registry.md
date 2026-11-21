@@ -21,6 +21,29 @@ Discovery is triggered automatically by `DjangoDesignSystemConfig.ready()`. For 
 - **Skips** classes imported from other modules (only classes where `cls.__module__` matches the inspected module)
 - **Skips** `BaseComponent`, `TagComponent`, and `BlockComponent` themselves (they are abstract)
 
+### Declaring a tag prefix
+
+A reusable app can fix the prefix of its tags by setting `dds_component_prefix` on its `AppConfig`. The `dj_design_system.contrib` apps do this.
+
+```python
+from django.apps import AppConfig
+
+
+class FormsConfig(AppConfig):
+    name = "dj_design_system.contrib.forms"
+    label = "dds_forms"
+    dds_component_prefix = "dds_forms"
+```
+
+Components in such an app:
+
+- register only under `{prefix}__{name}`, e.g. `{% dds_forms__fieldset %}`, whatever folder they sit in inside `components/`
+- get no short tag name, so they never shadow, or get shadowed by, another app's tags
+- are skipped by `get_by_name(name)` unless you pass their `app_label`
+- ignore `COMPONENT_DIRECTORIES` for that app
+
+The prefix must be a Python identifier without `__`. `dds` is reserved for the built-in components, and two apps cannot share a prefix. System checks `dj_design_system.E004`, `E005` and `E006` report these.
+
 ## ComponentInfo
 
 Each discovered component is stored as a `ComponentInfo` dataclass.
@@ -33,6 +56,7 @@ Each discovered component is stored as a `ComponentInfo` dataclass.
 | `name`            | `str`  | Short name (auto-derived or from `Meta.name`)                       |
 | `app_label`       | `str`  | The Django app label where the component was discovered             |
 | `relative_path`   | `str`  | Dotted directory path within `components/` (e.g. `"cards.layouts"`) |
+| `qualified_only`  | `bool` | `True` when the app declares a tag prefix (see below), so the component has no short tag name |
 
 ### Properties
 
