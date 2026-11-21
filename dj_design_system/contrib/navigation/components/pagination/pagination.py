@@ -1,12 +1,28 @@
 """Pagination links for a Django ``Page``."""
 
+from dataclasses import dataclass
 from typing import Any, cast
 
 from django.core.paginator import Page
 from django.http import QueryDict
 from django.utils.http import urlencode
+from django.utils.translation import gettext
 
 from dj_design_system import components, parameters
+
+
+@dataclass(frozen=True)
+class PaginationItem:
+    """One entry in the page range: a page link or an ellipsis."""
+
+    label: str
+    number: int | None = None
+    url: str = ""
+    is_current: bool = False
+
+    @property
+    def is_ellipsis(self) -> bool:
+        return self.number is None
 
 
 class PaginationComponent(components.TagComponent):
@@ -53,9 +69,8 @@ class PaginationComponent(components.TagComponent):
         default=True,
     )
     label = parameters.StrParam(
-        "Accessible name of the navigation landmark.",
+        'Accessible name of the navigation landmark. Defaults to a translated "Pagination".',
         required=False,
-        default="Pagination",
     )
 
     class Meta:
@@ -66,9 +81,20 @@ class PaginationComponent(components.TagComponent):
         """The ``page`` parameter, typed for the methods below."""
         return cast(Page, self.page)
 
+    def setting(self, name: str) -> Any:
+        """Return parameter ``name``, falling back to its default when unset.
+
+        Passing ``None`` (or an empty string) explicitly would otherwise
+        leave the attribute empty.
+        """
+        value = getattr(self, name)
+        if value is None or value == "":
+            return type(self).get_params()[name].default
+        return value
+
     def page_url(self, number: int) -> str:
         """Return the query string link for page ``number``."""
-        page_param = str(self.page_param)
+        page_param = str(self.setting("page_param"))
         if isinstance(self.query, QueryDict):
             query = self.query.copy()
             query[page_param] = str(number)
@@ -77,30 +103,37 @@ class PaginationComponent(components.TagComponent):
         query_dict[page_param] = number
         return f"?{urlencode(query_dict, doseq=True)}"
 
-    def get_items(self) -> list[dict[str, Any]]:
+    def get_items(self) -> list[PaginationItem]:
         """Return one entry per page link or ellipsis, in order."""
         page = self.current_page
-        items: list[dict[str, Any]] = []
+        items: list[PaginationItem] = []
         for number in page.paginator.get_elided_page_range(
-            page.number, on_each_side=self.on_each_side, on_ends=self.on_ends
+            page.number,
+            on_each_side=self.setting("on_each_side"),
+            on_ends=self.setting("on_ends"),
         ):
             if not isinstance(number, int):
-                items.append({"is_ellipsis": True, "label": number})
+                items.append(PaginationItem(label=str(number)))
                 continue
             items.append(
-                {
-                    "is_ellipsis": False,
-                    "number": number,
-                    "url": self.page_url(number),
-                    "is_current": number == page.number,
-                }
+                PaginationItem(
+                    label=str(number),
+                    number=number,
+                    url=self.page_url(number),
+                    is_current=number == page.number,
+                )
             )
         return items
 
     def get_context(self) -> dict[str, Any]:
         context = super().get_context()
         page = self.current_page
-        context["is_hidden"] = self.hide_single_page and page.paginator.num_pages <= 1
+        context["label"] = self.label or gettext("Pagination")
+        context["is_hidden"] = bool(
+            self.hide_single_page and page.paginator.num_pages <= 1
+        )
+        if context["is_hidden"]:
+            return context
         context["items"] = self.get_items()
         context["previous_url"] = (
             self.page_url(page.previous_page_number()) if page.has_previous() else ""
