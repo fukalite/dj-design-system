@@ -360,3 +360,14 @@ def _clear_nav_cache():
     clear_navigation_cache()
     yield
     clear_navigation_cache()
+
+
+@pytest.fixture()
+def admin_site_client(client, settings, django_user_model):
+    """A superuser client for the stock and design-system sites in tests.admin_urls."""
+    settings.ROOT_URLCONF = "tests.admin_urls"
+    for i in range(5):
+        django_user_model.objects.create_user(username=f"user{i}")
+    admin = django_user_model.objects.create_superuser("root", "root@example.com", "pw")
+    client.force_login(admin)
+    return client

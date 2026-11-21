@@ -160,6 +160,7 @@ class TestViews:
                 "demo_extra",
                 "demo_nav",
                 "dds_navigation",
+                "dds_django_admin",
             ]
         ):
             all_apps_shown = client.get(reverse("gallery")).context["total_components"]
