@@ -10,9 +10,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Callable
 
+import django
 from django import template
 from django.template import Context, Engine
-from django.utils.safestring import SafeString, mark_safe
+from django.utils.safestring import SafeString
 from django.utils.translation import gettext
 
 from dj_design_system.contrib.django_admin.sites import uses_design_system
@@ -22,12 +23,23 @@ register = template.Library()
 
 TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
 
+# Before Django 6.0 the list_editable Save button lives in admin/pagination.html.
+SAVE_IN_PAGINATION = django.VERSION < (6, 0)
+
 
 def get_admin_site(context: Context) -> Any:
     """Return the admin site rendering this partial, if it can be found."""
     cl = context.get("cl")
     model_admin = getattr(cl, "model_admin", None)
     return getattr(model_admin, "admin_site", None)
+
+
+def is_own_origin(origin: Any) -> bool:
+    """Return whether a template ``origin`` is one of this app's shims."""
+    try:
+        return Path(str(origin.name)).resolve().is_relative_to(TEMPLATES_DIR)
+    except (OSError, ValueError):
+        return False
 
 
 def render_stock(context: Context, template_name: str) -> SafeString:
@@ -43,10 +55,10 @@ def render_stock(context: Context, template_name: str) -> SafeString:
     skip: list[Any] = []
     while True:
         found, origin = engine.find_template(template_name, skip=skip)
-        if not str(origin.name).startswith(str(TEMPLATES_DIR)):
+        if not is_own_origin(origin):
             break
         skip.append(origin)
-    return mark_safe(found.render(context))
+    return found.render(context)
 
 
 def render_pagination(context: Context) -> SafeString:
@@ -64,8 +76,9 @@ def render_pagination(context: Context) -> SafeString:
         show_all_url=context.get("show_all_url") or "",
         show_links=bool(context.get("pagination_required")),
         label=gettext("Pagination %(name)s") % {"name": cl.opts.verbose_name_plural},
+        show_save=SAVE_IN_PAGINATION and bool(cl.formset and count),
     )
-    return mark_safe(component.render())
+    return component.render()
 
 
 PARTIALS: dict[str, tuple[str, Callable[[Context], SafeString]]] = {

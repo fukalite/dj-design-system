@@ -30,5 +30,8 @@
     {% if show_all_url %}
       <a href="{{ show_all_url }}" class="showall">{% translate "Show all" %}</a>
     {% endif %}
+    {% if show_save %}
+      <input type="submit" name="_save" class="default" value="{% translate "Save" %}">
+    {% endif %}
   </nav>
 {% endif %}

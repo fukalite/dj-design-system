@@ -20,6 +20,10 @@ from dj_design_system.contrib.django_admin.sites import (
     DesignSystemAdminSite,
     uses_design_system,
 )
+from dj_design_system.contrib.django_admin.templatetags.dds_django_admin import (
+    TEMPLATES_DIR,
+    is_own_origin,
+)
 from dj_design_system.contrib.navigation.components.pagination.pagination import (
     PaginationComponent,
 )
@@ -53,6 +57,7 @@ class TestApp:
         ):
             messages = check_installed_before_admin()
         assert [m.id for m in messages] == ["dj_design_system.E008"]
+        assert messages[0].obj is apps.get_app_config("dds_django_admin")
 
 
 class TestSites:
@@ -105,34 +110,25 @@ def links(html: str) -> list[str]:
 
 @pytest.mark.django_db
 class TestPerSiteToggle:
-    @pytest.fixture()
-    def admin_client(self, client, settings):
-        settings.ROOT_URLCONF = "tests.admin_urls"
-        for i in range(5):
-            User.objects.create_user(username=f"user{i}")
-        admin = User.objects.create_superuser("root", "root@example.com", "pw")
-        client.force_login(admin)
-        return client
-
     def get(self, client, site, query=""):
         response = client.get(f"/{site}/auth/user/{query}")
         assert response.status_code == 200
         return response.content.decode()
 
-    def test_stock_site_renders_django_pagination(self, admin_client):
-        html = self.get(admin_client, "stock-admin")
+    def test_stock_site_renders_django_pagination(self, admin_site_client):
+        html = self.get(admin_site_client, "stock-admin")
         assert 'class="paginator"' in html  # Django's own template
         assert 'aria-label="Pagination users"' not in html
         assert 'rel="next"' not in html
 
-    def test_design_system_site_renders_the_component(self, admin_client):
-        html = self.get(admin_client, "dds-admin", "?p=2")
+    def test_design_system_site_renders_the_component(self, admin_site_client):
+        html = self.get(admin_site_client, "dds-admin", "?p=2")
         assert '<nav class="paginator" aria-label="Pagination users">' in html
         assert 'rel="prev"' in html and 'rel="next"' in html
         assert "6 users" in html
 
-    def test_links_keep_filters_search_and_ordering(self, admin_client):
-        html = self.get(admin_client, "dds-admin", "?is_staff__exact=0&o=1&p=2")
+    def test_links_keep_filters_search_and_ordering(self, admin_site_client):
+        html = self.get(admin_site_client, "dds-admin", "?is_staff__exact=0&o=1&p=2")
         hrefs = [h for h in links(html) if h]
         assert hrefs
         for href in hrefs:
@@ -141,11 +137,11 @@ class TestPerSiteToggle:
             assert "is_staff__exact=0" in href and "o=1" in href
 
     @pytest.mark.parametrize("number", [1, 2, 3])
-    def test_page_numbers_match_the_stock_site(self, admin_client, number):
+    def test_page_numbers_match_the_stock_site(self, admin_site_client, number):
         for i in range(5, 30):
             User.objects.create_user(username=f"user{i}")
-        stock = self.get(admin_client, "stock-admin", f"?p={number}")
-        dds = self.get(admin_client, "dds-admin", f"?p={number}")
+        stock = self.get(admin_site_client, "stock-admin", f"?p={number}")
+        dds = self.get(admin_site_client, "dds-admin", f"?p={number}")
         stock_pages = [h for h in links(stock) if h and "all=" not in h]
         dds_pages = [h for h in links(dds) if h and "all=" not in h]
         # Same numbered links; ours adds Previous/Next, which repeat a number.
@@ -154,9 +150,36 @@ class TestPerSiteToggle:
         current = re.search(r'href="([^"]*)" aria-current="page"', paginator)
         assert current and f"p={number}" in current.group(1)
 
-    def test_show_all_hides_the_links(self, admin_client):
-        html = self.get(admin_client, "dds-admin", "?all=")
+    def test_show_all_hides_the_links(self, admin_site_client):
+        html = self.get(admin_site_client, "dds-admin", "?all=")
         assert "<ul>" not in re.search(
             r'<nav class="paginator".*?</nav>', html, re.S
         ).group(0)
         assert "6 users" in html
+
+
+@pytest.mark.django_db
+class TestListEditableSave:
+    # Django 5.2 renders the Save button in admin/pagination.html, 6.0 in
+    # admin/change_list.html. Either way it must appear exactly once.
+    def save_buttons(self, client, site):
+        response = client.get(f"/{site}/auth/user/")
+        assert response.status_code == 200
+        return response.content.decode().count('name="_save"')
+
+    def test_design_system_site_keeps_one_save_button(self, admin_site_client):
+        assert self.save_buttons(admin_site_client, "stock-editable") == 1
+        assert self.save_buttons(admin_site_client, "dds-editable") == 1
+
+
+class TestOwnOrigin:
+    def test_matches_this_apps_templates(self):
+        origin = SimpleNamespace(name=str(TEMPLATES_DIR / "admin" / "pagination.html"))
+        assert is_own_origin(origin)
+
+    def test_ignores_a_sibling_directory_with_the_same_prefix(self):
+        sibling = TEMPLATES_DIR.with_name("templates_extra") / "admin" / "x.html"
+        assert not is_own_origin(SimpleNamespace(name=str(sibling)))
+
+    def test_ignores_non_filesystem_origins(self):
+        assert not is_own_origin(SimpleNamespace(name="<unknown source>"))

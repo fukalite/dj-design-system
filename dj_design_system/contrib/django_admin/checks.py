@@ -27,6 +27,7 @@ def check_installed_before_admin(
             f"'{APP_NAME}' must come before '{ADMIN_APP_NAME}' in INSTALLED_APPS.",
             hint="Move it above 'django.contrib.admin' so its admin templates "
             "are found first.",
+            obj=apps.get_app_config("dds_django_admin"),
             id="dj_design_system.E008",
         )
     ]

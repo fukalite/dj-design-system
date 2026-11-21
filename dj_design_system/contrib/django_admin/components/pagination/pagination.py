@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from django.contrib.admin.views.main import PAGE_VAR
+
 from dj_design_system import parameters
 from dj_design_system.contrib.navigation.components.pagination.pagination import (
     PaginationComponent,
@@ -44,6 +46,12 @@ class AdminPaginationComponent(PaginationComponent):
         required=False,
         default=True,
     )
+    show_save = parameters.BoolParam(
+        "Show the list_editable Save button. Django 5.2 renders it in the "
+        "paginator; Django 6.0 moved it to the change list template.",
+        required=False,
+        default=False,
+    )
     on_each_side = parameters.IntParam(
         "Page links to show either side of the current page.",
         required=False,
@@ -66,8 +74,6 @@ class AdminPaginationComponent(PaginationComponent):
 
     def page_url(self, number: int) -> str:
         if self.cl is not None:
-            from django.contrib.admin.views.main import PAGE_VAR
-
             return self.cl.get_query_string({PAGE_VAR: number})
         return super().page_url(number)
 

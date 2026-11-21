@@ -16,13 +16,26 @@ class UserAdmin(admin.ModelAdmin):
     ordering = ["username"]
 
 
+class EditableUserAdmin(UserAdmin):
+    list_display = ["username", "is_staff"]
+    list_editable = ["is_staff"]
+
+
 stock_site = admin.AdminSite(name="stock_admin")
 stock_site.register(get_user_model(), UserAdmin)
 
 dds_site = DesignSystemAdminSite(name="dds_admin")
 dds_site.register(get_user_model(), UserAdmin)
 
+stock_editable_site = admin.AdminSite(name="stock_editable")
+stock_editable_site.register(get_user_model(), EditableUserAdmin)
+
+dds_editable_site = DesignSystemAdminSite(name="dds_editable")
+dds_editable_site.register(get_user_model(), EditableUserAdmin)
+
 urlpatterns = [
     path("stock-admin/", stock_site.urls),
     path("dds-admin/", dds_site.urls),
+    path("stock-editable/", stock_editable_site.urls),
+    path("dds-editable/", dds_editable_site.urls),
 ]
