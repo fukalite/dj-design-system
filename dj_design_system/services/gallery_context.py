@@ -20,6 +20,7 @@ from dj_design_system.data import (
 from dj_design_system.exceptions import VariantNotFoundError
 from dj_design_system.forms import build_component_form
 from dj_design_system.gallery import GalleryConfig, Variant
+from dj_design_system.parameters.instance import instance_param_names
 from dj_design_system.parameters.model import ModelParam
 from dj_design_system.services import canvas as canvas_service
 from dj_design_system.services import control_params as control_params_service
@@ -292,10 +293,11 @@ def get_form_and_sandbox_spec(
     variant_name = active_variant.name if active_variant else None
 
     if form.is_bound and form.is_valid():
+        live_params = instance_param_names(component_class)
         form_kwargs = {
             name: value
             for name, value in form.cleaned_data.items()
-            if value is not None and value != ""
+            if value is not None and value != "" and name not in live_params
         }
         params = component_class.get_params()
         for name, spec in params.items():
@@ -323,7 +325,10 @@ def get_form_and_sandbox_spec(
             component_name=tag_signature.maximal_spec.component_name,
             params=keyword_kwargs,
             positional_args=positional_values,
-            variant=variant_name,
+            # Without an active variant, InstanceParam values come from the
+            # maximal example's variant.
+            variant=variant_name
+            or (tag_signature.maximal_spec.variant if live_params else None),
         )
     else:
         form_kwargs = {}
@@ -463,6 +468,31 @@ def build_param_rows(
     return param_rows
 
 
+def get_variant_live_kwargs(
+    *,
+    config: Any,
+    variant_name: str | None,
+    component_class: type[BaseComponent],
+) -> dict[str, Any]:
+    """Return the ``InstanceParam`` values the named variant supplies.
+
+    The sandbox form leaves these out, so the live usage snippet takes them
+    from the variant the sandbox renders (usually ``GalleryParameter`` values
+    with display code, such as ``page_obj``).
+    """
+    live_params = instance_param_names(component_class)
+    if not live_params or not variant_name:
+        return {}
+    for variant in config.variants:
+        if variant.name == variant_name:
+            return {
+                name: value
+                for name, value in variant.kwargs.items()
+                if name in live_params
+            }
+    return {}
+
+
 def generate_signature_usage(
     form: Any,
     form_kwargs: dict[str, Any],
@@ -470,8 +500,13 @@ def generate_signature_usage(
     component_class: type[BaseComponent],
     info: ComponentInfo,
     tag_name: str | None = None,
+    live_kwargs: Mapping[str, Any] | None = None,
 ) -> tag_signature_service.TagSignature | None:
-    """Generate the current template tag signature for a bound valid sandbox form."""
+    """Generate the current template tag signature for a bound valid sandbox form.
+
+    ``live_kwargs`` holds ``InstanceParam`` values from the sandbox's variant,
+    which the form cannot carry.
+    """
     if not (form.is_bound and form.is_valid() and form_kwargs):
         return None
 
@@ -482,7 +517,7 @@ def generate_signature_usage(
         and not name.startswith(SLOT_PARAM_PREFIX)
         and (params.get(name) is None or params[name].default != value)
     }
-    signature_kwargs = dict(non_default_kwargs)
+    signature_kwargs = {**(live_kwargs or {}), **non_default_kwargs}
     if "content" in form_kwargs:
         signature_kwargs["content"] = form_kwargs["content"]
     for key, value in form_kwargs.items():
@@ -652,6 +687,11 @@ def build_component_page_context(
     context["sandbox_reset_url"] = f"{node.url}#pane-sandbox"
 
     param_rows = build_param_rows(form, params, component_class)
+    live_kwargs = get_variant_live_kwargs(
+        config=config,
+        variant_name=sandbox_spec.variant,
+        component_class=component_class,
+    )
     current_signature = generate_signature_usage(
         form,
         form_kwargs,
@@ -659,9 +699,16 @@ def build_component_page_context(
         component_class,
         info,
         tag_name=effective_tag_name,
+        live_kwargs=live_kwargs,
     )
     current_signature_long = generate_signature_usage(
-        form, form_kwargs, params, component_class, info, tag_name=info.qualified_name
+        form,
+        form_kwargs,
+        params,
+        component_class,
+        info,
+        tag_name=info.qualified_name,
+        live_kwargs=live_kwargs,
     )
 
     backgrounds = get_backgrounds()

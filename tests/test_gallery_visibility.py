@@ -159,6 +159,7 @@ class TestViews:
                 "demo_single",
                 "demo_extra",
                 "demo_nav",
+                "dds_navigation",
             ]
         ):
             all_apps_shown = client.get(reverse("gallery")).context["total_components"]

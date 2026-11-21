@@ -204,7 +204,7 @@ class PaginationComponent(TagComponent):
 - The first argument is a class, a dotted import path (resolved the first time it is needed), or a tuple of either.
 - Subclasses are accepted, as with `isinstance`.
 - A wrong type raises `TypeError` naming the expected and actual types.
-- The gallery sandbox cannot build these objects from a form field, so give example values with `GalleryParameter` in the component's gallery config.
+- The gallery cannot build these objects from a URL or a form field. Give example values in the component's gallery variants (a `GalleryParameter` whose `value` is a callable works well, and `code` sets what the usage snippet shows). Canvases then take the value from the variant, and the sandbox shows the parameter as read-only.
 
 ## Meta Options
 
