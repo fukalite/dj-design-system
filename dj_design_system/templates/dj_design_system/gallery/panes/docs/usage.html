@@ -20,7 +20,7 @@
                 </l-stack>
             </section>
         {% endfor %}
-        {% if component_info.qualified_name != component_info.name and not component_info.is_builtin %}
+        {% if component_info.qualified_name != component_info.name and not component_info.is_builtin and not component_info.qualified_only %}
             <section class="dds-usage-example">
                 <l-stack>
                     <h4 data-usage-title>Qualified tag usage</h4>
