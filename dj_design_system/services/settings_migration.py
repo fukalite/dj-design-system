@@ -402,7 +402,7 @@ class _SettingsCodeEmitter:
             args.append(f"value={theme.value!r}")
         if self.include_defaults or theme.label != slug.capitalize():
             args.append(f"label={theme.label!r}")
-        if self.include_defaults or dict(theme.html_attrs):
+        if self.include_defaults or theme.html_attrs:
             args.append(f"html_attrs={self._emit_html_attrs(theme.html_attrs)}")
         if self.include_defaults or theme.css:
             args.append(f"css={tuple(theme.css)!r}")
@@ -435,7 +435,7 @@ class _SettingsCodeEmitter:
             f"strategy={strat_cls}.{dv.strategy.name}",
             f"show_in_docs={dv.show_in_docs!r}",
         ]
-        if self.include_defaults or dict(dv.kwargs):
+        if self.include_defaults or dv.kwargs:
             args.append(f"kwargs={dict(dv.kwargs)!r}")
         if dv.param_factory is not None:
             self.manual_notes.append(
@@ -638,7 +638,7 @@ class _SettingsCodeEmitter:
             or canvas.default_background != default_c.default_background
         ):
             args.append(f"default_background={canvas.default_background!r}")
-        if self.include_defaults or dict(canvas.html_attrs):
+        if self.include_defaults or canvas.html_attrs:
             args.append(f"html_attrs={self._emit_html_attrs(canvas.html_attrs)}")
         if not args:
             return None
