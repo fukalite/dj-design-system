@@ -1,24 +1,20 @@
-# Template Tag Auto-Registration
+# Template Tags
 
-## How It Works
+## How Auto-Registration Works
 
-When Django starts, `dj_design_system`'s `AppConfig.ready()` triggers `component_registry.autodiscover()`, which imports the `components` module from every installed app and registers all discovered `BaseComponent` subclasses (via `TagComponent` or `BlockComponent`).
-
-Template tag registration happens when a templatetag library file calls `component_registry.register_templatetags(register)`. This is a lazy step — the components are already discovered, but they are registered on a specific `template.Library` at load time.
+When Django starts, `DjangoDesignSystemConfig.ready()` triggers `component_registry.autodiscover()`, discovering all concrete `TagComponent` and `BlockComponent` subclasses across installed apps. Template tags are registered lazily on a `django.template.Library` when a template tag module calls `component_registry.register_templatetags(register)`.
 
 ## Tag Naming
 
-Each component gets two names:
-
 ### Short Name
 
-Derived automatically from the class name, or set explicitly via `Meta.name`.
+Derived automatically from the class name, or set explicitly via `Meta.name`:
 
-| Class Name          | Derived Short Name |
-| ------------------- | ------------------ |
-| `IconComponent`     | `icon`             |
-| `MyFancyButton`     | `my_fancy_button`  |
-| `HeroCardComponent` | `hero_card`        |
+| Class Name | Derived Short Name |
+| --- | --- |
+| `IconComponent` | `icon` |
+| `MyFancyButton` | `my_fancy_button` |
+| `HeroCardComponent` | `hero_card` |
 
 Override with `Meta.name`:
 
@@ -28,40 +24,40 @@ class HeroCardComponent(TagComponent):
         name = "hero"
 ```
 
-### Qualified Name
+Apps configured with `AppSettings(short_names=False)` (including built-in `dds__*` components and contrib packages) do not register short names, ensuring they never shadow host project tags.
 
 ### Qualified Name
 
-By default, the qualified name is of the form `{app_label}__{relative_path}__{name}`, using `__` as separator. The relative path is the dotted directory path within the app's `components/` package.
+By default, the qualified name is `{app_label}__{relative_path}__{name}` joined by `__`:
 
-| Component Location                                                                | Qualified Name                |
-| --------------------------------------------------------------------------------- | ----------------------------- |
-| `myapp/components/icon.py` → `IconComponent`                                      | `myapp__icon`                 |
-| `myapp/components/cards/info_card.py` → `InfoCardComponent`                       | `myapp__cards__info_card`     |
-| `myapp/components/cards/layouts/hero.py` → `HeroCardComponent` (Meta.name="hero") | `myapp__cards__layouts__hero` |
+| Component Location | Qualified Name |
+| --- | --- |
+| `myapp/components/icon.py` → `IconComponent` | `myapp__icon` |
+| `myapp/components/cards/info_card.py` → `InfoCardComponent` | `myapp__cards__info_card` |
+| `myapp/components/cards/layouts/hero.py` → `HeroCardComponent` (`Meta.name = "hero"`) | `myapp__cards__layouts__hero` |
 
-If you configure `COMPONENT_DIRECTORIES` in your settings, you can override this default behavior. For example, if you map `""` to `"ui"` for `myapp`, `IconComponent`'s qualified name becomes `ui__icon`. If you map `"cards"` to `{"prefix": "cards", "flatten": "none"}`, `HeroCardComponent`'s qualified name becomes `cards__layouts__hero`. Conversely, if you set `"flatten": "all"`, subfolder paths are discarded and it becomes `cards__hero`.
+Customise prefixes and flattening via `AppSettings(prefix=..., flatten=..., directories={...})` on `AppConfig.design_system` or `DJ_DESIGN_SYSTEM.apps`. For example, mapping `prefix="ui"` gives `ui__icon`, and mapping `"cards": DirectorySettings(prefix="cards", flatten=FlattenStrategy.ALL)` flattens subfolders to `cards__hero`. See [Configuration](configuration.md#app-level-defaults-appconfigdesign_system).
 
-Qualified names are always unique and always registered, regardless of ambiguity.
+Qualified names are always registered.
 
 ## Template Tag Libraries
 
 ### Central Library: `design_components`
 
-Contains ALL components from ALL installed apps.
+Contains components from all installed apps:
 
-```html
-{% load design_components %} {% icon "check" %} {% callout type="info" %}Hello{%
-endcallout %} {% myapp__cards__layouts__hero %} {# qualified name always works
-#}
+```htmldjango
+{% load design_components %}
+{% icon "check" %}
+{% callout type="info" %}Hello{% endcallout %}
+{% myapp__cards__layouts__hero %}
 ```
 
 ### Per-App Libraries
 
-Create a per-app library when you want scoped component access. Uniqueness is evaluated within the app's components only.
+Create a scoped library in `myapp/templatetags/components.py`:
 
 ```python
-# myapp/templatetags/components.py
 from django import template
 from dj_design_system import component_registry
 
@@ -69,192 +65,104 @@ register = template.Library()
 component_registry.register_templatetags(register, app_label="myapp")
 ```
 
-```html
-{% load design_components %} {% icon "check" %}
-```
-
-**Scoping example**: If both `app_a` and `app_b` define a `ButtonComponent`, the global `design_components` library will register the one from whichever app appears last in `INSTALLED_APPS` as `{% button %}`. Both are always available via their qualified names: `{% app_a__button %}` and `{% app_b__button %}`.
+Load it in templates with `{% load components %}`.
 
 ## Name Clashes and Overriding
 
-When two or more components share the same short name within a library's scope:
+When two or more components with `short_names=True` share a short name:
 
-1. Each component is still registered with its **qualified name** (always works).
-2. The short name is assigned to the **last-discovered component** — i.e. the one from the app that appears latest in `INSTALLED_APPS`.
+1. Every component remains available via its **qualified name**.
+2. The short name is assigned to the **last-discovered component** in `INSTALLED_APPS` order.
 
-This means you can intentionally override a component from an earlier app by defining a component with the same name in a later app. The qualified name is always available as an escape hatch.
-
-### Controlling Override Order
-
-Discovery order follows `INSTALLED_APPS` order. To override a component, place your app **after** the app you want to override:
-
-```python
-INSTALLED_APPS = [
-    # ...
-    "design_system_defaults",  # defines ButtonComponent
-    "my_project_components",  # also defines ButtonComponent — this one wins
-]
-```
-
-With the above, `{% button %}` resolves to `my_project_components`'s version, while `{% design_system_defaults__button %}` still reaches the original.
+Place your overriding app **after** the app you want to override in `INSTALLED_APPS`.
 
 ## Registration Types
 
-| Component Base Class       | Registration Method | Template Syntax                                            |
-| -------------------------- | ------------------- | ---------------------------------------------------------- |
-| `TagComponent`             | `simple_tag`        | `{% icon "check" %}`                                       |
-| `BlockComponent`           | `simple_block_tag`  | `{% callout %}...{% endcallout %}`                         |
-| `BlockComponent` (slotted) | `library.tag`       | `{% card %}{% slot "body" %}...{% endslot %}{% endcard %}` |
-| `BaseComponent` (directly) | Not registered      | Python-only usage                                          |
+| Component Base Class | Registration Method | Template Syntax |
+| --- | --- | --- |
+| `TagComponent` | `simple_tag` | `{% icon "check" %}` |
+| `BlockComponent` | `simple_block_tag` | `{% callout %}...{% endcallout %}` |
+| `BlockComponent` (slotted) | `library.tag` | `{% card %}{% slot "body" %}...{% endslot %}{% endcard %}` |
+| `BaseComponent` (directly) | Not registered | Python-only usage |
 
-Slotted components (those with `Meta.slots` defined) are registered using `library.tag()` with a custom compilation function that parses `{% slot "name" %}...{% endslot %}` blocks inside the component's opening and closing tags.
+### Slot Tag (`{% slot %}`)
 
-### Slot Tag
+Inside a slotted `BlockComponent`, capture named slot content with `{% slot "name" %}...{% endslot %}`:
 
-The `{% slot "name" %}...{% endslot %}` tag is only meaningful inside a slotted block component. It is registered globally in the `design_components` library and captures its inner content for the named slot.
-
-```html
-{% load design_components %} {% card "My Card" %} {% slot "body" %}Card body
-content{% endslot %} {% slot "footer" %}Card footer{% endslot %} {% endcard %}
+```htmldjango
+{% load design_components %}
+{% card "My Card" %}
+  {% slot "body" %}Card body content{% endslot %}
+  {% slot "footer" %}Card footer{% endslot %}
+{% endcard %}
 ```
 
-Rules enforced at parse time:
+Rules enforced at template parse time:
 
-- Only whitespace and template comments are allowed between adjacent slot tags (no stray text or HTML).
-- Duplicate slot names in the same block raise a `TemplateSyntaxError`.
-- Unknown slot names (not declared in `Meta.slots`) raise a `TemplateSyntaxError`.
-- Missing required slots raise a `TemplateSyntaxError`.
+- Only whitespace and template comments may appear between adjacent `{% slot %}` blocks.
+- Duplicate, unknown, or missing required slots raise `TemplateSyntaxError`.
 
 ## Media Tags
 
-The `design_components` library provides four tags for injecting CSS and JS into your base templates. They are split into two groups: **component media** (driven by the component registry) and **global media** (driven by settings).
+The `design_components` library provides four tags for injecting CSS and JS into base templates.
 
-### `{% component_stylesheets %}`
+### `{% component_stylesheets %}` & `{% component_scripts %}`
 
-Renders a `<link rel="stylesheet">` tag for every CSS file declared by any registered component. The list of paths is collected from `ComponentInfo.media.css` across all discovered components and deduplicated (preserving first-appearance order).
+Render deduplicated `<link rel="stylesheet">` and `<script>` tags for every co-located or `Media`-declared asset across non-built-in registered components (passing `request.csp_nonce` / `csp_nonce` automatically on scripts when present).
 
-Place this tag in `<head>`, after any global stylesheets:
+### `{% global_stylesheets %}` & `{% global_scripts %}`
 
-```django
+Inject project global, theme, and app-specific CSS/JS bundles and asset paths in render cascade order (`DesignSystemSettings.{css, js, css_bundles, js_bundles}` → active `Theme` → resolved `AppSettings.{css, extra_css, js, extra_js, css_bundles, js_bundles}`):
+
+```htmldjango
 {% load design_components %}
 <head>
-    {% render_bundle 'main' 'css' %}
-    {% component_stylesheets %}
-</head>
-```
-
-Produces output such as:
-
-```html
-<link rel="stylesheet" href="/static/myapp/components/button/button.css" />
-<link rel="stylesheet" href="/static/myapp/components/callout/callout.css" />
-```
-
-Returns an empty string when no registered component declares any CSS.
-
-### `{% component_scripts %}`
-
-Renders a `<script src="...">` tag for every JS file declared by any registered component. Works identically to `component_stylesheets` but for JS paths from `ComponentInfo.media.js`.
-
-Place this tag just before `</body>`, after any global scripts:
-
-```django
-{% load design_components %}
-    {% render_bundle 'main' 'js' %}
-    {% component_scripts %}
-</body>
-```
-
-Produces output such as:
-
-```html
-<script src="/static/myapp/components/button/button.js"></script>
-```
-
-Returns an empty string when no registered component declares any JS.
-
-### How component media is discovered
-
-Each registered component can have CSS and JS files co-located with its Python module. The registry automatically detects files named after the component (e.g. `button.css` and `button.js` next to `button.py`) and records them on `ComponentInfo.media`. Components can also override `get_media()` to return a custom `ComponentMedia` instance.
-
-See [components.md](components.md#component-media) for full details on declaring component media.
-
-### `{% global_stylesheets %}` and `{% global_scripts %}`
-
-These tags inject CSS and JS that is _not_ tied to specific components - for example, a shared webpack bundle or a single global stylesheet. They read from the `GLOBAL_CSS_BUNDLES`, `GLOBAL_CSS`, `GLOBAL_JS_BUNDLES`, and `GLOBAL_JS` keys of the `dj_design_system` settings dict.
-
-| Tag                        | Settings keys read                 | Output          |
-| -------------------------- | ---------------------------------- | --------------- |
-| `{% global_stylesheets %}` | `GLOBAL_CSS_BUNDLES`, `GLOBAL_CSS` | `<link>` tags   |
-| `{% global_scripts %}`     | `GLOBAL_JS_BUNDLES`, `GLOBAL_JS`   | `<script>` tags |
-
-Webpack bundle entries are tuples of `(bundle_name,)` or `(bundle_name, config_name)` passed to `webpack_loader.utils.get_files`. These are silently skipped when `webpack_loader` is not installed.
-
-`GLOBAL_CSS` and `GLOBAL_JS` entries can be static file paths or external URLs (`http://`, `https://` or `//`). External URLs are output as-is; see [External asset URLs](api/settings.md#external-asset-urls).
-
-Example settings:
-
-```python
-dj_design_system = {
-    "GLOBAL_CSS_BUNDLES": [("main",)],
-    "GLOBAL_CSS": [
-        "https://fonts.googleapis.com/css2?family=Inter&display=swap",
-        "myapp/extra.css",
-    ],
-    "GLOBAL_JS_BUNDLES": [("main",)],
-    "GLOBAL_JS": [],
-}
-```
-
-### Recommended base template layout
-
-```django
-{% load design_components %}
-<head>
-    {% global_stylesheets %}
+    {% global_stylesheets app_label="shop" theme="brand" %}
     {% component_stylesheets %}
 </head>
 <body>
     ...
-    {% global_scripts %}
+    {% global_scripts app_label="shop" theme="brand" %}
     {% component_scripts %}
 </body>
 ```
 
+Both `app_label` and `theme` keyword arguments are optional; omitting them renders only the project global assets. Entries starting with `http://`, `https://`, or `//` are emitted as-is. See [External Asset URLs & Webpack Bundles](configuration.md#external-asset-urls-webpack-bundles).
+
+Example configuration in `settings.py`:
+
+```python
+from dj_design_system.config import DesignSystemSettings
+
+DJ_DESIGN_SYSTEM = DesignSystemSettings(
+    css_bundles=("main",),
+    css=(
+        "https://fonts.googleapis.com/css2?family=Inter&display=swap",
+        "myapp/extra.css",
+    ),
+    js_bundles=("main",),
+)
+```
+
 ## Gallery Library: `dj_design_system_gallery`
 
-Tags used internally by the gallery UI. Load with:
-
-```django
-{% load dj_design_system_gallery %}
-```
+Tags used by the gallery UI (`{% load dj_design_system_gallery %}`):
 
 ### `{% canvas %}...{% endcanvas %}`
 
-Renders the enclosed content inside an isolated `<iframe>` using the
-`srcdoc` attribute. The iframe includes the full CSS cascade (global →
-canvas → component) so the rendered component appears exactly as it would
-on a real page, without interference from gallery chrome.
+Renders enclosed template content inside an isolated `<iframe srcdoc="...">` applying the full asset cascade, `CanvasSettings.default_background`, and `CanvasSettings.html_attrs` + theme/app HTML attributes:
 
-```django
+```htmldjango
 {% load design_components dj_design_system_gallery %}
 {% canvas %}
     {% icon "check" %}
 {% endcanvas %}
 ```
 
-The tag automatically:
+### `{% gallery_extra_stylesheets %}`, `{% gallery_ui_theme_stylesheets %}`, `{% gallery_ui_theme_scripts %}`
 
-- Loads global CSS and JS via the same logic as `{% global_stylesheets %}`
-  and `{% global_scripts %}`
-- Includes `canvas.css` for padding and background styles
-- Reads component CSS/JS from the `_canvas_component_css` and
-  `_canvas_component_js` context variables, if set
-- Applies the `GALLERY_CANVAS_DEFAULT_BACKGROUND` setting
-- Applies `GALLERY_CANVAS_HTML_ATTRS` to the `<html>` and `<body>` tags
-- Sets `sandbox="allow-same-origin"` on the iframe
+Emit stylesheet and script tags for `GallerySettings.extra_css` and the active `GallerySettings.ui_themes` entry.
 
-### `{{ depth|add_indent }}`
+### `{% builtin_component_stylesheets %}` & `{% builtin_component_scripts %}`
 
-Filter that converts a navigation tree depth to a left-padding value in
-pixels. Used by the sidebar navigation template.
+Emit stylesheet and ES module script tags for built-in `dds__*` gallery components.

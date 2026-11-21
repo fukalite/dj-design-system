@@ -1,6 +1,6 @@
 # Components
 
-> **See it live:** Browse real component examples in the [demo gallery](https://fukalite.github.io/dj-design-system/gallery/).
+> **See it live:** Browse real component examples in the [demo gallery](https://fukalite.github.io/dj-design-system/demo/).
 
 ## Component Types
 
@@ -393,7 +393,7 @@ In addition to explicitly declared parameters, components automatically receive 
 - `{attrs}`: The compiled string of all `attr` and `data_attr` HTML attributes securely escaped.
 - `{param_name}_attr`: Individual string representation of the HTML attribute mapped from `param_name`.
 
-> **Installation required.** The `ComponentsTemplateLoader` must be added to your `TEMPLATES` loader list. See the [quickstart](quickstart.md#templates) for the exact configuration.
+> **Automatic setup.** `ComponentsTemplateLoader` is registered automatically when using Django's default `TEMPLATES` configuration. If you declare custom template loaders explicitly, see [Manual Template Loader & Static Finder Setup](configuration.md#manual-template-loader-static-finder-setup).
 
 ### Explicit `template_name`
 

@@ -11,7 +11,7 @@
 - [x] **Track: Compatibility Adapter, Migration CLI & Example Project**
   *Link: [./tracks/typed_settings_02_compat_and_migration_20261121/index.md](./tracks/typed_settings_02_compat_and_migration_20261121/index.md)*
 
-- [ ] **Track: Documentation Overhaul & API Reference**
+- [x] **Track: Documentation Overhaul & API Reference**
   *Link: [./tracks/typed_settings_03_documentation_overhaul_20261121/index.md](./tracks/typed_settings_03_documentation_overhaul_20261121/index.md)*
 
 - [ ] **Track: v1.0.0 Legacy Settings Removal**

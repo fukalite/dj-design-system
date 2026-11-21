@@ -293,16 +293,17 @@ class TestUserFacingDocumentation:
     """Verify user-facing docs cover DDS architecture, tokens, and shadowing."""
 
     def test_docs_cover_dds_architecture_tokens_and_shadowing(self) -> None:
-        """Verify docs/gallery.md, docs/themes.md, and docs/api/settings.md."""
+        """Verify docs/gallery.md, docs/themes.md, docs/configuration.md, and docs/api/settings.md."""
         gallery_md = (DOCS_DIR / "gallery.md").read_text(encoding="utf-8")
         themes_md = (DOCS_DIR / "themes.md").read_text(encoding="utf-8")
+        config_md = (DOCS_DIR / "configuration.md").read_text(encoding="utf-8")
         settings_md = (DOCS_DIR / "api" / "settings.md").read_text(encoding="utf-8")
 
         for term in (
-            "GALLERY_INCLUDE_APPS",
-            "GALLERY_EXCLUDE_APPS",
+            "include_apps",
+            "exclude_apps",
             "settings_dds_gallery.py",
-            '"prefix": "dds"',
+            'prefix="dds"',
             "FlattenStrategy.ALL",
             "<dds-gallery-shell>",
             "<l-stack>",
@@ -319,8 +320,10 @@ class TestUserFacingDocumentation:
         ):
             assert term in themes_md
 
-        assert "GALLERY_INCLUDE_APPS" in settings_md
-        assert "GALLERY_EXCLUDE_APPS" in settings_md
+        assert "DesignSystemSettings" in config_md
+        assert "AppSettings" in config_md
+        assert "dj_design_system.config" in settings_md
+        assert "DesignSystemSettings" in settings_md
 
     def test_relative_markdown_links_resolve_in_updated_docs(self) -> None:
         """Ensure all relative file links outside fenced code blocks resolve."""
@@ -330,8 +333,17 @@ class TestUserFacingDocumentation:
         )
         link_pattern = re.compile(pattern=r"\[[^\]]+\]\(([^)#]+)(?:#[^)]+)?\)")
         doc_files = (
+            DOCS_DIR / "index.md",
+            DOCS_DIR / "quickstart.md",
+            DOCS_DIR / "configuration.md",
+            DOCS_DIR / "components.md",
             DOCS_DIR / "gallery.md",
             DOCS_DIR / "themes.md",
+            DOCS_DIR / "organisation.md",
+            DOCS_DIR / "templatetags.md",
+            DOCS_DIR / "registry.md",
+            DOCS_DIR / "testing.md",
+            DOCS_DIR / "api" / "index.md",
             DOCS_DIR / "api" / "settings.md",
         )
         for doc_file in doc_files:

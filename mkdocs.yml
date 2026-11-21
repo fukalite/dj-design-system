@@ -51,18 +51,21 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Quick Start: quickstart.md
-  - Components: components.md
-  - Gallery: gallery.md
-  - Themes and Assets: themes.md
-  - Registry: registry.md
-  - Template Tags: templatetags.md
-  - REST API: rest-api.md
-  - Integration Testing: testing.md
-  - Organisation: organisation.md
-  - Changelog: changelog.md
+  - Configuration: configuration.md
+  - Guides:
+      - Components: components.md
+      - Organising Apps & Folders: organisation.md
+      - Gallery: gallery.md
+      - Themes & Styling: themes.md
+      - Template Tags: templatetags.md
+      - Registry: registry.md
+      - REST API: rest-api.md
+      - Integration Testing: testing.md
   - API Reference:
-      - Gallery Configuration: api/gallery.md
+      - api/index.md
+      - Configuration & Settings: api/settings.md
+      - Gallery Side-Car Config: api/gallery.md
+      - Components & Slots: api/components.md
       - Parameters: api/parameters.md
-      - Components: api/components.md
-      - Settings: api/settings.md
+  - Changelog: changelog.md
   - "Demo →": https://fukalite.github.io/dj-design-system/demo/
