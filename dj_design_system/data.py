@@ -7,7 +7,10 @@ from functools import cached_property
 from pathlib import Path
 from typing import Any, Type
 
-from dj_design_system.exceptions import InvalidTagType
+from dj_design_system.exceptions import (
+    DjDesignSystemDeprecationWarning,
+    InvalidTagType,
+)
 from dj_design_system.gallery import GalleryConfig, Variant, load_gallery_config
 from dj_design_system.types import FlattenStrategy, NodeType, TagType
 
@@ -88,6 +91,7 @@ class ComponentInfo:
     namespace_prefix: str | None = None
     namespace_remaining_parts: tuple[str, ...] | None = None
     flatten_strategy: FlattenStrategy = FlattenStrategy.NONE
+    qualified_only: bool = False
 
     @cached_property
     def is_builtin(self) -> bool:
@@ -113,9 +117,9 @@ class ComponentInfo:
     @property
     def gallery_basic_kwargs(self) -> dict[str, Any]:
         warnings.warn(
-            f"ComponentInfo.gallery_basic_kwargs for '{self.name}' is deprecated and will be removed "
-            "in a future release. Use ComponentInfo.gallery_config.get_variant('basic').kwargs instead.",
-            DeprecationWarning,
+            f"ComponentInfo.gallery_basic_kwargs for '{self.name}' is deprecated. "
+            "Use ComponentInfo.gallery_config.get_variant('basic').kwargs instead.",
+            DjDesignSystemDeprecationWarning,
             stacklevel=2,
         )
         return self._gallery_kwargs[0]
@@ -123,9 +127,9 @@ class ComponentInfo:
     @property
     def gallery_maximal_kwargs(self) -> dict[str, Any]:
         warnings.warn(
-            f"ComponentInfo.gallery_maximal_kwargs for '{self.name}' is deprecated and will be removed "
-            "in a future release. Use ComponentInfo.gallery_config.get_variant('maximal').kwargs instead.",
-            DeprecationWarning,
+            f"ComponentInfo.gallery_maximal_kwargs for '{self.name}' is deprecated. "
+            "Use ComponentInfo.gallery_config.get_variant('maximal').kwargs instead.",
+            DjDesignSystemDeprecationWarning,
             stacklevel=2,
         )
         return self._gallery_kwargs[1]

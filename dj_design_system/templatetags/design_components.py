@@ -5,9 +5,9 @@ from django.utils.html import format_html_join
 from django.utils.safestring import mark_safe
 
 from dj_design_system import component_registry
+from dj_design_system.services import config as config_service
 from dj_design_system.services import media as media_service
 from dj_design_system.services.slot_node import do_slot
-from dj_design_system.settings import dds_settings, get_app_static, get_theme
 
 
 register = template.Library()
@@ -38,29 +38,27 @@ def component_scripts(context: template.Context | None = None) -> str:
 
 
 def _extend_theme_css(urls: list[str], theme: str) -> None:
-    theme_dict = get_theme(theme)
-    if not theme_dict:
+    theme_obj = config_service.get_theme(identifier=theme)
+    if not theme_obj:
         return
-    theme_css_bundles = media_service.get_bundle_urls(theme_dict.css_bundles, "css")
-    theme_css = theme_dict.css
+    theme_css_bundles = media_service.get_bundle_urls(theme_obj.css_bundles, "css")
     urls.extend(theme_css_bundles)
-    urls.extend(media_service.resolve_asset_url(path=path) for path in theme_css)
+    urls.extend(media_service.resolve_asset_url(path=path) for path in theme_obj.css)
 
 
 def _extend_app_css(urls: list[str], app_label: str) -> None:
-    app_css, _ = get_app_static(app_label)
-    app_css_bundles = media_service.get_bundle_urls(
-        (dds_settings.APP_CSS_BUNDLES or {}).get(app_label, []), "css"
-    )
+    app_cfg = config_service.get_app_settings(app_label=app_label)
+    app_css_bundles = media_service.get_bundle_urls(app_cfg.css_bundles, "css")
     urls.extend(app_css_bundles)
-    urls.extend(media_service.resolve_asset_url(path=path) for path in app_css)
+    urls.extend(media_service.resolve_asset_url(path=path) for path in app_cfg.css)
 
 
 @register.simple_tag
 def global_stylesheets(app_label: str | None = None, theme: str | None = None) -> str:
     """Render ``<link>`` tags for global, theme, and app-specific CSS bundles and static paths."""
-    urls = media_service.get_bundle_urls(dds_settings.GLOBAL_CSS_BUNDLES, "css") + [
-        media_service.resolve_asset_url(path=path) for path in dds_settings.GLOBAL_CSS
+    cfg = config_service.get_config()
+    urls = media_service.get_bundle_urls(cfg.css_bundles, "css") + [
+        media_service.resolve_asset_url(path=path) for path in cfg.css
     ]
 
     if theme:
@@ -77,22 +75,19 @@ def global_stylesheets(app_label: str | None = None, theme: str | None = None) -
 
 
 def _extend_theme_js(urls: list[str], theme: str) -> None:
-    theme_dict = get_theme(theme)
-    if not theme_dict:
+    theme_obj = config_service.get_theme(identifier=theme)
+    if not theme_obj:
         return
-    theme_js_bundles = media_service.get_bundle_urls(theme_dict.js_bundles, "js")
-    theme_js = theme_dict.js
+    theme_js_bundles = media_service.get_bundle_urls(theme_obj.js_bundles, "js")
     urls.extend(theme_js_bundles)
-    urls.extend(media_service.resolve_asset_url(path=path) for path in theme_js)
+    urls.extend(media_service.resolve_asset_url(path=path) for path in theme_obj.js)
 
 
 def _extend_app_js(urls: list[str], app_label: str) -> None:
-    _, app_js = get_app_static(app_label)
-    app_js_bundles = media_service.get_bundle_urls(
-        (dds_settings.APP_JS_BUNDLES or {}).get(app_label, []), "js"
-    )
+    app_cfg = config_service.get_app_settings(app_label=app_label)
+    app_js_bundles = media_service.get_bundle_urls(app_cfg.js_bundles, "js")
     urls.extend(app_js_bundles)
-    urls.extend(media_service.resolve_asset_url(path=path) for path in app_js)
+    urls.extend(media_service.resolve_asset_url(path=path) for path in app_cfg.js)
 
 
 @register.simple_tag(takes_context=True)
@@ -102,8 +97,9 @@ def global_scripts(
     theme: str | None = None,
 ) -> str:
     """Render ``<script>`` tags for global, theme, and app-specific JS bundles and static paths."""
-    urls = media_service.get_bundle_urls(dds_settings.GLOBAL_JS_BUNDLES, "js") + [
-        media_service.resolve_asset_url(path=path) for path in dds_settings.GLOBAL_JS
+    cfg = config_service.get_config()
+    urls = media_service.get_bundle_urls(cfg.js_bundles, "js") + [
+        media_service.resolve_asset_url(path=path) for path in cfg.js
     ]
 
     if theme:

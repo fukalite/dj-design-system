@@ -1,3 +1,10 @@
+import dataclasses
+
+from dj_design_system.config import (
+    DDS_DEFAULT_DOC_VARIANTS,
+    DesignSystemSettings,
+    GallerySettings,
+)
 from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.testing.engine import AssessmentPlugin, IterationEngine
 
@@ -100,14 +107,28 @@ def test_iteration_engine_explicit_variants_override_gallery_config(mocker):
 def test_iteration_engine_respects_gallery_doc_variants_and_suppression(
     mocker, settings
 ):
-    """IterationEngine uses enabled GALLERY_DOC_VARIANTS and skips suppressed component variants."""
-    settings.DJ_DESIGN_SYSTEM = {
-        "GALLERY_DOC_VARIANTS": {
-            "minimal": {"name": "simple", "show_in_docs": True},
-            "maximal": {"name": "maximal", "show_in_docs": True},
-            "defaults": {"name": "defaults", "show_in_docs": True},
-        }
-    }
+    """IterationEngine uses enabled doc_variants and skips suppressed component variants."""
+    settings.DJ_DESIGN_SYSTEM = DesignSystemSettings(
+        gallery=GallerySettings(
+            doc_variants={
+                "minimal": dataclasses.replace(
+                    DDS_DEFAULT_DOC_VARIANTS["minimal"],
+                    name="simple",
+                    show_in_docs=True,
+                ),
+                "maximal": dataclasses.replace(
+                    DDS_DEFAULT_DOC_VARIANTS["maximal"],
+                    name="maximal",
+                    show_in_docs=True,
+                ),
+                "defaults": dataclasses.replace(
+                    DDS_DEFAULT_DOC_VARIANTS["defaults"],
+                    name="defaults",
+                    show_in_docs=True,
+                ),
+            }
+        )
+    )
     mock_comp = mocker.Mock()
     mock_comp.name = "badge"
     mock_comp.gallery_config = GalleryConfig(

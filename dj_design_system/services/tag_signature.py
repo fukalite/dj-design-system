@@ -19,9 +19,9 @@ from dj_design_system.parameters import (
     StrParam,
 )
 from dj_design_system.parameters.model import ModelParam
+from dj_design_system.services import config as config_service
 from dj_design_system.services.component import derive_name, get_meta_name
 from dj_design_system.services.registry import component_registry
-from dj_design_system.settings import get_doc_variants
 from dj_design_system.slots import SLOT_PARAM_PREFIX
 from dj_design_system.types import DocVariantConfig, DocVariantStrategy
 
@@ -1035,7 +1035,9 @@ def generate_usage_examples(
     examples: list[UsageExample] = []
     handled_names: set[str] = set()
     doc_variants = (
-        config.get_doc_variants() if config is not None else get_doc_variants()
+        config.get_doc_variants()
+        if config is not None
+        else list(config_service.get_doc_variants())
     )
 
     for doc_variant in doc_variants:
@@ -1146,7 +1148,9 @@ def generate_tag_signature(
         config = None
 
     doc_variants = (
-        config.get_doc_variants() if config is not None else get_doc_variants()
+        config.get_doc_variants()
+        if config is not None
+        else list(config_service.get_doc_variants())
     )
     doc_by_key = {dv.key: dv for dv in doc_variants}
     min_doc = doc_by_key.get("minimal") or DocVariantConfig(

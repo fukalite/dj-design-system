@@ -1,16 +1,13 @@
-# Quickstart
+# Quick Start
 
 Full documentation lives at [fukalite.github.io/dj-design-system/](https://fukalite.github.io/dj-design-system/).
 
-## 1. Configure settings.py
+`dj-design-system` requires no configuration to get started: `DjangoDesignSystemConfig.ready()` automatically registers `ComponentsTemplateLoader` and `ComponentsStaticFinder` when you use Django's default `TEMPLATES` and `STATICFILES_FINDERS`. (If you declare custom loaders or static finders explicitly, see [Manual Template Loader & Static Finder Setup](configuration.md#manual-template-loader-static-finder-setup).)
 
-All setup for Django Design System starts in your `settings.py`.
-
-### INSTALLED_APPS
-
-Add `dj_design_system` to your `INSTALLED_APPS`:
+## 1. Add `dj_design_system` to `INSTALLED_APPS`
 
 ```python
+# settings.py
 INSTALLED_APPS = [
     ...
     "dj_design_system",
@@ -18,80 +15,12 @@ INSTALLED_APPS = [
 ]
 ```
 
-### STATICFILES_FINDERS
+## 2. Mount the Gallery URLs
 
-To serve co-located `.css` and `.js` files through Django's static files system, add `ComponentsStaticFinder` to `STATICFILES_FINDERS`:
-
-```python
-STATICFILES_FINDERS = [
-    "django.contrib.staticfiles.finders.FileSystemFinder",
-    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-    "dj_design_system.finders.ComponentsStaticFinder",
-]
-```
-
-This serves `.css` and `.js` files from each installed app's `components/` directory under the URL namespace `{app_label}/components/...`. Python files, HTML templates, and all other file types are never exposed as static assets.
-
-### TEMPLATES
-
-To use co-located `.html` templates for components, add `ComponentsTemplateLoader` to your `TEMPLATES` loader list. Because Django does not support mixing `APP_DIRS: True` with a custom `loaders` list, you must switch to an explicit loader configuration — wrapped in `django.template.loaders.cached.Loader` so Django keeps compiled templates in memory just as the default configuration does:
+Include the gallery URLs in your project's `urls.py`:
 
 ```python
-TEMPLATES = [
-    {
-        "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
-        "APP_DIRS": False,  # must be False when loaders is set
-        "OPTIONS": {
-            "loaders": [
-                (
-                    "django.template.loaders.cached.Loader",
-                    [
-                        "django.template.loaders.filesystem.Loader",
-                        "django.template.loaders.app_directories.Loader",
-                        "dj_design_system.loaders.ComponentsTemplateLoader",
-                    ],
-                ),
-            ],
-            "context_processors": [
-                "django.template.context_processors.debug",
-                "django.template.context_processors.request",
-                "django.contrib.auth.context_processors.auth",
-                "django.contrib.messages.context_processors.messages",
-            ],
-        },
-    },
-]
-```
-
-When running the development server, edits to existing component templates are picked up without a restart: `ComponentsTemplateLoader` reports each app's `components/` directory to Django's autoreloader, which clears the template cache when a file there changes.
-
-Component auto-discovery happens automatically when Django starts up (via `AppConfig.ready()`). Templates are matched to components at that point, so **adding** a new co-located `.html` file to an existing component needs a server restart before the component uses it.
-
-### DJ_DESIGN_SYSTEM Configuration
-
-Configure the design system by adding a `DJ_DESIGN_SYSTEM` dictionary. This is where you configure the gallery, global assets, themes, and more.
-A full list of settings is available in the [Settings API Reference](api/settings.md).
-
-```python
-DJ_DESIGN_SYSTEM = {
-    # The name displayed in the gallery navbar and page titles
-    "DESIGN_SYSTEM_NAME": "Django Design System",
-    # Enable the gallery UI
-    "ENABLE_GALLERY": True,
-    # If False, requires staff permissions (is_staff=True) to view the gallery
-    "GALLERY_IS_PUBLIC": False,
-    # Global styles and scripts loaded in the gallery canvas and when using tags
-    "GLOBAL_CSS": [],
-    "GLOBAL_JS": [],
-}
-```
-
-## 2. Configure urls.py
-
-Include the gallery URLs in your project's main `urls.py` to make the gallery UI accessible. In production you might want to restrict this to an admin-only URL.
-
-```python
+# urls.py
 from django.urls import include, path
 
 urlpatterns = [
@@ -99,16 +28,17 @@ urlpatterns = [
 ]
 ```
 
-## Creating a Tag Component
+By default the gallery is public; to restrict access to users with the `dj_design_system.can_view_gallery` permission or disable it in production, configure `DJ_DESIGN_SYSTEM = DesignSystemSettings(...)` as described in [Configuration](configuration.md).
 
-Tag components render a single HTML fragment. Create a file in your app's `components/` directory.
+## 3. Create Your First Component
 
-### Using a co-located HTML template (recommended)
+### Tag Component (co-located HTML template)
 
-Place a `.html` file next to the `.py` file with the same base name. Django's full template language is available — `{% if %}`, `{% for %}`, `{% load %}`, etc.:
+Place a `.py` file and matching `.html` file inside any installed app's `components/` directory:
 
-```
+```text
 myapp/components/
+    __init__.py
     badge.py
     badge.html
 ```
@@ -116,7 +46,7 @@ myapp/components/
 ```python
 # myapp/components/badge.py
 from dj_design_system.components import TagComponent
-from dj_design_system.parameters import StrParam, BoolCSSClassParam
+from dj_design_system.parameters import BoolCSSClassParam, StrParam
 
 
 class BadgeComponent(TagComponent):
@@ -124,6 +54,9 @@ class BadgeComponent(TagComponent):
 
     label = StrParam("The badge text.")
     bold = BoolCSSClassParam(required=False, default=False)
+
+    class Meta:
+        positional_args = ["label"]
 ```
 
 ```htmldjango
@@ -131,60 +64,19 @@ class BadgeComponent(TagComponent):
 <span class="badge {{ classes }}">{{ label }}</span>
 ```
 
-### Using an inline format string
+For tiny fragments you can omit the `.html` file and set `template_format_str = "<span class='badge {classes}'>{label}</span>"` on the class instead.
 
-For simple components you can skip the HTML file and use `template_format_str` directly on the class. This uses Python's `format_html` rather than the Django template engine, so template tags are not available:
-
-```python
-class BadgeComponent(TagComponent):
-    """A status badge."""
-
-    template_format_str = "<span class='badge {classes}'>{label}</span>"
-    label = StrParam("The badge text.")
-    bold = BoolCSSClassParam(required=False, default=False)
-```
-
-Use it in a template:
+Render it in any Django template:
 
 ```htmldjango
 {% load design_components %}
-{% badge label="New" %}
-{% badge label="Active" bold=True %}
-```
-
-### Positional Arguments
-
-Declare `Meta.positional_args` to allow positional syntax in the template tag:
-
-```python
-class BadgeComponent(TagComponent):
-    label = StrParam("The badge text.")
-
-    class Meta:
-        positional_args = ["label"]
-```
-
-Now you can write:
-
-```html
 {% badge "New" %}
+{% badge "Active" bold=True %}
 ```
 
-Instead of:
+### Block Component
 
-```html
-{% badge label="New" %}
-```
-
-## Creating a Block Component
-
-Block components wrap nested template content. The block body is automatically available as `content` in the template context — you do NOT need to declare it as a parameter.
-
-```
-myapp/components/
-    card.py
-    card.html
-```
+Block components wrap nested template content, exposed automatically as `content`:
 
 ```python
 # myapp/components/card.py
@@ -209,8 +101,6 @@ class CardComponent(BlockComponent):
 </div>
 ```
 
-Use it in a template:
-
 ```htmldjango
 {% load design_components %}
 {% card "My Title" %}
@@ -218,9 +108,9 @@ Use it in a template:
 {% endcard %}
 ```
 
-## Configuring Gallery Previews & Variants
+## Customising Gallery Previews & Variants
 
-By default, the gallery synthesizes minimal and maximal examples automatically. To provide custom metadata, named variants, themes, and canvas layouts, create a `gallery.py` (or `<component_name>_gallery.py`) file in the same directory as your component:
+The gallery synthesises minimal and maximal examples automatically. Add a side-car `gallery.py` (or `<component_name>_gallery.py`) next to your component to declare custom metadata and variants:
 
 ```python
 # myapp/components/card_gallery.py
@@ -242,21 +132,17 @@ config = GalleryConfig(
 )
 ```
 
-The gallery will automatically discover `config`, display your custom variants in the navigation sidebar, and provide deep links (`?variant=featured`) with dedicated variant documentation. For complete configuration options, see the [Gallery Guide](gallery.md) and [Gallery API Reference](api/gallery.md).
+See the [Gallery Guide](gallery.md) and [Gallery Side-Car Config API](api/gallery.md) for all options.
 
 ## Loading Template Tags
 
-There are two ways to load component template tags:
+Load all discovered components across every app with the central library:
 
-### Central library (all components from all apps)
-
-```html
+```htmldjango
 {% load design_components %}
 ```
 
-### Per-app library
-
-Create a `templatetags/components.py` in your app:
+Or expose a per-app library by creating `myapp/templatetags/components.py`:
 
 ```python
 from django import template
@@ -266,18 +152,16 @@ register = template.Library()
 component_registry.register_templatetags(register, app_label="myapp")
 ```
 
-Then in templates:
+And load it in templates with `{% load components %}`.
 
-```html
-{% load design_components %}
-```
+## Component Discovery Rules
 
-## Component Discovery
+`DjangoDesignSystemConfig.ready()` discovers components automatically at startup:
 
-Components are automatically discovered in any installed app that has a `components` module or package. The discovery rules are:
+- Inspects `{app}.components` (single module) or `{app}/components/` (package) for every installed app.
+- Recursively walks sub-packages that contain an `__init__.py`.
+- Registers concrete `TagComponent` and `BlockComponent` subclasses defined in each module.
+- Skips classes with `Meta.abstract = True` and classes imported from other modules.
+- Watches co-located templates with Django's autoreloader during development (adding a brand-new co-located `.html` file requires a restart).
 
-- Looks for `{app}.components` (a single file) or `{app}/components/` (a package)
-- Recursively walks sub-packages within `components/`
-- Registers any concrete `BaseComponent` subclass (via `TagComponent` or `BlockComponent`)
-- Skips classes with `class Meta: abstract = True`
-- Skips classes imported from other modules (only registers classes defined in that file)
+Next: configure global assets, themes, and per-app defaults in [Configuration](configuration.md).

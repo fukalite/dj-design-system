@@ -40,11 +40,16 @@ class SlotParameterCollisionError(DJDesignSystemError):
     """Raised when a component defines slots and parameters with the same name."""
 
 
+class DjDesignSystemDeprecationWarning(DeprecationWarning):
+    """Base deprecation warning for dj-design-system APIs."""
+
+
 __all__ = [
     "ComponentDoesNotExist",
     "ComponentNotFoundError",
     "ComponentValidationError",
     "DJDesignSystemError",
+    "DjDesignSystemDeprecationWarning",
     "InvalidTagType",
     "MultipleComponentsFound",
     "SlotParameterCollisionError",

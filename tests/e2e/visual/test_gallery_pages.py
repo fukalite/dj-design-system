@@ -6,6 +6,7 @@ names are ``<page>--<viewport>--<theme>``.
 
 import pytest
 
+from dj_design_system.config import DesignSystemSettings, Theme
 from tests.e2e.visual.conftest import GALLERY_THEMES, VIEWPORTS
 
 
@@ -33,11 +34,11 @@ def test_page(gallery, screenshot_recorder, page_name, viewport, theme):
 
 def test_component_with_theme_selector(gallery, screenshot_recorder, settings):
     """The toolbar's component-theme selector only renders with 2+ themes."""
-    settings.DJ_DESIGN_SYSTEM = {
-        "GALLERY_THEMES": {
-            "default": {"label": "Default"},
-            "dark": {"label": "Dark"},
+    settings.DJ_DESIGN_SYSTEM = DesignSystemSettings(
+        themes={
+            "default": Theme(value="default", label="Default"),
+            "dark": Theme(value="dark", label="Dark"),
         },
-    }
+    )
     page = gallery(PAGES["component"])
     screenshot_recorder.check(page, "component--desktop--light--theme-selector")

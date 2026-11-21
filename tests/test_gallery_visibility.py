@@ -1,4 +1,4 @@
-"""Tests for ``GALLERY_INCLUDE_APPS`` and ``GALLERY_EXCLUDE_APPS``."""
+"""Tests for ``GallerySettings.include_apps`` and ``GallerySettings.exclude_apps``."""
 
 import json
 from contextlib import contextmanager
@@ -8,6 +8,8 @@ from django.test import RequestFactory, override_settings
 from django.urls import reverse
 
 from dj_design_system.api.views import ComponentRegistryView
+from dj_design_system.config import DesignSystemSettings, GallerySettings
+from dj_design_system.services.config import get_gallery_settings
 from dj_design_system.services.navigation import (
     _build_navigation,
     build_search_index,
@@ -19,7 +21,6 @@ from dj_design_system.services.visibility import (
     get_hidden_apps,
     is_app_visible,
 )
-from dj_design_system.settings import dds_settings
 
 
 BUILTINS = {
@@ -35,10 +36,12 @@ BUILTINS = {
 
 @contextmanager
 def dds(**options):
-    """Override ``DJ_DESIGN_SYSTEM`` with the given options."""
+    """Override ``DJ_DESIGN_SYSTEM`` with the given ``GallerySettings`` options."""
     clear_navigation_cache()
     try:
-        with override_settings(DJ_DESIGN_SYSTEM=options):
+        with override_settings(
+            DJ_DESIGN_SYSTEM=DesignSystemSettings(gallery=GallerySettings(**options))
+        ):
             yield
     finally:
         clear_navigation_cache()
@@ -55,11 +58,11 @@ def _nav_apps(nav_tree) -> set[str]:
 class TestDefaults:
     def test_include_apps_defaults_to_none(self):
         with dds():
-            assert dds_settings.GALLERY_INCLUDE_APPS is None
+            assert get_gallery_settings().include_apps is None
 
     def test_exclude_apps_defaults_to_empty(self):
         with dds():
-            assert dds_settings.GALLERY_EXCLUDE_APPS == []
+            assert get_gallery_settings().exclude_apps == ()
 
 
 class TestHiddenApps:
@@ -70,17 +73,17 @@ class TestHiddenApps:
             assert is_app_visible(app_label="demo_components")
 
     def test_builtins_hidden_when_exclude_list_omits_them(self):
-        with dds(GALLERY_EXCLUDE_APPS=["demo_single"]):
+        with dds(exclude_apps=("demo_single",)):
             assert get_hidden_apps() == {"dj_design_system", "demo_single"}
 
     def test_include_apps_restricts_visible_apps(self, visibility_registry):
-        with dds(GALLERY_INCLUDE_APPS=["dj_design_system"]):
+        with dds(include_apps=("dj_design_system",)):
             assert is_app_visible(app_label="dj_design_system")
             assert not is_app_visible(app_label="demo_components")
             assert not is_app_visible(app_label="demo_single")
 
     def test_consumer_apps_can_be_hidden(self):
-        with dds(GALLERY_EXCLUDE_APPS=["demo_single"]):
+        with dds(exclude_apps=("demo_single",)):
             assert not is_app_visible(app_label="demo_single")
             assert is_app_visible(app_label="demo_components")
 
@@ -92,24 +95,24 @@ class TestGalleryComponents:
         assert _apps(infos) == {"demo_components", "demo_single"}
 
     def test_include_apps_builtins(self, visibility_registry):
-        with dds(GALLERY_INCLUDE_APPS=["dj_design_system"]):
+        with dds(include_apps=("dj_design_system",)):
             infos = get_gallery_components(registry=visibility_registry)
         assert _apps(infos) == {"dj_design_system"}
 
     def test_include_apps_multiple(self, visibility_registry):
-        with dds(GALLERY_INCLUDE_APPS=["dj_design_system", "demo_components"]):
+        with dds(include_apps=("dj_design_system", "demo_components")):
             infos = get_gallery_components(registry=visibility_registry)
         assert _apps(infos) == {"dj_design_system", "demo_components"}
 
     def test_excluded_consumer_app(self, visibility_registry):
-        with dds(GALLERY_EXCLUDE_APPS=["demo_single"]):
+        with dds(exclude_apps=("demo_single",)):
             infos = get_gallery_components(registry=visibility_registry)
         assert _apps(infos) == {"demo_components"}
 
 
 class TestNavigationAndSearch:
     def test_nav_and_search_exclude_hidden_apps(self, visibility_registry):
-        with dds(GALLERY_EXCLUDE_APPS=["demo_single"]):
+        with dds(exclude_apps=("demo_single",)):
             nav = _build_navigation(
                 components=visibility_registry.list_all(), app_component_paths={}
             )
@@ -118,7 +121,7 @@ class TestNavigationAndSearch:
         assert search_apps == {"demo_components"}
 
     def test_nav_includes_builtins_when_included(self, visibility_registry):
-        with dds(GALLERY_INCLUDE_APPS=["dj_design_system"]):
+        with dds(include_apps=("dj_design_system",)):
             nav = _build_navigation(
                 components=visibility_registry.list_all(), app_component_paths={}
             )
@@ -126,7 +129,7 @@ class TestNavigationAndSearch:
 
     def test_nav_excludes_hidden_app_markdown_docs(self, visibility_registry, tmp_path):
         (tmp_path / "readme.md").write_text("# Docs only\n")
-        with dds(GALLERY_EXCLUDE_APPS=["docs_app"]):
+        with dds(exclude_apps=("docs_app",)):
             nav = _build_navigation(
                 components=visibility_registry.list_all(),
                 app_component_paths={"docs_app": tmp_path},
@@ -138,7 +141,7 @@ class TestViews:
     def test_hidden_app_node_returns_404(self, client):
         url = reverse("gallery-node-root", kwargs={"app_label": "demo_single"})
         assert client.get(url).status_code == 200
-        with dds(GALLERY_EXCLUDE_APPS=["demo_single"]):
+        with dds(exclude_apps=("demo_single",)):
             assert client.get(url).status_code == 404
 
     def test_hidden_component_node_returns_404(self, client, global_builtins):
@@ -148,23 +151,23 @@ class TestViews:
         )
         with dds():
             assert client.get(url).status_code == 404
-        with dds(GALLERY_INCLUDE_APPS=["dj_design_system"]):
+        with dds(include_apps=("dj_design_system",)):
             assert client.get(url).status_code == 200
 
     def test_index_total_excludes_hidden_components(self, client, global_builtins):
         with dds(
-            GALLERY_INCLUDE_APPS=[
+            include_apps=(
                 "dj_design_system",
                 "demo_components",
                 "demo_single",
                 "demo_extra",
                 "demo_nav",
-            ]
+            )
         ):
             all_apps_shown = client.get(reverse("gallery")).context["total_components"]
         with dds():
             default = client.get(reverse("gallery")).context["total_components"]
-        with dds(GALLERY_EXCLUDE_APPS=["demo_single"]):
+        with dds(exclude_apps=("demo_single",)):
             fewer = client.get(reverse("gallery")).context["total_components"]
 
         assert default == all_apps_shown - 1
@@ -190,7 +193,7 @@ class TestApi:
             }
 
     def test_api_includes_allowed_apps(self, visibility_registry):
-        with dds(GALLERY_INCLUDE_APPS=["dj_design_system", "demo_components"]):
+        with dds(include_apps=("dj_design_system", "demo_components")):
             assert self._listed_apps(visibility_registry) == {
                 "dj_design_system",
                 "demo_components",
@@ -203,7 +206,7 @@ class TestHiddenComponentsStillRender:
         visibility_registry.register_templatetags(library)
         engine = template.Engine()
         engine.template_builtins.append(library)
-        with dds(GALLERY_EXCLUDE_APPS=["demo_single"]):
+        with dds(exclude_apps=("demo_single",)):
             html = engine.from_string("{% dds__crumb %}{% pill %}").render(
                 template.Context()
             )

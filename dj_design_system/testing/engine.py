@@ -3,7 +3,7 @@ from typing import Callable, Iterable, Optional
 
 from dj_design_system.data import ComponentInfo
 from dj_design_system.gallery import GalleryConfig
-from dj_design_system.settings import get_doc_variants
+from dj_design_system.services import config as config_service
 
 
 class AssessmentPlugin(abc.ABC):
@@ -32,7 +32,9 @@ class IterationEngine:
         self.variants = (
             variants
             if variants is not None
-            else [dv.name for dv in get_doc_variants() if dv.show_in_docs]
+            else [
+                dv.name for dv in config_service.get_doc_variants() if dv.show_in_docs
+            ]
         )
         self._filters: list[Callable[[ComponentInfo, str, str], bool]] = []
 
@@ -52,7 +54,7 @@ class IterationEngine:
             comp_doc_variants = cfg.get_doc_variants()
             comp_variants = [dv.name for dv in comp_doc_variants if dv.show_in_docs]
         else:
-            comp_doc_variants = get_doc_variants()
+            comp_doc_variants = list(config_service.get_doc_variants())
             comp_variants = list(self.variants)
 
         cfg_variants = getattr(cfg, "variants", None) if cfg is not None else None

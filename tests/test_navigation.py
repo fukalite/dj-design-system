@@ -6,6 +6,12 @@ import pytest
 from django.test import override_settings
 
 from dj_design_system.components.gallery.composites.nav_tree.nav_tree import NavTree
+from dj_design_system.config import (
+    AppSettings,
+    DesignSystemSettings,
+    DirectorySettings,
+    GallerySettings,
+)
 from dj_design_system.data import ComponentInfo, NavNode
 from dj_design_system.services.navigation import (
     NodeType,
@@ -623,7 +629,7 @@ class TestMarkdownDiscoveryWithTmpPath:
 
 
 class TestNavSortOrder:
-    """GALLERY_NAV_ORDER controls child ordering at each level."""
+    """GallerySettings.nav_order controls child ordering at each level."""
 
     @staticmethod
     def _build_mixed_tree(tmp_path):
@@ -676,13 +682,17 @@ class TestNavSortOrder:
         ],
     )
     def test_custom_order(self, tmp_path, settings, order, expected):
-        settings.DJ_DESIGN_SYSTEM = {"GALLERY_NAV_ORDER": order}
+        settings.DJ_DESIGN_SYSTEM = DesignSystemSettings(
+            gallery=GallerySettings(nav_order=order)
+        )
         tree = self._build_mixed_tree(tmp_path)
         labels = self._child_labels(tree)
         assert labels == expected
 
     def test_alphabetical_ignores_type(self, tmp_path, settings):
-        settings.DJ_DESIGN_SYSTEM = {"GALLERY_NAV_ORDER": "alphabetical"}
+        settings.DJ_DESIGN_SYSTEM = DesignSystemSettings(
+            gallery=GallerySettings(nav_order="alphabetical")
+        )
         tree = self._build_mixed_tree(tmp_path)
         labels = self._child_labels(tree)
         assert labels == ["Alpha", "Beta guide", "Zebra"]
@@ -890,13 +900,15 @@ class TestNavigationEdgeCases:
 
 
 @override_settings(
-    DJ_DESIGN_SYSTEM={
-        "COMPONENT_DIRECTORIES": {
-            "demo_components": {
-                "card": {"label": "Cards (No Flattening)"},
-            }
+    DJ_DESIGN_SYSTEM=DesignSystemSettings(
+        apps={
+            "demo_components": AppSettings(
+                directories={
+                    "card": DirectorySettings(label="Cards (No Flattening)"),
+                }
+            )
         }
-    }
+    )
 )
 def test_to_display_label_app_label():
     from dj_design_system.services.navigation import to_display_label
@@ -930,13 +942,17 @@ def test_to_display_label_fallback():
 
 
 @override_settings(
-    DJ_DESIGN_SYSTEM={
-        "COMPONENT_DIRECTORIES": {
-            "demo_components": {
-                "promoted": {"promote_to_app": True, "label": "Promoted App Demo"}
-            }
+    DJ_DESIGN_SYSTEM=DesignSystemSettings(
+        apps={
+            "demo_components": AppSettings(
+                directories={
+                    "promoted": DirectorySettings(
+                        promote_to_app=True, label="Promoted App Demo"
+                    ),
+                }
+            )
         }
-    }
+    )
 )
 def test_promote_to_app_integration(registry_with_two_apps):
     from dj_design_system.services.navigation import _build_navigation
@@ -1031,9 +1047,9 @@ def test_builtin_gallery_subfolder_omitted_from_navigation_tree():
     from dj_design_system.services.navigation import _build_navigation, find_node
 
     with override_settings(
-        DJ_DESIGN_SYSTEM={
-            "GALLERY_INCLUDE_APPS": ["dj_design_system"],
-        }
+        DJ_DESIGN_SYSTEM=DesignSystemSettings(
+            gallery=GallerySettings(include_apps=["dj_design_system"])
+        )
     ):
         tree = _build_navigation()
         dds_app = next((n for n in tree if n.slug == "dj_design_system"), None)
@@ -1086,9 +1102,9 @@ def test_areas_navigation():
     assert to_display_label("index_pane") == "Index"
 
     with override_settings(
-        DJ_DESIGN_SYSTEM={
-            "GALLERY_INCLUDE_APPS": ["dj_design_system"],
-        }
+        DJ_DESIGN_SYSTEM=DesignSystemSettings(
+            gallery=GallerySettings(include_apps=["dj_design_system"])
+        )
     ):
         tree = _build_navigation()
         dds_app = next((n for n in tree if n.slug == "dj_design_system"), None)
@@ -1173,9 +1189,9 @@ def test_areas_views_render(client):
     ]
 
     with override_settings(
-        DJ_DESIGN_SYSTEM={
-            "GALLERY_INCLUDE_APPS": ["dj_design_system"],
-        }
+        DJ_DESIGN_SYSTEM=DesignSystemSettings(
+            gallery=GallerySettings(include_apps=["dj_design_system"])
+        )
     ):
         for path in paths:
             url = reverse(
@@ -1203,9 +1219,9 @@ def test_foundations_navigation():
     assert to_display_label("elevations_and_surfaces") == "Elevations & Surfaces"
 
     with override_settings(
-        DJ_DESIGN_SYSTEM={
-            "GALLERY_INCLUDE_APPS": ["dj_design_system"],
-        }
+        DJ_DESIGN_SYSTEM=DesignSystemSettings(
+            gallery=GallerySettings(include_apps=["dj_design_system"])
+        )
     ):
         tree = _build_navigation()
         dds_app = next((n for n in tree if n.slug == "dj_design_system"), None)
@@ -1249,9 +1265,9 @@ def test_foundations_views_render(client):
     ]
 
     with override_settings(
-        DJ_DESIGN_SYSTEM={
-            "GALLERY_INCLUDE_APPS": ["dj_design_system"],
-        }
+        DJ_DESIGN_SYSTEM=DesignSystemSettings(
+            gallery=GallerySettings(include_apps=["dj_design_system"])
+        )
     ):
         for path in paths:
             url = reverse(

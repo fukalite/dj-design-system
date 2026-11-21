@@ -73,9 +73,11 @@ class ModelParam(BaseParam):
     # ------------------------------------------------------------------
 
     def _resolve_model(self):
-        """Return the model class, resolving a string reference lazily."""
+        """Return the model class, resolving string or callable references lazily."""
         if not hasattr(self, "_resolved_model"):
             model = self.__class__.Meta.model  # type: ignore[attr-defined]
+            if callable(model) and not isinstance(model, type):
+                model = model()
             if isinstance(model, str):
                 from django.apps import apps
 

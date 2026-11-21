@@ -1,6 +1,7 @@
 import pytest
 
 from dj_design_system import component_registry
+from dj_design_system.config import DesignSystemSettings, Theme
 from dj_design_system.testing.engine import IterationEngine
 from dj_design_system.testing.plugins import (
     AccessibilityPlugin,
@@ -43,10 +44,13 @@ def test_all_standard_components(page, base_url, settings):
     This runs the accessibility and HTML validation plugins across all 18 built-in components
     and all of their gallery.py variants across light and dark themes.
     """
-    settings.DJ_DESIGN_SYSTEM = {
-        "GALLERY_THEMES": INTERNAL_COMPONENT_GALLERY_THEMES,
-        "GALLERY_DEFAULT_THEME": "light",
-    }
+    settings.DJ_DESIGN_SYSTEM = DesignSystemSettings(
+        themes={
+            slug: Theme(value=slug, **cfg)
+            for slug, cfg in INTERNAL_COMPONENT_GALLERY_THEMES.items()
+        },
+        default_theme="light",
+    )
 
     components = component_registry.list_by_app("dj_design_system")
     assert len(components) >= 18, (

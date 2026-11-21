@@ -1,8 +1,15 @@
 """Tests for tag_signature module that generates template tag usage examples."""
 
+import dataclasses
+
 import pytest
 
 from dj_design_system.components import BlockComponent, TagComponent
+from dj_design_system.config import (
+    DDS_DEFAULT_DOC_VARIANTS,
+    DesignSystemSettings,
+    GallerySettings,
+)
 from dj_design_system.data import BLOCK_CONTENT_PLACEHOLDER
 from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.parameters import (
@@ -916,20 +923,30 @@ class TestGenerateUsageExamples:
     def test_defaults_and_all_slots_strategies_and_factories(
         self, settings, register_gallery_component
     ):
-        settings.DJ_DESIGN_SYSTEM = {
-            "GALLERY_DOC_VARIANTS": {
-                "minimal": {"show_in_docs": False},
-                "maximal": {"show_in_docs": False},
-                "defaults": {
-                    "show_in_docs": True,
-                    "param_factory": _custom_param_factory,
-                },
-                "all_slots": {
-                    "show_in_docs": True,
-                    "slot_factory": _custom_slot_factory,
-                },
-            }
-        }
+        settings.DJ_DESIGN_SYSTEM = DesignSystemSettings(
+            gallery=GallerySettings(
+                doc_variants={
+                    "minimal": dataclasses.replace(
+                        DDS_DEFAULT_DOC_VARIANTS["minimal"],
+                        show_in_docs=False,
+                    ),
+                    "maximal": dataclasses.replace(
+                        DDS_DEFAULT_DOC_VARIANTS["maximal"],
+                        show_in_docs=False,
+                    ),
+                    "defaults": dataclasses.replace(
+                        DDS_DEFAULT_DOC_VARIANTS["defaults"],
+                        show_in_docs=True,
+                        param_factory=_custom_param_factory,
+                    ),
+                    "all_slots": dataclasses.replace(
+                        DDS_DEFAULT_DOC_VARIANTS["all_slots"],
+                        show_in_docs=True,
+                        slot_factory=_custom_slot_factory,
+                    ),
+                }
+            )
+        )
         register_gallery_component(
             OptionalSlotCard, "optional_slot_card", GalleryConfig()
         )
@@ -969,10 +986,16 @@ class TestGenerateUsageExamples:
                 ]
             ),
         )
-        settings.DJ_DESIGN_SYSTEM = {
-            "GALLERY_DOC_VARIANTS": {
-                "maximal": {"show_in_docs": False},
-            }
-        }
+        settings.DJ_DESIGN_SYSTEM = DesignSystemSettings(
+            gallery=GallerySettings(
+                doc_variants={
+                    **DDS_DEFAULT_DOC_VARIANTS,
+                    "maximal": dataclasses.replace(
+                        DDS_DEFAULT_DOC_VARIANTS["maximal"],
+                        show_in_docs=False,
+                    ),
+                }
+            )
+        )
         examples = generate_usage_examples(component_class=OptionalParamsComponent)
         assert [ex.name for ex in examples] == ["basic"]

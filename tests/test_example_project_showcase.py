@@ -9,9 +9,14 @@ import pytest
 from django import template, test, urls
 
 from dj_design_system import components, data, parameters
-from dj_design_system import settings as dds_settings_mod
 from dj_design_system import types as dds_types
+from dj_design_system.config import (
+    AppSettings,
+    DesignSystemSettings,
+    DirectorySettings,
+)
 from dj_design_system.services import canvas as canvas_service
+from dj_design_system.services import config as config_service
 from dj_design_system.services import navigation as navigation_service
 from dj_design_system.services import registry as registry_service
 from dj_design_system.services import visibility as visibility_service
@@ -95,12 +100,18 @@ class TestExampleProjectPedagogicalBreadth:
 
     def test_exercises_directory_strategies_media_variants_and_docs(self) -> None:
         """Verify FlattenStrategy, promote_to_app, broken_components, and docs."""
-        dirs_config = base_settings.DJ_DESIGN_SYSTEM["COMPONENT_DIRECTORIES"]
-        demo_dirs = dirs_config["demo_components"]
-        assert demo_dirs["card"]["flatten"] == dds_types.FlattenStrategy.NONE
-        assert demo_dirs["icon"]["flatten"] == dds_types.FlattenStrategy.ALL
-        assert demo_dirs["promoted"]["promote_to_app"] is True
-        assert "broken_components" in dirs_config
+        from example_project.broken_components.apps import BrokenComponentsConfig
+        from example_project.demo_components.apps import DemoComponentsConfig
+
+        assert DemoComponentsConfig.design_system.css == (
+            "example_project/app-demo.css",
+        )
+        demo_dirs = base_settings.DJ_DESIGN_SYSTEM.apps["demo_components"].directories
+        assert demo_dirs is not None
+        assert demo_dirs["card"].flatten == dds_types.FlattenStrategy.NONE
+        assert demo_dirs["svg_icon"].flatten == dds_types.FlattenStrategy.ALL
+        assert demo_dirs["promoted"].promote_to_app is True
+        assert BrokenComponentsConfig.design_system.prefix == "broken"
 
         demo_infos = registry_service.component_registry.list_by_app(
             app_label="demo_components"
@@ -111,6 +122,24 @@ class TestExampleProjectPedagogicalBreadth:
         md_files = list(EXAMPLE_PROJECT_DIR.rglob(pattern="index.md"))
         assert md_files
         assert any("```canvas" in md.read_text(encoding="utf-8") for md in md_files)
+
+    @pytest.mark.django_db
+    def test_example_project_passes_system_checks(self) -> None:
+        """Migrated example_project produces zero system check issues."""
+        from dj_design_system.checks import (
+            check_design_system_settings,
+            check_gallery_settings,
+        )
+
+        with test.override_settings(DJ_DESIGN_SYSTEM=base_settings.DJ_DESIGN_SYSTEM):
+            assert check_gallery_settings() == []
+            assert check_design_system_settings() == []
+
+        with test.override_settings(
+            DJ_DESIGN_SYSTEM=settings_dds_gallery.DJ_DESIGN_SYSTEM
+        ):
+            assert check_gallery_settings() == []
+            assert check_design_system_settings() == []
 
     @pytest.mark.django_db
     def test_example_project_settings_render_all_gallery_views(
@@ -139,9 +168,9 @@ class TestSettingsDdsGallery:
     def test_settings_dds_gallery_configuration(self) -> None:
         """Verify DJ_DESIGN_SYSTEM overrides in settings_dds_gallery."""
         dds_cfg = settings_dds_gallery.DJ_DESIGN_SYSTEM
-        assert dds_cfg["DESIGN_SYSTEM_NAME"] == "Built-in Component Library"
-        assert dds_cfg["GALLERY_INCLUDE_APPS"] == ["dj_design_system"]
-        assert dds_cfg["GLOBAL_CSS"] == ["example_project/theme-dds-consumer.css"]
+        assert dds_cfg.name == "Built-in Component Library"
+        assert dds_cfg.gallery.include_apps == ("dj_design_system",)
+        assert dds_cfg.css == ("example_project/theme-dds-consumer.css",)
 
     def test_navigation_and_views_expose_only_builtin_dds_components(
         self, client: test.Client
@@ -152,9 +181,9 @@ class TestSettingsDdsGallery:
             with test.override_settings(
                 DJ_DESIGN_SYSTEM=settings_dds_gallery.DJ_DESIGN_SYSTEM
             ):
-                assert dds_settings_mod.dds_settings.GALLERY_INCLUDE_APPS == [
-                    "dj_design_system"
-                ]
+                assert config_service.get_gallery_settings().include_apps == (
+                    "dj_design_system",
+                )
                 visible = visibility_service.get_gallery_components()
                 visible_apps = {info.app_label for info in visible}
                 assert visible_apps == {"dj_design_system"}
@@ -221,16 +250,18 @@ class TestConsumerDdsComponentShadowing:
 
         try:
             with test.override_settings(
-                DJ_DESIGN_SYSTEM={
-                    "COMPONENT_DIRECTORIES": {
-                        "demo_single": {
-                            "dds_overrides": {
-                                "prefix": "dds",
-                                "flatten": dds_types.FlattenStrategy.ALL,
+                DJ_DESIGN_SYSTEM=DesignSystemSettings(
+                    apps={
+                        "demo_single": AppSettings(
+                            directories={
+                                "dds_overrides": DirectorySettings(
+                                    prefix="dds",
+                                    flatten=dds_types.FlattenStrategy.ALL,
+                                )
                             }
-                        }
+                        )
                     }
-                }
+                )
             ):
                 reg = registry_service.ComponentRegistry()
                 conftest.discover_app_into_registry(
@@ -265,16 +296,17 @@ class TestUserFacingDocumentation:
     """Verify user-facing docs cover DDS architecture, tokens, and shadowing."""
 
     def test_docs_cover_dds_architecture_tokens_and_shadowing(self) -> None:
-        """Verify docs/gallery.md, docs/themes.md, and docs/api/settings.md."""
+        """Verify docs/gallery.md, docs/themes.md, docs/configuration.md, and docs/api/settings.md."""
         gallery_md = (DOCS_DIR / "gallery.md").read_text(encoding="utf-8")
         themes_md = (DOCS_DIR / "themes.md").read_text(encoding="utf-8")
+        config_md = (DOCS_DIR / "configuration.md").read_text(encoding="utf-8")
         settings_md = (DOCS_DIR / "api" / "settings.md").read_text(encoding="utf-8")
 
         for term in (
-            "GALLERY_INCLUDE_APPS",
-            "GALLERY_EXCLUDE_APPS",
+            "include_apps",
+            "exclude_apps",
             "settings_dds_gallery.py",
-            '"prefix": "dds"',
+            'prefix="dds"',
             "FlattenStrategy.ALL",
             "<dds-gallery-shell>",
             "<l-stack>",
@@ -291,8 +323,10 @@ class TestUserFacingDocumentation:
         ):
             assert term in themes_md
 
-        assert "GALLERY_INCLUDE_APPS" in settings_md
-        assert "GALLERY_EXCLUDE_APPS" in settings_md
+        assert "DesignSystemSettings" in config_md
+        assert "AppSettings" in config_md
+        assert "dj_design_system.config" in settings_md
+        assert "DesignSystemSettings" in settings_md
 
     def test_relative_markdown_links_resolve_in_updated_docs(self) -> None:
         """Ensure all relative file links outside fenced code blocks resolve."""
@@ -302,8 +336,17 @@ class TestUserFacingDocumentation:
         )
         link_pattern = re.compile(pattern=r"\[[^\]]+\]\(([^)#]+)(?:#[^)]+)?\)")
         doc_files = (
+            DOCS_DIR / "index.md",
+            DOCS_DIR / "quickstart.md",
+            DOCS_DIR / "configuration.md",
+            DOCS_DIR / "components.md",
             DOCS_DIR / "gallery.md",
             DOCS_DIR / "themes.md",
+            DOCS_DIR / "organisation.md",
+            DOCS_DIR / "templatetags.md",
+            DOCS_DIR / "registry.md",
+            DOCS_DIR / "testing.md",
+            DOCS_DIR / "api" / "index.md",
             DOCS_DIR / "api" / "settings.md",
         )
         for doc_file in doc_files:

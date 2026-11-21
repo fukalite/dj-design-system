@@ -2,10 +2,12 @@
 
 import pytest
 
+from dj_design_system import exceptions
 from dj_design_system.exceptions import (
     ComponentDoesNotExist,
     ComponentNotFoundError,
     ComponentValidationError,
+    DjDesignSystemDeprecationWarning,
     DJDesignSystemError,
     InvalidTagType,
     MultipleComponentsFound,
@@ -53,3 +55,7 @@ class TestExceptionHierarchy:
         err = exc_class("Something went wrong")
         assert err.message == "Something went wrong"
         assert str(err) == "Something went wrong"
+
+    def test_deprecation_warning_hierarchy(self) -> None:
+        assert issubclass(DjDesignSystemDeprecationWarning, DeprecationWarning)
+        assert not hasattr(exceptions, "RemovedInDjDS10Warning")

@@ -3,6 +3,7 @@ from unittest.mock import patch
 from django.templatetags.static import static
 from django.test import override_settings
 
+from dj_design_system.config import AppSettings, DesignSystemSettings, Theme
 from dj_design_system.data import ComponentMedia
 from dj_design_system.services.media import get_bundle_urls
 from dj_design_system.templatetags.design_components import (
@@ -146,28 +147,28 @@ class TestGlobalStylesheets:
     """Tests for the ``global_stylesheets`` template tag."""
 
     def test_empty_settings_return_empty_string(self):
-        """When both GLOBAL_CSS and GLOBAL_CSS_BUNDLES are empty, returns ''."""
+        """When both css and css_bundles are empty, returns ''."""
         with override_settings(
-            DJ_DESIGN_SYSTEM={"GLOBAL_CSS": [], "GLOBAL_CSS_BUNDLES": []}
+            DJ_DESIGN_SYSTEM=DesignSystemSettings(css=[], css_bundles=[])
         ):
             result = global_stylesheets()
         assert result == ""
 
     def test_renders_link_tag_for_single_static_path(self):
-        """A single GLOBAL_CSS path produces one ``<link rel="stylesheet">`` element."""
+        """A single css path produces one ``<link rel="stylesheet">`` element."""
         path = "myapp/base.css"
         with override_settings(
-            DJ_DESIGN_SYSTEM={"GLOBAL_CSS": [path], "GLOBAL_CSS_BUNDLES": []}
+            DJ_DESIGN_SYSTEM=DesignSystemSettings(css=[path], css_bundles=[])
         ):
             result = str(global_stylesheets())
         assert f'href="{static(path)}"' in result
         assert 'rel="stylesheet"' in result
 
     def test_renders_one_link_per_static_path(self):
-        """Two distinct GLOBAL_CSS paths produce two ``<link>`` elements."""
+        """Two distinct css paths produce two ``<link>`` elements."""
         paths = ["myapp/base.css", "myapp/theme.css"]
         with override_settings(
-            DJ_DESIGN_SYSTEM={"GLOBAL_CSS": paths, "GLOBAL_CSS_BUNDLES": []}
+            DJ_DESIGN_SYSTEM=DesignSystemSettings(css=paths, css_bundles=[])
         ):
             result = str(global_stylesheets())
         assert result.count("<link") == 2
@@ -175,22 +176,22 @@ class TestGlobalStylesheets:
     def test_no_script_tags_rendered(self):
         """``global_stylesheets`` must not emit any ``<script>`` elements."""
         with override_settings(
-            DJ_DESIGN_SYSTEM={
-                "GLOBAL_CSS": ["myapp/base.css"],
-                "GLOBAL_CSS_BUNDLES": [],
-            }
+            DJ_DESIGN_SYSTEM=DesignSystemSettings(
+                css=["myapp/base.css"],
+                css_bundles=[],
+            )
         ):
             result = str(global_stylesheets())
         assert "<script" not in result
 
     def test_renders_link_tag_from_bundle(self):
-        """A GLOBAL_CSS_BUNDLES entry produces a ``<link>`` from the chunk URL."""
+        """A css_bundles entry produces a ``<link>`` from the chunk URL."""
         chunk_url = "/static/main-abc123.css"
         with (
             patch(_WEBPACK_FLAG, True),
             patch(_WEBPACK_GET_FILES, return_value=[{"url": chunk_url}]),
             override_settings(
-                DJ_DESIGN_SYSTEM={"GLOBAL_CSS": [], "GLOBAL_CSS_BUNDLES": [("main",)]}
+                DJ_DESIGN_SYSTEM=DesignSystemSettings(css=[], css_bundles=[("main",)])
             ),
         ):
             result = str(global_stylesheets())
@@ -202,7 +203,7 @@ class TestGlobalStylesheets:
         with (
             patch(_WEBPACK_FLAG, False),
             override_settings(
-                DJ_DESIGN_SYSTEM={"GLOBAL_CSS": [], "GLOBAL_CSS_BUNDLES": [("main",)]}
+                DJ_DESIGN_SYSTEM=DesignSystemSettings(css=[], css_bundles=[("main",)])
             ),
         ):
             result = global_stylesheets()
@@ -216,10 +217,10 @@ class TestGlobalStylesheets:
             patch(_WEBPACK_FLAG, True),
             patch(_WEBPACK_GET_FILES, return_value=[{"url": chunk_url}]),
             override_settings(
-                DJ_DESIGN_SYSTEM={
-                    "GLOBAL_CSS": [static_path],
-                    "GLOBAL_CSS_BUNDLES": [("main",)],
-                }
+                DJ_DESIGN_SYSTEM=DesignSystemSettings(
+                    css=[static_path],
+                    css_bundles=[("main",)],
+                )
             ),
         ):
             result = str(global_stylesheets())
@@ -231,28 +232,28 @@ class TestGlobalScripts:
     """Tests for the ``global_scripts`` template tag."""
 
     def test_empty_settings_return_empty_string(self):
-        """When both GLOBAL_JS and GLOBAL_JS_BUNDLES are empty, returns ''."""
+        """When both js and js_bundles are empty, returns ''."""
         with override_settings(
-            DJ_DESIGN_SYSTEM={"GLOBAL_JS": [], "GLOBAL_JS_BUNDLES": []}
+            DJ_DESIGN_SYSTEM=DesignSystemSettings(js=[], js_bundles=[])
         ):
             result = global_scripts()
         assert result == ""
 
     def test_renders_script_tag_for_single_static_path(self):
-        """A single GLOBAL_JS path produces one ``<script src="...">`` element."""
+        """A single js path produces one ``<script src="...">`` element."""
         path = "myapp/base.js"
         with override_settings(
-            DJ_DESIGN_SYSTEM={"GLOBAL_JS": [path], "GLOBAL_JS_BUNDLES": []}
+            DJ_DESIGN_SYSTEM=DesignSystemSettings(js=[path], js_bundles=[])
         ):
             result = str(global_scripts())
         assert f'src="{static(path)}"' in result
         assert "<script" in result
 
     def test_renders_one_script_per_static_path(self):
-        """Two distinct GLOBAL_JS paths produce two ``<script>`` elements."""
+        """Two distinct js paths produce two ``<script>`` elements."""
         paths = ["myapp/base.js", "myapp/analytics.js"]
         with override_settings(
-            DJ_DESIGN_SYSTEM={"GLOBAL_JS": paths, "GLOBAL_JS_BUNDLES": []}
+            DJ_DESIGN_SYSTEM=DesignSystemSettings(js=paths, js_bundles=[])
         ):
             result = str(global_scripts())
         assert result.count("<script") == 2
@@ -260,19 +261,19 @@ class TestGlobalScripts:
     def test_no_link_tags_rendered(self):
         """``global_scripts`` must not emit any ``<link>`` elements."""
         with override_settings(
-            DJ_DESIGN_SYSTEM={"GLOBAL_JS": ["myapp/base.js"], "GLOBAL_JS_BUNDLES": []}
+            DJ_DESIGN_SYSTEM=DesignSystemSettings(js=["myapp/base.js"], js_bundles=[])
         ):
             result = str(global_scripts())
         assert "<link" not in result
 
     def test_renders_script_tag_from_bundle(self):
-        """A GLOBAL_JS_BUNDLES entry produces a ``<script>`` from the chunk URL."""
+        """A js_bundles entry produces a ``<script>`` from the chunk URL."""
         chunk_url = "/static/main-abc123.js"
         with (
             patch(_WEBPACK_FLAG, True),
             patch(_WEBPACK_GET_FILES, return_value=[{"url": chunk_url}]),
             override_settings(
-                DJ_DESIGN_SYSTEM={"GLOBAL_JS": [], "GLOBAL_JS_BUNDLES": [("main",)]}
+                DJ_DESIGN_SYSTEM=DesignSystemSettings(js=[], js_bundles=[("main",)])
             ),
         ):
             result = str(global_scripts())
@@ -283,7 +284,7 @@ class TestGlobalScripts:
         with (
             patch(_WEBPACK_FLAG, False),
             override_settings(
-                DJ_DESIGN_SYSTEM={"GLOBAL_JS": [], "GLOBAL_JS_BUNDLES": [("main",)]}
+                DJ_DESIGN_SYSTEM=DesignSystemSettings(js=[], js_bundles=[("main",)])
             ),
         ):
             result = global_scripts()
@@ -297,10 +298,10 @@ class TestGlobalScripts:
             patch(_WEBPACK_FLAG, True),
             patch(_WEBPACK_GET_FILES, return_value=[{"url": chunk_url}]),
             override_settings(
-                DJ_DESIGN_SYSTEM={
-                    "GLOBAL_JS": [static_path],
-                    "GLOBAL_JS_BUNDLES": [("main",)],
-                }
+                DJ_DESIGN_SYSTEM=DesignSystemSettings(
+                    js=[static_path],
+                    js_bundles=[("main",)],
+                )
             ),
         ):
             result = str(global_scripts())
@@ -356,16 +357,19 @@ class TestExternalAssetUrls:
         font_url = "https://fonts.googleapis.com/css2?family=Inter&display=swap"
         proto_rel = "//cdn.example.com/icons.css"
         with override_settings(
-            DJ_DESIGN_SYSTEM={
-                "GLOBAL_CSS": [font_url, proto_rel, "myapp/local.css"],
-                "GALLERY_THEMES": {
-                    "default": {
-                        "label": "Default",
-                        "css": ["https://cdn.example.com/theme.css"],
-                    }
+            DJ_DESIGN_SYSTEM=DesignSystemSettings(
+                css=[font_url, proto_rel, "myapp/local.css"],
+                themes={
+                    "default": Theme(
+                        value="default",
+                        label="Default",
+                        css=["https://cdn.example.com/theme.css"],
+                    )
                 },
-                "APP_CSS": {"myapp": ["http://cdn.example.com/app.css"]},
-            }
+                apps={
+                    "myapp": AppSettings(css=["http://cdn.example.com/app.css"]),
+                },
+            )
         ):
             result = str(global_stylesheets(app_label="myapp", theme="default"))
         assert (
@@ -380,16 +384,19 @@ class TestExternalAssetUrls:
     def test_global_scripts_preserves_external_urls(self):
         cdn_js = "https://cdn.example.com/vendor.js"
         with override_settings(
-            DJ_DESIGN_SYSTEM={
-                "GLOBAL_JS": [cdn_js, "myapp/local.js"],
-                "GALLERY_THEMES": {
-                    "default": {
-                        "label": "Default",
-                        "js": ["//cdn.example.com/theme.js"],
-                    }
+            DJ_DESIGN_SYSTEM=DesignSystemSettings(
+                js=[cdn_js, "myapp/local.js"],
+                themes={
+                    "default": Theme(
+                        value="default",
+                        label="Default",
+                        js=["//cdn.example.com/theme.js"],
+                    )
                 },
-                "APP_JS": {"myapp": ["http://cdn.example.com/app.js"]},
-            }
+                apps={
+                    "myapp": AppSettings(js=["http://cdn.example.com/app.js"]),
+                },
+            )
         ):
             result = str(global_scripts(app_label="myapp", theme="default"))
         assert f'src="{cdn_js}"' in result

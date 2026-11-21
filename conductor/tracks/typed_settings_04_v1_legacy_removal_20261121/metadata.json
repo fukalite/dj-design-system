@@ -1,0 +1,12 @@
+{
+  "id": "typed_settings_04_v1_legacy_removal_20261121",
+  "type": "chore",
+  "status": "completed",
+  "created_at": "2026-11-21T12:06:00Z",
+  "updated_at": "2026-11-21T14:08:00Z",
+  "initiative": "typed_settings",
+  "phase": 4,
+  "depends_on": [
+    "typed_settings_03_documentation_overhaul_20261121"
+  ]
+}

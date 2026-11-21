@@ -9,9 +9,9 @@ import markdown as markdown_lib
 from django.conf import settings
 from django.utils.safestring import mark_safe
 
+from dj_design_system.services import config as config_service
 from dj_design_system.services.markdown_canvas import CanvasExtension
 from dj_design_system.services.markdown_links import RelativeLinksExtension
-from dj_design_system.settings import dds_settings
 from dj_design_system.types import ColorScheme
 
 
@@ -53,7 +53,7 @@ def render_markdown_doc(
         "toc",
     ]
     extension_configs: dict = {}
-    style = dds_settings.GALLERY_CODEHILITE_STYLE
+    style = config_service.get_gallery_settings().codehilite_style
     if style:
         extensions.append("codehilite")
         extension_configs["codehilite"] = {

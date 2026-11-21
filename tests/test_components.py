@@ -2,7 +2,9 @@ import pytest
 from django.test import override_settings
 
 from dj_design_system.components import TagComponent
+from dj_design_system.config import AppSettings, DesignSystemSettings
 from dj_design_system.parameters.base import StrParam
+from dj_design_system.services.config import get_themes
 
 
 # ---------------------------------------------------------------------------
@@ -242,7 +244,9 @@ class TestComponentThemes:
         assert ThemeComponent.get_available_themes() == ["dark"]
 
     @override_settings(
-        DJ_DESIGN_SYSTEM={"APP_THEMES": {"tests": ["default", "custom"]}}
+        DJ_DESIGN_SYSTEM=DesignSystemSettings(
+            apps={"tests": AppSettings(themes=["default", "custom"])}
+        )
     )
     def test_available_themes_from_app_settings(self):
         class AppThemeComponent(TwoParamComponent):
@@ -257,9 +261,7 @@ class TestComponentThemes:
 
         FallbackComponent.get_app_label = classmethod(lambda cls: "nonexistent")
 
-        from dj_design_system.settings import get_themes
-
-        all_themes = [t.value for t in get_themes()]
+        all_themes = [t.value for t in get_themes().values()]
         assert FallbackComponent.get_available_themes() == all_themes
 
 

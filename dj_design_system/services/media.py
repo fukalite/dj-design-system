@@ -10,6 +10,7 @@ from dj_design_system.constants import (
     COMPONENTS_TEMPLATE_LOADER,
 )
 from dj_design_system.data import ComponentMedia
+from dj_design_system.types import WebpackBundleSpec
 
 try:
     from webpack_loader.utils import get_files as _webpack_get_files
@@ -49,20 +50,24 @@ def get_own_media(cls: Type) -> ComponentMedia | None:
     return ComponentMedia(css=css_raw, js=js_raw)
 
 
-def get_bundle_urls(bundles: list[tuple], extension: str) -> list[str]:
+def get_bundle_urls(bundles: Sequence[WebpackBundleSpec], extension: str) -> list[str]:
     """Return chunk URLs from webpack bundles, or an empty list.
 
-    Each entry in *bundles* is a tuple whose first element is the bundle name
-    and whose optional second element is the webpack_loader config name
-    (defaults to ``"DEFAULT"``).  Returns an empty list when
-    ``webpack_loader`` is not installed or *bundles* is empty.
+    Each entry in *bundles* is either a bundle name string or a tuple whose
+    first element is the bundle name and whose optional second element is the
+    webpack_loader config name (defaults to ``"DEFAULT"``). Returns an empty
+    list when ``webpack_loader`` is not installed or *bundles* is empty.
     """
     if not _WEBPACK_AVAILABLE or not bundles:
         return []
     urls: list[str] = []
-    for bundle_args in bundles:
-        bundle_name = bundle_args[0]
-        config = bundle_args[1] if len(bundle_args) > 1 else "DEFAULT"
+    for bundle_spec in bundles:
+        if isinstance(bundle_spec, str):
+            bundle_name = bundle_spec
+            config = "DEFAULT"
+        else:
+            bundle_name = bundle_spec[0]
+            config = bundle_spec[1] if len(bundle_spec) > 1 else "DEFAULT"
         for chunk in _webpack_get_files(
             bundle_name, extension=extension, config=config
         ):

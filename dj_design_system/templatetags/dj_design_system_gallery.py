@@ -5,6 +5,7 @@ from __future__ import annotations
 from django import template
 from django.template.loader import render_to_string
 
+from dj_design_system.services import config as config_service
 from dj_design_system.services import media as media_service
 from dj_design_system.services.canvas_renderer import build_canvas_srcdoc
 from dj_design_system.services.control_params import (
@@ -12,7 +13,6 @@ from dj_design_system.services.control_params import (
     get_control_param,
 )
 from dj_design_system.services.registry import component_registry
-from dj_design_system.settings import dds_settings, get_default_theme, get_theme
 from dj_design_system.types import Theme
 
 
@@ -32,7 +32,7 @@ def builtin_component_stylesheets() -> str:
 @register.simple_tag
 def gallery_extra_stylesheets() -> str:
     """Output ``<link>`` tags for user-configured gallery extra stylesheets."""
-    extra_paths = dds_settings.GALLERY_EXTRA_CSS or []
+    extra_paths = list(config_service.get_gallery_settings().extra_css)
     return media_service.build_link_tags(css_paths=extra_paths)
 
 
@@ -122,8 +122,8 @@ class CanvasNode(template.Node):
                     bare_fallback=SANDBOX_SUBMISSION_PARAM not in request.GET,
                 )
         if not theme_val:
-            theme_val = get_default_theme().value
-        return get_theme(theme_val)
+            theme_val = config_service.get_default_theme().value
+        return config_service.get_theme(identifier=theme_val)
 
     def render(self, context: template.Context) -> str:
         rendered_component = self.nodelist.render(context)

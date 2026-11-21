@@ -4,7 +4,14 @@ import pytest
 from django.test import Client, override_settings
 from django.urls import reverse
 
-from dj_design_system.settings import BUILTIN_CANVAS_BACKGROUNDS
+from dj_design_system.config import (
+    DDS_DEFAULT_CANVAS_BACKGROUNDS,
+    AppSettings,
+    CanvasSettings,
+    DesignSystemSettings,
+    GallerySettings,
+    Theme,
+)
 
 
 pytestmark = pytest.mark.django_db
@@ -104,10 +111,12 @@ class TestCanvasIframeView:
         assert "</html>" in content
 
     @override_settings(
-        DJ_DESIGN_SYSTEM={
-            "GALLERY_CANVAS_BACKGROUNDS": BUILTIN_CANVAS_BACKGROUNDS,
-            "GALLERY_CANVAS_DEFAULT_BACKGROUND": "light-grey",
-        }
+        DJ_DESIGN_SYSTEM=DesignSystemSettings(
+            canvas=CanvasSettings(
+                backgrounds=DDS_DEFAULT_CANVAS_BACKGROUNDS,
+                default_background="light-grey",
+            )
+        )
     )
     def test_default_background_class(self):
         client = Client()
@@ -117,10 +126,12 @@ class TestCanvasIframeView:
         assert "canvas-bg-light-grey" in content
 
     @override_settings(
-        DJ_DESIGN_SYSTEM={
-            "GALLERY_CANVAS_BACKGROUNDS": BUILTIN_CANVAS_BACKGROUNDS,
-            "GALLERY_CANVAS_DEFAULT_BACKGROUND": "light-grey",
-        }
+        DJ_DESIGN_SYSTEM=DesignSystemSettings(
+            canvas=CanvasSettings(
+                backgrounds=DDS_DEFAULT_CANVAS_BACKGROUNDS,
+                default_background="light-grey",
+            )
+        )
     )
     def test_custom_background_class(self):
         client = Client()
@@ -132,10 +143,12 @@ class TestCanvasIframeView:
         assert "canvas-bg-dark-grey" in content
 
     @override_settings(
-        DJ_DESIGN_SYSTEM={
-            "GALLERY_CANVAS_BACKGROUNDS": BUILTIN_CANVAS_BACKGROUNDS,
-            "GALLERY_CANVAS_DEFAULT_BACKGROUND": "light-grey",
-        }
+        DJ_DESIGN_SYSTEM=DesignSystemSettings(
+            canvas=CanvasSettings(
+                backgrounds=DDS_DEFAULT_CANVAS_BACKGROUNDS,
+                default_background="light-grey",
+            )
+        )
     )
     def test_invalid_background_falls_back_to_default(self):
         client = Client()
@@ -206,10 +219,10 @@ class TestCanvasIframeView:
 
     def test_canvas_iframe_loads_global_js(self):
         with override_settings(
-            DJ_DESIGN_SYSTEM={
-                "GALLERY_IS_PUBLIC": True,
-                "GLOBAL_JS": ["https://cdn.example.com/global.js"],
-            }
+            DJ_DESIGN_SYSTEM=DesignSystemSettings(
+                gallery=GallerySettings(is_public=True),
+                js=["https://cdn.example.com/global.js"],
+            )
         ):
             client = Client()
             url = reverse("gallery-canvas-iframe")
@@ -219,20 +232,23 @@ class TestCanvasIframeView:
 
     def test_external_urls_preserved_in_canvas_iframe(self):
         with override_settings(
-            DJ_DESIGN_SYSTEM={
-                "GALLERY_IS_PUBLIC": True,
-                "GLOBAL_CSS": ["https://fonts.googleapis.com/css2?family=Inter"],
-                "GALLERY_THEMES": {
-                    "default": {
-                        "label": "Default",
-                        "css": ["https://cdn.example.com/theme.css"],
-                        "js": ["//cdn.example.com/theme.js"],
-                    }
+            DJ_DESIGN_SYSTEM=DesignSystemSettings(
+                gallery=GallerySettings(is_public=True),
+                css=["https://fonts.googleapis.com/css2?family=Inter"],
+                themes={
+                    "default": Theme(
+                        value="default",
+                        label="Default",
+                        css=["https://cdn.example.com/theme.css"],
+                        js=["//cdn.example.com/theme.js"],
+                    )
                 },
-                "APP_CSS": {
-                    "demo_components": ["https://cdn.example.com/app.css?v=1&min=1"]
+                apps={
+                    "demo_components": AppSettings(
+                        css=["https://cdn.example.com/app.css?v=1&min=1"]
+                    )
                 },
-            }
+            )
         ):
             client = Client()
             url = reverse("gallery-canvas-iframe")

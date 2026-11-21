@@ -36,6 +36,7 @@ from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.parameters.base import DictParam, JSONParam, ListParam
 from dj_design_system.parameters.model import ModelParam
 from dj_design_system.services import canvas_renderer as canvas_renderer_service
+from dj_design_system.services import config as config_service
 from dj_design_system.services import media as media_service
 from dj_design_system.services.control_params import (
     CONTROL_PARAM_NAMES,
@@ -44,16 +45,8 @@ from dj_design_system.services.control_params import (
     get_control_param,
 )
 from dj_design_system.services.registry import component_registry
-from dj_design_system.settings import (
-    dds_settings,
-    get_app_static,
-    get_backgrounds,
-    get_default_background,
-    get_default_theme,
-    get_theme,
-)
 from dj_design_system.slots import SLOT_PARAM_PREFIX
-from dj_design_system.types import CanvasMode, ColorScheme, Theme
+from dj_design_system.types import CanvasBackground, CanvasMode, ColorScheme, Theme
 
 
 __all__ = [
@@ -688,17 +681,20 @@ def canvas_bg_class(
         query_params, "bg", bare_fallback=not declares_param(component_class, "bg")
     )
     if bg_param:
-        for bg in get_backgrounds():
-            if bg["value"] == bg_param:
-                return f"canvas-bg-{bg['value']}"
-        if theme_dict and isinstance(theme_dict.canvas_background, dict):
+        if bg_param in config_service.get_backgrounds():
+            return f"canvas-bg-{bg_param}"
+        if theme_dict and isinstance(
+            theme_dict.canvas_background, (CanvasBackground, dict)
+        ):
             if bg_param == f"theme-{theme_dict.value}":
                 return f"canvas-bg-theme-{theme_dict.value}"
         if (
             theme_dict
             and theme_dict.supports_dark_mode
             and theme_dict.dark_mode
-            and isinstance(theme_dict.dark_mode.canvas_background, dict)
+            and isinstance(
+                theme_dict.dark_mode.canvas_background, (CanvasBackground, dict)
+            )
         ):
             if bg_param == f"theme-{theme_dict.value}-dark":
                 return f"canvas-bg-theme-{theme_dict.value}-dark"
@@ -712,17 +708,16 @@ def canvas_bg_class(
     ):
         if isinstance(theme_dict.dark_mode.canvas_background, str):
             return f"canvas-bg-{theme_dict.dark_mode.canvas_background}"
-        if isinstance(theme_dict.dark_mode.canvas_background, dict):
+        if isinstance(theme_dict.dark_mode.canvas_background, (CanvasBackground, dict)):
             return f"canvas-bg-theme-{theme_dict.value}-dark"
 
     if theme_dict and theme_dict.canvas_background:
         if isinstance(theme_dict.canvas_background, str):
             return f"canvas-bg-{theme_dict.canvas_background}"
-        if isinstance(theme_dict.canvas_background, dict):
+        if isinstance(theme_dict.canvas_background, (CanvasBackground, dict)):
             return f"canvas-bg-theme-{theme_dict.value}"
 
-    default = get_default_background()
-    return f"canvas-bg-{default['value']}"
+    return f"canvas-bg-{config_service.get_default_background_slug()}"
 
 
 def resolve_canvas_iframe_color_scheme(
@@ -778,16 +773,19 @@ def resolve_canvas_iframe_theme(
 
     if theme_val not in available_theme_values:
         if available_theme_values:
-            default_theme_val = get_default_theme().value
+            default_theme_val = config_service.get_default_theme().value
             theme_val = (
                 default_theme_val
                 if default_theme_val in available_theme_values
                 else available_theme_values[0]
             )
         else:
-            theme_val = get_default_theme().value
+            theme_val = config_service.get_default_theme().value
 
-    return get_theme(theme_val) or get_default_theme()
+    return (
+        config_service.get_theme(identifier=theme_val)
+        or config_service.get_default_theme()
+    )
 
 
 def build_canvas_asset_tags(
@@ -818,13 +816,11 @@ def build_canvas_asset_tags(
             media_service.get_bundle_urls(theme_dict.dark_mode.js_bundles, "js")
         )
 
-    app_css, app_js = get_app_static(app_label)
-    app_css_bundles = media_service.get_bundle_urls(
-        (dds_settings.APP_CSS_BUNDLES or {}).get(app_label, []), "css"
-    )
-    app_js_bundles = media_service.get_bundle_urls(
-        (dds_settings.APP_JS_BUNDLES or {}).get(app_label, []), "js"
-    )
+    app_cfg = config_service.get_app_settings(app_label=app_label)
+    app_css = list(app_cfg.css)
+    app_js = list(app_cfg.js)
+    app_css_bundles = media_service.get_bundle_urls(app_cfg.css_bundles, "css")
+    app_js_bundles = media_service.get_bundle_urls(app_cfg.js_bundles, "js")
 
     extra_css: list[str] = []
     extra_js: list[str] = []
