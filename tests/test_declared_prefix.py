@@ -6,24 +6,12 @@ from unittest import mock
 import pytest
 from django.core.checks import Error
 from django.template import Library
+from django.template.loader import render_to_string
 
 from dj_design_system.checks import check_component_prefixes
 from dj_design_system.exceptions import ComponentDoesNotExist
 from dj_design_system.services.registry import ComponentRegistry, get_declared_prefix
 from tests.conftest import discover_app_into_registry
-
-
-@pytest.fixture()
-def prefixed_registry():
-    """demo_components discovered as if its AppConfig declared ``demo_x``."""
-    reg = ComponentRegistry()
-    discover_app_into_registry(
-        reg,
-        "example_project.demo_components",
-        "demo_components",
-        declared_prefix="demo_x",
-    )
-    return reg
 
 
 class TestGetDeclaredPrefix:
@@ -40,6 +28,11 @@ class TestGetDeclaredPrefix:
 
     def test_returns_none_without_the_attribute(self):
         assert get_declared_prefix(app_config=SimpleNamespace()) is None
+
+    @pytest.mark.parametrize("value", [3, ["dds_forms"]])
+    def test_ignores_non_strings_so_check_e004_can_report_them(self, value):
+        config = SimpleNamespace(dds_component_prefix=value)
+        assert get_declared_prefix(app_config=config) is None
 
 
 class TestPrefixedDiscovery:
@@ -78,6 +71,31 @@ class TestPrefixedDiscovery:
         assert reg.get_by_name(
             "button", app_label="demo_components"
         ).qualified_name == ("demo_x__button")
+
+
+class TestUsageDocs:
+    def render(self, *, qualified_only):
+        info = SimpleNamespace(
+            name="button",
+            qualified_name="demo_x__button",
+            is_builtin=False,
+            qualified_only=qualified_only,
+        )
+        return render_to_string(
+            "dj_design_system/gallery/panes/docs/usage.html",
+            {
+                "component_info": info,
+                "usage_examples": [],
+                "tag_signature_long": SimpleNamespace(minimal="{% demo_x__button %}"),
+            },
+        )
+
+    def test_prefixed_components_skip_the_qualified_section(self):
+        # Their minimal example already uses the qualified tag.
+        assert "Qualified tag usage" not in self.render(qualified_only=True)
+
+    def test_other_components_keep_the_qualified_section(self):
+        assert "Qualified tag usage" in self.render(qualified_only=False)
 
 
 class TestPrefixedLookupAndTags:
@@ -141,6 +159,9 @@ class TestPrefixChecks:
 
     def test_installed_apps_produce_no_messages(self):
         assert check_component_prefixes() == []
+
+    def test_empty_prefix_means_no_prefix(self):
+        assert self.run(("app", "")) == []
 
     def test_valid_unique_prefixes_pass(self):
         assert self.run(("dds_forms", "dds_forms"), ("dds_data", "dds_data")) == []

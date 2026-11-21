@@ -24,15 +24,18 @@ class TestInstanceParamConstruction:
         param = InstanceParam((int, "decimal.Decimal"))
         assert param.type == (int, Decimal)
 
-    @pytest.mark.parametrize("bad", [1, None, ()])
+    @pytest.mark.parametrize("bad", [1, None, (), (int, 3)])
     def test_rejects_anything_else(self, bad):
         with pytest.raises(TypeError, match="InstanceParam expects"):
             InstanceParam(bad)
 
-    def test_tuple_item_that_is_not_a_class_or_path_raises(self):
-        param = InstanceParam((int, 3))
-        with pytest.raises(TypeError, match="got 3"):
-            param.type
+    def test_bad_tuple_item_fails_before_importing_any_path(self, monkeypatch):
+        def fail(path):
+            raise AssertionError(f"imported {path}")
+
+        monkeypatch.setattr("dj_design_system.parameters.instance.import_string", fail)
+        with pytest.raises(TypeError, match="InstanceParam expects"):
+            InstanceParam(("decimal.Decimal", int, 3))
 
     def test_path_to_a_non_class_raises(self):
         param = InstanceParam("django.core.paginator.Paginator.page")

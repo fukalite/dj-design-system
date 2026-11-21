@@ -515,10 +515,15 @@ def get_declared_prefix(*, app_config: AppConfig) -> str | None:
             dds_component_prefix = "dds_forms"
 
     Its components then register only as ``{% dds_forms__<name> %}``,
-    whatever folder they sit in, with no short tag name.
+    whatever folder they sit in, with no short tag name. ``None`` and ``""``
+    mean no prefix. Any other non-string is ignored here and reported by
+    check E004.
     """
     prefix = getattr(app_config, PREFIX_ATTRIBUTE, None)
-    return prefix or None
+    # Anything else is left to check E004; discovery must not crash first.
+    if isinstance(prefix, str) and prefix:
+        return prefix
+    return None
 
 
 # Module-level singleton

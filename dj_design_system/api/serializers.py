@@ -10,7 +10,7 @@ from dj_design_system.exceptions import (
     ComponentDoesNotExist,
     MultipleComponentsFound,
 )
-from dj_design_system.parameters.base import _get_type_name
+from dj_design_system.parameters.base import get_type_name
 from dj_design_system.services.canvas import coerce_single, resolve_component
 from dj_design_system.services.registry import ComponentRegistry
 
@@ -89,7 +89,7 @@ class ComponentListSerializer:
         for param_name, spec in component_class.get_params().items():
             param_type = getattr(spec, "type", str)
             parameters[param_name] = {
-                "type": _get_type_name(param_type),
+                "type": get_type_name(param_type),
                 "required": getattr(spec, "required", True),
                 "default": self.serialize_default(getattr(spec, "default", None)),
                 "choices": self.serialize_choices(getattr(spec, "choices", None)),

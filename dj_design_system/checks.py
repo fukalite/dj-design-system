@@ -93,7 +93,7 @@ def check_component_prefixes(
 
     for app_config in apps.get_app_configs():
         prefix = getattr(app_config, PREFIX_ATTRIBUTE, None)
-        if prefix is None:
+        if prefix is None or prefix == "":
             continue
 
         # E004: must be a usable tag-name segment
