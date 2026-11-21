@@ -5,6 +5,7 @@ and variant child nodes in the navigation tree.
 """
 
 from dj_design_system.components.gallery.composites.nav_tree.nav_tree import NavTree
+from dj_design_system.config import DesignSystemSettings, GallerySettings
 from dj_design_system.data import ComponentInfo, NavNode
 from dj_design_system.gallery import GalleryConfig, Variant
 from dj_design_system.services.navigation import (
@@ -116,10 +117,10 @@ class TestNavigationOrder:
         assert child_slugs == ["aardvark", "bear", "zebra"]
 
     def test_gallery_nav_order_accepts_plain_strings(self, settings):
-        """GALLERY_NAV_ORDER can be configured using plain strings without importing NodeType."""
-        settings.DJ_DESIGN_SYSTEM = {
-            "GALLERY_NAV_ORDER": ["component", "folder", "variant", "document"],
-        }
+        """GallerySettings.nav_order can order children using plain slug strings without NodeType."""
+        settings.DJ_DESIGN_SYSTEM = DesignSystemSettings(
+            gallery=GallerySettings(nav_order=["top_btn", "actions"])
+        )
         grouped = make_info_with_config("grouped_btn", GalleryConfig(group="Actions"))
         top_level = make_info_with_config("top_btn", GalleryConfig())
 

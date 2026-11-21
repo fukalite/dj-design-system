@@ -8,6 +8,7 @@ from typing import Any
 
 from django.apps import apps
 from django.conf import settings as django_settings
+from django.core.exceptions import ImproperlyConfigured
 
 from dj_design_system.config import (
     DDS_DEFAULT_DOC_VARIANTS,
@@ -22,7 +23,6 @@ from dj_design_system.config import (
     _UnsetType,
 )
 from dj_design_system.constants import BUILTIN_APP_LABEL, BUILTIN_PREFIX
-from dj_design_system.services import _legacy_config
 from dj_design_system.types import (
     DarkModeConfig,
     DocVariantConfig,
@@ -37,7 +37,7 @@ from dj_design_system.types import (
 
 _DEFAULT_CONFIG: DesignSystemSettings = DesignSystemSettings()
 _APP_SETTINGS_CACHE: (
-    tuple[DesignSystemSettings | None, dict[str, ResolvedAppSettings]] | None
+    tuple[DesignSystemSettings, dict[str, ResolvedAppSettings]] | None
 ) = None
 
 
@@ -317,22 +317,6 @@ def resolve_doc_variants(
     return base_list
 
 
-KNOWN_LEGACY_KEYS: frozenset[str] = _legacy_config.KNOWN_LEGACY_KEYS
-
-
-def find_new_style_keys(*, raw: Mapping[str, Any]) -> list[str]:
-    """Return sorted new-style ``DesignSystemSettings`` field names found in *raw*."""
-    return _legacy_config.find_new_style_keys(raw=raw)
-
-
-def adapt_legacy_settings(*, raw: Mapping[str, Any]) -> DesignSystemSettings:
-    """Adapt a legacy flat ``DJ_DESIGN_SYSTEM`` dictionary into ``DesignSystemSettings``."""
-    return _legacy_config.adapt_legacy_settings(
-        raw=raw,
-        resolve_doc_variants_fn=resolve_doc_variants,
-    )
-
-
 def get_config() -> DesignSystemSettings:
     """Return the active ``DesignSystemSettings`` for the current Django settings."""
     raw = getattr(django_settings, "DJ_DESIGN_SYSTEM", None)
@@ -342,10 +326,11 @@ def get_config() -> DesignSystemSettings:
     if isinstance(raw, DesignSystemSettings):
         return raw
 
-    if isinstance(raw, Mapping):
-        return adapt_legacy_settings(raw=raw)
-
-    return _DEFAULT_CONFIG
+    raise ImproperlyConfigured(
+        f"settings.DJ_DESIGN_SYSTEM must be a DesignSystemSettings instance or None; "
+        f"got {type(raw).__name__}. Migrate legacy flat dict settings using "
+        "dj-design-system v0.10.x before upgrading to v1.0.0."
+    )
 
 
 def get_gallery_settings() -> GallerySettings:
@@ -580,26 +565,18 @@ def get_app_settings(*, app_label: str) -> ResolvedAppSettings:
     """Resolve effective settings for *app_label* across all tiers."""
     global _APP_SETTINGS_CACHE
 
-    raw = getattr(django_settings, "DJ_DESIGN_SYSTEM", None)
-    can_cache = apps.apps_ready and (
-        raw is None or isinstance(raw, DesignSystemSettings)
-    )
-
-    if can_cache:
-        cache_owner: DesignSystemSettings | None = (
-            raw if isinstance(raw, DesignSystemSettings) else None
-        )
-        if _APP_SETTINGS_CACHE is not None and _APP_SETTINGS_CACHE[0] is cache_owner:
+    config = get_config()
+    if apps.apps_ready:
+        if _APP_SETTINGS_CACHE is not None and _APP_SETTINGS_CACHE[0] is config:
             cached = _APP_SETTINGS_CACHE[1].get(app_label)
             if cached is not None:
                 return cached
         else:
-            _APP_SETTINGS_CACHE = (cache_owner, {})
+            _APP_SETTINGS_CACHE = (config, {})
 
-    config = get_config()
     resolved = _resolve_app_settings_uncached(app_label=app_label, config=config)
 
-    if can_cache and _APP_SETTINGS_CACHE is not None:
+    if apps.apps_ready and _APP_SETTINGS_CACHE is not None:
         _APP_SETTINGS_CACHE[1][app_label] = resolved
     return resolved
 
@@ -714,4 +691,3 @@ def clear_config_cache() -> None:
     """Invalidate configuration caches."""
     global _APP_SETTINGS_CACHE
     _APP_SETTINGS_CACHE = None
-    _legacy_config.clear_legacy_warning_cache()

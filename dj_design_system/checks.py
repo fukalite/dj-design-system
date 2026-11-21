@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import difflib
 import re
 from collections.abc import Mapping
 from pathlib import Path
@@ -43,9 +42,6 @@ def check_gallery_settings(
     elif isinstance(raw, DesignSystemSettings):
         raw_include = raw.gallery.include_apps
         raw_exclude = raw.gallery.exclude_apps
-    elif isinstance(raw, Mapping):
-        raw_include = raw.get("GALLERY_INCLUDE_APPS", None)
-        raw_exclude = raw.get("GALLERY_EXCLUDE_APPS", ())
     else:
         return messages
 
@@ -346,59 +342,6 @@ def _check_app_settings(
             )
 
 
-def _check_legacy_dict_settings(
-    *,
-    raw: Mapping[str, Any],
-    messages: list[checks.CheckMessage],
-) -> bool:
-    bad_new_keys = config_service.find_new_style_keys(raw=raw)
-    if bad_new_keys:
-        joined = ", ".join(repr(k) for k in bad_new_keys)
-        messages.append(
-            checks.Error(
-                f"settings.DJ_DESIGN_SYSTEM is a dict containing DesignSystemSettings field name(s): {joined}.",
-                hint="Assign DesignSystemSettings(...) directly to DJ_DESIGN_SYSTEM instead of a dict.",
-                id="dj_design_system.E020",
-            )
-        )
-        return False
-
-    messages.append(
-        checks.Warning(
-            "settings.DJ_DESIGN_SYSTEM uses deprecated legacy dict syntax scheduled for removal in 1.0.0.",
-            hint="Run `python manage.py migrate_dds_settings` to migrate to DesignSystemSettings(...).",
-            id="dj_design_system.W010",
-        )
-    )
-
-    if raw.get("COMPONENT_NAMESPACES"):
-        messages.append(
-            checks.Warning(
-                "DJ_DESIGN_SYSTEM['COMPONENT_NAMESPACES'] is deprecated and will be removed in 1.0.0.",
-                hint="Migrate namespace mappings to AppSettings(prefix=..., directories=...).",
-                id="dj_design_system.W011",
-            )
-        )
-
-    known_sorted = sorted(config_service.KNOWN_LEGACY_KEYS)
-    for key in sorted(str(k) for k in raw):
-        if key not in config_service.KNOWN_LEGACY_KEYS:
-            matches = difflib.get_close_matches(key, known_sorted, n=1)
-            hint = (
-                f"Did you mean '{matches[0]}'? Or migrate to DesignSystemSettings(...)."
-                if matches
-                else "Remove the unknown key or migrate to DesignSystemSettings(...)."
-            )
-            messages.append(
-                checks.Warning(
-                    f"Unknown key '{key}' in legacy DJ_DESIGN_SYSTEM dictionary.",
-                    hint=hint,
-                    id="dj_design_system.W012",
-                )
-            )
-    return True
-
-
 @checks.register("dj_design_system")
 def check_design_system_settings(
     app_configs: Any = None, **kwargs: Any
@@ -407,19 +350,21 @@ def check_design_system_settings(
     messages: list[checks.CheckMessage] = []
     raw = getattr(django_settings, "DJ_DESIGN_SYSTEM", None)
 
-    if raw is not None and not isinstance(raw, (DesignSystemSettings, Mapping)):
+    if raw is not None and not isinstance(raw, DesignSystemSettings):
+        hint = (
+            "Flat dict DJ_DESIGN_SYSTEM settings were removed in v1.0.0. "
+            "Assign DesignSystemSettings(...) or migrate via dj-design-system v0.10.x first."
+            if isinstance(raw, Mapping)
+            else "Assign DesignSystemSettings(...) to DJ_DESIGN_SYSTEM in settings.py."
+        )
         messages.append(
             checks.Error(
-                f"settings.DJ_DESIGN_SYSTEM must be a DesignSystemSettings instance, mapping, or None; got {type(raw).__name__}.",
-                hint="Assign DesignSystemSettings(...) to DJ_DESIGN_SYSTEM in settings.py.",
+                f"settings.DJ_DESIGN_SYSTEM must be a DesignSystemSettings instance or None; got {type(raw).__name__}.",
+                hint=hint,
                 id="dj_design_system.E009",
             )
         )
         return messages
-
-    if isinstance(raw, Mapping):
-        if not _check_legacy_dict_settings(raw=raw, messages=messages):
-            return messages
 
     installed_configs = {app.label: app for app in apps.get_app_configs()}
     for app_label, app_cfg in sorted(installed_configs.items()):

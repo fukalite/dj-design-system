@@ -5,6 +5,12 @@ from pathlib import Path
 import pytest
 from django.test import override_settings
 
+from dj_design_system.config import (
+    AppSettings,
+    DesignSystemSettings,
+    GallerySettings,
+    Theme,
+)
 from dj_design_system.services.markdown import render_markdown_doc
 
 
@@ -31,7 +37,11 @@ class TestRenderMarkdownService:
         assert "<table>" in html
         assert "<code>" in html
 
-    @override_settings(DJ_DESIGN_SYSTEM={"GALLERY_CODEHILITE_STYLE": "monokai"})
+    @override_settings(
+        DJ_DESIGN_SYSTEM=DesignSystemSettings(
+            gallery=GallerySettings(codehilite_style="monokai")
+        )
+    )
     def test_render_markdown_doc_codehilite(self, tmp_path: Path):
         doc = tmp_path / "code.md"
         doc.write_text("```python\nx = 42\n```", encoding="utf-8")
@@ -40,16 +50,18 @@ class TestRenderMarkdownService:
         assert "gallery-highlight" in html
 
     @override_settings(
-        DJ_DESIGN_SYSTEM={
-            "GALLERY_DEFAULT_THEME": "light",
-            "GALLERY_THEMES": {
-                "light": {"label": "Light", "css": ["themes/light.css"]},
-                "dark": {"label": "Dark", "css": ["themes/dark.css"]},
+        DJ_DESIGN_SYSTEM=DesignSystemSettings(
+            default_theme="light",
+            themes={
+                "light": Theme(label="Light", css=["themes/light.css"]),
+                "dark": Theme(label="Dark", css=["themes/dark.css"]),
             },
-            "APP_CSS": {
-                "demo_components": ["demo_components/app_bundle.css"],
+            apps={
+                "demo_components": AppSettings(
+                    css=["demo_components/app_bundle.css"],
+                ),
             },
-        }
+        )
     )
     def test_render_component_uses_validated_theme_and_owning_app_label(
         self, tmp_path: Path
@@ -118,15 +130,17 @@ class TestRenderMarkdownService:
             component_registry._components.remove(info)
 
     @override_settings(
-        DJ_DESIGN_SYSTEM={
-            "GALLERY_DEFAULT_THEME": "light",
-            "GALLERY_THEMES": {
-                "light": {"label": "Light", "css": ["themes/light.css"]},
+        DJ_DESIGN_SYSTEM=DesignSystemSettings(
+            default_theme="light",
+            themes={
+                "light": Theme(label="Light", css=["themes/light.css"]),
             },
-            "APP_CSS": {
-                "demo_components": ["demo_components/app_bundle.css"],
+            apps={
+                "demo_components": AppSettings(
+                    css=["demo_components/app_bundle.css"],
+                ),
             },
-        }
+        )
     )
     def test_render_folder_and_document_fallback_theme_and_owning_app_label(
         self, tmp_path: Path

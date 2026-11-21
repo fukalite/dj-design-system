@@ -9,9 +9,14 @@ import pytest
 from django import template, test, urls
 
 from dj_design_system import components, data, parameters
-from dj_design_system import settings as dds_settings_mod
 from dj_design_system import types as dds_types
+from dj_design_system.config import (
+    AppSettings,
+    DesignSystemSettings,
+    DirectorySettings,
+)
 from dj_design_system.services import canvas as canvas_service
+from dj_design_system.services import config as config_service
 from dj_design_system.services import navigation as navigation_service
 from dj_design_system.services import registry as registry_service
 from dj_design_system.services import visibility as visibility_service
@@ -119,10 +124,8 @@ class TestExampleProjectPedagogicalBreadth:
         assert any("```canvas" in md.read_text(encoding="utf-8") for md in md_files)
 
     @pytest.mark.django_db
-    def test_example_project_passes_system_checks_and_migration_check(self) -> None:
-        """Migrated example_project produces zero system check issues and passes --check."""
-        from django.core.management import call_command
-
+    def test_example_project_passes_system_checks(self) -> None:
+        """Migrated example_project produces zero system check issues."""
         from dj_design_system.checks import (
             check_design_system_settings,
             check_gallery_settings,
@@ -131,14 +134,12 @@ class TestExampleProjectPedagogicalBreadth:
         with test.override_settings(DJ_DESIGN_SYSTEM=base_settings.DJ_DESIGN_SYSTEM):
             assert check_gallery_settings() == []
             assert check_design_system_settings() == []
-            call_command("migrate_dds_settings", "--check")
 
         with test.override_settings(
             DJ_DESIGN_SYSTEM=settings_dds_gallery.DJ_DESIGN_SYSTEM
         ):
             assert check_gallery_settings() == []
             assert check_design_system_settings() == []
-            call_command("migrate_dds_settings", "--check")
 
     @pytest.mark.django_db
     def test_example_project_settings_render_all_gallery_views(
@@ -180,9 +181,9 @@ class TestSettingsDdsGallery:
             with test.override_settings(
                 DJ_DESIGN_SYSTEM=settings_dds_gallery.DJ_DESIGN_SYSTEM
             ):
-                assert dds_settings_mod.dds_settings.GALLERY_INCLUDE_APPS == [
-                    "dj_design_system"
-                ]
+                assert config_service.get_gallery_settings().include_apps == (
+                    "dj_design_system",
+                )
                 visible = visibility_service.get_gallery_components()
                 visible_apps = {info.app_label for info in visible}
                 assert visible_apps == {"dj_design_system"}
@@ -249,16 +250,18 @@ class TestConsumerDdsComponentShadowing:
 
         try:
             with test.override_settings(
-                DJ_DESIGN_SYSTEM={
-                    "COMPONENT_DIRECTORIES": {
-                        "demo_single": {
-                            "dds_overrides": {
-                                "prefix": "dds",
-                                "flatten": dds_types.FlattenStrategy.ALL,
+                DJ_DESIGN_SYSTEM=DesignSystemSettings(
+                    apps={
+                        "demo_single": AppSettings(
+                            directories={
+                                "dds_overrides": DirectorySettings(
+                                    prefix="dds",
+                                    flatten=dds_types.FlattenStrategy.ALL,
+                                )
                             }
-                        }
+                        )
                     }
-                }
+                )
             ):
                 reg = registry_service.ComponentRegistry()
                 conftest.discover_app_into_registry(

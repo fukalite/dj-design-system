@@ -8,6 +8,7 @@ from dj_design_system.components import (
     BlockComponent,
     TagComponent,
 )
+from dj_design_system.config import AppSettings, DesignSystemSettings, DirectorySettings
 from dj_design_system.data import ComponentInfo
 from dj_design_system.exceptions import (
     ComponentDoesNotExist,
@@ -16,7 +17,7 @@ from dj_design_system.exceptions import (
 )
 from dj_design_system.parameters import StrParam
 from dj_design_system.services.component import derive_name
-from dj_design_system.types import TagType
+from dj_design_system.types import FlattenStrategy, TagType
 from example_project.demo_components.components.alert import AlertComponent
 from example_project.demo_components.components.badge import BadgeComponent
 from example_project.demo_components.components.button.button import ButtonComponent
@@ -632,25 +633,33 @@ class TestDiscoverGalleryKwargs:
 
 
 class TestComponentNamespaces:
-    """Test namespace aliasing via COMPONENT_NAMESPACES."""
+    """Test namespace aliasing via DesignSystemSettings.apps."""
 
     @pytest.fixture
     def mock_settings(self, settings):
-        settings.DJ_DESIGN_SYSTEM = {
-            "COMPONENT_DIRECTORIES": {
-                "demo_components": {
-                    "": "ui",
-                    "button": "btn",
-                    "card": {"prefix": "cards", "flatten": False},
-                    "card.layouts": "layouts",
-                }
-            },
-            "COMPONENT_NAMESPACES": None,
-        }
+        settings.DJ_DESIGN_SYSTEM = DesignSystemSettings(
+            apps={
+                "demo_components": AppSettings(
+                    prefix="ui",
+                    flatten=FlattenStrategy.NONE,
+                    directories={
+                        "button": DirectorySettings(
+                            prefix="btn", flatten=FlattenStrategy.NONE
+                        ),
+                        "card": DirectorySettings(
+                            prefix="cards", flatten=FlattenStrategy.NONE
+                        ),
+                        "card.layouts": DirectorySettings(
+                            prefix="layouts", flatten=FlattenStrategy.NONE
+                        ),
+                    },
+                )
+            }
+        )
         yield settings
 
     def test_top_level_alias(self, mock_settings):
-        """Top-level component (relative_path='') matched by ''."""
+        """Top-level component (relative_path='') matched by AppSettings.prefix."""
         from dj_design_system.services.registry import ComponentRegistry
         from tests.conftest import discover_app_into_registry
 
@@ -663,7 +672,7 @@ class TestComponentNamespaces:
         assert info.qualified_name == "ui__badge"
 
     def test_simple_string_alias_flattens(self, mock_settings):
-        """Simple string alias flattens subfolders."""
+        """DirectorySettings with FlattenStrategy.NONE matches its directory prefix."""
         from dj_design_system.services.registry import ComponentRegistry
         from tests.conftest import discover_app_into_registry
 
@@ -688,14 +697,21 @@ class TestComponentNamespaces:
         assert info.qualified_name == "layouts__hero"
 
     def test_flatten_false_preserves_subfolders(self, mock_settings):
-        """When flatten=False, remaining path is preserved."""
+        """When flatten=FlattenStrategy.NONE, remaining path is preserved."""
         from dj_design_system.services.registry import ComponentRegistry
         from tests.conftest import discover_app_into_registry
 
-        mock_settings.DJ_DESIGN_SYSTEM = {
-            "COMPONENT_DIRECTORIES": {"demo_components": {"card": "cards"}},
-            "COMPONENT_NAMESPACES": None,
-        }
+        mock_settings.DJ_DESIGN_SYSTEM = DesignSystemSettings(
+            apps={
+                "demo_components": AppSettings(
+                    directories={
+                        "card": DirectorySettings(
+                            prefix="cards", flatten=FlattenStrategy.NONE
+                        ),
+                    }
+                )
+            }
+        )
         reg = ComponentRegistry()
         discover_app_into_registry(
             reg, "example_project.demo_components", "demo_components"
@@ -705,73 +721,24 @@ class TestComponentNamespaces:
         assert info.qualified_name == "cards__layouts__hero"
 
     def test_flatten_true_removes_subfolders(self, mock_settings):
-        """When flatten=True, remaining path is discarded."""
+        """When flatten=FlattenStrategy.ALL, remaining path is discarded."""
         from dj_design_system.services.registry import ComponentRegistry
         from tests.conftest import discover_app_into_registry
 
-        mock_settings.DJ_DESIGN_SYSTEM = {
-            "COMPONENT_DIRECTORIES": {
-                "demo_components": {"card": {"prefix": "cards", "flatten": True}}
-            },
-            "COMPONENT_NAMESPACES": None,
-        }
+        mock_settings.DJ_DESIGN_SYSTEM = DesignSystemSettings(
+            apps={
+                "demo_components": AppSettings(
+                    directories={
+                        "card": DirectorySettings(
+                            prefix="cards", flatten=FlattenStrategy.ALL
+                        ),
+                    }
+                )
+            }
+        )
         reg = ComponentRegistry()
         discover_app_into_registry(
             reg, "example_project.demo_components", "demo_components"
         )
         info = reg.get_info(HeroCardComponent)
         assert info.qualified_name == "cards__hero"
-
-
-class TestParseAliasConfig:
-    def test_parses_string(self):
-        from dj_design_system.services.registry import ComponentRegistry
-        from dj_design_system.types import FlattenStrategy
-
-        prefix, flatten = ComponentRegistry._parse_alias_config("my_prefix")
-        assert prefix == "my_prefix"
-        assert flatten == FlattenStrategy.NONE
-
-    def test_parses_dict_with_namespace(self):
-        from dj_design_system.services.registry import ComponentRegistry
-        from dj_design_system.types import FlattenStrategy
-
-        prefix, flatten = ComponentRegistry._parse_alias_config(
-            {"namespace": "my_prefix"}
-        )
-        assert prefix == "my_prefix"
-        assert flatten == FlattenStrategy.NONE
-
-    def test_parses_dict_with_flatten_str(self):
-        from dj_design_system.services.registry import ComponentRegistry
-        from dj_design_system.types import FlattenStrategy
-
-        prefix, flatten = ComponentRegistry._parse_alias_config({"flatten": "leaf"})
-        assert prefix is None
-        assert flatten == FlattenStrategy.LEAF
-
-    def test_parses_dict_with_flatten_invalid_str(self):
-        from dj_design_system.services.registry import ComponentRegistry
-        from dj_design_system.types import FlattenStrategy
-
-        prefix, flatten = ComponentRegistry._parse_alias_config({"flatten": "invalid"})
-        assert prefix is None
-        assert flatten == FlattenStrategy.NONE
-
-    def test_parses_dict_with_flatten_enum(self):
-        from dj_design_system.services.registry import ComponentRegistry
-        from dj_design_system.types import FlattenStrategy
-
-        prefix, flatten = ComponentRegistry._parse_alias_config(
-            {"flatten": FlattenStrategy.ALL}
-        )
-        assert prefix is None
-        assert flatten == FlattenStrategy.ALL
-
-    def test_parses_dict_with_flatten_invalid_type(self):
-        from dj_design_system.services.registry import ComponentRegistry
-        from dj_design_system.types import FlattenStrategy
-
-        prefix, flatten = ComponentRegistry._parse_alias_config({"flatten": 123})
-        assert prefix is None
-        assert flatten == FlattenStrategy.NONE

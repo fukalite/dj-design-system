@@ -6,6 +6,7 @@ from django.templatetags.static import static
 from django.test import RequestFactory, override_settings
 
 from dj_design_system.api.views import ComponentRenderView
+from dj_design_system.config import DesignSystemSettings
 from dj_design_system.data import ComponentMedia
 
 
@@ -168,10 +169,10 @@ class TestComponentRenderView:
         view = ComponentRenderView.as_view(registry=registry_with_demo_components)
         with (
             override_settings(
-                DJ_DESIGN_SYSTEM={
-                    "GLOBAL_CSS": ["https://fonts.googleapis.com/css2?family=Inter"],
-                    "GLOBAL_JS": ["HTTPS://cdn.example.com/vendor.js"],
-                }
+                DJ_DESIGN_SYSTEM=DesignSystemSettings(
+                    css=["https://fonts.googleapis.com/css2?family=Inter"],
+                    js=["HTTPS://cdn.example.com/vendor.js"],
+                )
             ),
             patch("dj_design_system.api.views.get_component_media", return_value=media),
         ):

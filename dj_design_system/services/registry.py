@@ -3,7 +3,7 @@ import pkgutil
 from collections.abc import Iterable
 from importlib import import_module
 from pathlib import Path
-from typing import Any, Type
+from typing import Type
 
 from dj_design_system.constants import (
     BUILTIN_APP_LABEL,
@@ -155,50 +155,18 @@ class ComponentRegistry:
             self._bind_template(info)
             self._components.append(info)
 
-    @staticmethod
-    def _parse_alias_config(
-        alias_config: str | dict[str, Any],
-    ) -> tuple[str | None, FlattenStrategy]:
-        """Parse a single directory alias configuration.
-
-        Returns the configured prefix (or None) and the flatten strategy.
-        """
-        if isinstance(alias_config, str):
-            return alias_config, FlattenStrategy.NONE
-
-        prefix = alias_config.get("prefix")
-        if prefix is None:
-            prefix = alias_config.get("namespace")
-
-        flatten_val = alias_config.get("flatten", FlattenStrategy.NONE)
-        if flatten_val is True:
-            flatten = FlattenStrategy.ALL
-        elif flatten_val is False:
-            flatten = FlattenStrategy.NONE
-        elif isinstance(flatten_val, str):
-            try:
-                flatten = FlattenStrategy(flatten_val)
-            except ValueError:
-                flatten = FlattenStrategy.NONE
-        elif isinstance(flatten_val, FlattenStrategy):
-            flatten = flatten_val
-        else:
-            flatten = FlattenStrategy.NONE
-
-        return prefix, flatten
-
     def _resolve_namespace_prefix(
         self, app_label: str, relative_path: str
     ) -> tuple[str, tuple[str, ...], FlattenStrategy] | None:
         """
         Resolve an alias prefix for the given app and relative path.
 
-        Finds the longest matching path key in the namespaces configuration,
+        Finds the longest matching path key in the app's configured directories,
         checking the full path and progressively removing rightmost components.
 
         Built-in components always use the ``dds`` prefix with
         ``FlattenStrategy.ALL`` (e.g. ``dds__button``, ``dds__gallery_shell``);
-        ``COMPONENT_DIRECTORIES`` cannot remove the ``dds`` prefix.
+        ``AppSettings`` cannot override the built-in ``dds`` prefix.
         """
         if app_label == BUILTIN_APP_LABEL:
             builtin_parts = tuple(relative_path.split(".")) if relative_path else ()

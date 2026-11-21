@@ -33,14 +33,22 @@ class TestGallerySettingsChecks:
         assert messages == []
 
     def test_e001_invalid_include_apps_type(self) -> None:
-        with override_settings(DJ_DESIGN_SYSTEM={"GALLERY_INCLUDE_APPS": "not-a-list"}):
+        with override_settings(
+            DJ_DESIGN_SYSTEM=DesignSystemSettings(
+                gallery=GallerySettings(include_apps="not-a-list")
+            )
+        ):
             messages = check_gallery_settings()
         assert len(messages) == 1
         assert isinstance(messages[0], Error)
         assert messages[0].id == "dj_design_system.E001"
 
     def test_e002_invalid_exclude_apps_type(self) -> None:
-        with override_settings(DJ_DESIGN_SYSTEM={"GALLERY_EXCLUDE_APPS": 123}):
+        with override_settings(
+            DJ_DESIGN_SYSTEM=DesignSystemSettings(
+                gallery=GallerySettings(exclude_apps=123)
+            )
+        ):
             messages = check_gallery_settings()
         assert len(messages) == 1
         assert isinstance(messages[0], Error)
@@ -48,10 +56,12 @@ class TestGallerySettingsChecks:
 
     def test_e003_overlapping_apps(self) -> None:
         with override_settings(
-            DJ_DESIGN_SYSTEM={
-                "GALLERY_INCLUDE_APPS": ["demo_components", "demo_single"],
-                "GALLERY_EXCLUDE_APPS": ["demo_single"],
-            }
+            DJ_DESIGN_SYSTEM=DesignSystemSettings(
+                gallery=GallerySettings(
+                    include_apps=("demo_components", "demo_single"),
+                    exclude_apps=("demo_single",),
+                )
+            )
         ):
             messages = check_gallery_settings()
         error_ids = [m.id for m in messages if isinstance(m, Error)]
@@ -61,10 +71,12 @@ class TestGallerySettingsChecks:
 
     def test_w001_redundant_exclude_apps_when_include_set(self) -> None:
         with override_settings(
-            DJ_DESIGN_SYSTEM={
-                "GALLERY_INCLUDE_APPS": ["demo_components"],
-                "GALLERY_EXCLUDE_APPS": ["demo_single"],
-            }
+            DJ_DESIGN_SYSTEM=DesignSystemSettings(
+                gallery=GallerySettings(
+                    include_apps=("demo_components",),
+                    exclude_apps=("demo_single",),
+                )
+            )
         ):
             messages = check_gallery_settings()
         warning_ids = [m.id for m in messages if isinstance(m, Warning)]
@@ -72,9 +84,9 @@ class TestGallerySettingsChecks:
 
     def test_w002_uninstalled_apps(self) -> None:
         with override_settings(
-            DJ_DESIGN_SYSTEM={
-                "GALLERY_INCLUDE_APPS": ["non_existent_app_foo"],
-            }
+            DJ_DESIGN_SYSTEM=DesignSystemSettings(
+                gallery=GallerySettings(include_apps=("non_existent_app_foo",))
+            )
         ):
             messages = check_gallery_settings()
         warning_ids = [m.id for m in messages if isinstance(m, Warning)]
@@ -84,9 +96,9 @@ class TestGallerySettingsChecks:
 
     def test_django_check_runner_finds_registered_check(self) -> None:
         with override_settings(
-            DJ_DESIGN_SYSTEM={
-                "GALLERY_INCLUDE_APPS": ["non_existent_app_bar"],
-            }
+            DJ_DESIGN_SYSTEM=DesignSystemSettings(
+                gallery=GallerySettings(include_apps=("non_existent_app_bar",))
+            )
         ):
             all_messages = run_checks(tags=["dj_design_system"])
         assert any(m.id == "dj_design_system.W002" for m in all_messages)
@@ -162,6 +174,14 @@ class TestTypedSettingsSystemChecks:
             messages = check_design_system_settings()
         error_ids = [m.id for m in messages if isinstance(m, Error)]
         assert "dj_design_system.E009" in error_ids
+
+    def test_e009_rejects_plain_dict_dj_design_system(self) -> None:
+        with override_settings(DJ_DESIGN_SYSTEM={"DESIGN_SYSTEM_NAME": "Legacy"}):
+            messages = check_design_system_settings()
+            gallery_messages = check_gallery_settings()
+        error_ids = [m.id for m in messages if isinstance(m, Error)]
+        assert error_ids == ["dj_design_system.E009"]
+        assert gallery_messages == []
 
     def test_e010_invalid_app_config_design_system_type(self) -> None:
         bad_app = SimpleNamespace(

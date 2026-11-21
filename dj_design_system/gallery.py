@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from dj_design_system.exceptions import RemovedInDjDS10Warning
+from dj_design_system.exceptions import DjDesignSystemDeprecationWarning
 
 
 if TYPE_CHECKING:
@@ -169,7 +169,7 @@ class GalleryConfig:
         extra_context: Context variables passed to preview templates.
         param_defaults: Mapping of param names to default values or callables.
         doc_variants: Optional component-level documentation variant overrides (mapping or sequence)
-            layered on top of the global ``GALLERY_DOC_VARIANTS`` setting.
+            layered on top of the global ``GallerySettings.doc_variants`` setting.
         variants: List of named Variant instances. To construct from dictionary mappings,
             use ``GalleryConfig.from_dict(...)``.
     """
@@ -319,9 +319,9 @@ def load_gallery_config(source_dir: Path, component_name: str) -> GalleryConfig:
     if basic_kwargs is not None or maximal_kwargs is not None:
         warnings.warn(
             f"Component '{component_name}' defines legacy 'basic_kwargs' or 'maximal_kwargs' "
-            f"in '{gallery_path.name}'. Defining kwargs directly in gallery files is deprecated "
-            "and will be removed in 1.0.0. Export 'config = GalleryConfig(...)' instead.",
-            RemovedInDjDS10Warning,
+            f"in '{gallery_path.name}'. Defining kwargs directly in gallery files is deprecated. "
+            "Export 'config = GalleryConfig(...)' instead.",
+            DjDesignSystemDeprecationWarning,
             stacklevel=2,
         )
         variants: list[Variant] = []

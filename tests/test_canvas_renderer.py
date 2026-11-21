@@ -3,6 +3,13 @@ from pathlib import Path
 import pytest
 from django.test import override_settings
 
+from dj_design_system.config import (
+    AppSettings,
+    CanvasBackground,
+    DarkModeConfig,
+    DesignSystemSettings,
+    Theme,
+)
 from dj_design_system.constants import BUILTIN_APP_LABEL, BUILTIN_GALLERY_CSS
 from dj_design_system.data import ComponentMedia
 from dj_design_system.services.canvas_renderer import (
@@ -13,8 +20,8 @@ from dj_design_system.services.canvas_renderer import (
     build_theme_app_media,
     render_canvas_block,
 )
-from dj_design_system.settings import get_backgrounds, get_theme
-from dj_design_system.types import ColorScheme, DarkModeConfig, Theme
+from dj_design_system.services.config import get_backgrounds, get_theme
+from dj_design_system.types import ColorScheme
 
 
 @pytest.mark.django_db
@@ -91,23 +98,26 @@ class TestCanvasRenderer:
 
     def test_srcdoc_preserves_external_urls(self):
         with override_settings(
-            DJ_DESIGN_SYSTEM={
-                "GLOBAL_CSS": ["https://fonts.googleapis.com/css2?family=Inter"],
-                "GALLERY_THEMES": {
-                    "default": {
-                        "label": "Default",
-                        "css": ["https://cdn.example.com/theme.css"],
-                        "js": ["//cdn.example.com/theme.js"],
-                    }
+            DJ_DESIGN_SYSTEM=DesignSystemSettings(
+                css=["https://fonts.googleapis.com/css2?family=Inter"],
+                themes={
+                    "default": Theme(
+                        value="default",
+                        label="Default",
+                        css=["https://cdn.example.com/theme.css"],
+                        js=["//cdn.example.com/theme.js"],
+                    )
                 },
-                "APP_CSS": {
-                    "demo_components": ["https://cdn.example.com/app.css?v=1&min=1"]
+                apps={
+                    "demo_components": AppSettings(
+                        css=["https://cdn.example.com/app.css?v=1&min=1"]
+                    )
                 },
-            }
+            )
         ):
             srcdoc = build_canvas_srcdoc(
                 "<p>Hi</p>",
-                theme_dict=get_theme("default"),
+                theme_dict=get_theme(identifier="default"),
                 app_label="demo_components",
             )
         assert 'href="https://fonts.googleapis.com/css2?family=Inter"' in srcdoc
@@ -117,7 +127,9 @@ class TestCanvasRenderer:
 
     def test_srcdoc_loads_global_js_before_component_js(self):
         with override_settings(
-            DJ_DESIGN_SYSTEM={"GLOBAL_JS": ["https://cdn.example.com/global.js"]}
+            DJ_DESIGN_SYSTEM=DesignSystemSettings(
+                js=["https://cdn.example.com/global.js"]
+            )
         ):
             srcdoc = build_canvas_srcdoc(
                 "<p>Hi</p>",
@@ -131,7 +143,7 @@ class TestCanvasRenderer:
         theme = Theme(
             value="midnight",
             label="Midnight",
-            canvas_background={"color": "#123456"},
+            canvas_background=CanvasBackground(color="#123456"),
         )
         srcdoc = build_canvas_srcdoc(
             rendered_html="<p>themed</p>",
@@ -146,17 +158,14 @@ class TestBuildCanvasBgStyles:
     def test_body_follows_wrapper_background(self):
         """The body is painted too, so space below a basic-mode wrapper matches (#111)."""
         styles = build_canvas_bg_styles()
-        for bg in get_backgrounds():
-            assert (
-                f".canvas-bg-{bg['value']}, body:has(.canvas-bg-{bg['value']})"
-                in styles
-            )
+        for slug in get_backgrounds():
+            assert f".canvas-bg-{slug}, body:has(.canvas-bg-{slug})" in styles
 
     def test_theme_background_rule(self):
         theme = Theme(
             value="midnight",
             label="Midnight",
-            canvas_background={"color": "#123456"},
+            canvas_background=CanvasBackground(color="#123456"),
         )
         styles = build_canvas_bg_styles(theme_dict=theme)
         assert (
@@ -296,9 +305,9 @@ class TestCanvasRendererColorScheme:
         theme = Theme(
             value="brand",
             label="Brand",
-            canvas_background={"color": "#ffffff"},
+            canvas_background=CanvasBackground(color="#ffffff"),
             dark_mode=DarkModeConfig(
-                canvas_background={"color": "#111111"},
+                canvas_background=CanvasBackground(color="#111111"),
             ),
         )
         styles = build_canvas_bg_styles(theme_dict=theme)

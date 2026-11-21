@@ -3,7 +3,7 @@
 import pytest
 from django.template import Context, Template
 
-from dj_design_system.settings import get_default_theme
+from dj_design_system.services.config import get_default_theme
 
 
 pytestmark = pytest.mark.django_db

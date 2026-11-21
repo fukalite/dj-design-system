@@ -6,7 +6,9 @@ import pytest
 from django.templatetags.static import static
 from django.test import override_settings
 
+from dj_design_system.config import DesignSystemSettings, GallerySettings
 from dj_design_system.data import ComponentMedia
+from dj_design_system.services import config as config_service
 from dj_design_system.services.markdown_canvas import (
     CanvasExtension,
     CanvasPreprocessor,
@@ -336,11 +338,13 @@ class TestCodehilite:
         assert "gallery-highlight" in result
         assert "<span" in result
 
-    @override_settings(DJ_DESIGN_SYSTEM={"GALLERY_CODEHILITE_STYLE": ""})
+    @override_settings(
+        DJ_DESIGN_SYSTEM=DesignSystemSettings(
+            gallery=GallerySettings(codehilite_style="")
+        )
+    )
     def test_codehilite_disabled_when_style_empty(self):
-        from dj_design_system.settings import dds_settings
-
-        assert dds_settings.GALLERY_CODEHILITE_STYLE == ""
+        assert config_service.get_gallery_settings().codehilite_style == ""
 
 
 # ---------------------------------------------------------------------------

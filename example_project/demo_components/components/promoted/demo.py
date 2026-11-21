@@ -4,7 +4,7 @@ from dj_design_system import components
 
 
 class PromotedDemoComponent(components.BlockComponent):
-    """A simple component demonstrating ``promote_to_app`` in ``COMPONENT_DIRECTORIES``."""
+    """A simple component demonstrating ``DirectorySettings(promote_to_app=True)``."""
 
     class Meta:
         name = "demo"

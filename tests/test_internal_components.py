@@ -9,6 +9,12 @@ from django.test import override_settings
 
 from dj_design_system.components import TagComponent
 from dj_design_system.components.base import BuiltinComponent
+from dj_design_system.config import (
+    AppSettings,
+    DesignSystemSettings,
+    DirectorySettings,
+)
+from dj_design_system.constants import BUILTIN_APP_LABEL
 from dj_design_system.exceptions import ComponentDoesNotExist
 from dj_design_system.services import canvas_renderer, markdown_canvas
 from dj_design_system.services.canvas import resolve_component
@@ -126,20 +132,27 @@ class TestBuiltinQualifiedName:
         assert info.qualified_name == "consumer_app__secret"
 
     @pytest.mark.parametrize(
-        "directories",
+        "app_settings",
         [
-            {"": "custom"},
-            {"elements": {"prefix": "custom", "flatten": False}},
+            AppSettings(prefix="custom"),
+            AppSettings(
+                directories={
+                    "elements": DirectorySettings(
+                        prefix="custom",
+                        flatten=FlattenStrategy.NONE,
+                    )
+                }
+            ),
         ],
     )
     def test_component_directories_cannot_remove_dds_prefix(
-        self, builtin_modules, directories
+        self, builtin_modules, app_settings
     ):
         builtin_modules(BUILTINS)
         with override_settings(
-            DJ_DESIGN_SYSTEM={
-                "COMPONENT_DIRECTORIES": {"dj_design_system": directories}
-            }
+            DJ_DESIGN_SYSTEM=DesignSystemSettings(
+                apps={BUILTIN_APP_LABEL: app_settings}
+            )
         ):
             reg = ComponentRegistry()
             _add_builtins(reg)
@@ -193,16 +206,18 @@ class TestTemplateTags:
         override_mod.CrumbComponent = CrumbComponent
 
         with override_settings(
-            DJ_DESIGN_SYSTEM={
-                "COMPONENT_DIRECTORIES": {
-                    "consumer_app": {
-                        "overrides": {
-                            "prefix": "dds",
-                            "flatten": FlattenStrategy.ALL,
+            DJ_DESIGN_SYSTEM=DesignSystemSettings(
+                apps={
+                    "consumer_app": AppSettings(
+                        directories={
+                            "overrides": DirectorySettings(
+                                prefix="dds",
+                                flatten=FlattenStrategy.ALL,
+                            )
                         }
-                    }
+                    )
                 }
-            }
+            )
         ):
             reg = ComponentRegistry()
             if builtins_first:

@@ -10,6 +10,14 @@ from django.test import override_settings
 from django.urls import reverse
 
 from dj_design_system.components import BlockComponent
+from dj_design_system.config import (
+    CanvasBackground,
+    CanvasSettings,
+    DarkModeConfig,
+    DesignSystemSettings,
+    GallerySettings,
+    Theme,
+)
 from dj_design_system.data import ParamRowData
 from dj_design_system.forms import build_component_form
 from dj_design_system.parameters.base import JSONParam, StrParam
@@ -276,12 +284,12 @@ class TestGalleryComponentView:
         assert 'data-icon="moon"' not in sidebar_footer
 
     def test_both_theme_selectors_operate_independently(self, client, settings):
-        settings.DJ_DESIGN_SYSTEM = {
-            "GALLERY_THEMES": {
-                "light": {"label": "Light"},
-                "dark": {"label": "Dark"},
+        settings.DJ_DESIGN_SYSTEM = DesignSystemSettings(
+            themes={
+                "light": Theme(label="Light"),
+                "dark": Theme(label="Dark"),
             }
-        }
+        )
         url = reverse(
             "gallery-node",
             kwargs={"app_label": "demo_components", "path": "alert"},
@@ -367,14 +375,14 @@ class TestGalleryComponentView:
         assert 'data-gallery-ui-theme="classic"' in content
 
     def test_custom_gallery_ui_theme_without_dark_mode(self, client, settings):
-        settings.DJ_DESIGN_SYSTEM = {
-            "GALLERY_UI_THEMES": {
-                "minimal": {
-                    "label": "Minimal Theme",
+        settings.DJ_DESIGN_SYSTEM = DesignSystemSettings(
+            gallery=GallerySettings(
+                ui_themes={
+                    "minimal": Theme(label="Minimal Theme"),
                 },
-            },
-            "GALLERY_DEFAULT_UI_THEME": "minimal",
-        }
+                default_ui_theme="minimal",
+            )
+        )
         url = reverse(
             "gallery-node",
             kwargs={"app_label": "demo_components", "path": "alert"},
@@ -390,20 +398,22 @@ class TestGalleryComponentView:
         assert "Minimal Theme theme does not support dark mode" in content
 
     def test_custom_gallery_ui_theme_with_dark_mode_and_assets(self, client, settings):
-        settings.DJ_DESIGN_SYSTEM = {
-            "GALLERY_UI_THEMES": {
-                "cyber": {
-                    "label": "Cyberpunk",
-                    "css": ["css/cyber.css"],
-                    "js": ["js/cyber.js"],
-                    "dark_mode": {
-                        "css": ["css/cyber-dark.css"],
-                        "js": ["js/cyber-dark.js"],
-                    },
+        settings.DJ_DESIGN_SYSTEM = DesignSystemSettings(
+            gallery=GallerySettings(
+                ui_themes={
+                    "cyber": Theme(
+                        label="Cyberpunk",
+                        css=("css/cyber.css",),
+                        js=("js/cyber.js",),
+                        dark_mode=DarkModeConfig(
+                            css=("css/cyber-dark.css",),
+                            js=("js/cyber-dark.js",),
+                        ),
+                    ),
                 },
-            },
-            "GALLERY_DEFAULT_UI_THEME": "cyber",
-        }
+                default_ui_theme="cyber",
+            )
+        )
         url = reverse(
             "gallery-node",
             kwargs={"app_label": "demo_components", "path": "alert"},
@@ -431,15 +441,15 @@ class TestGalleryComponentView:
     def test_dark_mode_toggle_enabled_on_markdown_document_when_theme_supports_dark_mode(
         self, client, settings
     ):
-        settings.DJ_DESIGN_SYSTEM = {
-            "GALLERY_THEMES": {
-                "custom": {
-                    "label": "Custom Theme",
-                    "dark_mode": {},
-                }
+        settings.DJ_DESIGN_SYSTEM = DesignSystemSettings(
+            themes={
+                "custom": Theme(
+                    label="Custom Theme",
+                    dark_mode=DarkModeConfig(),
+                )
             },
-            "GALLERY_DEFAULT_THEME": "custom",
-        }
+            default_theme="custom",
+        )
         url = "/dds/demo_nav/design_guidelines/"
         response = client.get(url)
         assert response.status_code == 200
@@ -452,15 +462,15 @@ class TestGalleryComponentView:
     def test_dark_mode_toggle_falls_back_to_default_theme_on_markdown_document(
         self, client, settings
     ):
-        settings.DJ_DESIGN_SYSTEM = {
-            "GALLERY_THEMES": {
-                "custom": {
-                    "label": "Custom Theme",
-                    "dark_mode": {},
-                }
+        settings.DJ_DESIGN_SYSTEM = DesignSystemSettings(
+            themes={
+                "custom": Theme(
+                    label="Custom Theme",
+                    dark_mode=DarkModeConfig(),
+                )
             },
-            "GALLERY_DEFAULT_THEME": "custom",
-        }
+            default_theme="custom",
+        )
         client.cookies["dds_theme"] = "nonexistent_stale_theme"
         url = "/dds/demo_nav/design_guidelines/"
         response = client.get(url)
@@ -509,7 +519,9 @@ class TestGalleryComponentView:
         from dj_design_system.services.navigation import clear_navigation_cache
 
         with override_settings(
-            DJ_DESIGN_SYSTEM={"GALLERY_INCLUDE_APPS": ["dj_design_system"]}
+            DJ_DESIGN_SYSTEM=DesignSystemSettings(
+                gallery=GallerySettings(include_apps=("dj_design_system",))
+            )
         ):
             clear_navigation_cache()
             try:
@@ -537,7 +549,9 @@ class TestGalleryComponentView:
         from dj_design_system.services.navigation import clear_navigation_cache
 
         with override_settings(
-            DJ_DESIGN_SYSTEM={"GALLERY_INCLUDE_APPS": ["dj_design_system"]}
+            DJ_DESIGN_SYSTEM=DesignSystemSettings(
+                gallery=GallerySettings(include_apps=("dj_design_system",))
+            )
         ):
             clear_navigation_cache()
             try:
@@ -987,30 +1001,32 @@ class TestParamsTable:
 class TestSmokeAllPages:
     """Walk the entire navigation tree and assert every page renders."""
 
-    MULTI_THEME_SETTINGS = {
-        "GALLERY_THEMES": {
-            "theme_a": {
-                "label": "Theme A",
-                "canvas_background": "white",
-                "html_attrs": {"html": {"class": "theme-a"}},
-                "dark_mode": {
-                    "canvas_background": {"color": "rgb(18, 19, 23)"},
-                    "html_attrs": {"html": {"class": "theme-a is-dark"}},
-                },
-            },
-            "dark": {
-                "label": "Dark Theme",
-                "canvas_background": {"color": "#f9f6f0"},
-                "html_attrs": {"html": {"class": "theme-b"}},
-            },
+    MULTI_THEME_SETTINGS = DesignSystemSettings(
+        themes={
+            "theme_a": Theme(
+                label="Theme A",
+                canvas_background="white",
+                html_attrs={"html": {"class": "theme-a"}},
+                dark_mode=DarkModeConfig(
+                    canvas_background=CanvasBackground(color="rgb(18, 19, 23)"),
+                    html_attrs={"html": {"class": "theme-a is-dark"}},
+                ),
+            ),
+            "dark": Theme(
+                label="Dark Theme",
+                canvas_background=CanvasBackground(color="#f9f6f0"),
+                html_attrs={"html": {"class": "theme-b"}},
+            ),
         },
-        "GALLERY_DEFAULT_THEME": "theme_a",
-        "GALLERY_UI_THEMES": {
-            "desert": {"label": "Desert", "dark_mode": {}},
-            "classic": {"label": "Classic"},
-        },
-        "GALLERY_DEFAULT_UI_THEME": "desert",
-    }
+        default_theme="theme_a",
+        gallery=GallerySettings(
+            ui_themes={
+                "desert": Theme(label="Desert", dark_mode=DarkModeConfig()),
+                "classic": Theme(label="Classic"),
+            },
+            default_ui_theme="desert",
+        ),
+    )
 
     def test_every_nav_node_returns_200(self, client):
         """Every node in the nav tree should have a resolvable URL that returns 200."""
@@ -1184,13 +1200,17 @@ class TestToolbarButtons:
 class TestGalleryAccessRequired:
     """Test the gallery_access_required decorator when gallery is not public."""
 
-    @override_settings(DJ_DESIGN_SYSTEM={"GALLERY_IS_PUBLIC": False})
+    @override_settings(
+        DJ_DESIGN_SYSTEM=DesignSystemSettings(gallery=GallerySettings(is_public=False))
+    )
     def test_unauthenticated_redirects(self, client):
         response = client.get(reverse("gallery"))
         assert response.status_code == 302
         assert "/accounts/login/" in response["Location"]
 
-    @override_settings(DJ_DESIGN_SYSTEM={"GALLERY_IS_PUBLIC": False})
+    @override_settings(
+        DJ_DESIGN_SYSTEM=DesignSystemSettings(gallery=GallerySettings(is_public=False))
+    )
     def test_unauthenticated_redirect_encodes_next(self, client):
         """Characters decoded from the path must not break the login query string."""
         gallery = reverse("gallery")
@@ -1199,14 +1219,16 @@ class TestGalleryAccessRequired:
         query = parse_qs(urlsplit(response["Location"]).query)
         assert query["next"] == [f"{gallery}demo&next%3Dhttps://evil.example/"]
 
-    @override_settings(DJ_DESIGN_SYSTEM={"GALLERY_IS_PUBLIC": False})
+    @override_settings(
+        DJ_DESIGN_SYSTEM=DesignSystemSettings(gallery=GallerySettings(is_public=False))
+    )
     def test_unauthenticated_redirect_preserves_query_string(self, client):
         response = client.get(reverse("gallery") + "?theme=dark")
         assert response.status_code == 302
         assert f"next={reverse('gallery')}%3Ftheme%3Ddark" in response["Location"]
 
     @override_settings(
-        DJ_DESIGN_SYSTEM={"GALLERY_IS_PUBLIC": False},
+        DJ_DESIGN_SYSTEM=DesignSystemSettings(gallery=GallerySettings(is_public=False)),
         LOGIN_URL="https://sso.example.com/login/",
     )
     def test_unauthenticated_redirect_supports_absolute_login_url(self, client):
@@ -1214,7 +1236,9 @@ class TestGalleryAccessRequired:
         assert response.status_code == 302
         assert response["Location"].startswith("https://sso.example.com/login/?next=")
 
-    @override_settings(DJ_DESIGN_SYSTEM={"GALLERY_IS_PUBLIC": False})
+    @override_settings(
+        DJ_DESIGN_SYSTEM=DesignSystemSettings(gallery=GallerySettings(is_public=False))
+    )
     def test_authenticated_without_permission_is_forbidden(
         self, client, django_user_model
     ):
@@ -1223,7 +1247,9 @@ class TestGalleryAccessRequired:
         response = client.get(reverse("gallery"))
         assert response.status_code == 403
 
-    @override_settings(DJ_DESIGN_SYSTEM={"GALLERY_IS_PUBLIC": False})
+    @override_settings(
+        DJ_DESIGN_SYSTEM=DesignSystemSettings(gallery=GallerySettings(is_public=False))
+    )
     def test_authenticated_with_permission_allowed(self, client, django_user_model):
         user = django_user_model.objects.create_user(username="privileged")
         perm = Permission.objects.get(codename="can_view_gallery")
@@ -1241,7 +1267,11 @@ class TestGalleryAccessRequired:
 class TestRenderMarkdown:
     """Test _render_markdown internals."""
 
-    @override_settings(DJ_DESIGN_SYSTEM={"GALLERY_CODEHILITE_STYLE": ""})
+    @override_settings(
+        DJ_DESIGN_SYSTEM=DesignSystemSettings(
+            gallery=GallerySettings(codehilite_style="")
+        )
+    )
     def test_no_codehilite_when_style_empty(self, client):
         """A document page renders without codehilite when the style is empty."""
 
@@ -1275,15 +1305,17 @@ class TestRenderMarkdown:
 
 @pytest.mark.django_db
 class TestCanvasHtmlAttrs:
-    """Test that GALLERY_CANVAS_HTML_ATTRS is reflected in the canvas iframe."""
+    """Test that CanvasSettings.html_attrs is reflected in the canvas iframe."""
 
     @override_settings(
-        DJ_DESIGN_SYSTEM={
-            "GALLERY_CANVAS_HTML_ATTRS": {
-                "html": {"class": "govuk-template"},
-                "body": {"class": "govuk-template__body"},
-            }
-        }
+        DJ_DESIGN_SYSTEM=DesignSystemSettings(
+            canvas=CanvasSettings(
+                html_attrs={
+                    "html": {"class": "govuk-template"},
+                    "body": {"class": "govuk-template__body"},
+                }
+            )
+        )
     )
     def test_html_attrs_in_canvas_response(self, client):
         from django.urls import reverse
@@ -1344,19 +1376,19 @@ class TestThinViewsAndImmutableParams:
 class TestComponentThemeOverride:
     """Tests for Issue #124: gallery component theme override indication."""
 
-    TWO_THEMES_SETTINGS = {
-        "GALLERY_THEMES": {
-            "default": {
-                "label": "Default Theme",
-                "html_attrs": {"html": {"data-theme": "default"}},
-            },
-            "dark": {
-                "label": "Dark Theme",
-                "html_attrs": {"html": {"data-theme": "dark"}},
-            },
+    TWO_THEMES_SETTINGS = DesignSystemSettings(
+        themes={
+            "default": Theme(
+                label="Default Theme",
+                html_attrs={"html": {"data-theme": "default"}},
+            ),
+            "dark": Theme(
+                label="Dark Theme",
+                html_attrs={"html": {"data-theme": "dark"}},
+            ),
         },
-        "GALLERY_DEFAULT_THEME": "default",
-    }
+        default_theme="default",
+    )
 
     def test_component_theme_override_when_unsupported_theme_selected(
         self, client, settings

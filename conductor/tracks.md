@@ -14,7 +14,7 @@
 - [x] **Track: Documentation Overhaul & API Reference**
   *Link: [./tracks/typed_settings_03_documentation_overhaul_20261121/index.md](./tracks/typed_settings_03_documentation_overhaul_20261121/index.md)*
 
-- [ ] **Track: v1.0.0 Legacy Settings Removal**
+- [x] **Track: v1.0.0 Legacy Settings Removal**
   *Link: [./tracks/typed_settings_04_v1_legacy_removal_20261121/index.md](./tracks/typed_settings_04_v1_legacy_removal_20261121/index.md)*
 
 ---

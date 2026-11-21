@@ -5,7 +5,9 @@ from __future__ import annotations
 from types import SimpleNamespace
 from unittest import mock
 
+import pytest
 from django.apps import apps
+from django.core.exceptions import ImproperlyConfigured
 from django.core.signals import setting_changed
 from django.test import override_settings
 
@@ -51,12 +53,15 @@ class TestRootConfigResolution:
             assert config_service.get_gallery_settings().enabled is False
             assert config_service.get_default_background().color == "#fff1e0"
 
-    def test_legacy_dict_not_stale_on_in_place_mutation(self) -> None:
-        raw: dict[str, object] = {"DESIGN_SYSTEM_NAME": "Initial"}
-        with override_settings(DJ_DESIGN_SYSTEM=raw):
-            assert config_service.get_config().name == "Initial"
-            raw["DESIGN_SYSTEM_NAME"] = "Mutated"
-            assert config_service.get_config().name == "Mutated"
+    def test_plain_dict_raises_improperly_configured(self) -> None:
+        with override_settings(DJ_DESIGN_SYSTEM={"DESIGN_SYSTEM_NAME": "Legacy"}):
+            with pytest.raises(ImproperlyConfigured, match="DesignSystemSettings"):
+                config_service.get_config()
+
+    def test_non_settings_type_raises_improperly_configured(self) -> None:
+        with override_settings(DJ_DESIGN_SYSTEM="invalid"):
+            with pytest.raises(ImproperlyConfigured, match="DesignSystemSettings"):
+                config_service.get_config()
 
 
 class TestFourTierAppResolution:

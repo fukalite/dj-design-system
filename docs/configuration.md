@@ -260,19 +260,17 @@ Run `python manage.py check --tag dj_design_system` to validate configuration pr
 | --- | --- | --- |
 | `E001`–`E003` | Error | Invalid `include_apps` / `exclude_apps` types or overlapping entries. |
 | `E004`–`E006` | Error | Invalid prefix syntax (`^[a-z][a-z0-9_]*$`, no `__`), reserved whole-app `"dds"` prefix, or duplicate effective app prefix across installed apps. |
-| `E009` | Error | `settings.DJ_DESIGN_SYSTEM` has an invalid type or fails schema validation. |
+| `E009` | Error | `settings.DJ_DESIGN_SYSTEM` is not a `DesignSystemSettings` instance or `None` (including removed legacy `dict` settings), or fails schema validation. |
 | `E010` | Error | `AppConfig.design_system` is set to a non-`AppSettings` value. |
 | `E011` | Error | `apps["dj_design_system"]` attempts to override `prefix`, `flatten`, or `short_names`. |
 | `E012` | Error | `Theme.value` does not match its mapping key in `themes` or `gallery.ui_themes`. |
 | `E013` | Error | `promote_to_app=True` root slug collides with an installed app, another promoted directory, or a nested promoted parent/child. |
-| `E020` | Error | Legacy `DJ_DESIGN_SYSTEM` dict contains `DesignSystemSettings` field names (`name`, `gallery`, `canvas`, `apps`, etc.). |
 | `W001`–`W002` | Warning | Redundant `exclude_apps` alongside `include_apps`, or uninstalled app in visibility lists. |
 | `W003` | Warning | Key in `DesignSystemSettings.apps` is not in `INSTALLED_APPS`. |
 | `W004` | Warning | `default_theme`, `default_ui_theme`, or `default_background` is missing from its mapping. |
 | `W005` | Warning | `Theme.canvas_background` or `DarkModeConfig.canvas_background` slug is not in `canvas.backgrounds`. |
 | `W006` | Warning | `AppSettings.themes` references an unknown theme slug or is empty `()`. |
 | `W007` | Warning | Configured `AppSettings.directories` path does not exist under the app's `components/` folder. |
-| `W010`–`W012` | Warning | Legacy flat `DJ_DESIGN_SYSTEM` dict (`W010`), `COMPONENT_NAMESPACES` (`W011`), or unknown legacy dict key with closest-match hint (`W012`). |
 
 ---
 
@@ -321,47 +319,8 @@ TEMPLATES = [
 
 ---
 
-## Migrating from Legacy Dict Settings
+## Upgrading from `v0.9.x`
 
-Flat `DJ_DESIGN_SYSTEM = {...}` dictionaries remain supported throughout `v0.10.x` (emitting `RemovedInDjDS10Warning` and check `W010`) and will be removed in `v1.0.0`.
+Support for flat `DJ_DESIGN_SYSTEM = {...}` dictionaries, `dds_settings`, `COMPONENT_NAMESPACES`, and `manage.py migrate_dds_settings` was removed in `v1.0.0`. Passing a plain `dict` as `DJ_DESIGN_SYSTEM` now fails `manage.py check --tag dj_design_system` with `dj_design_system.E009` and raises `ImproperlyConfigured` at runtime.
 
-### Automated Migration Command
-
-Run `migrate_dds_settings` to print the equivalent typed configuration to `stdout` without mutating any files:
-
-```bash
-# Print DesignSystemSettings(...) for settings.py
-python manage.py migrate_dds_settings
-
-# Split local apps into AppConfig.design_system snippets (third-party apps stay in settings.py)
-python manage.py migrate_dds_settings --split-apps
-
-# Emit snippet for specific app(s) only
-python manage.py migrate_dds_settings --app demo_components
-
-# CI gate: exit non-zero if legacy dict settings or unresolved # MANUAL: hints remain
-python manage.py migrate_dds_settings --check
-```
-
-Pass `--no-format` to skip `ruff format -`, or `--include-defaults` to emit every default-valued field explicitly. Dynamic expressions (`os.environ`, `BASE_DIR`, `**` dict unpacking, `lambda`, `functools.partial`) are flagged with `# MANUAL:` comments for review.
-
-### Legacy Key Mapping
-
-| Legacy Dict Key | Typed Location |
-| --- | --- |
-| `DESIGN_SYSTEM_NAME` | `DesignSystemSettings.name` |
-| `GLOBAL_CSS`, `GLOBAL_JS` | `DesignSystemSettings.css`, `.js` |
-| `GLOBAL_CSS_BUNDLES`, `GLOBAL_JS_BUNDLES` | `DesignSystemSettings.css_bundles`, `.js_bundles` |
-| `GALLERY_THEMES`, `GALLERY_DEFAULT_THEME` | `DesignSystemSettings.themes`, `.default_theme` |
-| `ENABLE_GALLERY` | `GallerySettings.enabled` |
-| `GALLERY_IS_PUBLIC` | `GallerySettings.is_public` |
-| `GALLERY_NAV_ORDER` | `GallerySettings.nav_order` (also `AppSettings` / `DirectorySettings`) |
-| `GALLERY_UI_THEMES`, `GALLERY_DEFAULT_UI_THEME` | `GallerySettings.ui_themes`, `.default_ui_theme` |
-| `GALLERY_INCLUDE_APPS`, `GALLERY_EXCLUDE_APPS` | `GallerySettings.include_apps`, `.exclude_apps` |
-| `GALLERY_EXTRA_CSS`, `GALLERY_CODEHILITE_STYLE` | `GallerySettings.extra_css`, `.codehilite_style` |
-| `GALLERY_DOC_VARIANTS` | `GallerySettings.doc_variants` |
-| `GALLERY_CANVAS_BACKGROUNDS`, `GALLERY_CANVAS_EXTRA_BACKGROUNDS` | `CanvasSettings.backgrounds` (`{**DDS_DEFAULT_CANVAS_BACKGROUNDS, ...}`) |
-| `GALLERY_CANVAS_DEFAULT_BACKGROUND` | `CanvasSettings.default_background` |
-| `GALLERY_CANVAS_HTML_ATTRS` | `CanvasSettings.html_attrs` |
-| `APP_THEMES`, `APP_CSS`, `APP_JS`, `APP_CSS_BUNDLES`, `APP_JS_BUNDLES`, `APP_CANVAS_HTML_ATTRS` | `AppConfig.design_system` or `DesignSystemSettings.apps[label]` (`AppSettings`) |
-| `COMPONENT_DIRECTORIES`, `COMPONENT_NAMESPACES` | `AppSettings.{prefix, flatten, label, order, nav_order, directories}` (`DirectorySettings`) |
+To migrate an existing `v0.9.x` project automatically, upgrade to the `v0.10.x` stepping-stone release first, run `python manage.py migrate_dds_settings` (and verify with `--check`), and then upgrade to `v1.0.0`.

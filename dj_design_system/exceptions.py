@@ -44,10 +44,6 @@ class DjDesignSystemDeprecationWarning(DeprecationWarning):
     """Base deprecation warning for dj-design-system APIs."""
 
 
-class RemovedInDjDS10Warning(DjDesignSystemDeprecationWarning):
-    """Feature or setting scheduled for removal in dj-design-system 1.0.0."""
-
-
 __all__ = [
     "ComponentDoesNotExist",
     "ComponentNotFoundError",
@@ -56,7 +52,6 @@ __all__ = [
     "DjDesignSystemDeprecationWarning",
     "InvalidTagType",
     "MultipleComponentsFound",
-    "RemovedInDjDS10Warning",
     "SlotParameterCollisionError",
     "VariantNotFoundError",
 ]
