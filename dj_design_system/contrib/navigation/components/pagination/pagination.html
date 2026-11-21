@@ -6,13 +6,13 @@
                 {% if previous_url %}
                     <a href="{{ previous_url }}" rel="prev">{% translate "Previous" %}</a>
                 {% else %}
-                    <span aria-disabled="true">{% translate "Previous" %}</span>
+                    <a role="link" aria-disabled="true">{% translate "Previous" %}</a>
                 {% endif %}
             </li>
             {% for item in items %}
                 <li>
                     {% if item.is_ellipsis %}
-                        <span>{{ item.label }}</span>
+                        <span aria-hidden="true">{{ item.label }}</span>
                     {% elif item.is_current %}
                         <a href="{{ item.url }}" aria-current="page">{{ item.number }}</a>
                     {% else %}
@@ -24,7 +24,7 @@
                 {% if next_url %}
                     <a href="{{ next_url }}" rel="next">{% translate "Next" %}</a>
                 {% else %}
-                    <span aria-disabled="true">{% translate "Next" %}</span>
+                    <a role="link" aria-disabled="true">{% translate "Next" %}</a>
                 {% endif %}
             </li>
         </ul>

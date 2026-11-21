@@ -8,6 +8,7 @@ from django.template import Context, Template
 from dj_design_system import component_registry
 from dj_design_system.contrib.navigation.components.pagination.pagination import (
     PaginationComponent,
+    PaginationItem,
 )
 
 
@@ -45,16 +46,16 @@ class TestLinks:
 
     def test_first_page_disables_previous(self):
         html = PaginationComponent(page=page(50, 1)).render()
-        assert '<span aria-disabled="true">Previous</span>' in html
+        assert '<a role="link" aria-disabled="true">Previous</a>' in html
         assert 'rel="next"' in html
 
     def test_last_page_disables_next(self):
         html = PaginationComponent(page=page(50, 5)).render()
-        assert '<span aria-disabled="true">Next</span>' in html
+        assert '<a role="link" aria-disabled="true">Next</a>' in html
 
     def test_long_range_is_elided(self):
         html = PaginationComponent(page=page(500, 25), on_each_side=1).render()
-        assert html.count("<span>…</span>") == 2
+        assert html.count('<span aria-hidden="true">…</span>') == 2
         assert 'href="?page=24"' in html and 'href="?page=26"' in html
         assert 'href="?page=10"' not in html
         assert 'href="?page=1"' in html and 'href="?page=50"' in html
@@ -101,6 +102,18 @@ class TestMarkup:
         html = PaginationComponent(page=page(50, 1), label="Results pages").render()
         assert '<nav aria-label="Results pages">' in html
 
+    def test_label_defaults_to_translated_pagination(self):
+        html = PaginationComponent(page=page(50, 1)).render()
+        assert '<nav aria-label="Pagination">' in html
+
+    def test_default_label_goes_through_gettext(self, monkeypatch):
+        monkeypatch.setattr(
+            "dj_design_system.contrib.navigation.components.pagination.pagination.gettext",
+            lambda text: f"[{text}]",
+        )
+        html = PaginationComponent(page=page(50, 1)).render()
+        assert '<nav aria-label="[Pagination]">' in html
+
     def test_unstyled(self):
         html = PaginationComponent(page=page(50, 1)).render()
         assert "class=" not in html
@@ -130,6 +143,16 @@ class TestGallery:
         assert "dds_navigation__pagination" in html
         assert "page_obj" in html  # GalleryParameter code, not the object
 
+    def test_live_usage_keeps_the_page_argument(self, client):
+        # Editing a sandbox field must not drop the InstanceParam from the
+        # usage snippet: it comes from the sandbox's variant.
+        response = client.get("/dds/dds_navigation/pagination/?label=Results")
+        assert response.status_code == 200
+        signature = response.context["current_signature"]
+        assert signature is not None
+        assert "page_obj" in signature.minimal
+        assert 'label="Results"' in signature.minimal
+
     @pytest.mark.parametrize("variant", ["basic", "maximal", "first_page"])
     def test_variant_canvases_render_the_sample_page(self, client, variant):
         response = client.get(
@@ -145,3 +168,35 @@ class TestGallery:
             "&_dds_variant=maximal&_dds_mode=basic"
         )
         assert "q=report&amp;sort=-date&amp;page=24" in response.content.decode()
+
+
+class TestExplicitNone:
+    def test_none_falls_back_to_the_defaults(self):
+        component = PaginationComponent(
+            page=page(500, 25), page_param=None, on_each_side=None, on_ends=None
+        )
+        assert component.page_url(3) == "?page=3"
+        numbers = [item.number for item in component.get_items()]
+        assert numbers == [1, None, 23, 24, 25, 26, 27, None, 50]
+
+    def test_empty_page_param_falls_back_to_page(self):
+        component = PaginationComponent(page=page(50, 1), page_param="")
+        assert component.page_url(2) == "?page=2"
+
+
+class TestItems:
+    def test_items_are_frozen_dataclasses(self):
+        items = PaginationComponent(page=page(500, 25)).get_items()
+        assert all(isinstance(item, PaginationItem) for item in items)
+        assert items[1].is_ellipsis and items[1].label == "…"
+        current = next(item for item in items if item.is_current)
+        assert (current.number, current.url) == (25, "?page=25")
+
+    def test_hidden_component_skips_building_links(self, monkeypatch):
+        component = PaginationComponent(page=page(5, 1))
+
+        def fail():
+            raise AssertionError("built links for a hidden paginator")
+
+        monkeypatch.setattr(component, "get_items", fail)
+        assert component.render().strip() == ""
