@@ -1,97 +1,60 @@
-# Organising components
+# Organising Apps & Folders
 
-Django Design System places very few constraints on how you structure your component library. The rules that do exist are driven by Python's own module system: components live inside an app's `components` module (either a package or a single file), and sub-packages must have an `__init__.py` to be traversed.
-
-Everything else is up to you.
+Django Design System places very few constraints on how you structure your component library. Discovery follows Python's own module system: components live inside an app's `components` module (a single file or a package), and sub-packages must contain an `__init__.py` to be traversed.
 
 ---
 
-## Principle: start as simple as you can
+## Start as simple as you can
 
-You do not need folders, sub-packages, or abstract bases to get started. The simplest valid setup is a single file:
+The simplest valid setup is a single file:
 
-```
+```text
 myapp/
-    components.py   ← all your components live here
+    components.py   # all your components live here
 ```
 
-The [`demo_single`](https://github.com/fukalite/dj-design-system/tree/main/example_project/demo_single) app in the example project uses this pattern. Both `PillComponent` and `ChipComponent` live in one `components.py`:
-
-```python
-# demo_single/components.py
-
-
-class PillComponent(TagComponent):
-    """A pill-shaped label."""
-
-    text = StrParam("The pill text.")
-
-    class Meta:
-        positional_args = ["text"]
-
-
-class ChipComponent(TagComponent):
-    """A compact chip label."""
-
-    text = StrParam("The chip text.")
-
-    class Meta:
-        positional_args = ["text"]
-```
-
-The gallery shows both components under the `demo_single` app with no extra configuration.
+The [`demo_single`](https://github.com/fukalite/dj-design-system/tree/main/example_project/demo_single) app in the example project defines both `PillComponent` and `ChipComponent` in one `components.py`. Both appear automatically under `demo_single` in the gallery.
 
 ---
 
-## Principle: grow into folders naturally
+## Grow into folders naturally
 
-When a single file becomes unwieldy, split into a package. Each sub-module becomes a folder in the gallery navigation automatically:
+When a single file becomes unwieldy, split into a package. Each sub-package becomes a folder in the gallery navigation automatically:
 
-```
+```text
 myapp/
     components/
         __init__.py
-        button.py       → gallery: myapp / Button
-        badge.py        → gallery: myapp / Badge
+        button.py          -> gallery: myapp / Button
+        badge.py           -> gallery: myapp / Badge
         card/
             __init__.py
-            info_card.py  → gallery: myapp / Card / Info card
-            hero_card.py  → gallery: myapp / Card / Hero card
+            info_card.py   -> gallery: myapp / Card / Info card
+            hero_card.py   -> gallery: myapp / Card / Hero card
 ```
-
-The [`demo_components`](https://github.com/fukalite/dj-design-system/tree/main/example_project/demo_components) app demonstrates this. `ButtonComponent` and `AlertComponent` sit at the top level; `InfoCardComponent` and `HeroCardComponent` live inside `components/card/`.
-
-There is no required depth — use as many or as few levels as makes sense for your library.
 
 ---
 
-## Principle: leaf-folder collapsing keeps things tidy
+## Leaf-folder collapsing
 
-When the deepest folder name matches the component name inside it, the folder is automatically collapsed. The component appears directly under the parent rather than inside a redundant nested node.
+When the deepest folder name matches the component name inside it, the folder collapses so the component appears directly under its parent rather than inside a redundant nested node:
 
-For example, if you have:
-
-```
+```text
 components/
     icon/
         __init__.py
-        icon.py   ← defines IconComponent
+        icon.py   # defines IconComponent -> gallery: Icon (not Icon -> Icon)
 ```
 
-The gallery shows _Icon_ under the app root, not _Icon → Icon_. This lets you co-locate a component's file alongside its CSS and JS without polluting the navigation.
-
-The [`demo_nav`](https://github.com/fukalite/dj-design-system/tree/main/example_project/demo_nav) app uses this pattern for its `elements/icon/` component.
+This keeps co-located templates, styles, scripts, and `gallery.py` files tidy without deepening navigation.
 
 ---
 
-## Principle: abstract bases share structure without cluttering the gallery
+## Abstract bases share structure without cluttering the gallery
 
-Declare `Meta.abstract = True` on any class you want excluded from discovery:
+Declare `Meta.abstract = True` on shared base classes to exclude them from discovery:
 
 ```python
-# demo_components/components/card/abstract_card.py
-
-
 class AbstractCardComponent(TagComponent):
     """Abstract base for all card components."""
 
@@ -99,84 +62,111 @@ class AbstractCardComponent(TagComponent):
         abstract = True
 ```
 
-Concrete subclasses inherit from it and appear in the gallery normally. The abstract base is invisible to users browsing the gallery.
+Concrete subclasses inherit parameters and behaviour normally while the abstract base stays hidden.
 
 ---
 
-## Principle: multiple apps are first-class
+## Multi-app libraries & tag prefixes
 
-There is no "main" app. Every installed Django app is treated equally. The gallery groups components by app label, and the navigation tree has one root node per app.
+Every installed Django app is treated equally. When two apps define a component with the same short name (`button`), disambiguate in templates using the double-underscore qualified syntax:
 
-The [`demo_extra`](https://github.com/fukalite/dj-design-system/tree/main/example_project/demo_extra) app demonstrates what happens when two apps define a component with the same name (`button`). Both appear in the gallery under their respective apps. In templates, you disambiguate with the app-qualified syntax:
-
-```html
-{% demo_components:button "Primary action" %} {% demo_extra:button "Secondary
-action" %}
+```htmldjango
+{% load design_components %}
+{% demo_components__button "Primary action" %}
+{% demo_extra__button "Secondary action" %}
 ```
+
+### App-level defaults (`AppConfig.design_system`)
+
+Each app can declare its own tag prefix, flattening strategy, folder rules, gallery labels, and navigation order on its `AppConfig` subclass using `AppSettings` and `DirectorySettings`:
+
+```python
+# myapp/apps.py
+from django.apps import AppConfig
+from dj_design_system.config import (
+    AppSettings,
+    DirectorySettings,
+    FlattenStrategy,
+    NodeType,
+)
+
+
+class MyAppConfig(AppConfig):
+    name = "myapp"
+    verbose_name = "My Design System"
+    design_system = AppSettings(
+        prefix="ui",
+        flatten=FlattenStrategy.LEAF,
+        nav_order=("overview", NodeType.FOLDER, NodeType.COMPONENT, NodeType.DOCUMENT),
+        directories={
+            "card": DirectorySettings(
+                prefix="cards",
+                flatten=FlattenStrategy.NONE,
+                label="Cards",
+                order=1,
+            ),
+            "foundations": DirectorySettings(
+                promote_to_app=True,
+                label="Foundations",
+                order=0,
+            ),
+        },
+    )
+```
+
+- **`prefix` & `flatten`**: control qualified tag names (e.g. `FlattenStrategy.NONE` preserves subfolders, `FlattenStrategy.LEAF` strips a matching leaf folder, `FlattenStrategy.ALL` flattens all subfolders under the prefix).
+- **`short_names=False`**: registers only qualified tags (recommended for reusable and contrib apps so they never shadow host project short tags).
+- **`promote_to_app=True`**: elevates a subfolder to a top-level section in the gallery sidebar. A `DirectorySettings` with `prefix=None` and `flatten=None` is presentation-only and inherits its parent directory or app prefix.
+- **`nav_order` & `order`**: control sorting within the app or a specific folder.
+
+Host projects can override any app setting in `DJ_DESIGN_SYSTEM = DesignSystemSettings(apps={"myapp": AppSettings(...)})`. See [Configuration](configuration.md) for the full 4-tier precedence stack.
 
 ---
 
-## Principle: markdown documentation lives with the code
+## Markdown documentation lives with the code
 
-Place `.md` files anywhere inside your `components/` directory. They are discovered alongside components and appear as document nodes in the navigation:
+Place `.md` files anywhere inside `components/`:
 
-- `index.md` — attaches to the parent folder or component as its documentation page.
-- Any other `.md` file — appears as a standalone document node.
+- `index.md` — attaches to its parent folder or component as its documentation page.
+- Any other `.md` file — appears as a standalone document node in the navigation tree.
 
-The [`demo_nav`](https://github.com/fukalite/dj-design-system/tree/main/example_project/demo_nav) app uses both patterns:
-
-```
+```text
 demo_nav/components/
-    design_guidelines.md   → standalone doc at the app root
+    design_guidelines.md      # standalone doc at app root
     elements/
-        index.md           → attached to the Elements folder
+        index.md              # attached to Elements folder
         icon/
-            accessibility.md  → standalone doc inside the icon folder
+            accessibility.md  # standalone doc inside icon folder
 ```
-
-This means narrative documentation lives next to the components it describes, in version control, without any separate docs infrastructure.
 
 ---
 
-## Principle: co-locate CSS, JS, and HTML templates with the component
+## Co-locate CSS, JS, and HTML templates
 
-Place `.css`, `.js`, and `.html` files in the same directory as the component module, named after the component. They are all discovered automatically at startup:
+Place `.css`, `.js`, and `.html` files next to the component module using the same base name:
 
-- **`.css` and `.js`** are served by `ComponentsStaticFinder` as static assets under `{app_label}/components/...`.
-- **`.html`** is registered as a Django template via `ComponentsTemplateLoader` and used when `render()` is called.
-
-```
+```text
 myapp/components/button/
     __init__.py
     button.py      # defines ButtonComponent
-    button.html    # template — full Django template language available
-    button.css     # styles — served as static asset
-    button.js      # scripts — served as static asset
+    button.html    # full Django template
+    button.css     # served via ComponentsStaticFinder
+    button.js      # served via ComponentsStaticFinder
 ```
 
-For additional assets that are not co-located (e.g. a shared vendor library), declare a standard Django `Media` class:
-
-```python
-class RichButtonComponent(TagComponent):
-    class Media:
-        css = ["demo_components/components/rich_button_extras.css"]
-```
-
-Both auto-discovered and explicitly declared assets are merged — one does not suppress the other.
-
-See [Components: Templates](components.md#templates) for full details on the template discovery precedence rules and `template_name` override.
+Declare extra non-co-located assets via a standard Django inner `Media` class; both sources are merged automatically. See [Components: Templates](components.md#templates) for template precedence details.
 
 ---
 
 ## Summary
 
-| Pattern                         | When to use                                                              |
-| ------------------------------- | ------------------------------------------------------------------------ |
-| Single `components.py`          | Small apps, prototyping, simple component sets                           |
-| Flat `components/` package      | Medium libraries, no sub-grouping needed                                 |
-| Nested sub-packages             | Large libraries, logical groupings (forms, navigation, data display…)    |
-| Abstract base classes           | Shared structure across related components                               |
-| Co-located `.html` template     | Full Django template language; use with `ComponentsTemplateLoader`       |
-| Co-located `.css` / `.js`       | Component-scoped styles and scripts; served via `ComponentsStaticFinder` |
-| Markdown files in `components/` | Narrative docs, design guidelines, accessibility notes                   |
-| Multiple apps                   | Separate teams, design system layers, versioned sub-libraries            |
+| Pattern | When to use |
+| --- | --- |
+| Single `components.py` | Small apps, prototyping, simple component sets |
+| Flat `components/` package | Medium libraries with no sub-grouping needed |
+| Nested sub-packages | Large libraries grouped by domain (forms, navigation, cards…) |
+| `AppConfig.design_system` | App-owned prefixes, flattening, labels, `nav_order`, and assets |
+| `DirectorySettings(promote_to_app=True)` | Elevating key sections (such as Foundations) to the sidebar root |
+| Abstract base classes | Shared parameters and templates across related components |
+| Co-located `.html` / `.css` / `.js` | Self-contained components with zero external wiring |
+| Markdown files in `components/` | Narrative docs, guidelines, and live `canvas` demos |

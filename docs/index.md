@@ -2,7 +2,7 @@
 
 **A reusable Django app for building, documenting, and shipping component libraries.**
 
-Write your UI components as Django-native classes that look and work like Models or Forms. Django Design System auto-discovers them, renders live interactive previews in sandboxed iframes, generates templatetag usage examples from your parameter definitions, and builds a fully-searchable navigation gallery — all from your existing code and docstrings, with no configuration required.
+Write your UI components as Django-native classes that look and work like Models or Forms. Django Design System auto-discovers them, renders live interactive previews in sandboxed iframes, generates template tag usage examples from your parameter definitions, and builds a fully searchable navigation gallery — all from your existing code and docstrings, with zero configuration required.
 
 ---
 
@@ -13,19 +13,25 @@ A component is a Python class. Declare its parameters, its HTML template, and it
 ```python
 # myapp/components/button.py
 from dj_design_system.components import TagComponent
-from dj_design_system.parameters import StrParam, StrParam, BoolParam
+from dj_design_system.parameters import BoolParam, StrParam
 
 
 class ButtonComponent(TagComponent):
     """A configurable button with size and variant modifiers."""
+
     label = StrParam("The button label.")
-    variant = StrParam(css_class=True, 
+    variant = StrParam(
         "Visual variant.",
+        css_class=True,
         required=False,
         default="primary",
         choices=["primary", "secondary", "danger"],
     )
-    disabled = BoolParam(css_class=True, "Renders the button as disabled.", required=False)
+    disabled = BoolParam(
+        "Renders the button as disabled.",
+        css_class=True,
+        required=False,
+    )
 
     template_format_str = "<button class='btn {classes}'>{label}</button>"
 
@@ -35,12 +41,13 @@ class ButtonComponent(TagComponent):
 
 Use it in any Django template — no manual registration, no YAML:
 
-```html
-{% load design_components %} {% button "Save changes" %} {% button "Delete"
-variant="danger" disabled=True %}
+```htmldjango
+{% load design_components %}
+{% button "Save changes" %}
+{% button "Delete" variant="danger" disabled=True %}
 ```
 
-The gallery generates the templatetag syntax automatically and shows a live preview:
+The gallery generates the template tag syntax automatically and shows a live preview:
 
 ![Gallery preview showing the button component with its live iframe preview and generated tag signature](https://github.com/fukalite/dj-design-system/raw/main/docs/assets/gallery-preview.png)
 
@@ -52,35 +59,35 @@ The gallery generates the templatetag syntax automatically and shows a live prev
 
 **Auto-discovery** — components are found and registered automatically when Django starts. No registration calls, no config files.
 
-**Inline HTML templates** — components use a `template_format_str` string rather than separate template files. CSS classes from `StrParam(css_class=True)` and `BoolParam(css_class=True)` parameters are injected automatically into the `{classes}` slot. HTML attributes from `attr` and `data_attr` are injected into the `{attrs}` slot.
+**Typed & devolved configuration** — configure project settings with `DesignSystemSettings(...)` in `settings.py` and devolve app-level defaults onto `AppConfig.design_system = AppSettings(...)`. See [Configuration](configuration.md).
 
-**Rich parameter types** — `StrParam`, `BoolParam`, `ModelParam`, `UserParam`. Parameters are self-documenting: their descriptions, types, defaults, and choices feed directly into the gallery.
+**Co-located templates and media** — place `.html`, `.css`, and `.js` files next to a component module and they are automatically discovered and served. Use `template_format_str` for concise inline fragments.
 
-**Block components** — use `BlockComponent` for components that wrap arbitrary template content.
+**Rich parameter types** — `StrParam`, `BoolParam`, `IntParam`, `ModelParam`, `UserParam`, and CSS/attribute parameter classes feed directly into the gallery documentation and sandbox form.
 
-**Media co-location** — place `.css` and `.js` files next to a component module and they are automatically discovered and served. Declare additional assets via a standard Django `Media` class.
+**Block components & named slots** — use `BlockComponent` and `Meta.slots` for components that wrap arbitrary template content and named regions.
 
-**Flexible organisation** — nest components in sub-packages, share abstract bases, use a single-file `components.py` for small apps, or spread across deeply nested folders. See [Organising components](organisation.md).
+**Multi-app namespaces** — register components across multiple Django apps and disambiguate with double-underscore qualified tags such as `{% myapp__button "Click" %}` or custom prefixes via `AppSettings(prefix=...)`.
 
-**Multi-app** — register components across multiple Django apps. When a name is ambiguous, templates use an app-qualified syntax: `{% myapp:button "Click" %}`.
+**Markdown documentation** — place `index.md` or standalone `.md` files alongside your components for narrative documentation with live fenced `canvas` blocks.
 
-**Markdown documentation** — place `index.md` or any other `.md` file alongside your components for narrative documentation that appears in the gallery.
-
-**Integration testing** — use the testing extras (like `[testing-all]`) to automatically assert accessibility, HTML validity, and visual regression across every variant of every component.
+**Integration testing** — install testing extras (such as `[testing-all]`) to assert accessibility, HTML validity, and visual regression across every variant and theme.
 
 ---
 
 ## Where to go next
 
-| I want to…                                       | Go to                                                                                                  |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
-| See components in action                         | [Demo gallery](https://fukalite.github.io/dj-design-system/gallery/)                   |
-| Install and create my first component            | [Quickstart](quickstart.md)                                                                            |
-| Learn all parameter types                        | [Components & parameters](components.md)                                                               |
-| Understand how discovery works                   | [Registry](registry.md)                                                                                |
-| Configure the gallery UI                         | [Gallery](gallery.md)                                                                                  |
-| Use components in templates                      | [Templatetags](templatetags.md)                                                                        |
-| Understand how to structure my component library | [Organising components](organisation.md)                                                               |
-| Test your components automatically               | [Integration testing](testing.md)                                                                      |
-| Browse the full API reference                    | [Parameters](api/parameters.md) · [Components](api/components.md)                                      |
-| Contribute to the project                        | [Contributing](https://github.com/fukalite/dj-design-system/blob/main/CONTRIBUTING.md) |
+| I want to… | Go to |
+| --- | --- |
+| See components in action | [Demo gallery](https://fukalite.github.io/dj-design-system/demo/) |
+| Install and create my first component | [Quick Start](quickstart.md) |
+| Configure settings, apps, and navigation | [Configuration](configuration.md) |
+| Learn all parameter types and slots | [Components](components.md) |
+| Structure apps, folders, and prefixes | [Organising Apps & Folders](organisation.md) |
+| Customise the gallery UI and variants | [Gallery](gallery.md) |
+| Configure themes, dark mode, and CSS tokens | [Themes & Styling](themes.md) |
+| Use components and asset tags in templates | [Template Tags](templatetags.md) |
+| Understand discovery and lookup APIs | [Registry](registry.md) |
+| Test components automatically | [Integration Testing](testing.md) |
+| Browse the full API reference | [API Reference](api/index.md) |
+| Contribute to the project | [Contributing](https://github.com/fukalite/dj-design-system/blob/main/CONTRIBUTING.md) |

@@ -96,25 +96,29 @@ The `verbose_name` is used in the sidebar navigation, breadcrumbs, and
 all other display contexts. In the sidebar, app labels are rendered
 uppercase via CSS regardless of the `verbose_name`.
 
-#### Overriding folder labels and structuring with `COMPONENT_DIRECTORIES`
+#### Overriding folder labels and promoting directories
 
-You can use the `COMPONENT_DIRECTORIES` setting in `settings.py` to customize the labels of intermediate folders that contain your components. You can also extract subdirectories out of their parent app and display them as top-level apps in the navigation sidebar using `promote_to_app`.
+Use `AppSettings(directories={...})` on `AppConfig.design_system` or `DJ_DESIGN_SYSTEM.apps` to customise intermediate folder labels, ordering, or promote a directory to a top-level gallery section:
 
 ```python
-DJ_DESIGN_SYSTEM = {
-    "COMPONENT_DIRECTORIES": {
-        "myapp": {
-            "card": {
-                "label": "Custom Cards Label",  # Customizes the folder name in the nav
-            },
-            "promoted_features": {
-                "promote_to_app": True,  # Pulls this folder out to the root navigation level
-                "label": "Promoted Features App",
-            },
-        }
+from dj_design_system.config import AppSettings, DesignSystemSettings, DirectorySettings
+
+DJ_DESIGN_SYSTEM = DesignSystemSettings(
+    apps={
+        "myapp": AppSettings(
+            directories={
+                "card": DirectorySettings(label="Custom Cards Label"),
+                "promoted_features": DirectorySettings(
+                    promote_to_app=True,
+                    label="Promoted Features App",
+                ),
+            }
+        )
     }
-}
+)
 ```
+
+See [Configuration](configuration.md#navigation-ordering-app_order-order-and-nav_order) for `app_order`, `order`, and `nav_order` details.
 
 ### Icons
 
@@ -155,12 +159,12 @@ A live preview of the component rendered inside an **iframe canvas**. The
 iframe provides full CSS/JS isolation from the gallery chrome — the
 component is rendered in its own HTML document with the correct cascade:
 
-1. Global CSS (`{% global_stylesheets %}`)
+1. Global CSS (`DesignSystemSettings.css` / `css_bundles`)
 2. Theme CSS and active dark mode CSS (when `dark_mode` is configured and dark mode is active)
-3. App-specific CSS (`APP_CSS`)
+3. App-specific CSS (`AppSettings.css` + `extra_css` / `css_bundles`)
 4. Canvas layout CSS (padding, backgrounds)
 5. Component-specific CSS
-6. Global JS (`GLOBAL_JS_BUNDLES`, `GLOBAL_JS`), then theme, dark mode, app, and component JS
+6. Global JS (`DesignSystemSettings.js` / `js_bundles`), then theme, dark mode, app, and component JS
 
 A **toolbar** above the canvas provides:
 
@@ -189,62 +193,60 @@ Default parameter values are chosen automatically:
 
 #### Canvas backgrounds
 
-The canvas background defaults to the value of
-`GALLERY_CANVAS_DEFAULT_BACKGROUND` (default: `"light-grey"`). Users can
-switch backgrounds via the toolbar in the sandbox pane or via the `bg`
-query parameter (e.g. `?bg=dark-grey`).
+The canvas background defaults to `CanvasSettings.default_background` (default: `"light-grey"`). Users can switch backgrounds via the toolbar in the sandbox pane or via the `bg` query parameter (e.g. `?bg=dark-grey`).
 
-Built-in backgrounds: `white`, `light-grey`, `dark-grey`, `black`,
-`checkerboard`.
+Built-in backgrounds (`DDS_DEFAULT_CANVAS_BACKGROUNDS`): `white`, `light-grey`, `dark-grey`, `black`, `checkerboard`.
 
-To add project-specific backgrounds without replacing the built-in set,
-use `GALLERY_CANVAS_EXTRA_BACKGROUNDS`. Each entry is a dict with
-`value`, `color`, and optionally `label`:
+Extend the built-in set with `CanvasBackground`:
 
 ```python
-DJ_DESIGN_SYSTEM = {
-    "GALLERY_CANVAS_EXTRA_BACKGROUNDS": {
-        "brand-blue": {"color": "#e6ebf0", "label": "Brand Blue"},
-    },
-    "GALLERY_CANVAS_DEFAULT_BACKGROUND": "brand-blue",
-}
+from dj_design_system.config import (
+    CanvasBackground,
+    CanvasSettings,
+    DDS_DEFAULT_CANVAS_BACKGROUNDS,
+    DesignSystemSettings,
+)
+
+DJ_DESIGN_SYSTEM = DesignSystemSettings(
+    canvas=CanvasSettings(
+        backgrounds={
+            **DDS_DEFAULT_CANVAS_BACKGROUNDS,
+            "brand-blue": CanvasBackground(color="#e6ebf0", label="Brand Blue"),
+        },
+        default_background="brand-blue",
+    ),
+)
 ```
 
-Extra backgrounds are merged into the built-in set in the toolbar.
-If a key in `GALLERY_CANVAS_EXTRA_BACKGROUNDS` matches a built-in key,
-it will override the built-in entry.
-
-To replace the built-in set entirely, set `GALLERY_CANVAS_BACKGROUNDS`
-to a dict of `{slug: {"label": ..., "color": ...}}` entries.
+To replace the built-in set entirely, omit `**DDS_DEFAULT_CANVAS_BACKGROUNDS`.
 
 #### Canvas HTML attributes
 
-Some CSS frameworks (e.g. GOV.UK Frontend) scope their styles to specific
-classes on the `<html>` or `<body>` element. Use
-`GALLERY_CANVAS_HTML_ATTRS` to add these attributes to the canvas iframe's
-document:
+Some CSS frameworks (e.g. GOV.UK Frontend) scope styles to attributes on `<html>` or `<body>`. Configure them with `CanvasSettings.html_attrs` (or per app with `AppSettings.canvas_html_attrs`):
 
 ```python
-DJ_DESIGN_SYSTEM = {
-    "GALLERY_CANVAS_HTML_ATTRS": {
-        "html": {"class": "govuk-template"},
-    },
-}
+from dj_design_system.config import CanvasSettings, DesignSystemSettings
+
+DJ_DESIGN_SYSTEM = DesignSystemSettings(
+    canvas=CanvasSettings(
+        html_attrs={"html": {"class": "govuk-template"}},
+    ),
+)
 ```
 
-#### Canvas Dark Mode and Color Scheme
+#### Canvas Dark Mode and Colour Scheme
 
 When previewing components in canvas iframes:
 
 - The active theme's `dark_mode` configuration dictates whether dark mode can be activated (`supports_dark_mode=True`).
 - When dark mode is active (`_dds_color_scheme=dark`), the canvas document merges `dark_mode.html_attrs` into `<html>` and `<body>`, appends `dark_mode.css` and `dark_mode.js`, and sets the dedicated dark mode background (`theme.dark_mode.canvas_background`).
 - When a theme does not configure `dark_mode`, the preview canvas is constrained to light mode (`ColorScheme.LIGHT`), guarding against OS-level dark mode styles leaking into components that lack dark mode styling.
-- Inline Markdown documentation canvas blocks (````canvas ... ````) automatically inherit and reflect the active color scheme.
+- Inline Markdown documentation canvas blocks (````canvas ... ````) automatically inherit and reflect the active colour scheme.
 
 <a id="customising-gallery-examples"></a>
 ## Customising Gallery Examples & Configuration
 
-By default, the gallery generates minimal and maximal usage examples automatically based on parameter types. You can customize examples and configure rich component metadata by creating a side-car Python file next to your component (`gallery.py` or `<component_name>_gallery.py`).
+By default, the gallery generates minimal and maximal usage examples automatically based on parameter types. You can customise examples and configure rich component metadata by creating a side-car Python file next to your component (`gallery.py` or `<component_name>_gallery.py`).
 
 ### Modern Configuration: `GalleryConfig`
 
@@ -277,7 +279,7 @@ config = GalleryConfig(
 | Attribute | Type | Default | Description |
 | --- | --- | --- | --- |
 | `variants` | `list[Variant]` or `list[dict]` | `[]` | List of named component variants. Supports `Variant` instances or shorthand dicts. |
-| `doc_variants` | `Mapping[str, Any] \| Sequence[Any] \| None` | `None` | Component-level documentation variant overrides layered on top of `GALLERY_DOC_VARIANTS`. |
+| `doc_variants` | `Mapping[str, Any] \| Sequence[Any] \| None` | `None` | Component-level documentation variant overrides layered on top of `GallerySettings.doc_variants`. |
 | `order` | `int` | `0` | Explicit ordering priority in the sidebar navigation. Lower numbers appear first. |
 | `group` | `str | None` | `None` | Grouping sub-folder name in the sidebar navigation. |
 | `icon` | `str | None` | `None` | Custom icon identifier (e.g. `"ph:cursor-click"`) for the component in the sidebar. |
@@ -328,49 +330,43 @@ Variant(
 > [!NOTE]
 > `show_in_docs` and `show_in_nav` are orthogonal: setting `show_in_docs=True` on a custom variant renders it in the component's main documentation pane while keeping it in the sidebar navigation unless you explicitly set `show_in_nav=False`.
 
-### Standard Documentation Variants (`GALLERY_DOC_VARIANTS`)
+### Standard Documentation Variants (`GallerySettings.doc_variants`)
 
-Standard documentation variants are configured globally via `DJ_DESIGN_SYSTEM["GALLERY_DOC_VARIANTS"]`. Four built-in generation strategies are provided (`minimal` and `maximal` are enabled by default; `defaults` and `all_slots` are disabled by default):
+Standard documentation variants are configured globally via `GallerySettings.doc_variants` (default `DDS_DEFAULT_DOC_VARIANTS`). Four built-in generation strategies are provided (`minimal` and `maximal` are enabled by default; `defaults` and `all_slots` are disabled by default):
 
 | Key | Default `name` | Default `label` | `strategy` | Default `show_in_docs` | Generation Rules (when not overridden in `gallery.py`) |
 | --- | --- | --- | --- | --- | --- |
-| `"minimal"` | `"basic"` | `"Minimal example"` | `"minimal"` | `True` | Required parameters and required slots only. |
-| `"maximal"` | `"maximal"` | `"All parameters"` | `"maximal"` | `True` | All parameters and all slots (respecting `Meta.mutually_exclusive`). |
-| `"defaults"` | `"defaults"` | `"Default values"` | `"defaults"` | `False` | Required parameters/slots plus optional parameters/slots that declare a non-empty `default`. |
-| `"all_slots"` | `"all_slots"` | `"All slots"` | `"all_slots"` | `False` | Required parameters plus all declared slots (required and optional). |
+| `"minimal"` | `"basic"` | `"Minimal example"` | `DocVariantStrategy.MINIMAL` | `True` | Required parameters and required slots only. |
+| `"maximal"` | `"maximal"` | `"All parameters"` | `DocVariantStrategy.MAXIMAL` | `True` | All parameters and all slots (respecting `Meta.mutually_exclusive`). |
+| `"defaults"` | `"defaults"` | `"Default values"` | `DocVariantStrategy.DEFAULTS` | `False` | Required parameters/slots plus optional parameters/slots that declare a non-empty `default`. |
+| `"all_slots"` | `"all_slots"` | `"All slots"` | `DocVariantStrategy.ALL_SLOTS` | `False` | Required parameters plus all declared slots (required and optional). |
 
 ```python
-DJ_DESIGN_SYSTEM = {
-    "GALLERY_DOC_VARIANTS": {
-        "minimal": {
-            "name": "basic",
-            "label": "Minimal example",
-            "strategy": "minimal",
-            "show_in_docs": True,
+from dj_design_system.config import (
+    DDS_DEFAULT_DOC_VARIANTS,
+    DesignSystemSettings,
+    DocVariantConfig,
+    GallerySettings,
+)
+from dj_design_system.types import DocVariantStrategy
+
+DJ_DESIGN_SYSTEM = DesignSystemSettings(
+    gallery=GallerySettings(
+        doc_variants={
+            **DDS_DEFAULT_DOC_VARIANTS,
+            "all_slots": DocVariantConfig(
+                key="all_slots",
+                name="all_slots",
+                label="All slots",
+                strategy=DocVariantStrategy.ALL_SLOTS,
+                show_in_docs=True,
+            ),
         },
-        "maximal": {
-            "name": "maximal",
-            "label": "All parameters",
-            "strategy": "maximal",
-            "show_in_docs": True,
-        },
-        "defaults": {
-            "name": "defaults",
-            "label": "Default values",
-            "strategy": "defaults",
-            "show_in_docs": False,
-        },
-        "all_slots": {
-            "name": "all_slots",
-            "label": "All slots",
-            "strategy": "all_slots",
-            "show_in_docs": False,
-        },
-    }
-}
+    ),
+)
 ```
 
-You can also pass a sequence of keys or names to enable and order specific documentation variants globally (e.g. `"GALLERY_DOC_VARIANTS": ["basic", "maximal", "all_slots"]`), or supply `param_factory` / `slot_factory` callables on any strategy entry to customise placeholder generation.
+Component-level `GalleryConfig(doc_variants=...)` can still re-enable any built-in strategy by key (e.g. `doc_variants={"maximal": False, "all_slots": True}`).
 
 ### Explicit Variants vs Auto-Generated Strategies
 
@@ -378,7 +374,7 @@ You can also pass a sequence of keys or names to enable and order specific docum
 2. **Full Override on Explicit Definition**: When a variant is explicitly defined in `gallery.py` (whether overriding `"basic"`/`"maximal"` or adding a custom variant), it is **fully overridden** rather than deep-merged with auto-generated placeholders:
    - Omitted optional parameters and omitted optional slots remain omitted in the code snippet, live preview iframe, and sandbox form.
    - If an explicit variant omits a required parameter (with `default=None`) or a required slot (without a default), a `ValueError` is raised.
-3. **Component-Level Documentation Overrides (`GalleryConfig.doc_variants`)**: Even when custom variants are defined in `gallery.py`, enabled global documentation variants still render in the documentation pane by default. You can customise which documentation variants render for a specific component using `GalleryConfig(doc_variants=...)` with the same mapping or sequence grammar as `GALLERY_DOC_VARIANTS`:
+3. **Component-Level Documentation Overrides (`GalleryConfig.doc_variants`)**: Even when custom variants are defined in `gallery.py`, enabled global documentation variants still render in the documentation pane by default. You can customise which documentation variants render for a specific component using `GalleryConfig(doc_variants=...)` with the same mapping or sequence grammar as `GallerySettings.doc_variants`:
 
 ```python
 # Suppress the auto-generated maximal variant and enable all_slots for this component
@@ -423,7 +419,7 @@ When navigating to a variant via deep-link (e.g. `/demo_components/badge/?varian
 
 ## Smart Hybrid `canvas_template`
 
-The `canvas_template` option on `GalleryConfig` or `Variant` allows you to customize the HTML canvas wrapping your component preview. It operates in **Smart Hybrid mode**:
+The `canvas_template` option on `GalleryConfig` or `Variant` allows you to customise the HTML canvas wrapping your component preview. It operates in **Smart Hybrid mode**:
 
 ### 1. Wrapper Mode (`{{ component }}` present)
 
@@ -498,7 +494,7 @@ Variant(
 
 > [!WARNING] Deprecation Notice: Legacy Kwargs
 > Defining `basic_kwargs` and `maximal_kwargs` dictionaries directly in gallery files is deprecated and will be removed in a future release.
-> Export `config = GalleryConfig(...)` instead. The gallery currently maintains backwards compatibility and automatically synthesizes a `GalleryConfig` while emitting a `DeprecationWarning`.
+> Export `config = GalleryConfig(...)` instead. The gallery currently maintains backwards compatibility and automatically synthesises a `GalleryConfig` while emitting a `DeprecationWarning`.
 
 ### Automated Migration Command
 
@@ -560,7 +556,7 @@ config = GalleryConfig(
 
 ## Relative Links in Markdown
 
-When writing markdown documentation, you can use standard relative file paths to link to other markdown documents within the design system. The gallery will automatically translate these relative paths into the correct dynamic gallery URLs, regardless of how your components are organized or aliased via settings.
+When writing markdown documentation, you can use standard relative file paths to link to other markdown documents within the design system. The gallery will automatically translate these relative paths into the correct dynamic gallery URLs, regardless of how your components are organised or aliased via settings.
 
 For example, if you are editing `components/button/index.md` and want to link to `components/icon/index.md`:
 
@@ -631,14 +627,14 @@ To explicitly request Django template highlighting, use the
 
 ### Customising the highlight style
 
-The Pygments style can be changed via the `GALLERY_CODEHILITE_STYLE`
-setting. Set it to any [Pygments style name](https://pygments.org/styles/)
-or to an empty string to disable highlighting entirely:
+Change the Pygments style with `GallerySettings.codehilite_style` (set to any [Pygments style name](https://pygments.org/styles/), or `None` / `""` to disable highlighting):
 
 ```python
-DJ_DESIGN_SYSTEM = {
-    "GALLERY_CODEHILITE_STYLE": "dracula",  # or "" to disable
-}
+from dj_design_system.config import DesignSystemSettings, GallerySettings
+
+DJ_DESIGN_SYSTEM = DesignSystemSettings(
+    gallery=GallerySettings(codehilite_style="dracula"),
+)
 ```
 
 Highlight colours are defined as CSS custom properties in
@@ -652,73 +648,11 @@ palette changes, or the `--hl-*` semantic variables for finer control:
 }
 ```
 
-## Settings
+---
 
-All settings are configured via the `dj_design_system` dictionary in
-your Django settings module:
+## Configuration & Access Control
 
-```python
-from dj_design_system.types import NodeType
-
-DJ_DESIGN_SYSTEM = {
-    "ENABLE_GALLERY": True,
-    "GALLERY_IS_PUBLIC": True,
-    "DESIGN_SYSTEM_NAME": "Django Design System",
-    "GALLERY_NAV_ORDER": [NodeType.FOLDER, NodeType.COMPONENT, NodeType.DOCUMENT],
-}
-```
-
-| Setting                             | Type                      | Default                                                    | Description                                                 |
-| ----------------------------------- | ------------------------- | ---------------------------------------------------------- | ----------------------------------------------------------- |
-| `ENABLE_GALLERY`                    | `bool`                    | `True`                                                     | Enable or disable the gallery entirely.                     |
-| `GALLERY_IS_PUBLIC`                 | `bool`                    | `True`                                                     | When `False`, requires the `can_view_gallery` perm.         |
-| `DESIGN_SYSTEM_NAME`                | `str`                     | `"Django Design System"`                                   | Display name shown in the gallery header.                   |
-| `GALLERY_INCLUDE_APPS`              | `list[str]` or `None`     | `None`                                                     | When set, only components from these apps appear in gallery.|
-| `GALLERY_EXCLUDE_APPS`              | `list[str]`               | `[]`                                                       | App labels excluded from gallery navigation and search.     |
-| `GALLERY_NAV_ORDER`                 | `list[NodeType]` or `str` | `[NodeType.FOLDER, NodeType.COMPONENT, NodeType.DOCUMENT]` | Controls the sort order of nodes in the sidebar.            |
-| `GALLERY_DOC_VARIANTS`              | `dict` or `list`          | `BUILTIN_DOC_VARIANTS`                                     | Global documentation usage example variants and strategies. |
-| `GALLERY_CANVAS_DEFAULT_BACKGROUND` | `str`                     | `"light-grey"`                                             | Default background for the sandbox canvas.                  |
-| `GALLERY_CANVAS_BACKGROUNDS`        | `dict`                    | `BUILTIN_CANVAS_BACKGROUNDS`                               | Dict of canvas backgrounds (replaces built-ins).            |
-| `GALLERY_CANVAS_EXTRA_BACKGROUNDS`  | `dict`                    | `{}`                                                       | Extra backgrounds merged into the built-in set.             |
-| `GALLERY_CANVAS_HTML_ATTRS`         | `dict`                    | `{}`                                                       | Extra attributes for the canvas `<html>` and `<body>` tags. |
-| `GALLERY_CODEHILITE_STYLE`          | `str`                     | `"monokai"`                                                | Pygments style for code highlighting. `""` to disable.      |
-| `GALLERY_EXTRA_CSS`                 | `list[str]`               | `[]`                                                       | Custom CSS static paths or external URLs loaded in `<head>`.|
-
-### Navigation sort order
-
-Within each level of the navigation tree, children are grouped by type
-and then sorted alphabetically within each group. The `GALLERY_NAV_ORDER`
-setting controls the order of those type groups.
-
-The default value `[NodeType.FOLDER, NodeType.COMPONENT, NodeType.DOCUMENT]`
-puts folders first, then components, then documents — matching the
-convention used by most IDEs and file browsers.
-
-Any permutation of the three `NodeType` values is valid:
-
-```python
-from dj_design_system.types import NodeType
-
-# Documents first, then components, then folders
-DJ_DESIGN_SYSTEM = {
-    "GALLERY_NAV_ORDER": [NodeType.DOCUMENT, NodeType.COMPONENT, NodeType.FOLDER],
-}
-```
-
-To ignore type grouping entirely and sort all nodes alphabetically by
-label, use the string `"alphabetical"`:
-
-```python
-DJ_DESIGN_SYSTEM = {
-    "GALLERY_NAV_ORDER": "alphabetical",
-}
-```
-
-### Access control
-
-By default, the gallery is public. To restrict access, set
-`GALLERY_IS_PUBLIC = False` and assign the
-`dj_design_system.can_view_gallery` permission to appropriate users.
+Gallery access control (`GallerySettings.enabled`, `GallerySettings.is_public`), app visibility (`include_apps`, `exclude_apps`), navigation ordering (`app_order`, `nav_order`), and canvas defaults are documented in [Configuration](configuration.md) and the [Configuration & Settings API Reference](api/settings.md).
 
 ---
 
@@ -726,9 +660,9 @@ By default, the gallery is public. To restrict access, set
 
 The gallery UI employs a modular, 3-tiered customisation architecture that allows consumers to tailor the appearance and layout from lightweight design token tweaks to bespoke template structures:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
-│ Tier 1: Design Tokens (GALLERY_EXTRA_CSS)                   │
+│ Tier 1: Design Tokens (GallerySettings.extra_css)           │
 │ Override :root --dds-* tokens (colours, fonts, surfaces)    │
 ├─────────────────────────────────────────────────────────────┤
 │ Tier 2: Template Areas & Panes                              │
@@ -739,35 +673,31 @@ The gallery UI employs a modular, 3-tiered customisation architecture that allow
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Tier 1: Token Overrides via `GALLERY_EXTRA_CSS`
+### Tier 1: Token Overrides via `GallerySettings.extra_css`
 
-To brand the gallery chrome without modifying any templates, supply one or more CSS file paths in `GALLERY_EXTRA_CSS`. These files are linked in `<head>` after all built-in styles and component stylesheets:
+To brand the gallery chrome without modifying any templates, supply one or more CSS paths or URLs in `GallerySettings.extra_css`. These files are linked in `<head>` after all built-in styles and component stylesheets:
 
 ```python
-DJ_DESIGN_SYSTEM = {
-    "GALLERY_EXTRA_CSS": [
-        "myapp/css/gallery-theme.css",
-    ],
-}
+from dj_design_system.config import DesignSystemSettings, GallerySettings
+
+DJ_DESIGN_SYSTEM = DesignSystemSettings(
+    gallery=GallerySettings(
+        extra_css=("myapp/css/gallery-theme.css",),
+    ),
+)
 ```
 
-Inside your CSS file, override the semantic `--dds-*` custom properties on `:root`:
+Inside your CSS file, override the public Tier 2 semantic `--dds-*` custom properties on `:root` (see [Themes & Styling](themes.md#theming-the-gallery-ui-with-tier-2---dds--tokens)):
 
 ```css
 :root {
-  /* Brand accents */
-  --dds-brand-primary-color: #0052cc;
-  --dds-brand-primary-hover-color: #0747a6;
-
-  /* Typography */
-  --dds-text-body-font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --dds-text-heading-font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-
-  /* Surface & background colours */
-  --dds-surface-bg-color: #f8fafc;
-  --dds-surface-topbar-bg: #ffffff;
-  --dds-surface-sidebar-bg: #f1f5f9;
-  --dds-border-default-color: #e2e8f0;
+  --dds-color-accent: #0052cc;
+  --dds-color-accent-hover: #0747a6;
+  --dds-control-accent-color: var(--dds-color-accent);
+  --dds-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --dds-font-ui: var(--dds-font-sans);
+  --dds-surface-topbar-bg-color: #ffffff;
+  --dds-surface-sidebar-bg-color: #f1f5f9;
 }
 ```
 
@@ -777,7 +707,7 @@ Layout and presentation markup are structured into modular Django templates unde
 
 #### Layout Areas (`dj_design_system/gallery/areas/`)
 
-- **`areas/topbar.html`**: Header branding bar, mobile drawer toggle, breadcrumbs, search box trigger, theme dropdown (`{% dds__theme_select %}`, rendered when multiple themes exist), consumer color scheme toggle button (`action="toggle-consumer-color-scheme"`, enabled when the active theme configures `dark_mode`), and toolbar actions slot.
+- **`areas/topbar.html`**: Header branding bar, mobile drawer toggle, breadcrumbs, search box trigger, theme dropdown (`{% dds__theme_select %}`, rendered when multiple themes exist), consumer colour scheme toggle button (`action="toggle-consumer-color-scheme"`, enabled when the active theme configures `dark_mode`), and toolbar actions slot.
 - **`areas/sidebar.html`**: Navigation drawer containing brand link, the interactive `<dds-nav-tree>`, and gallery UI theme toggle button (`action="toggle-theme"`).
 - **`areas/tabs.html`**: Mobile responsive tabs switcher toggling between Documentation and Sandbox views.
 
@@ -806,34 +736,43 @@ The gallery UI delegates interactive widgets to built-in components under `dj_de
 - **`elements/`** (`badge`, `breadcrumb`, `button`, `code_block`, `form_field`, `icon`, `notice`, `popout`, `table`, `tabs`, `tooltip`) — atomic UI primitives registered as `{% dds__<name> %}`.
 - **`composites/`** (`canvas_widget`, `nav_tree`, `sandbox_params`, `sandbox_toolbar`, `search_box`, `split_pane`, `theme_select`) — multi-part gallery widgets registered as `{% dds__<name> %}`.
 
-To shadow any built-in component with your own implementation, map a directory in `COMPONENT_DIRECTORIES`:
+To shadow any built-in component with your own implementation, map a directory with `DirectorySettings(prefix="dds", flatten=FlattenStrategy.ALL)`:
 
 ```python
-from dj_design_system.types import FlattenStrategy
+from dj_design_system.config import (
+    AppSettings,
+    DesignSystemSettings,
+    DirectorySettings,
+    FlattenStrategy,
+)
 
-DJ_DESIGN_SYSTEM = {
-    "COMPONENT_DIRECTORIES": {
-        "myapp": {
-            "dds_overrides": {
-                "prefix": "dds",
-                "flatten": FlattenStrategy.ALL,
+DJ_DESIGN_SYSTEM = DesignSystemSettings(
+    apps={
+        "myapp": AppSettings(
+            directories={
+                "dds_overrides": DirectorySettings(
+                    prefix="dds",
+                    flatten=FlattenStrategy.ALL,
+                ),
             },
-        },
+        ),
     },
-}
+)
 ```
 
-### Inspecting Built-in `dds` Components (`GALLERY_INCLUDE_APPS` & `GALLERY_EXCLUDE_APPS`)
+### Inspecting Built-in `dds` Components (`include_apps` & `exclude_apps`)
 
 By default, built-in `dj_design_system` components are excluded from consumer galleries, so the gallery sidebar and search index display only your project's own Django apps.
 
-To browse and inspect the built-in `dj_design_system` component library inside the gallery in isolation, use `GALLERY_INCLUDE_APPS` (see [`example_project/settings_dds_gallery.py`](https://github.com/fukalite/dj-design-system/blob/main/example_project/settings_dds_gallery.py)):
+To browse and inspect the built-in `dj_design_system` component library inside the gallery in isolation, set `GallerySettings(include_apps=("dj_design_system",))` (see [`example_project/settings_dds_gallery.py`](https://github.com/fukalite/dj-design-system/blob/main/example_project/settings_dds_gallery.py)):
 
 ```python
-DJ_DESIGN_SYSTEM = {
-    "DESIGN_SYSTEM_NAME": "Built-in Component Library",
-    "GALLERY_INCLUDE_APPS": ["dj_design_system"],
-}
+from dj_design_system.config import DesignSystemSettings, GallerySettings
+
+DJ_DESIGN_SYSTEM = DesignSystemSettings(
+    name="Built-in Component Library",
+    gallery=GallerySettings(include_apps=("dj_design_system",)),
+)
 ```
 
 ---

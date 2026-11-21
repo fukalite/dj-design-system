@@ -1,103 +1,69 @@
-# Themes and App-Specific Assets
+# Themes & Styling
 
-This document describes how to configure and use themes, explicit dark mode support, available themes per component, and app-specific static assets within the Django Design System.
+This guide covers configuring gallery UI chrome themes, consumer component themes, explicit dark mode support, theme availability cascades, frontend template tag integration, and Tier 2 `--dds-*` design token customisation.
+
+For app-specific CSS/JS assets and `canvas_html_attrs` layering, see [Configuration](configuration.md#resolution-precedence-render-cascades).
 
 ---
 
 ## Two Distinct Theming Layers
 
-The Django Design System cleanly decouples two independent layers of theming:
+Django Design System decouples two independent theming layers:
 
-1. **Gallery UI Theme (Chrome)**:
-   Controls the visual appearance of the gallery shell itself (sidebar navigation, header topbar, documentation panes, controls, and form inputs).
-   - Configured via `GALLERY_UI_THEMES` and `GALLERY_DEFAULT_UI_THEME` in settings.
-   - Ships with two built-in UI themes: **Desert** (default, supports dark mode) and **Classic** (light-only minimalist).
-   - Selected via the **UI Theme Selector** in the sidebar footer (`name="_dds_gallery_ui_theme"`).
-   - Light/Dark mode toggled via the theme button in the **sidebar footer** (`action="toggle-theme"` with sun/moon icon).
-   - Governed by Tier 2 `--dds-*` semantic tokens on `:root`, `.gallery-theme-dark`, and `.gallery-ui-theme-<name>`.
-   - When a UI theme omits `dark_mode` (such as Classic), dark mode is completely suppressed: the sidebar toggle is disabled with a descriptive tooltip (`"<Theme> theme does not support dark mode"`), and all semantic tokens enforce light mode (`color-scheme: light`).
-   - Persisted via the `dds_gallery_ui_theme` and `dds_gallery_theme` cookies/`localStorage` (or `_dds_gallery_ui_theme`/`_dds_gallery_theme` query parameters).
-   - Dispatches `dds:gallery-ui-theme-change` and `dds:gallery-theme-change` DOM events.
+1. **Gallery UI Theme (Chrome)** — `GallerySettings.ui_themes` and `GallerySettings.default_ui_theme`:
+   - Controls the gallery shell itself (sidebar, topbar, documentation panes, controls).
+   - Ships with two built-in UI themes in `DDS_DEFAULT_UI_THEMES`: **Desert** (default, supports dark mode) and **Classic** (light-only).
+   - Selected via the UI Theme selector (`_dds_gallery_ui_theme`) and toggled between light/dark via the sidebar footer toggle (`action="toggle-theme"`).
+   - Persisted in `dds_gallery_ui_theme` and `dds_gallery_theme` cookies/`localStorage`, dispatching `dds:gallery-ui-theme-change` and `dds:gallery-theme-change`.
 
-2. **Consumer Component Themes and Dark Mode (Canvas Previews)**:
-   Controls the stylesheets, scripts, HTML attributes, and canvas backgrounds applied to the **previewed components** inside iframe canvases and markdown preview blocks.
-   - Configured via `GALLERY_THEMES` in `DJ_DESIGN_SYSTEM` settings.
-   - If multiple themes are defined, a **Theme Selector** dropdown appears in the topbar (`_dds_theme`). If only a single theme is configured, the redundant dropdown is automatically omitted.
-   - Each theme can explicitly declare a **`dark_mode`** configuration.
-   - When the active theme configures `dark_mode`, an interactive **Color Scheme Toggle** (`action="toggle-consumer-color-scheme"`, sun/moon icon) appears in the topbar, allowing you to preview components in light or dark mode (`_dds_color_scheme`).
-   - When the active theme does *not* configure `dark_mode`, the topbar toggle button is disabled with the tooltip `"Consumer theme does not support dark mode"`. Previews are strictly locked to light mode (`ColorScheme.LIGHT`), ensuring that host operating system dark mode settings do not unexpectedly alter components that lack dark mode styles.
-   - Persisted via the `dds_color_scheme` cookie and `localStorage` (or `_dds_color_scheme` query parameter).
-   - Dispatches a `dds:consumer-color-scheme-change` DOM event.
+2. **Consumer Component Themes & Dark Mode (Previews + Frontend)** — `DesignSystemSettings.themes` and `DesignSystemSettings.default_theme`:
+   - Controls stylesheets, scripts, HTML attributes, and preview backgrounds for your components inside canvas iframes, markdown `canvas` blocks, and `{% global_stylesheets theme=... %}`.
+   - When multiple themes are configured, a Theme Selector dropdown appears in the topbar (`_dds_theme`).
+   - When the active theme defines `dark_mode=DarkModeConfig(...)`, the topbar Colour Scheme toggle (`action="toggle-consumer-color-scheme"`) becomes active (`_dds_color_scheme`). When `dark_mode` is omitted (`None`), previews lock strictly to `ColorScheme.LIGHT` so OS dark mode never bleeds into light-only themes.
+   - Persisted in `dds_theme` and `dds_color_scheme`, dispatching `dds:consumer-color-scheme-change`.
 
 ---
 
-## Configuring Gallery UI Themes (`GALLERY_UI_THEMES`)
+## Configuring Gallery UI Themes (`GallerySettings.ui_themes`)
 
-While `GALLERY_THEMES` configures component previews inside the canvas, `GALLERY_UI_THEMES` configures the appearance and capabilities of the **gallery chrome itself** (the navigation sidebar, topbar shell, documentation panes, and control widgets).
-
-### Built-in UI Themes
-
-The Django Design System ships with two built-in UI themes:
-
-| UI Theme Slug | Label | Dark Mode Support | Description |
-|:---|:---|:---|:---|
-| `desert` | **Desert** *(Default)* | Yes | Modern warm palette with full light and dark mode styling. |
-| `classic` | **Classic** | No *(Light-only)* | Traditional minimalist palette. Locks all UI tokens to light mode (`color-scheme: light`) and disables the dark mode switcher. |
-
-### Defining Custom UI Themes
-
-You can define custom gallery UI themes in your Django `settings.py`:
+Extend `DDS_DEFAULT_UI_THEMES` with custom `Theme` instances in `settings.py`:
 
 ```python
-DJ_DESIGN_SYSTEM = {
-    "GALLERY_UI_THEMES": {
-        "desert": {
-            "label": "Desert",
-            "dark_mode": {},
+from dj_design_system.config import (
+    DDS_DEFAULT_UI_THEMES,
+    DarkModeConfig,
+    DesignSystemSettings,
+    GallerySettings,
+    Theme,
+)
+
+DJ_DESIGN_SYSTEM = DesignSystemSettings(
+    gallery=GallerySettings(
+        ui_themes={
+            **DDS_DEFAULT_UI_THEMES,
+            "corporate": Theme(
+                label="Corporate Slate",
+                css=("css/gallery-theme-corporate.css",),
+                js=("js/gallery-theme-corporate.js",),
+                dark_mode=DarkModeConfig(
+                    css=("css/gallery-theme-corporate-dark.css",),
+                ),
+            ),
         },
-        "classic": {
-            "label": "Classic",
-            # No dark_mode defined: light-only
-        },
-        "corporate": {
-            "label": "Corporate Slate",
-            "css": ["css/gallery-theme-corporate.css"],
-            "js": ["js/gallery-theme-corporate.js"],
-            "dark_mode": {
-                "css": ["css/gallery-theme-corporate-dark.css"],
-            },
-        },
-    },
-    "GALLERY_DEFAULT_UI_THEME": "desert",
-}
+        default_ui_theme="desert",
+    ),
+)
 ```
 
-### Key Properties of a UI Theme Configuration
-
-Each entry in `GALLERY_UI_THEMES` accepts:
-
-- **`label`** (`str`): The display label rendered in the sidebar footer UI theme dropdown.
-- **`css`** (`list[str]`): Static CSS file paths or external URLs injected into the `<head>` of the gallery chrome via `{% gallery_ui_theme_stylesheets %}`.
-- **`js`** (`list[str]`): Static JS file paths or external URLs injected before `</body>` via `{% gallery_ui_theme_scripts %}`.
-- **`css_bundles` / `js_bundles`** (`list[tuple[str, ...]]`): Optional Webpack bundle specifications.
-- **`html_attrs`** (`dict`): Custom attributes for the document element.
-- **`dark_mode`** (`dict | None`): Explicit dark mode configuration.
-  - When **defined** (`dark_mode={...}`), the theme's `supports_dark_mode` evaluates to `True`, enabling the sidebar light/dark mode switcher. Additional `css`, `js`, `css_bundles`, `js_bundles`, or `html_attrs` defined inside `dark_mode` are loaded when dark mode is activated.
-  - When **omitted** (or `None`), the theme's `supports_dark_mode` evaluates to `False`. The sidebar theme toggle is disabled with the tooltip `"<Theme> theme does not support dark mode"`, and the chrome strictly renders in light mode (`color-scheme: light`), guaranteeing that system `prefers-color-scheme: dark` settings do not bleed into the theme.
-
-### Scoped CSS Classes for Custom UI Themes
-
-When an active UI theme other than `"desert"` is selected, the gallery automatically attaches `gallery-ui-theme-<value>` to both `<html>` and `<dds-gallery-shell>`. This allows you to scope Tier 2 token overrides cleanly in your custom CSS:
+When a UI theme other than `"desert"` is active, the gallery attaches `.gallery-ui-theme-<slug>` to `<html>` and `<dds-gallery-shell>`, letting you scope Tier 2 token overrides cleanly:
 
 ```css
-/* Custom UI theme styling */
 .gallery-ui-theme-corporate {
   --dds-color-accent: #2563eb;
   --dds-surface-sidebar-bg-color: #1e293b;
   --dds-surface-sidebar-text-color: #f8fafc;
 }
 
-/* Dark mode styling (when dark_mode is configured) */
 .gallery-ui-theme-corporate.gallery-theme-dark {
   --dds-color-accent: #60a5fa;
   --dds-surface-sidebar-bg-color: #0f172a;
@@ -106,194 +72,110 @@ When an active UI theme other than `"desert"` is selected, the gallery automatic
 
 ---
 
-## Configuring Consumer Themes (`GALLERY_THEMES`)
+## Configuring Consumer Themes (`DesignSystemSettings.themes`)
 
-Themes allow you to customize the styling and attributes of your components inside the gallery sandbox, and provide a **Theme Manager** to style the actual frontend of your project.
-
-Define your themes in your Django `settings.py` file under `DJ_DESIGN_SYSTEM`:
+Consumer themes sit at the top level of `DesignSystemSettings` because they are used both inside the gallery and at runtime via `{% global_stylesheets theme=... %}`:
 
 ```python
-DJ_DESIGN_SYSTEM = {
-    "GALLERY_THEMES": {
-        "brand": {
-            "label": "Brand Theme",
-            "canvas_background": "white",
-            "html_attrs": {
+from dj_design_system.config import (
+    CanvasBackground,
+    DarkModeConfig,
+    DesignSystemSettings,
+    Theme,
+)
+
+DJ_DESIGN_SYSTEM = DesignSystemSettings(
+    themes={
+        "brand": Theme(
+            label="Brand Theme",
+            canvas_background="white",
+            html_attrs={
                 "html": {"data-theme": "brand-light"},
                 "body": {"class": "brand-theme-light"},
             },
-            "css": ["css/brand.css"],
-            "js": ["js/brand.js"],
-            "css_bundles": [],
-            "js_bundles": [],
-            # Explicit dark mode support for this theme:
-            "dark_mode": {
-                "canvas_background": "dark-grey",
-                "html_attrs": {
+            css=("css/brand.css",),
+            js=("js/brand.js",),
+            dark_mode=DarkModeConfig(
+                canvas_background=CanvasBackground(label="Midnight", color="#1a1a2e"),
+                html_attrs={
                     "html": {"data-theme": "brand-dark"},
                     "body": {"class": "brand-theme-dark"},
                 },
-                "css": ["css/brand-dark.css"],
-                "js": [],
-                "css_bundles": [],
-                "js_bundles": [],
-            },
-        },
-        "classic": {
-            "label": "Classic (Light Only)",
-            "canvas_background": "light-grey",
-            "html_attrs": {
-                "html": {"data-theme": "classic"},
-            },
-            "css": ["css/classic.css"],
-            # No dark_mode defined: consumer color scheme toggle will be disabled when active
-        },
+                css=("css/brand-dark.css",),
+            ),
+        ),
+        "classic": Theme(
+            label="Classic (Light Only)",
+            canvas_background="light-grey",
+            html_attrs={"html": {"data-theme": "classic"}},
+            css=("css/classic.css",),
+        ),
     },
-    "GALLERY_DEFAULT_THEME": "brand",
-}
-```
-
-### Key Properties of a Theme Configuration
-
-Each entry in `GALLERY_THEMES` is keyed by its unique slug identifier and accepts the following properties:
-
-- **`label`**: The display label rendered in the gallery topbar theme dropdown. Defaults to capitalized key.
-- **`canvas_background`**: An optional default background for the preview iframe when this theme is active. Can be a built-in slug (`"white"`, `"light-grey"`, `"dark-grey"`, `"black"`, `"checkerboard"`) or a custom dictionary (e.g. `{"label": "Midnight", "color": "#1a1a2e"}`).
-- **`html_attrs`**: A dict of HTML attributes to inject into the `<html>` and `<body>` tags of the canvas iframe (e.g. `{"html": {"data-theme": "brand"}, "body": {"class": "brand-body"}}`).
-- **`css` / `js`**: Lists of static files or external URLs to load when this theme is active.
-- **`css_bundles` / `js_bundles`**: Lists of Webpack bundle arguments to pass to `webpack_loader.utils.get_files` (e.g. `[("main",)]` or `[("main", "MY_CONFIG")]`).
-- **`dark_mode`**: An optional dictionary specifying dark mode overrides and additions for this theme.
-
-### Dark Mode Configuration (`dark_mode`)
-
-When `dark_mode` is configured on a theme, the theme's `supports_dark_mode` property evaluates to `True`, enabling the color scheme toggle button in the gallery topbar.
-
-The `dark_mode` dictionary accepts:
-
-- **`canvas_background`**: An optional background applied to the preview canvas when dark mode is active. Can be a built-in slug (e.g. `"dark-grey"`, `"black"`) or a custom dictionary (e.g. `{"label": "Dark Surface", "color": "#1e1e2e"}`). If omitted, the base theme background is used.
-- **`html_attrs`**: HTML attributes merged into `<html>` and `<body>` tags when dark mode is active. Matching keys override the base theme attributes (e.g. swapping `data-theme="brand-light"` to `data-theme="brand-dark"`).
-- **`css`**: Additional stylesheets loaded in addition to the base theme CSS when dark mode is active.
-- **`js`**: Additional scripts loaded in addition to the base theme JS when dark mode is active.
-- **`css_bundles` / `js_bundles`**: Additional Webpack bundles loaded when dark mode is active.
-
-### Typed Theme Objects
-
-For typing and programmatic access, `dj_design_system.types` exposes dataclasses:
-
-```python
-from dj_design_system.types import ColorScheme, DarkModeConfig, Theme
-
-theme = Theme(
-    value="dds",
-    label="Django Design System",
-    html_attrs={"html": {"class": "gallery-theme-light"}},
-    canvas_background="white",
-    dark_mode=DarkModeConfig(
-        html_attrs={"html": {"class": "gallery-theme-dark"}},
-        canvas_background="dark-grey",
-    ),
+    default_theme="brand",
 )
-
-assert theme.supports_dark_mode is True
 ```
 
-Use `get_themes()` from `dj_design_system.settings` to retrieve all normalized `Theme` instances, or `get_theme(identifier)` to fetch a single theme.
+- **`Theme.value`** is populated automatically from the mapping key when omitted.
+- **`canvas_background`** accepts either a slug defined in `CanvasSettings.backgrounds` (`"white"`, `"light-grey"`, `"dark-grey"`, `"black"`, `"checkerboard"`) or an inline `CanvasBackground(color=..., label=...)`.
+- **`dark_mode`**: when set to a `DarkModeConfig(...)`, `theme.supports_dark_mode` is `True`; its `html_attrs` merge over the base theme's attributes (a `None` value acts as a deletion tombstone), and its `css` / `js` / bundles append after the base theme's assets.
 
-> **Demo Examples**:
-> - Run `just demo dds` to browse the built-in DDS component library with explicit dark mode support enabled (defined in `example_project/settings_dds_gallery.py`). Toggle the sun/moon icon in the topbar to watch the component canvas seamlessly adapt between light and dark modes.
-> - Run `just demo` to inspect the multi-theme setup in `example_project/settings.py`. Toggle between "Default Theme" and "Dark Theme" in the topbar. Notice that because these legacy demo themes do not declare an internal `dark_mode` config, the consumer color scheme button is gracefully disabled.
+Programmatic callers can read configured themes through `dj_design_system.services.config` (`get_themes()`, `get_theme(identifier=...)`, `get_default_theme()`).
 
 ---
 
-## App-Specific Assets and Canvas Attributes
+## Theme Availability Cascade
 
-If you have multiple Django apps under the same codebase, you can restrict or load specific static assets and body classes for components belonging to particular apps.
+By default, every component supports every theme in `DesignSystemSettings.themes`. Restrict theme availability at any tier (highest to lowest priority):
 
-### Settings Configuration
-Configure app-specific assets and canvas HTML attributes in `settings.py`:
-
-```python
-DJ_DESIGN_SYSTEM = {
-    "APP_CSS": {
-        "admin_portal": ["admin/css/portal.css"],
-    },
-    "APP_JS": {
-        "admin_portal": ["admin/js/portal.js"],
-    },
-    "APP_CANVAS_HTML_ATTRS": {
-        "admin_portal": {
-            "body": {"class": "admin-portal-active"},
-        },
-    },
-}
-```
-
-When a component from `admin_portal` is rendered in the sandbox canvas:
-1. The global styles (`GLOBAL_CSS` / `GLOBAL_JS`) are loaded.
-2. The active theme styles and attributes are applied.
-3. The app-specific styles (`APP_CSS` / `APP_JS`) and `APP_CANVAS_HTML_ATTRS` are applied.
-4. The component's own CSS/JS are loaded.
-
----
-
-## Controlling Theme Availability (Cascade)
-
-By default, all components are rendered in all configured `GALLERY_THEMES`. You can restrict which themes are supported by a component or an entire app via the cascade.
-
-### Cascade Rules (High to Low Priority):
-
-1. **Component Meta**: Declare `available_themes` list in the component's inner `Meta` class:
+1. **Component `Meta.available_themes`**:
    ```python
-   class InfoCardComponent(BaseComponent):
+   class InfoCardComponent(TagComponent):
        class Meta:
-           available_themes = ["dark"]
+           available_themes = ("dark",)
    ```
-   *In this case, the theme selector in the gallery sandbox toolbar will lock/disable or only show "Dark Theme".*
-
-2. **App-wide defaults (`APP_THEMES`)**: Restrict all components in a specific Django app via `settings.py`:
+2. **Project per-app override (`DJ_DESIGN_SYSTEM.apps[label].themes`)**:
    ```python
-   DJ_DESIGN_SYSTEM = {
-       "APP_THEMES": {
-           "public_site": ["default", "light"],
-           "admin_portal": ["default", "dark"],
+   DJ_DESIGN_SYSTEM = DesignSystemSettings(
+       apps={
+           "admin_portal": AppSettings(themes=("default", "dark")),
        }
-   }
+   )
    ```
-
-3. **Global fallback**: If none of the above are defined, the component supports all themes defined in `GALLERY_THEMES`.
+3. **App default (`AppConfig.design_system.themes`)**:
+   ```python
+   class PublicSiteConfig(AppConfig):
+       name = "public_site"
+       design_system = AppSettings(themes=("default", "brand"))
+   ```
+4. **Project global fallback (`DesignSystemSettings.themes`)**: all configured project themes (`themes=None` explicitly restores all project themes; `themes=()` allows none).
 
 ---
 
 ## Frontend Integration (Theme Manager)
 
-The global stylesheet and script templatetags can act as a **Theme Manager** in your actual templates:
+Use `{% global_stylesheets %}` and `{% global_scripts %}` in your production base template to emit the exact same asset cascade (project global → active theme → app assets) used in the gallery canvas:
 
-```django
+```htmldjango
 {% load design_components %}
 
-{# Dynamically loads global, theme, and app-specific styles #}
 {% global_stylesheets app_label=request.resolver_match.app_name theme=request.session.user_theme %}
-
-{# Dynamically loads global, theme, and app-specific scripts #}
 {% global_scripts app_label=request.resolver_match.app_name theme=request.session.user_theme %}
 ```
-
-This single tag intelligently renders the correct cascade of `link` and `script` tags (resolving Webpack bundles and static files without duplicate loading), maintaining perfect parity with the gallery sandbox canvas.
 
 ---
 
 <a id="theming-the-gallery-ui-with-tier-2---dds--tokens"></a>
 ## Theming the Gallery UI with Tier 2 `--dds-*` Tokens
 
-The built-in `dds` gallery UI uses a **CUBE CSS** `@layer` cascade (`@layer reset, tokens, global, composition, blocks, utilities;`) and a **3-Tier Design Token System** defined in `dj_design_system/static/dj_design_system/tokens.css`:
+The built-in `dds` gallery UI uses a **CUBE CSS** cascade (`@layer reset, tokens, global, composition, blocks, utilities;`) and a 3-tier token architecture defined in `dj_design_system/static/dj_design_system/tokens.css`:
 
-1. **Tier 1 (`--_dds-*`) — Private Primitives**: Internal palette and scale primitives defined on `:root`. Never reference or override `--_dds-*` variables in consumer stylesheets.
-2. **Tier 2 (`--dds-*`) — Public Semantic Contract**: Public semantic tokens across six domains (`layer`/`surface`, `font`/`text`, `space`/`layout`, `state`, `control`, `status`) defined on `:root` and `.gallery-theme-dark`, plus contextual `[data-surface='<name>']` scopes (`stage`, `code`, `docs`, `sandbox`, `topbar`, `sidebar`, `popout`, `overlay`).
-3. **Tier 3 (`--_<component>-*`) — Component-Scoped Tokens**: Private tokens scoped to individual `.dds-<component>` roots, mapped exclusively from Tier 2 `--dds-*` tokens.
+1. **Tier 1 (`--_dds-*`) — Private Primitives**: internal palette and scale values on `:root`. Never reference or override `--_dds-*` in consumer stylesheets.
+2. **Tier 2 (`--dds-*`) — Public Semantic Contract**: semantic tokens across `layer`/`surface`, `font`/`text`, `space`/`layout`, `state`, `control`, and `status`, plus contextual `[data-surface='<name>']` scopes (`stage`, `code`, `docs`, `sandbox`, `topbar`, `sidebar`, `popout`, `overlay`).
+3. **Tier 3 (`--_<component>-*`) — Component Tokens**: private tokens scoped to `.dds-<component>` roots, derived strictly from Tier 2 tokens.
 
 ### Customising Tier 2 `--dds-*` Tokens
 
-To re-theme the gallery chrome or reuse `dds__*` components with your brand palette, override the public Tier 2 `--dds-*` tokens on `:root` and `.gallery-theme-dark` (see [`example_project/static/example_project/theme-dds-consumer.css`](https://github.com/fukalite/dj-design-system/blob/main/example_project/static/example_project/theme-dds-consumer.css)):
+Load a custom stylesheet via `GallerySettings(extra_css=("myapp/css/gallery-theme.css",))` and override public `--dds-*` tokens on `:root` and `.gallery-theme-dark` (see [`example_project/static/example_project/theme-dds-consumer.css`](https://github.com/fukalite/dj-design-system/blob/main/example_project/static/example_project/theme-dds-consumer.css)):
 
 ```css
 :root {
@@ -321,7 +203,7 @@ To re-theme the gallery chrome or reuse `dds__*` components with your brand pale
 
 ### Every Layout `<l-*>` Composition Primitives
 
-`dj_design_system/static/dj_design_system/composition.css` provides 11 intrinsic **Every Layout** composition primitives in `@layer composition` that can be used as custom elements (`<l-*>`) or classes (`.l-*`):
+`dj_design_system/static/dj_design_system/composition.css` provides 11 intrinsic **Every Layout** primitives in `@layer composition` usable as custom elements (`<l-*>`) or classes (`.l-*`):
 
 - `<l-stack>` / `.l-stack` — vertical flow rhythm (`--stack-space`)
 - `<l-cluster>` / `.l-cluster` — wrapping horizontal groups (`--cluster-space`, `--cluster-align`, `--cluster-justify`)
@@ -334,4 +216,3 @@ To re-theme the gallery chrome or reuse `dds__*` components with your brand pale
 - `<l-grid>` / `.l-grid` — auto-fit responsive card grid (`--grid-min`, `--grid-space`)
 - `<l-reel>` / `.l-reel` — horizontal scrolling track (`--reel-space`, `--reel-item-width`)
 - `<l-imposter>` / `.l-imposter` — positioned overlay/modal container (`--imposter-margin`)
-
